@@ -1,0 +1,17 @@
+# Miscellaneous
+.DS_Store
+.vscode/
+.idea/
+datos_prueba_quebrado.json
+
+# Flutter subproject build artifacts (handled by nested .gitignore, but listed here for safety)
+quebrado-app-flutter/.dart_tool/
+quebrado-app-flutter/build/
+quebrado-app-flutter/.pub/
+quebrado-app-flutter/.flutter-plugins-dependencies
+quebrado-app-flutter/.flutter-plugins
+quebrado-app-flutter/android/app/debug/
+quebrado-app-flutter/android/app/profile/
+quebrado-app-flutter/android/app/release/
+quebrado-app-flutter/android/build/
+quebrado-app-flutter/Quebrado.apk
