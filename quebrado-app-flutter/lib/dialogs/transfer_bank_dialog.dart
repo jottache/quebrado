@@ -16,6 +16,7 @@ class TransferBankBottomSheet extends StatefulWidget {
   final CurrencyType selectedCurrency;
   final AppState appState;
   final PendingOccurrence? preselectedPendingOccurrence;
+  final bool openedFromCalculator;
 
   const TransferBankBottomSheet({
     super.key,
@@ -23,6 +24,7 @@ class TransferBankBottomSheet extends StatefulWidget {
     required this.selectedCurrency,
     required this.appState,
     this.preselectedPendingOccurrence,
+    this.openedFromCalculator = false,
   });
 
   @override
@@ -261,8 +263,10 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
             Navigator.of(dialogCtx).pop();
             // Pop TransferBankBottomSheet
             Navigator.of(context).pop();
-            // Pop CalculatorBottomSheet
-            Navigator.of(context).pop();
+            if (widget.openedFromCalculator) {
+              // Pop CalculatorBottomSheet
+              Navigator.of(context).pop();
+            }
             // Redirect to History
             widget.appState.setTabIndex(2);
           },

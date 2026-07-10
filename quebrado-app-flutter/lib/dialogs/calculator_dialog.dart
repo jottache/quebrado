@@ -494,6 +494,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                     initialAmount: _amount,
                     selectedCurrency: _selectedCurrency,
                     appState: appState,
+                    openedFromCalculator: true,
                   ),
                 );
               },
