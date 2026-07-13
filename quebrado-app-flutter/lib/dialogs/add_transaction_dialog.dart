@@ -8,11 +8,11 @@ import '../models/currency_type.dart';
 import '../models/account.dart';
 import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
-import '../models/mobile_payment_recipient.dart';
 import '../screens/mobile_payment_recipient_screen.dart' show venezuelanBanks;
 import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
 import '../models/saving_pocket.dart';
+import 'cross_profile_transfer_dialog.dart';
 
 enum RateSource { bcv, paralelo, euro }
 
@@ -65,7 +65,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
   String? _selectedCategoryId;
   String? _destinationPocketId;
   final _noteController = TextEditingController();
-  RateSource _selectedRateSource = RateSource.bcv;
+  final RateSource _selectedRateSource = RateSource.bcv;
   String? _selectedAccountId;
   String _vesMode = "bcv";
   final _customRateController = TextEditingController();
@@ -210,7 +210,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("El monto debe ser mayor a cero."),
           backgroundColor: AppColors.expense,
         ),
@@ -225,7 +225,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
 
       if (alias.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("El nombre o alias del beneficiario es obligatorio."),
             backgroundColor: AppColors.expense,
           ),
@@ -234,7 +234,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       }
       if (idNum.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("La cédula o RIF del beneficiario es obligatoria."),
             backgroundColor: AppColors.expense,
           ),
@@ -243,7 +243,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       }
       if (phone.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("El número de teléfono es obligatorio."),
             backgroundColor: AppColors.expense,
           ),
@@ -252,7 +252,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       }
       if (phone.length < 10) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("El número de teléfono debe tener al menos 10 dígitos."),
             backgroundColor: AppColors.expense,
           ),
@@ -268,7 +268,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text("Autenticación biométrica fallida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
@@ -290,22 +290,18 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     );
     final isAccVES = selectedAcc.currency == CurrencyType.bsBCV;
 
-    final CurrencyType txCurrency;
+    final CurrencyType txCurrency = selectedAcc.currency;
     final double rate;
 
     if (isAccVES) {
       if (_vesMode == 'eur') {
-        txCurrency = CurrencyType.eur;
         rate = appState.euroRate;
       } else if (_vesMode == 'custom') {
-        txCurrency = CurrencyType.usd;
         rate = double.tryParse(_customRateController.text) ?? appState.parallelRate;
       } else {
-        txCurrency = CurrencyType.usd;
         rate = appState.bcvRate;
       }
     } else {
-      txCurrency = CurrencyType.usd;
       rate = appState.bcvRate;
     }
 
@@ -388,30 +384,30 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       barrierDismissible: true,
       builder: (dialogCtx) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        insetPadding: EdgeInsets.symmetric(horizontal: 24),
         child: ClaymorphicCard(
           cornerRadius: 24,
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.expense.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.warning_amber_rounded,
                     color: AppColors.expense,
                     size: 48,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Center(
+              SizedBox(height: 16),
+              Center(
                 child: Text(
                   "¿Eliminar Movimiento?",
                   style: TextStyle(
@@ -421,8 +417,8 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 12),
+              Text(
                 "¿Estás seguro de que deseas eliminar este movimiento? Esta acción es permanente y recalculará todos los balances y proyecciones correspondientes.",
                 style: TextStyle(
                   fontSize: 13,
@@ -431,19 +427,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       onPressed: () => Navigator.pop(dialogCtx),
-                      child: const Text(
+                      child: Text(
                         "Cancelar",
                         style: TextStyle(
                           fontSize: 14,
@@ -453,13 +449,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.expense,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -470,7 +466,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         appState.deleteTransaction(widget.editingTransaction!);
                         Navigator.pop(context);
                       },
-                      child: const Text(
+                      child: Text(
                         "Eliminar",
                         style: TextStyle(
                           fontSize: 14,
@@ -528,7 +524,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -542,30 +538,48 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                       : (_transactionType == TransactionType.income
                           ? "Registrar Ingreso"
                           : "Registrar Gasto"),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(context),
+                Row(
+                  children: [
+                    if (widget.editingTransaction == null && appState.profiles.length > 1)
+                      IconButton(
+                        icon: Icon(Icons.sync_alt_rounded, color: AppColors.primary),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => CrossProfileTransferBottomSheet(appState: appState),
+                          );
+                        },
+                        tooltip: "Transferir a otro libro",
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // 1. Transaction Type Selector
                     Container(
-                      padding: const EdgeInsets.all(4.0),
+                      padding: EdgeInsets.all(4.0),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12),
@@ -582,7 +596,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
@@ -599,13 +613,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               0.05,
                                             ),
                                             blurRadius: 4,
-                                            offset: const Offset(0, 2),
+                                            offset: Offset(0, 2),
                                           ),
                                         ]
                                       : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text(
+                                child: Text(
                                   "Ingreso",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -625,7 +639,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
@@ -644,13 +658,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               0.05,
                                             ),
                                             blurRadius: 4,
-                                            offset: const Offset(0, 2),
+                                            offset: Offset(0, 2),
                                           ),
                                         ]
                                       : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text(
+                                child: Text(
                                   "Gasto",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -663,12 +677,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 1b. Account Selector
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -681,11 +695,11 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           DropdownButtonFormField<String>(
-                            value: _selectedAccountId,
+                            initialValue: _selectedAccountId,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(
+                              contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
@@ -697,7 +711,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               fillColor: Colors.black.withOpacity(0.03),
                             ),
                             dropdownColor: AppColors.cardBackground,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.cardText,
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -722,10 +736,10 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         size: 14,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Text(
                                       "${acc.name} (${isUsd ? formatUSD(acc.balance) : formatBs(acc.balance)})",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
@@ -752,12 +766,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 2. Amount Input Card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         vertical: 20.0,
                         horizontal: 16.0,
                       ),
@@ -772,42 +786,43 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           TextField(
                             controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(
+                            keyboardType: TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            style: const TextStyle(
+                            inputFormatters: [CommaTextInputFormatter()],
+                            style: TextStyle(
                               fontSize: 36,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardText,
                             ),
                             textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: "0.00",
                               border: InputBorder.none,
                               hintStyle: TextStyle(color: AppColors.cardSubtitleText),
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           if (!isAccVES) ...[
                             // USD account: non-interactive tab for USD
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
                                   color: AppColors.nestedTabActiveBg,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text(
+                                child: Text(
                                   "USD (\$)",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -820,7 +835,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ] else ...[
                             // VES account: interactive tabs for BCV, EUR, Tasa
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(12),
@@ -831,7 +846,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'bcv'),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'bcv'
                                               ? AppColors.nestedTabActiveBg
@@ -856,7 +871,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'eur'),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'eur'
                                               ? AppColors.nestedTabActiveBg
@@ -881,7 +896,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'custom'),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'custom'
                                               ? AppColors.nestedTabActiveBg
@@ -919,14 +934,15 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   letterSpacing: 1.0,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               TextField(
                                 controller: _customRateController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [CommaTextInputFormatter()],
                                 decoration: InputDecoration(
                                   hintText: "Ej: 45.00",
                                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
@@ -934,7 +950,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   filled: true,
                                   fillColor: Colors.black.withOpacity(0.03),
                                 ),
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
@@ -942,12 +958,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // 3. General Details Card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -960,7 +976,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Pocket selection
                           if (!isAccVES || _vesMode != 'eur') ...[
@@ -974,11 +990,11 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 color: AppColors.cardText,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             DropdownButtonFormField<String?>(
-                              value: _destinationPocketId,
+                              initialValue: _destinationPocketId,
                               decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
+                                contentPadding: EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
@@ -990,13 +1006,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 fillColor: Colors.black.withOpacity(0.03),
                               ),
                               dropdownColor: AppColors.cardBackground,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.cardText,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
                               items: [
-                                const DropdownMenuItem<String?>(
+                                DropdownMenuItem<String?>(
                                   value: null,
                                   child: Text(
                                     "Balance Libre (Efectivo/Banco)",
@@ -1012,7 +1028,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     value: pocket.id,
                                     child: Text(
                                       "Bolsillo: ${pocket.name}",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
@@ -1025,7 +1041,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 setState(() => _destinationPocketId = pocketId);
                               },
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                           ],
 
                           // Pago Móvil Toggle & Fields (Conditional: account currency is Bs. & type is Expense)
@@ -1033,7 +1049,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "¿Es Pago Móvil?",
                                   style: TextStyle(
                                     fontSize: 13,
@@ -1043,7 +1059,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 ),
                                 Switch(
                                   value: _isMobilePayment,
-                                  activeColor: AppColors.primary,
+                                  activeThumbColor: AppColors.primary,
                                   onChanged: (val) {
                                     setState(() {
                                       _isMobilePayment = val;
@@ -1061,10 +1077,10 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               ],
                             ),
                             if (_isMobilePayment) ...[
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               ClaymorphicCard(
                                 cornerRadius: 18,
-                                padding: const EdgeInsets.all(16.0),
+                                padding: EdgeInsets.all(16.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
@@ -1077,18 +1093,18 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         letterSpacing: 1.0,
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
 
                                     // Selector de beneficiario
-                                    const Text(
+                                    Text(
                                       "Beneficiario",
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: 4),
                                     DropdownButtonFormField<String>(
-                                      value: _selectedRecipientId ?? 'manual',
+                                      initialValue: _selectedRecipientId ?? 'manual',
                                       decoration: InputDecoration(
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                         filled: true,
                                         fillColor: Colors.grey[100],
                                         border: OutlineInputBorder(
@@ -1097,9 +1113,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         ),
                                       ),
                                       dropdownColor: Colors.white,
-                                      style: const TextStyle(color: AppColors.cardText, fontSize: 13),
+                                      style: TextStyle(color: AppColors.cardText, fontSize: 13),
                                       items: [
-                                        const DropdownMenuItem<String>(
+                                        DropdownMenuItem<String>(
                                           value: 'manual',
                                           child: Text("Nuevo beneficiario / Ingresar manual"),
                                         ),
@@ -1138,20 +1154,20 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         });
                                       },
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
 
                                     // Alias/Nombre
-                                    const Text(
+                                    Text(
                                       "Nombre o Alias",
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: 4),
                                     TextField(
                                       controller: _mobilePaymentAliasController,
                                       decoration: InputDecoration(
                                         hintText: "Ej. Mamá, Pedro Pérez",
                                         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                        contentPadding: const EdgeInsets.all(12),
+                                        contentPadding: EdgeInsets.all(12),
                                         filled: true,
                                         fillColor: Colors.grey[100],
                                         border: OutlineInputBorder(
@@ -1159,21 +1175,21 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      style: const TextStyle(fontSize: 13, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
                                       onChanged: (_) => setState(() {}),
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
 
                                     // Banco
-                                    const Text(
+                                    Text(
                                       "Banco Receptor",
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: 4),
                                     DropdownButtonFormField<String>(
-                                      value: _selectedMobilePaymentBankCode ?? (venezuelanBanks.isNotEmpty ? venezuelanBanks.first["code"] : null),
+                                      initialValue: _selectedMobilePaymentBankCode ?? (venezuelanBanks.isNotEmpty ? venezuelanBanks.first["code"] : null),
                                       decoration: InputDecoration(
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                         filled: true,
                                         fillColor: Colors.grey[100],
                                         border: OutlineInputBorder(
@@ -1182,7 +1198,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         ),
                                       ),
                                       dropdownColor: Colors.white,
-                                      style: const TextStyle(color: AppColors.cardText, fontSize: 13),
+                                      style: TextStyle(color: AppColors.cardText, fontSize: 13),
                                       items: venezuelanBanks.map((b) {
                                         return DropdownMenuItem<String>(
                                           value: b["code"],
@@ -1193,14 +1209,14 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         setState(() => _selectedMobilePaymentBankCode = code);
                                       },
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
 
                                     // Cédula / RIF
-                                    const Text(
+                                    Text(
                                       "Cédula / RIF",
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: 4),
                                     Row(
                                       children: [
                                         Container(
@@ -1209,12 +1225,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                             color: Colors.grey[100],
                                             borderRadius: BorderRadius.circular(10),
                                           ),
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(horizontal: 8),
                                           child: DropdownButtonHideUnderline(
                                             child: DropdownButton<String>(
                                               value: _selectedMobilePaymentIdPrefix,
                                               dropdownColor: Colors.white,
-                                              style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                              style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
                                               items: ["V", "E", "J", "G"].map((prefix) {
                                                 return DropdownMenuItem<String>(
                                                   value: prefix,
@@ -1229,7 +1245,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8),
                                         Expanded(
                                           child: TextField(
                                             controller: _mobilePaymentIdCardController,
@@ -1237,7 +1253,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                             decoration: InputDecoration(
                                               hintText: "Número de identificación",
                                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                              contentPadding: const EdgeInsets.all(12),
+                                              contentPadding: EdgeInsets.all(12),
                                               filled: true,
                                               fillColor: Colors.grey[100],
                                               border: OutlineInputBorder(
@@ -1245,27 +1261,27 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                                 borderSide: BorderSide.none,
                                               ),
                                             ),
-                                            style: const TextStyle(fontSize: 13, color: AppColors.cardText),
+                                            style: TextStyle(fontSize: 13, color: AppColors.cardText),
                                             onChanged: (_) => setState(() {}),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
 
                                     // Teléfono
-                                    const Text(
+                                    Text(
                                       "Número de Teléfono",
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: 4),
                                     TextField(
                                       controller: _mobilePaymentPhoneController,
                                       keyboardType: TextInputType.phone,
                                       decoration: InputDecoration(
                                         hintText: "Ej. 04121234567",
                                         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                        contentPadding: const EdgeInsets.all(12),
+                                        contentPadding: EdgeInsets.all(12),
                                         filled: true,
                                         fillColor: Colors.grey[100],
                                         border: OutlineInputBorder(
@@ -1273,13 +1289,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      style: const TextStyle(fontSize: 13, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
                                       onChanged: (_) => setState(() {}),
                                     ),
                                     
                                     // Quick Save Checkbox
                                     if (!_checkIfContactExists(appState)) ...[
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: 12),
                                       Row(
                                         children: [
                                           SizedBox(
@@ -1293,13 +1309,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               },
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: 8),
                                           Expanded(
                                             child: GestureDetector(
                                               onTap: () {
                                                 setState(() => _saveToContacts = !_saveToContacts);
                                               },
-                                              child: const Text(
+                                              child: Text(
                                                 "Guardar en contactos Pago Móvil",
                                                 style: TextStyle(
                                                   fontSize: 12,
@@ -1315,7 +1331,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                             ],
                           ],
 
@@ -1328,7 +1344,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               color: AppColors.cardText,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _noteController,
                             decoration: InputDecoration(
@@ -1337,7 +1353,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 color: AppColors.cardSubtitleText,
                                 fontSize: 13,
                               ),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -1345,9 +1361,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Date picker row
                           Row(
@@ -1368,7 +1384,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
+                                  padding: EdgeInsets.symmetric(
                                     horizontal: 14,
                                     vertical: 8,
                                   ),
@@ -1384,13 +1400,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     setState(() => _selectedDate = date);
                                   }
                                 },
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.calendar_today_rounded,
                                   size: 14,
                                 ),
                                 label: Text(
                                   formatDate(_selectedDate),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1401,12 +1417,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // 4. Category Grid Selector
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1419,10 +1435,10 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           if (filteredCategories.isEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 vertical: 20.0,
                               ),
                               child: Center(
@@ -1438,9 +1454,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           else
                             GridView.builder(
                               shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
+                              physics: NeverScrollableScrollPhysics(),
                               gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                  SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: 3,
                                     crossAxisSpacing: 10,
                                     mainAxisSpacing: 10,
@@ -1470,7 +1486,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                           width: 1.5,
                                         ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         vertical: 10,
                                       ),
                                       child: Column(
@@ -1496,8 +1512,8 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               size: 20,
                                             ),
                                           ),
-                                          const SizedBox(height: 8),
-                                          const Text(
+                                          SizedBox(height: 8),
+                                          Text(
                                             "Ninguna",
                                             style: TextStyle(
                                               fontSize: 11,
@@ -1538,7 +1554,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         width: 1.5,
                                       ),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                       vertical: 10,
                                     ),
                                     child: Column(
@@ -1562,7 +1578,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                             size: 20,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        SizedBox(height: 8),
                                         Text(
                                           cat.name,
                                           style: TextStyle(
@@ -1584,11 +1600,11 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                       ),
                     ),
                     if (widget.editingTransaction != null) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       OutlinedButton.icon(
                         onPressed: () => _confirmDeleteTransaction(context, appState),
-                        icon: const Icon(Icons.delete_forever_rounded, color: AppColors.expense),
-                        label: const Text(
+                        icon: Icon(Icons.delete_forever_rounded, color: AppColors.expense),
+                        label: Text(
                           "Eliminar Movimiento",
                           style: TextStyle(
                             color: AppColors.expense,
@@ -1597,20 +1613,20 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.expense, width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: AppColors.expense, width: 1.5),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Save / Cancel Buttons Row
             Row(
@@ -1618,13 +1634,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(
                         fontSize: 15,
@@ -1634,7 +1650,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: appState.useSlideToConfirm
                       ? SlideToConfirmButton(
@@ -1646,7 +1662,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: EdgeInsets.symmetric(vertical: 14),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -1657,7 +1673,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               : () => _handleConfirmAction(appState),
                           child: Text(
                             widget.editingTransaction != null ? "Guardar" : "Registrar",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
@@ -1696,13 +1712,13 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppColors.cardSubtitleText,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Flexible(
           child: Text(
             value,
@@ -1796,17 +1812,17 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: 24),
       child: ClaymorphicCard(
         cornerRadius: 24,
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: themeColor.withOpacity(0.12),
                   shape: BoxShape.circle,
@@ -1818,19 +1834,19 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Center(
               child: Text(
                 isIncome ? "¡Ingreso Registrado!" : "¡Gasto Registrado!",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardText,
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            const Center(
+            SizedBox(height: 6),
+            Center(
               child: Text(
                 "La transacción ha sido guardada en la app",
                 style: TextStyle(
@@ -1840,9 +1856,9 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.background.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(16),
@@ -1855,27 +1871,27 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                     isIncome ? "Ingreso" : "Gasto",
                     themeColor,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Monto",
                     "${widget.transaction.currency.symbol} ${widget.transaction.amount.toStringAsFixed(2)}",
                     themeColor,
                     isBold: true,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Cuenta",
                     account.name,
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Categoría",
                     category.name,
                     AppColors.cardText,
                   ),
                   if (widget.transaction.note.isNotEmpty) ...[
-                    const Divider(height: 16),
+                    Divider(height: 16),
                     _buildDetailRow(
                       "Nota",
                       widget.transaction.note,
@@ -1887,8 +1903,8 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
             ),
 
             if (matchingPockets.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 "PLAN DE AHORRO AUTOMÁTICO",
                 style: TextStyle(
                   fontSize: 10,
@@ -1897,9 +1913,9 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                   letterSpacing: 1.0,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.nestedTabTrackBg,
                   borderRadius: BorderRadius.circular(16),
@@ -1916,11 +1932,11 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                     final isProvisioned = _provisionedPocketIds.contains(pocket.id);
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: EdgeInsets.all(6),
                             decoration: BoxDecoration(
                               color: parseHexColor(pocket.colorHex).withOpacity(0.12),
                               shape: BoxShape.circle,
@@ -1931,14 +1947,14 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                               size: 14,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   pocket.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardText,
@@ -1963,7 +1979,7 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -1990,7 +2006,7 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                                         SnackBar(
                                           content: Text("Apartado \$${suggestUSD.toStringAsFixed(2)} a ${pocket.name}"),
                                           backgroundColor: AppColors.income,
-                                          duration: const Duration(seconds: 2),
+                                          duration: Duration(seconds: 2),
                                         ),
                                       );
                                     }
@@ -1999,18 +2015,18 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (isProvisioned) ...[
-                                  const Icon(Icons.check_circle_outline_rounded, size: 12),
-                                  const SizedBox(width: 4),
-                                  const Text(
+                                  Icon(Icons.check_circle_outline_rounded, size: 12),
+                                  SizedBox(width: 4),
+                                  Text(
                                     "Ahorrado",
                                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ] else ...[
-                                  const Icon(Icons.auto_awesome_rounded, size: 10),
-                                  const SizedBox(width: 4),
+                                  Icon(Icons.auto_awesome_rounded, size: 10),
+                                  SizedBox(width: 4),
                                   Text(
                                     "Ahorrar \$${suggestUSD.toStringAsFixed(2)}",
-                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ],
@@ -2024,12 +2040,12 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -2039,7 +2055,7 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                 Navigator.pop(context);
                 widget.appState.setTabIndex(2); // Go to history screen
               },
-              child: const Text(
+              child: Text(
                 "Entendido",
                 style: TextStyle(
                   fontSize: 13,

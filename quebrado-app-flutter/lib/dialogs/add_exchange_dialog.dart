@@ -177,7 +177,7 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -204,13 +204,13 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Compra / Venta de Divisas",
                   style: TextStyle(
                     fontSize: 18,
@@ -219,16 +219,16 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Tab Selector: Venta vs Compra
             Container(
-              padding: const EdgeInsets.all(4.0),
+              padding: EdgeInsets.all(4.0),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
@@ -239,7 +239,7 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                     child: GestureDetector(
                       onTap: () => setState(() => _isVenta = true),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           color: _isVenta ? Colors.white : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
@@ -248,13 +248,13 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.05),
                                     blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                    offset: Offset(0, 2),
                                   )
                                 ]
                               : null,
                         ),
                         alignment: Alignment.center,
-                        child: const Text(
+                        child: Text(
                           "Venta \$",
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
@@ -265,7 +265,7 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                     child: GestureDetector(
                       onTap: () => setState(() => _isVenta = false),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           color: !_isVenta ? Colors.white : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
@@ -274,13 +274,13 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.05),
                                     blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                    offset: Offset(0, 2),
                                   )
                                 ]
                               : null,
                         ),
                         alignment: Alignment.center,
-                        child: const Text(
+                        child: Text(
                           "Compra \$",
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
@@ -290,19 +290,19 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Main scrollable content
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // 1. Account selection card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -315,18 +315,18 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // USD Account Selector
                           Text(
                             _isVenta ? "Cuenta USD de Origen (Debitar \$)" : "Cuenta USD de Destino (Acreditar \$)",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           DropdownButtonFormField<String>(
-                            value: _selectedUsdAccountId,
+                            initialValue: _selectedUsdAccountId,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
@@ -347,10 +347,10 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                       decoration: BoxDecoration(color: accColor.withOpacity(0.15), shape: BoxShape.circle),
                                       child: Icon(getIconData(acc.icon), color: accColor, size: 12),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Text(
                                       "${acc.name} (${formatUSD(acc.balance)})",
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
                                   ],
                                 ),
@@ -358,18 +358,18 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                             }).toList(),
                             onChanged: (accId) => setState(() => _selectedUsdAccountId = accId),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // VES Account Selector
                           Text(
                             _isVenta ? "Cuenta VES de Destino (Acreditar Bs.)" : "Cuenta VES de Origen (Debitar Bs.)",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           DropdownButtonFormField<String>(
-                            value: _selectedVesAccountId,
+                            initialValue: _selectedVesAccountId,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
@@ -390,10 +390,10 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                       decoration: BoxDecoration(color: accColor.withOpacity(0.15), shape: BoxShape.circle),
                                       child: Icon(getIconData(acc.icon), color: accColor, size: 12),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Text(
                                       "${acc.name} (${formatBs(acc.balance)})",
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
                                   ],
                                 ),
@@ -404,12 +404,12 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 2. Data Entry Card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -422,21 +422,21 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Amount input
-                          const Text(
+                          Text(
                             "Monto a Cambiar (USD)",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               hintText: "0.00",
-                              prefixIcon: const Icon(Icons.attach_money_rounded),
-                              contentPadding: const EdgeInsets.all(14),
+                              prefixIcon: Icon(Icons.attach_money_rounded),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -444,24 +444,24 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Rate input
-                          const Text(
+                          Text(
                             "Tasa de Cambio Pactada (Bs. / \$)",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _rateController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               hintText: "0.00",
-                              prefixIcon: const Icon(Icons.show_chart_rounded),
-                              contentPadding: const EdgeInsets.all(14),
+                              prefixIcon: Icon(Icons.show_chart_rounded),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -469,19 +469,19 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 3. Live Metrics Card
                     if (amountUSD > 0 && rate > 0) ...[
                       ClaymorphicCard(
                         cornerRadius: 24,
-                        padding: const EdgeInsets.all(20.0),
+                        padding: EdgeInsets.all(20.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -494,23 +494,23 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                 letterSpacing: 1.0,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             // Total converted
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "Monto Resultante:",
                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                                 Text(
                                   formatBs(amountVES),
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary),
                                 ),
                               ],
                             ),
-                            const Divider(height: 24),
+                            Divider(height: 24),
 
                             // BCV Reference Row
                             Row(
@@ -518,19 +518,19 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                               children: [
                                 Text(
                                   "Tasa Oficial BCV (${formatBs(bcv)}):",
-                                  style: const TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                                  style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                                 ),
                                 Text(
                                   formatBs(bcvEquiv),
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "Diferencia vs BCV:",
                                   style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                                 ),
@@ -548,7 +548,7 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                 ),
                               ],
                             ),
-                            const Divider(height: 24),
+                            Divider(height: 24),
 
                             // Parallel Reference Row
                             Row(
@@ -556,19 +556,19 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                               children: [
                                 Text(
                                   "Tasa Paralelo (${formatBs(parallel)}):",
-                                  style: const TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                                  style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                                 ),
                                 Text(
                                   formatBs(parallelEquiv),
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "Diferencia vs Paralelo:",
                                   style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                                 ),
@@ -589,13 +589,13 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                     ],
 
                     // 4. Note concept card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -608,13 +608,13 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextField(
                             controller: _noteController,
                             decoration: InputDecoration(
                               hintText: "Ej. Venta a tasa paralela para pago de servicios",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -622,17 +622,17 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Save / Cancel row
             Row(
@@ -640,28 +640,28 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: !isValid ? null : () => _processExchange(appState),
-                    child: const Text(
+                    child: Text(
                       "Procesar Cambio",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
@@ -700,47 +700,47 @@ class ExchangeSuccessDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: 24),
       child: ClaymorphicCard(
         cornerRadius: 24,
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.income.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check_circle_outline_rounded,
                 color: AppColors.income,
                 size: 48,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               confirmedPaymentName != null ? "¡Cambio y Pago Registrados!" : "¡Cambio Registrado!",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               confirmedPaymentName != null
                   ? "Venta y pago de servicio confirmados"
                   : (isVenta ? "Venta de divisa procesada" : "Compra de divisa procesada"),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 color: AppColors.cardSubtitleText,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.background.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(16),
@@ -753,39 +753,39 @@ class ExchangeSuccessDialog extends StatelessWidget {
                     isVenta ? "Venta \$" : "Compra \$",
                     isVenta ? AppColors.expense : AppColors.income,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Monto USD",
                     formatUSD(amountUSD),
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Tasa de cambio",
                     formatRate(rate),
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Monto VES",
                     formatBs(amountVES),
                     AppColors.primary,
                     isBold: true,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Cuenta USD",
                     usdAccountName,
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Cuenta VES",
                     vesAccountName,
                     AppColors.cardText,
                   ),
                   if (confirmedPaymentName != null) ...[
-                    const Divider(height: 16),
+                    Divider(height: 16),
                     _buildDetailRow(
                       "Gasto Pagado",
                       confirmedPaymentName!,
@@ -795,7 +795,7 @@ class ExchangeSuccessDialog extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -805,9 +805,9 @@ class ExchangeSuccessDialog extends StatelessWidget {
                       Provider.of<AppState>(context, listen: false).setTabIndex(2);
                     },
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Cerrar",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -816,7 +816,7 @@ class ExchangeSuccessDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -826,13 +826,13 @@ class ExchangeSuccessDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Ver transacción",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -855,7 +855,7 @@ class ExchangeSuccessDialog extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             color: AppColors.cardSubtitleText,
           ),
@@ -935,7 +935,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -963,8 +963,8 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20),
+            Text(
               "¿Deseas registrar un pago?",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -973,27 +973,27 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               "Se recibieron ${formatBs(widget.amountVES)} en ${widget.vesAccountName}. Puedes usar estos fondos para pagar un gasto pendiente o registrar uno nuevo.",
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 color: AppColors.cardSubtitleText,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             if (hasSelection) ...[
               Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     "Fondos restantes: ${formatBs(remainingVES)}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -1001,13 +1001,13 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
             ],
 
             // Scrollable area for options
             Flexible(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -1021,7 +1021,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       ...vesPendingOccurrences.map((occ) {
                         final p = occ.payment;
                         final pocket = appState.pockets.cast<SavingPocket?>().firstWhere(
@@ -1038,7 +1038,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                         final isDisabled = !isSelected && costVES > remainingVES;
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
+                          padding: EdgeInsets.only(bottom: 12.0),
                           child: GestureDetector(
                             onTap: isDisabled
                                 ? null
@@ -1055,7 +1055,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                               opacity: isDisabled ? 0.45 : 1.0,
                               child: ClaymorphicCard(
                                 cornerRadius: 16,
-                                padding: const EdgeInsets.all(12.0),
+                                padding: EdgeInsets.all(12.0),
                                 child: Row(
                                   children: [
                                     Checkbox(
@@ -1073,9 +1073,9 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                               });
                                             },
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     Container(
-                                      padding: const EdgeInsets.all(10),
+                                      padding: EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: cardColor.withOpacity(0.12),
                                         shape: BoxShape.circle,
@@ -1086,14 +1086,14 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                         size: 20,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             p.name,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.cardText,
@@ -1102,10 +1102,10 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           if (pocket != null) ...[
-                                            const SizedBox(height: 4),
+                                            SizedBox(height: 4),
                                             Text(
                                               "Bolsillo: ${pocket.name}",
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 11,
                                                 color: AppColors.cardSubtitleText,
                                               ),
@@ -1114,7 +1114,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
@@ -1122,17 +1122,17 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                           p.currency == CurrencyType.usd 
                                               ? formatUSD(p.amount)
                                               : formatBs(p.amount),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w900,
                                             color: AppColors.expense,
                                           ),
                                         ),
                                         if (p.currency == CurrencyType.usd) ...[
-                                          const SizedBox(height: 2),
+                                          SizedBox(height: 2),
                                           Text(
                                             "~${formatBs(p.amount * bcv)} (BCV)",
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.cardSubtitleText,
@@ -1147,8 +1147,8 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                             ),
                           ),
                         );
-                      }).toList(),
-                      const SizedBox(height: 16),
+                      }),
+                      SizedBox(height: 16),
                     ],
 
                     Text(
@@ -1160,7 +1160,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                         letterSpacing: 1.0,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     GestureDetector(
                       onTap: () {
@@ -1178,7 +1178,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                         );
 
                         ScaffoldMessenger.of(navigator.context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text("¡Cambio registrado! Crea el nuevo pago."),
                             duration: Duration(seconds: 3),
                           ),
@@ -1186,23 +1186,23 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                       },
                       child: ClaymorphicCard(
                         cornerRadius: 16,
-                        padding: const EdgeInsets.all(16.0),
+                        padding: EdgeInsets.all(16.0),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(10),
+                              padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                   Icons.add_card_rounded,
                                   color: AppColors.primary,
                                   size: 20,
                                 ),
                             ),
-                            const SizedBox(width: 12),
-                            const Expanded(
+                            SizedBox(width: 12),
+                            Expanded(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1226,7 +1226,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                                 ],
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right_rounded,
                               color: AppColors.cardSubtitleText,
                             ),
@@ -1234,7 +1234,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -1245,7 +1245,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
               style: ElevatedButton.styleFrom(
                 backgroundColor: hasSelection ? AppColors.primary : Colors.grey[200],
                 foregroundColor: hasSelection ? Colors.white : Colors.black87,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -1315,7 +1315,7 @@ class _ExchangePaymentOptionsBottomSheetState extends State<ExchangePaymentOptio
               },
               child: Text(
                 hasSelection ? "Pagar" : "Omitir",
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),
           ],

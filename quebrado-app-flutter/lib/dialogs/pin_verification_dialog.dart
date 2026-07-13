@@ -63,7 +63,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
       backgroundColor: Colors.white,
       elevation: 8,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,31 +71,31 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
             Text(
               widget.title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               widget.subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.cardSubtitleText,
                 height: 1.3,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             // Pin indicators
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (index) {
                 final isFilled = index < _inputPin.length;
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  duration: Duration(milliseconds: 150),
+                  margin: EdgeInsets.symmetric(horizontal: 10),
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
@@ -109,18 +109,18 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
                 );
               }),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (_errorMessage != null)
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.expense,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             // Number keypad grid
             Column(
               children: [
@@ -128,17 +128,17 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [1, 2, 3].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [4, 5, 6].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [7, 8, 9].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -147,10 +147,10 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
                         onPressed: () => Navigator.of(context).pop(false),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.cardSubtitleText,
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(16),
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(16),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Cancelar",
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
@@ -160,10 +160,10 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
                     Expanded(
                       child: IconButton(
                         onPressed: _onBackspaceTap,
-                        icon: const Icon(Icons.backspace_outlined),
+                        icon: Icon(Icons.backspace_outlined),
                         color: AppColors.cardText,
                         iconSize: 20,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                       ),
                     ),
                   ],
@@ -179,7 +179,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
   Widget _buildKeypadButton(int val) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.symmetric(horizontal: 6.0),
         child: InkWell(
           onTap: () => _onNumberTap(val),
           borderRadius: BorderRadius.circular(40),
@@ -193,7 +193,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
             ),
             child: Text(
               val.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrado_app_flutter/viewmodels/app_state.dart';
 import 'package:quebrado_app_flutter/models/recurring_payment.dart';
-import 'package:quebrado_app_flutter/models/recurring_payment_partial.dart';
 import 'package:quebrado_app_flutter/models/currency_type.dart';
 import 'package:quebrado_app_flutter/models/transaction.dart';
 

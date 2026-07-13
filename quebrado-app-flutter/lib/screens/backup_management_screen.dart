@@ -72,7 +72,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
       await appState.createManualBackup();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("Copia de seguridad creada correctamente"),
             backgroundColor: AppColors.income,
           ),
@@ -101,25 +101,25 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text(
+              title: Text(
                 "¡Importación Exitosa!",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              content: const Text(
+              content: Text(
                 "La copia de seguridad ha sido importada de manera exitosa desde el archivo JSON seleccionado.",
                 style: TextStyle(fontSize: 13, height: 1.3),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Entendido"),
+                  child: Text("Entendido"),
                 ),
               ],
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text("Importación cancelada o fallida."),
               backgroundColor: AppColors.expense,
             ),
@@ -163,23 +163,23 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
+        title: Text(
           "Eliminar Copia de Seguridad",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        content: const Text(
+        content: Text(
           "¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad? Esta acción no se puede deshacer.",
           style: TextStyle(fontSize: 13, height: 1.3),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancelar"),
+            child: Text("Cancelar"),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.expense),
-            child: const Text("Eliminar"),
+            child: Text("Eliminar"),
           ),
         ],
       ),
@@ -198,23 +198,23 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
+        title: Text(
           "Restaurar Datos",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        content: const Text(
+        content: Text(
           "Se reemplazarán todas tus cuentas, transacciones y bolsillos actuales con los datos de esta copia de seguridad.\n\n¿Estás seguro de que deseas proceder?",
           style: TextStyle(fontSize: 13, height: 1.3),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancelar"),
+            child: Text("Cancelar"),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-            child: const Text("Proceder"),
+            child: Text("Proceder"),
           ),
         ],
       ),
@@ -230,7 +230,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (context) => const PinSetupBottomSheet(mode: PinSetupMode.create),
+        builder: (context) => PinSetupBottomSheet(mode: PinSetupMode.create),
       );
       if (created != true) return;
       
@@ -263,25 +263,25 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text(
+            title: Text(
               "¡Restauración Exitosa!",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            content: const Text(
+            content: Text(
               "Tus libros y transacciones han sido restaurados correctamente al estado de la copia de seguridad seleccionada.",
               style: TextStyle(fontSize: 13, height: 1.3),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Entendido"),
+                child: Text("Entendido"),
               ),
             ],
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("Error al restaurar los datos."),
             backgroundColor: AppColors.expense,
           ),
@@ -295,33 +295,33 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Copias de Seguridad",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ClaymorphicBackground(
         child: _isLoading
-            ? const Center(
+            ? Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
               )
             : SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
+                physics: BouncingScrollPhysics(),
+                padding: EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Segmented Tab Bar
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: AppColors.nestedTabTrackBg,
                         borderRadius: BorderRadius.circular(12),
@@ -341,13 +341,13 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     if (_selectedTab == 0) ...[
                       // Create backup card
                       ClaymorphicCard(
                         cornerRadius: 16,
-                        padding: const EdgeInsets.all(16.0),
+                        padding: EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -357,7 +357,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         "Resguardar Datos al Instante",
                                         style: TextStyle(
                                           fontSize: 14,
@@ -365,7 +365,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       Text(
                                         "Crea una copia de seguridad manual local con todos tus libros activos.",
                                         style: TextStyle(
@@ -379,7 +379,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _createManualBackup,
                               style: ElevatedButton.styleFrom(
@@ -387,24 +387,24 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Crear Copia de Seguridad Manual",
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             OutlinedButton(
                               onPressed: _importBackupFromFile,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
-                                side: const BorderSide(color: AppColors.primary),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                side: BorderSide(color: AppColors.primary),
+                                padding: EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Importar desde Archivo (.json)",
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
@@ -412,10 +412,10 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
 
                       // Title backup list
-                      const Text(
+                      Text(
                         "COPIAS DISPONIBLES",
                         style: TextStyle(
                           fontSize: 10,
@@ -424,11 +424,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
 
                       if (_backups.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24.0),
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
                           child: Text(
                             "No hay copias de seguridad disponibles.\nSe crean automáticamente todos los días.",
                             textAlign: TextAlign.center,
@@ -443,7 +443,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                         ..._backups.map((bk) => _buildBackupRow(bk)),
                     ] else ...[
                       // Restore history title
-                      const Text(
+                      Text(
                         "HISTORIAL DE RESTAURACIONES",
                         style: TextStyle(
                           fontSize: 10,
@@ -452,11 +452,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
 
                       if (_restoreHistory.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
                           child: Text(
                             "Aún no se han realizado restauraciones en este dispositivo.",
                             textAlign: TextAlign.center,
@@ -469,7 +469,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                       else
                         ClaymorphicCard(
                           cornerRadius: 16,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: EdgeInsets.symmetric(vertical: 8),
                           child: Column(
                             children: _restoreHistory
                                 .map((hist) => _buildHistoryRow(hist))
@@ -477,7 +477,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           ),
                         ),
                     ],
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -490,78 +490,80 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final isAuto = bk['is_auto'] as bool;
     final size = bk['size_bytes'] as double;
     final dt = bk['created_at'] as DateTime;
+    final path = bk['path'] as String? ?? '';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: ClaymorphicCard(
-        cornerRadius: 16,
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isAuto
-                    ? Colors.blue.withOpacity(0.08)
-                    : Colors.orange.withOpacity(0.08),
-                shape: BoxShape.circle,
+      padding: EdgeInsets.only(bottom: 12.0),
+      child: GestureDetector(
+        onTap: () => _showBackupPreview(context, name, path),
+        child: ClaymorphicCard(
+          cornerRadius: 16,
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isAuto ? Icons.auto_mode_rounded : Icons.person_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
-              child: Icon(
-                isAuto ? Icons.auto_mode_rounded : Icons.person_rounded,
-                color: isAuto ? Colors.blue : Colors.orange,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isAuto ? "Copia Automática" : "Copia Manual",
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.cardText,
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAuto ? "Copia Automática" : "Copia Manual",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.cardText,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "${_formatDateTime(dt)} • ${_formatSize(size)}",
-                    style: TextStyle(fontSize: 10.5, color: Colors.grey[600]),
-                  ),
-                ],
+                    SizedBox(height: 2),
+                    Text(
+                      "${_formatDateTime(dt)} • ${_formatSize(size)}",
+                      style: TextStyle(fontSize: 10.5, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ),
-            ),
-             Builder(
-              builder: (btnContext) => Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.share_rounded),
-                    color: AppColors.primary,
-                    tooltip: "Compartir / Enviar",
-                    iconSize: 20,
-                    onPressed: () => _exportBackup(name, btnContext),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_backup_restore_rounded),
-                    color: AppColors.primary,
-                    tooltip: "Restaurar",
-                    iconSize: 22,
-                    onPressed: () => _confirmRestore(name),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    color: AppColors.expense,
-                    tooltip: "Eliminar",
-                    iconSize: 22,
-                    onPressed: () => _confirmDelete(name),
-                  ),
-                ],
+               Builder(
+                builder: (btnContext) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.share_rounded),
+                      color: AppColors.primary,
+                      tooltip: "Compartir / Enviar",
+                      iconSize: 20,
+                      onPressed: () => _exportBackup(name, btnContext),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.settings_backup_restore_rounded),
+                      color: AppColors.primary,
+                      tooltip: "Restaurar",
+                      iconSize: 22,
+                      onPressed: () => _confirmRestore(name),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete_outline_rounded),
+                      color: AppColors.expense,
+                      tooltip: "Eliminar",
+                      iconSize: 22,
+                      onPressed: () => _confirmDelete(name),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -582,7 +584,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final isAuto = bkName.startsWith('auto_backup_');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
       ),
@@ -595,7 +597,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               Expanded(
                 child: Text(
                   isAuto ? "Copia Automática" : "Copia Manual",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
@@ -603,7 +605,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: success
                       ? AppColors.income.withOpacity(0.12)
@@ -621,7 +623,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 3),
+          SizedBox(height: 3),
           Text(
             "Origen: $bkName\nFecha: $displayDate",
             style: TextStyle(
@@ -631,10 +633,10 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
             ),
           ),
           if (error != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               "Error: $error",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 9.5,
                 color: AppColors.expense,
                 fontWeight: FontWeight.w500,
@@ -642,6 +644,278 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _showBackupPreview(BuildContext context, String folderName, String folderPath) {
+    final appState = Provider.of<AppState>(context, listen: false);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.65,
+          maxChildSize: 0.9,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: appState.getBackupPreview(folderPath),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Center(
+                      child: Text("Error al cargar la vista previa."),
+                    );
+                  }
+
+                  final data = snapshot.data!;
+                  final profilesList = data['profiles'] as List? ?? [];
+                  final totalTx = data['total_transactions'] as int? ?? 0;
+                  final totalPockets = data['total_pockets'] as int? ?? 0;
+                  final totalMarket = data['total_market_items'] as int? ?? 0;
+
+                  return Column(
+                    children: [
+                      SizedBox(height: 12),
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Vista Previa de Respaldo",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    folderName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close, color: Colors.grey),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          children: [
+                            Row(
+                              children: [
+                                _buildPreviewStatCard(
+                                  Icons.receipt_long_rounded,
+                                  "$totalTx",
+                                  "Transacciones",
+                                  AppColors.primary,
+                                ),
+                                SizedBox(width: 12),
+                                _buildPreviewStatCard(
+                                  Icons.savings_rounded,
+                                  "$totalPockets",
+                                  "Bolsillos",
+                                  AppColors.primary,
+                                ),
+                                SizedBox(width: 12),
+                                _buildPreviewStatCard(
+                                  Icons.shopping_cart_rounded,
+                                  "$totalMarket",
+                                  "Compras",
+                                  AppColors.primary,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              "LIBROS Y CUENTAS",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.cardSubtitleText,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            if (profilesList.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 24.0),
+                                child: Center(
+                                  child: Text(
+                                    "No se encontraron perfiles guardados.",
+                                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                                  ),
+                                ),
+                              )
+                            else
+                              ...profilesList.map((p) {
+                                final name = p['name'] as String;
+                                final accounts = p['accounts'] as List;
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16.0),
+                                  child: ClaymorphicCard(
+                                    padding: EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.book_outlined, size: 18, color: AppColors.primary),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "Libro: $name",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Divider(height: 20),
+                                        if (accounts.isEmpty)
+                                          Text(
+                                            "Sin cuentas registradas en este libro.",
+                                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                                          )
+                                        else
+                                          ...accounts.map((acc) {
+                                            final accName = acc['name'] as String;
+                                            final balance = acc['balance'] as double;
+                                            final currency = acc['currency'] as String;
+
+                                            String currencySymbol = "\$";
+                                            if (currency.toLowerCase().contains("bs")) {
+                                              currencySymbol = "Bs";
+                                            } else if (currency.toLowerCase().contains("eur")) {
+                                              currencySymbol = "€";
+                                            }
+
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(accName, style: TextStyle(fontSize: 13)),
+                                                  Text(
+                                                    "$currencySymbol ${balance.toStringAsFixed(2)}",
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 13,
+                                                      color: Colors.grey[800],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context); // Close preview
+                              _confirmRestore(folderName);
+                            },
+                            icon: Icon(Icons.settings_backup_restore_rounded),
+                            label: Text("Restaurar esta Copia"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPreviewStatCard(IconData icon, String val, String label, Color color) {
+    return Expanded(
+      child: ClaymorphicCard(
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            SizedBox(height: 8),
+            Text(
+              val,
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.cardText),
+            ),
+            SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(fontSize: 9.5, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -664,7 +938,7 @@ class _TabSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: 10.0),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
@@ -674,7 +948,7 @@ class _TabSegment extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ]
                 : null,

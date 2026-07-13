@@ -173,12 +173,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -194,23 +194,23 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Flexible(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         "¿Cómo funcionan las Asociaciones?",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Bolsillo Asociado (Opcional)",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "• Si es un Ingreso: El simulador sumará este monto periódicamente al balance del bolsillo de ahorro seleccionado para ver cómo crece.\n• Si es un Gasto/Deuda (ej. Cashea): El simulador restará este cobro directamente del fondo del bolsillo, en lugar de consumirte el efectivo libre de tu cuenta.",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
@@ -219,7 +219,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -229,7 +229,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Entendido"),
+                  child: Text("Entendido"),
                 ),
               ),
             ],
@@ -246,12 +246,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -267,43 +267,43 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Flexible(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         "¿Cómo funciona la Información Básica?",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Planificación Recurrente vs Única",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "Te permite programar ingresos o egresos a futuro. Pueden ocurrir una sola vez (Pago Único) o repetirse periódicamente (Frecuencia recurrente como mensual, quincenal, etc.).",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Cuenta Asociada",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "Define de qué cuenta física (efectivo o banco) ingresará o se debitará el dinero real cuando se ejecute la transacción programada.",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Tipo de Gasto / Cuotas",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "• Pago Único: Se ejecuta una sola vez en la fecha indicada.\n• Cuotas: Permite definir una cantidad limitada de pagos (ej. 6 cuotas de Cashea). Deja el campo vacío si el cobro es ilimitado (ej. suscripciones como Netflix).",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
@@ -312,7 +312,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -322,7 +322,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Entendido"),
+                  child: Text("Entendido"),
                 ),
               ),
             ],
@@ -339,12 +339,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -360,33 +360,33 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Flexible(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         "Proyecciones y Cuotas",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Frecuencia e Inicio",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "Indica cada cuánto tiempo se repite el movimiento y la fecha en la que se cobrará o recibirá el primer pago.",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         "Deuda Finita / Cuotas Limitadas",
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "Ideal para compras a cuotas (ej. Cashea a 6 cuotas). Si activas esta opción, el simulador dejará de proyectar gastos una vez que se alcance el número de cuotas establecido, mostrando cada cuota numerada (ej. Cuota 2/6) en el Timeline.",
                         style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
@@ -395,7 +395,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -405,7 +405,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Entendido"),
+                  child: Text("Entendido"),
                 ),
               ),
             ],
@@ -439,7 +439,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -466,7 +466,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -474,30 +474,30 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
               children: [
                 Text(
                   widget.editingPayment == null ? "Nuevo Pago / Ingreso" : "Editar Registro",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable fields
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Type selector tab (Ingreso / Gasto)
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: AppColors.nestedTabTrackBg,
                         borderRadius: BorderRadius.circular(12),
@@ -508,7 +508,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             child: GestureDetector(
                               onTap: () => setState(() => _selectedType = TransactionType.income),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
                                   color: _selectedType == TransactionType.income
                                       ? AppColors.primary.withOpacity(0.85)
@@ -533,7 +533,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             child: GestureDetector(
                               onTap: () => setState(() => _selectedType = TransactionType.expense),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
                                   color: _selectedType == TransactionType.expense
                                       ? AppColors.expense.withOpacity(0.85)
@@ -557,12 +557,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     // Information Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -579,31 +579,31 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
                                 onPressed: () => _showBasicInfo(context),
-                                constraints: const BoxConstraints(),
+                                constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Cuenta Asociada",
                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               DropdownButton<String>(
                                 value: _selectedAccountId,
-                                underline: const SizedBox(),
+                                underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
                                 items: filteredAccounts.map((acc) {
                                   final symbol = acc.currency == CurrencyType.usd ? "\$" : "Bs.";
                                   return DropdownMenuItem(
                                     value: acc.id,
-                                    child: Text("${acc.name} ($symbol)", style: const TextStyle(color: AppColors.cardText)),
+                                    child: Text("${acc.name} ($symbol)", style: TextStyle(color: AppColors.cardText)),
                                   );
                                 }).toList(),
                                  onChanged: (val) {
@@ -632,7 +632,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                       ? "Nombre (ej. Sueldo Quincenal, Freelance)"
                                       : "Nombre (ej. Cashea Compra, Netflix, Alquiler)"),
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -640,17 +640,17 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextField(
                             controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               hintText: (_selectedType == TransactionType.income && _isVariable) ? "Monto Mínimo" : "Monto",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -658,26 +658,26 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           if (!isAccVES) ...[
                             // USD account: non-interactive tab for USD
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
                                   color: AppColors.nestedTabActiveBg,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text(
+                                child: Text(
                                   "USD (\$)",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -690,7 +690,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                           ] else ...[
                             // VES account: interactive tabs for USD, VES, EUR
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(12),
@@ -701,7 +701,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                     child: GestureDetector(
                                       onTap: () => setState(() => _selectedCurrency = CurrencyType.usd),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _selectedCurrency == CurrencyType.usd
                                               ? AppColors.nestedTabActiveBg
@@ -726,7 +726,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                     child: GestureDetector(
                                       onTap: () => setState(() => _selectedCurrency = CurrencyType.eur),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _selectedCurrency == CurrencyType.eur
                                               ? AppColors.nestedTabActiveBg
@@ -753,11 +753,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                           ],
 
                           if (_selectedType == TransactionType.income && !_isOnce) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "¿Monto variable (Rango Mín-Máx)?",
                                   style: TextStyle(
                                     fontSize: 13,
@@ -780,14 +780,14 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ],
                             ),
                             if (_isVariable) ...[
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               TextField(
                                 controller: _maxAmountController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   hintText: "Monto Máximo",
                                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: const EdgeInsets.all(14),
+                                  contentPadding: EdgeInsets.all(14),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -795,7 +795,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
-                                style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                                style: TextStyle(fontSize: 14, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
@@ -804,12 +804,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Associations (Account & Pockets)
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -826,35 +826,35 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
                                 onPressed: () => _showAssociationsInfo(context),
-                                constraints: const BoxConstraints(),
+                                constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Bolsillo Asociado",
                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               DropdownButton<String?>(
                                 value: _selectedPocketId,
-                                underline: const SizedBox(),
+                                underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
                                 items: [
-                                  const DropdownMenuItem(
+                                  DropdownMenuItem(
                                     value: null,
                                     child: Text("Ninguno", style: TextStyle(color: Colors.grey)),
                                   ),
                                   ...appState.pockets.map((p) {
                                     return DropdownMenuItem(
                                       value: p.id,
-                                      child: Text(p.name, style: const TextStyle(color: AppColors.cardText)),
+                                      child: Text(p.name, style: TextStyle(color: AppColors.cardText)),
                                     );
                                   })
                                 ],
@@ -867,12 +867,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Frecuencia y Alertas Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -889,14 +889,14 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
                                 onPressed: () => _showProjectionsInfo(context),
-                                constraints: const BoxConstraints(),
+                                constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           if (_selectedType == TransactionType.expense) ...[
                             Text(
                               "TIPO DE GASTO",
@@ -907,9 +907,9 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 letterSpacing: 1.0,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(12),
@@ -924,7 +924,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                         _installmentsController.clear();
                                       }),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _expenseType == 'recurrent'
                                               ? AppColors.nestedTabActiveBg
@@ -952,7 +952,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                         _isOnce = false;
                                       }),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: _expenseType == 'installments'
                                               ? AppColors.nestedTabActiveBg
@@ -977,14 +977,14 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ),
                             ),
                             if (_expenseType == 'installments') ...[
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               TextField(
                                 controller: _installmentsController,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   hintText: "Cantidad de cuotas (ej. 6)",
                                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: const EdgeInsets.all(14),
+                                  contentPadding: EdgeInsets.all(14),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -992,29 +992,29 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
-                                style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                                style: TextStyle(fontSize: 14, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                           ],
                           if (!_isOnce) ...[
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "Frecuencia",
                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                                 DropdownButton<SubscriptionFrequency>(
                                   value: _selectedFrequency,
-                                  underline: const SizedBox(),
+                                  underline: SizedBox(),
                                   dropdownColor: AppColors.cardBackground,
-                                  style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
                                   items: SubscriptionFrequency.values.where((freq) => freq != SubscriptionFrequency.once).map((freq) {
                                     return DropdownMenuItem(
                                       value: freq,
-                                      child: Text(freq.value, style: const TextStyle(color: AppColors.cardText)),
+                                      child: Text(freq.value, style: TextStyle(color: AppColors.cardText)),
                                     );
                                   }).toList(),
                                   onChanged: (freq) {
@@ -1026,11 +1026,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ],
                             ),
                             if (_selectedFrequency == SubscriptionFrequency.custom) ...[
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Intervalo en Días",
                                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                   ),
@@ -1044,7 +1044,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                           keyboardType: TextInputType.number,
                                           textAlign: TextAlign.center,
                                           decoration: InputDecoration(
-                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                                             filled: true,
                                             fillColor: Colors.grey[100],
                                             border: OutlineInputBorder(
@@ -1052,12 +1052,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                               borderSide: BorderSide.none,
                                             ),
                                           ),
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                           onChanged: (val) => setState(() {}),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Text(
+                                      SizedBox(width: 8),
+                                      Text(
                                         "días",
                                         style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText),
                                       ),
@@ -1073,14 +1073,14 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             children: [
                               Text(
                                 _isOnce ? "Fecha de Pago" : "Fecha de Inicio / Próximo",
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               TextButton(
                                 style: TextButton.styleFrom(
                                   backgroundColor: AppColors.nestedTabTrackBg,
                                   foregroundColor: AppColors.primary,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 ),
                                 onPressed: () async {
                                   final date = await showDatePicker(
@@ -1095,7 +1095,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 },
                                 child: Text(
                                   formatDate(_startDate),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                 ),
                               ),
                             ],
@@ -1104,19 +1104,19 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Recordatorio Alerta",
                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                                               ),
                               DropdownButton<NotificationOption>(
                                 value: _selectedNotification,
-                                underline: const SizedBox(),
+                                underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
                                 items: NotificationOption.values.map((opt) {
                                   return DropdownMenuItem(
                                     value: opt,
-                                    child: Text(opt.value, style: const TextStyle(color: AppColors.cardText)),
+                                    child: Text(opt.value, style: TextStyle(color: AppColors.cardText)),
                                   );
                                 }).toList(),
                                 onChanged: (opt) {
@@ -1130,12 +1130,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Icon section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1148,11 +1148,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            physics: NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 4,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
@@ -1183,12 +1183,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Color Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1201,7 +1201,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -1227,32 +1227,32 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Destructive Delete Button
                     if (widget.editingPayment != null) ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.expense.withOpacity(0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         onPressed: () => _deletePayment(appState),
-                        child: const Text(
+                        child: Text(
                           "Eliminar Registro",
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Save / Cancel Buttons Row
             Row(
@@ -1260,23 +1260,23 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -1286,7 +1286,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             (!_isOnce && _selectedType == TransactionType.expense && _installmentsController.text.trim().isNotEmpty && (int.tryParse(_installmentsController.text) ?? 0) <= 0))
                         ? null
                         : () => _savePayment(appState),
-                    child: const Text(
+                    child: Text(
                       "Guardar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),

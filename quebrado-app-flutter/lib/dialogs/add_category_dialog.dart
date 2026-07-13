@@ -81,7 +81,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
     final themeColor = parseHexColor(_selectedColorHex);
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Color(0xFFF9F9F5),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
@@ -110,7 +110,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -118,31 +118,31 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
               children: [
                 Text(
                   widget.editingCategory != null ? "Editar Categoría" : "Crear Categoría",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Preview Icon Card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
                       child: Column(
                         children: [
                           Container(
@@ -158,10 +158,10 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               size: 32,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Text(
                             _nameController.text.isEmpty ? "Nueva Categoría" : _nameController.text,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardText,
@@ -172,12 +172,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Category Details Card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -190,7 +190,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Name TextField
                           Text(
@@ -201,13 +201,13 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               color: AppColors.cardText,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: "Ej. Gimnasio, Freelance Swift...",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -215,10 +215,10 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Type Picker
                           Text(
@@ -229,9 +229,9 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               color: AppColors.cardText,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Container(
-                            padding: const EdgeInsets.all(4.0),
+                            padding: EdgeInsets.all(4.0),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
                               borderRadius: BorderRadius.circular(12),
@@ -242,7 +242,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _categoryType = TransactionCategoryType.income),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: _categoryType == TransactionCategoryType.income
                                             ? AppColors.nestedTabActiveBg
@@ -267,7 +267,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _categoryType = TransactionCategoryType.expense),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: _categoryType == TransactionCategoryType.expense
                                             ? AppColors.nestedTabActiveBg
@@ -294,12 +294,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Color selection card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -312,7 +312,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
@@ -323,7 +323,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               return GestureDetector(
                                 onTap: () => setState(() => _selectedColorHex = colorHex),
                                 child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
+                                  duration: Duration(milliseconds: 150),
                                   width: 38,
                                   height: 38,
                                   decoration: BoxDecoration(
@@ -338,7 +338,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                             BoxShadow(
                                               color: color.withOpacity(0.4),
                                               blurRadius: 4,
-                                              offset: const Offset(0, 2),
+                                              offset: Offset(0, 2),
                                             )
                                           ]
                                         : null,
@@ -350,12 +350,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Icon selection card
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -368,11 +368,11 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            physics: NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 6,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
@@ -401,12 +401,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Action Buttons
             Row(
@@ -414,23 +414,23 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -439,7 +439,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                         : () => _saveCategory(appState),
                     child: Text(
                       widget.editingCategory != null ? "Guardar" : "Crear",
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

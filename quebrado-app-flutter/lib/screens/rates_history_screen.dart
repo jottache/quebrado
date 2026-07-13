@@ -11,6 +11,7 @@ import '../dialogs/pending_confirmations_dialog.dart';
 import 'settings_screen.dart';
 import '../theme/colors.dart';
 import '../services/bcv_predictor.dart';
+import '../widgets/claymorphic_background.dart';
 
 class RatesHistoryScreen extends StatefulWidget {
   const RatesHistoryScreen({super.key});
@@ -139,112 +140,48 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
         : appState.euroRate;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
-          child: Image.asset(
-            'assets/images/quebrado.png',
-            height: 50,
-            fit: BoxFit.contain,
+        title: Text(
+          "Tasas de Cambio",
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.settings_rounded),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
-          },
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.primary),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none_rounded),
-                iconSize: 26,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) =>
-                        const PendingConfirmationsBottomSheet(),
-                  );
-                },
-              ),
-              if (appState.pendingPaymentsToday.isNotEmpty)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppColors.expense,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${appState.pendingPaymentsToday.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.calculate_outlined),
-            iconSize: 26,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const CalculatorBottomSheet(),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       floatingActionButton: _showScrollToTop
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 100.0),
+              padding: EdgeInsets.only(bottom: 100.0),
               child: FloatingActionButton(
                 mini: true,
                 backgroundColor: AppColors.primary,
-                shape: const CircleBorder(),
+                shape: CircleBorder(),
                 onPressed: () {
                   _scrollController.animateTo(
                     0.0,
-                    duration: const Duration(milliseconds: 450),
+                    duration: Duration(milliseconds: 450),
                     curve: Curves.easeOutBack,
                   );
                 },
-                child: const Icon(Icons.arrow_upward, color: Colors.white),
+                child: Icon(Icons.arrow_upward, color: Colors.white),
               ),
             )
           : null,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
+      body: ClaymorphicBackground(
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
           // Currency tab selector
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(
+              padding: EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
                 top: 16.0,
@@ -262,7 +199,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedCurrencyTab = 0),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: _selectedCurrencyTab == 0
@@ -286,7 +223,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedCurrencyTab = 1),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: _selectedCurrencyTab == 1
@@ -334,7 +271,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
 
           // remaining content
           SliverPadding(
-            padding: const EdgeInsets.only(
+            padding: EdgeInsets.only(
               left: 16.0,
               right: 16.0,
               top: 12.0,
@@ -342,11 +279,11 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
             ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 // 2. Trend Chart Card
                 ClaymorphicCard(
                   cornerRadius: 24,
-                  padding: const EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -359,7 +296,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       if (chartRecords.length >= 2)
                         SizedBox(
                           height: 180,
@@ -384,7 +321,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                                   strokeWidth: 1,
                                 ),
                               ),
-                              titlesData: const FlTitlesData(show: false),
+                              titlesData: FlTitlesData(show: false),
                               borderData: FlBorderData(show: false),
                               lineBarsData: [
                                 LineChartBarData(
@@ -400,7 +337,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                                   color: AppColors.primary,
                                   barWidth: 3.5,
                                   isStrokeCapRound: true,
-                                  dotData: const FlDotData(show: false),
+                                  dotData: FlDotData(show: false),
                                   belowBarData: BarAreaData(
                                     show: true,
                                     gradient: LinearGradient(
@@ -429,7 +366,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                                 size: 36,
                                 color: Colors.grey[400],
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 "Aún no hay suficientes datos",
                                 style: TextStyle(
@@ -444,12 +381,12 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // 3. Historical list logs
                 ClaymorphicCard(
                   cornerRadius: 24,
-                  padding: const EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -468,7 +405,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           IconButton(
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.search_rounded,
                               color: AppColors.primary,
                               size: 22,
@@ -480,7 +417,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       // Segment list selector
                       Container(
                         width: double.infinity,
@@ -508,9 +445,9 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       if (listItems.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 24.0),
                           child: Center(
                             child: Text(
@@ -525,7 +462,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                       else
                         ListView.separated(
                           shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
+                          physics: NeverScrollableScrollPhysics(),
                           itemCount: listItems.length,
                           separatorBuilder: (_, __) => Divider(
                             height: 1,
@@ -543,6 +480,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -614,23 +552,23 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
               Opacity(
                 opacity: (1.0 - progress * 2.0).clamp(0.0, 1.0),
                 child: progress > 0.8
-                    ? const SizedBox.shrink()
+                    ? SizedBox.shrink()
                     : SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
+                        physics: NeverScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.cardSubtitleText,
                                 letterSpacing: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -642,25 +580,25 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                     children: [
                                       Text(
                                         formatRate(activeRate),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 34,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
+                                      SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.access_time_filled_rounded,
                                             size: 12,
                                             color: AppColors.cardSubtitleText,
                                           ),
-                                          const SizedBox(width: 4),
+                                          SizedBox(width: 4),
                                           Expanded(
                                             child: Text(
                                               "Sincronizado: $lastUpdated",
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.bold,
                                                 color:
@@ -681,7 +619,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                         ? null
                                         : onPredictPressed,
                                     icon: isFetchingHistory
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             width: 14,
                                             height: 14,
                                             child: CircularProgressIndicator(
@@ -689,7 +627,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                               color: Colors.grey,
                                             ),
                                           )
-                                        : const Icon(
+                                        : Icon(
                                             Icons.auto_graph_rounded,
                                             size: 16,
                                           ),
@@ -697,7 +635,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                       isFetchingHistory
                                           ? "Sincronizando..."
                                           : "Predecir",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -709,7 +647,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                           .withOpacity(0.12),
                                       disabledForegroundColor: Colors.grey[500],
                                       elevation: 2,
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 14,
                                         vertical: 8,
                                       ),
@@ -729,13 +667,13 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
               Opacity(
                 opacity: ((progress - 0.5) * 2.0).clamp(0.0, 1.0),
                 child: progress < 0.2
-                    ? const SizedBox.shrink()
+                    ? SizedBox.shrink()
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             shortTitle.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
@@ -744,7 +682,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                           ),
                           Text(
                             formatRate(activeRate),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardText,
@@ -801,7 +739,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               onPrimary: Colors.white,
               onSurface: AppColors.cardText,
@@ -841,7 +779,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
         : "";
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -863,50 +801,50 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // Title
           Text(
             "Buscar Tasa por Fecha",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             widget.isEuro
                 ? "Búsqueda en el historial del Euro Oficial"
                 : "Búsqueda en el historial del Oficial BCV",
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppColors.cardSubtitleText,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Selector button
           GestureDetector(
             onTap: () => _selectDate(context),
             child: ClaymorphicCard(
               cornerRadius: 16,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.calendar_month_rounded,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Text(
                     _selectedDate == null
                         ? "Seleccionar Fecha"
                         : "Fecha: $formattedSelectedDate",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
@@ -916,19 +854,19 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Results
           if (_searched)
             AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
+              duration: Duration(milliseconds: 300),
               child: _foundRecord != null
                   ? _buildResultCard(_foundRecord!)
                   : _buildNotFoundCard(formattedSelectedDate),
             )
           else
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              padding: EdgeInsets.symmetric(vertical: 24.0),
               child: Column(
                 children: [
                   Icon(
@@ -936,8 +874,8 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                     size: 48,
                     color: Colors.black.withOpacity(0.15),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12),
+                  Text(
                     "Selecciona una fecha para consultar el tipo de cambio histórico.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -949,7 +887,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                 ],
               ),
             ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
         ],
       ),
     );
@@ -960,7 +898,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
         "${record.date.hour.toString().padLeft(2, '0')}:${record.date.minute.toString().padLeft(2, '0')}";
     return ClaymorphicCard(
       cornerRadius: 20,
-      padding: const EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -969,7 +907,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
             children: [
               Text(
                 widget.isEuro ? "EURO OFICIAL" : "DÓLAR BCV",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
                   color: AppColors.primary,
@@ -978,15 +916,15 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
               ),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.access_time_filled_rounded,
                     size: 12,
                     color: AppColors.cardSubtitleText,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     formattedTime,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardSubtitleText,
@@ -996,19 +934,19 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             formatRate(record.rate),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             "Tasa correspondiente al ${formatDate(record.date)}",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppColors.cardSubtitleText,
@@ -1022,27 +960,27 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
   Widget _buildNotFoundCard(String dateStr) {
     return ClaymorphicCard(
       cornerRadius: 20,
-      padding: const EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(20.0),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.expense.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.warning_amber_rounded,
               color: AppColors.expense,
               size: 24,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Sin Registro",
                   style: TextStyle(
                     fontSize: 15,
@@ -1050,10 +988,10 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   "No se encontró ninguna tasa registrada para el $dateStr.",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.cardSubtitleText,
                     fontWeight: FontWeight.w500,
@@ -1085,7 +1023,7 @@ class _ListSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: EdgeInsets.symmetric(vertical: 8.0),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected
@@ -1172,7 +1110,7 @@ class _RateRow extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         children: [
           // Icon
@@ -1185,7 +1123,7 @@ class _RateRow extends StatelessWidget {
             ),
             child: Icon(_getTrendIcon(dir), color: trendColor, size: 14),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
 
           // Date / Time
           Expanded(
@@ -1194,13 +1132,13 @@ class _RateRow extends StatelessWidget {
               children: [
                 Text(
                   formattedDate,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 3),
                 Text(
                   formattedTime,
                   style: TextStyle(
@@ -1218,14 +1156,14 @@ class _RateRow extends StatelessWidget {
             children: [
               Text(
                 formatRate(item.record.rate),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardText,
                 ),
               ),
               if (item.changeDelta.isNotEmpty) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   item.changeDelta,
                   style: TextStyle(
@@ -1290,11 +1228,11 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
         : 0.0;
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: const EdgeInsets.only(
+      padding: EdgeInsets.only(
         left: 20.0,
         right: 20.0,
         top: 16.0,
@@ -1316,13 +1254,13 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Predicción Oficial BCV",
                   style: TextStyle(
                     fontSize: 20,
@@ -1331,12 +1269,12 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const Text(
+            Text(
               "Cálculo matemático basado en regresión lineal y promedios móviles ponderados",
               style: TextStyle(
                 fontSize: 12,
@@ -1344,15 +1282,15 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Main Prediction Card
             ClaymorphicCard(
               cornerRadius: 24,
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     "TASA ESTIMADA PRÓXIMO DÍA HÁBIL",
                     style: TextStyle(
                       fontSize: 10,
@@ -1361,21 +1299,21 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Text(
                     "${prediction.predictedRateNextDay.toStringAsFixed(4)} Bs.",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardText,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(trendIcon, color: trendColor, size: 18),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         "${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(4)} Bs. (${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%)",
                         style: TextStyle(
@@ -1389,7 +1327,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Row of Indicators (Tendencia, Confianza, Racha)
             Row(
@@ -1397,13 +1335,13 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 Expanded(
                   child: ClaymorphicCard(
                     cornerRadius: 16,
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           "TENDENCIA",
                           style: TextStyle(
                             fontSize: 9,
@@ -1411,12 +1349,12 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(trendIcon, size: 14, color: trendColor),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Text(
                               prediction.trend,
                               style: TextStyle(
@@ -1431,17 +1369,17 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: ClaymorphicCard(
                     cornerRadius: 16,
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           "CONFIANZA",
                           style: TextStyle(
                             fontSize: 9,
@@ -1449,7 +1387,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           prediction.confidence,
                           style: TextStyle(
@@ -1462,17 +1400,17 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: ClaymorphicCard(
                     cornerRadius: 16,
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           "CONSECUTIVOS",
                           style: TextStyle(
                             fontSize: 9,
@@ -1480,12 +1418,12 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           prediction.consecutivePositiveDays > 0
                               ? "${prediction.consecutivePositiveDays} días"
                               : "N/D",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
@@ -1497,10 +1435,10 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Justification Text Card
-            const Text(
+            Text(
               "EXPLICACIÓN Y JUSTIFICACIÓN",
               style: TextStyle(
                 fontSize: 10,
@@ -1509,18 +1447,18 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ClaymorphicCard(
               cornerRadius: 18,
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: RichText(
                 text: _parseJustification(prediction.justification),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Future Horizon Projections
-            const Text(
+            Text(
               "PROYECCIONES A DIFERENTES PLAZOS",
               style: TextStyle(
                 fontSize: 10,
@@ -1529,10 +1467,10 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ClaymorphicCard(
               cornerRadius: 18,
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   _buildProjectionRow(
@@ -1542,7 +1480,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     pct: pct,
                     color: trendColor,
                   ),
-                  const Divider(height: 20, thickness: 0.5),
+                  Divider(height: 20, thickness: 0.5),
                   _buildProjectionRow(
                     timeframe: "A 7 días hábiles",
                     rate: prediction.predictedRate7Days,
@@ -1550,7 +1488,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     pct: pct7,
                     color: diff7 >= 0 ? AppColors.income : AppColors.expense,
                   ),
-                  const Divider(height: 20, thickness: 0.5),
+                  Divider(height: 20, thickness: 0.5),
                   _buildProjectionRow(
                     timeframe: "A 14 días hábiles",
                     rate: prediction.predictedRate14Days,
@@ -1582,16 +1520,16 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
           children: [
             Text(
               timeframe,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.cardSubtitleText,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               "${rate.toStringAsFixed(4)} Bs.",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
@@ -1625,7 +1563,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
       spans.add(
         TextSpan(
           text: match.group(1),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.cardText,
           ),
@@ -1639,7 +1577,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
     }
 
     return TextSpan(
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         height: 1.4,
         color: AppColors.cardText,

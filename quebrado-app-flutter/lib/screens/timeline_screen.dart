@@ -44,10 +44,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
   void _scrollToShowcasePosition() {
     try {
       final scrollable = Scrollable.maybeOf(context);
-      if (scrollable != null && scrollable.position != null) {
+      if (scrollable != null) {
         scrollable.position.animateTo(
           180.0, // Scroll down past the balance banner
-          duration: const Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
       }
@@ -85,14 +85,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   String _selectedType = 'all'; // 'all', 'income', 'expense', 'suggestion'
-  int _selectedDays = 365; // 30, 90, 365
+  final int _selectedDays = 365; // 30, 90, 365
   String? _selectedRecurringId;
   String? _selectedPocketId;
 
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
+    final tomorrow = today.add(Duration(days: 1));
     final eventDate = DateTime(date.year, date.month, date.day);
 
     if (eventDate == today) {
@@ -128,12 +128,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -150,8 +150,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Sobre la Proyección Financiera",
                   style: TextStyle(
                     fontSize: 16,
@@ -159,8 +159,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "¿Qué es el Dinero Seguro?",
                   style: TextStyle(
                     fontSize: 13,
@@ -168,8 +168,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "Es el saldo líquido mínimo proyectado que tendrán tus cuentas consolidadas en los próximos 12 meses. Este saldo define dos límites clave para hoy:\n\n"
                   "• Límite de Ahorro: El monto máximo que puedes mover a tus bolsillos de reserva. Al guardarlo allí, tu patrimonio neto no disminuye y proteges tu dinero para metas futuras.\n\n"
                   "• Límite de Gasto: El monto máximo que puedes gastar libremente hoy en cualquier consumo. Esto reduce tu patrimonio permanentemente, pero es seguro hacerlo porque no afectará tus pagos y obligaciones proyectadas.",
@@ -179,8 +179,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "¿Cómo funciona la Proyección a 1 Año?",
                   style: TextStyle(
                     fontSize: 13,
@@ -188,8 +188,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "El Timeline simula día a día tus transacciones recurrentes registradas (como sueldos, alquileres, cuotas de Cashea o suscripciones). En cada evento verás un balance proyectado estimado, lo que te permite anticipar momentos de bajo flujo de caja.",
                   style: TextStyle(
                     fontSize: 12,
@@ -197,8 +197,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Importancia de la Cuenta/Bolsillo",
                   style: TextStyle(
                     fontSize: 13,
@@ -206,8 +206,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "• Los eventos asociados a una cuenta afectan directamente tu dinero disponible en tus cuentas.\n• Los eventos asociados a un bolsillo se descuentan del ahorro acumulado en ese bolsillo, protegiendo tu dinero del día a día.",
                   style: TextStyle(
                     fontSize: 12,
@@ -215,7 +215,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -227,7 +227,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Entendido"),
+                    child: Text("Entendido"),
                   ),
                 ),
               ],
@@ -277,7 +277,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         daysToDeficit,
       ),
       child: Container(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(20.0),
         decoration: BoxDecoration(
           color: AppColors.expense.withOpacity(0.08),
           borderRadius: BorderRadius.circular(24),
@@ -292,19 +292,19 @@ class _TimelineScreenState extends State<TimelineScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
                     color: AppColors.expense,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.storefront_rounded,
                     color: Colors.white,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Expanded(
+                SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     "Meta Diaria de Ventas / Trabajo",
                     style: TextStyle(
@@ -314,23 +314,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: AppColors.expense,
                   size: 14,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               "Generar ${formatUSD(dailyRequiredIncome)} extra / día",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
                 color: AppColors.expense,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               "Para cubrir '$minReason' el ${formatDate(minDate)} sin caer en saldo negativo, necesitas producir un promedio de ${formatUSD(dailyRequiredIncome)} diarios adicionales sobre tu mínimo habitual de ${formatUSD(baseIncome)}.\n\nMeta diaria total recomendada: ${formatUSD(totalDailyTarget)} al día (durante los próximos $daysToDeficit días).",
               style: TextStyle(
@@ -339,7 +339,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Center(
               child: Text(
                 "Toca aquí para ver la explicación detallada paso a paso",
@@ -461,7 +461,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -478,23 +478,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.expense.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.storefront_rounded,
                         color: AppColors.expense,
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Expanded(
+                    SizedBox(width: 10),
+                    Expanded(
                       child: Text(
                         "Explicación de tu Meta Diaria",
                         style: TextStyle(
@@ -506,8 +506,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                const Text(
+                SizedBox(height: 20),
+                Text(
                   "Aquí tienes el desglose paso a paso de tus cuentas para entender de dónde sale esta meta:",
                   style: TextStyle(
                     fontSize: 13,
@@ -515,7 +515,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // PASO 1
                 _buildStepCard(
@@ -524,7 +524,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (pocketDetails.isNotEmpty) ...[
-                        const Text(
+                        Text(
                           "Reservas para tus Bolsillos:",
                           style: TextStyle(
                             fontSize: 12,
@@ -532,26 +532,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             color: AppColors.cardText,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         ...pocketDetails.map(
                           (det) => Padding(
-                            padding: const EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               left: 8.0,
                               bottom: 4.0,
                             ),
                             child: Text(
                               det,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                       ],
                       if (expenseDetails.isNotEmpty) ...[
-                        const Text(
+                        Text(
                           "Gastos programados en el período:",
                           style: TextStyle(
                             fontSize: 12,
@@ -559,16 +559,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             color: AppColors.cardText,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         ...expenseDetails.map(
                           (det) => Padding(
-                            padding: const EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               left: 8.0,
                               bottom: 4.0,
                             ),
                             child: Text(
                               det,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.cardSubtitleText,
                               ),
@@ -576,11 +576,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ),
                       ],
-                      const Divider(height: 20),
+                      Divider(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Total necesario:",
                             style: TextStyle(
                               fontSize: 12,
@@ -590,7 +590,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(totalNeeded),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.expense,
@@ -611,7 +611,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Dinero disponible en tus cuentas hoy:",
                             style: TextStyle(
                               fontSize: 12,
@@ -620,7 +620,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(initialLiquid),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
@@ -628,8 +628,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
+                      SizedBox(height: 6),
+                      Text(
                         "Ingresos mínimos estimados en el período:",
                         style: TextStyle(
                           fontSize: 12,
@@ -637,17 +637,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           color: AppColors.cardText,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       if (incomeDetails.isNotEmpty)
                         ...incomeDetails.map(
                           (det) => Padding(
-                            padding: const EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               left: 8.0,
                               bottom: 4.0,
                             ),
                             child: Text(
                               det,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.cardSubtitleText,
                               ),
@@ -655,7 +655,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         )
                       else
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(left: 8.0),
                           child: Text(
                             "• Sin ingresos programados",
@@ -665,11 +665,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             ),
                           ),
                         ),
-                      const Divider(height: 20),
+                      Divider(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Total disponible estimado:",
                             style: TextStyle(
                               fontSize: 12,
@@ -679,7 +679,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(totalAvailable),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
@@ -700,7 +700,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Dinero necesario para cubrir todo:",
                             style: TextStyle(
                               fontSize: 12,
@@ -709,7 +709,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(totalNeeded),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
@@ -717,11 +717,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Total disponible estimado:",
                             style: TextStyle(
                               fontSize: 12,
@@ -730,7 +730,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(totalAvailable),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
@@ -738,11 +738,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      const Divider(height: 20),
+                      Divider(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Faltante a cubrir:",
                             style: TextStyle(
                               fontSize: 12,
@@ -752,7 +752,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             formatUSD(deficit),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.expense,
@@ -774,34 +774,34 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     children: [
                       Text(
                         "Para conseguir los ${formatUSD(deficit)} que te faltan antes del día del pago, dividimos ese monto entre los $daysToDeficit días que te quedan para trabajar:",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         "• ${formatUSD(deficit)} / $daysToDeficit días = ${formatUSD(dailyRequiredIncome)} diarios adicionales.",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
                       Text(
                         "Por lo tanto, tu meta de ventas o ingresos diarios totales recomendada para cubrir todo sin deudas es de:",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         "• ${formatUSD(baseIncome)} (Tu mínimo habitual) + ${formatUSD(dailyRequiredIncome)} (El extra necesario) = ${formatUSD(totalDailyTarget)} al día.",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -810,7 +810,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -821,9 +821,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Entendido",
                       style: TextStyle(
                         fontSize: 14,
@@ -953,15 +953,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ),
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -975,23 +975,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.analytics_outlined,
                         color: AppColors.primary,
                         size: 22,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Expanded(
+                    SizedBox(width: 10),
+                    Expanded(
                       child: Text(
                         "Resumen de Proyección",
                         style: TextStyle(
@@ -1003,8 +1003,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Este resumen analiza tus cuentas físicas y bolsillos durante los próximos 30 días para ayudarte a tomar decisiones financieras inteligentes.",
                   style: TextStyle(
                     fontSize: 12,
@@ -1012,9 +1012,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
-                const Text(
+                Text(
                   "Saldos Actuales en Cuentas",
                   style: TextStyle(
                     fontSize: 13,
@@ -1022,14 +1022,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 ...accounts.map((acc) {
                   final balanceFormatted = acc.currency == CurrencyType.usd
                       ? "\$${acc.balance.toStringAsFixed(2)}"
                       : "${acc.balance.toStringAsFixed(2)} Bs.";
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
+                    margin: EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
                     ),
@@ -1043,7 +1043,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       children: [
                         Text(
                           acc.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
@@ -1051,7 +1051,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         ),
                         Text(
                           balanceFormatted,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.cardText,
@@ -1060,11 +1060,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ],
                     ),
                   );
-                }).toList(),
-                const SizedBox(height: 20),
+                }),
+                SizedBox(height: 20),
 
                 // Cash flow period breakdown section
-                const Text(
+                Text(
                   "Análisis del Flujo de Caja (Próximos 30 Días)",
                   style: TextStyle(
                     fontSize: 13,
@@ -1072,9 +1072,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.02),
                     borderRadius: BorderRadius.circular(16),
@@ -1087,17 +1087,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.history_toggle_off_rounded,
                               color: AppColors.expense,
                               size: 18,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Período Pre-Cobro (Hoy al cobro)",
                                     style: TextStyle(
                                       fontSize: 12,
@@ -1105,11 +1105,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     "Tienes ${preCobroExpenses.length} egresos programados antes de tu próximo ingreso. Suman un equivalente aproximado de \$${totalPreCobroExpensesUSD.toStringAsFixed(2)}.\n"
-                                    "${preCobroExpenses.isNotEmpty ? 'Egresos: ' + preCobroExpenses.map((e) => e.title).join(', ') + '.' : 'Sin egresos programados.'}",
-                                    style: const TextStyle(
+                                    "${preCobroExpenses.isNotEmpty ? 'Egresos: ${preCobroExpenses.map((e) => e.title).join(', ')}.' : 'Sin egresos programados.'}",
+                                    style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.cardSubtitleText,
                                       height: 1.4,
@@ -1120,33 +1120,33 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             ),
                           ],
                         ),
-                        const Divider(height: 24),
+                        Divider(height: 24),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.arrow_downward_rounded,
                               color: AppColors.income,
                               size: 18,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     "Día de Cobro (${formatDate(firstIncomeEvent.date)})",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     "Se proyecta recibir '${firstIncomeEvent.title}' de ${firstIncomeEvent.currency == CurrencyType.usd ? '\$' : ''}${firstIncomeEvent.amount.toStringAsFixed(2)}${firstIncomeEvent.currency == CurrencyType.bsBCV ? ' Bs.' : ''}.\n"
                                     "Esto incrementará tu balance líquido proyectado.",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.cardSubtitleText,
                                       height: 1.4,
@@ -1157,21 +1157,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             ),
                           ],
                         ),
-                        const Divider(height: 24),
+                        Divider(height: 24),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.trending_up_rounded,
                               color: AppColors.primary,
                               size: 18,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Período Post-Cobro",
                                     style: TextStyle(
                                       fontSize: 12,
@@ -1179,8 +1179,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  const Text(
+                                  SizedBox(height: 4),
+                                  Text(
                                     "Posterior a tu cobro, la app continuará descontando los gastos programados y provisionando tus bolsillos de ahorro automáticamente.",
                                     style: TextStyle(
                                       fontSize: 11,
@@ -1194,7 +1194,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ],
                         ),
                       ] else ...[
-                        const Row(
+                        Row(
                           children: [
                             Icon(
                               Icons.info_outline_rounded,
@@ -1218,10 +1218,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 if (deficitAccounts.isNotEmpty) ...[
-                  const Text(
+                  Text(
                     "Sugerencias de Transferencia e Intercambio",
                     style: TextStyle(
                       fontSize: 13,
@@ -1229,7 +1229,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       color: AppColors.cardText,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   ...deficitAccounts.map((acc) {
                     final defAmount = -minBalances[acc.id]!;
                     final defUSD = acc.currency == CurrencyType.usd
@@ -1266,8 +1266,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     }
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.expense.withOpacity(0.06),
                         borderRadius: BorderRadius.circular(16),
@@ -1280,16 +1280,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.swap_horiz_rounded,
                                 color: AppColors.expense,
                                 size: 20,
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   "Déficit Proyectado en ${acc.name}",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.expense,
@@ -1298,18 +1298,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           Text(
                             "Tu balance en '${acc.name}' caerá a -$amountFormatted (aprox. -$usdEquivFormatted) el $dateStr debido al gasto '$reason'.",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppColors.cardSubtitleText,
                               height: 1.4,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(8),
@@ -1317,16 +1317,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.lightbulb_outline_rounded,
                                   color: AppColors.primary,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     solutionText,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10,
                                       color: AppColors.cardText,
                                       height: 1.4,
@@ -1340,11 +1340,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
-                  const SizedBox(height: 20),
+                  }),
+                  SizedBox(height: 20),
                 ],
 
-                const Text(
+                Text(
                   "Retenciones Proyectadas para Bolsillos (30 Días)",
                   style: TextStyle(
                     fontSize: 13,
@@ -1352,9 +1352,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 if (pocketProvisions.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
                       "No se proyectan retenciones automáticas de bolsillos en los próximos 30 días.",
@@ -1367,8 +1367,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 else
                   ...pocketProvisions.entries.map((entry) {
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
+                      margin: EdgeInsets.only(bottom: 8),
+                      padding: EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
                       ),
@@ -1384,7 +1384,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         children: [
                           Text(
                             "Apartar para '${entry.key}'",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
@@ -1392,7 +1392,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           Text(
                             "\$${entry.value.toStringAsFixed(2)}",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w900,
                               color: Colors.blue,
@@ -1401,11 +1401,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
-                const SizedBox(height: 20),
+                  }),
+                SizedBox(height: 20),
 
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(16),
@@ -1418,15 +1418,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.shield_rounded,
                             color: AppColors.primary,
                             size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             "Dinero Seguro actual: \$${appState.liquidBalanceUSD.toStringAsFixed(2)}",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
@@ -1434,8 +1434,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         "El Dinero Seguro representa la cantidad de efectivo neto que te queda libre después de restar los saldos reservados para tus bolsillos de ahorro. Si mantienes tus retenciones en orden, nunca correrás el riesgo de quedar en saldo negativo.",
                         style: TextStyle(
                           fontSize: 11,
@@ -1446,7 +1446,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 SizedBox(
                   width: double.infinity,
@@ -1458,9 +1458,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Cerrar Resumen",
                       style: TextStyle(
                         fontSize: 14,
@@ -1484,8 +1484,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Color? borderColor,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
       width: double.infinity,
       decoration: BoxDecoration(
         color:
@@ -1504,13 +1504,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: AppColors.cardText,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           content,
         ],
       ),
@@ -1525,7 +1525,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         // Type filter
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: BouncingScrollPhysics(),
           child: Row(
             children: [
               _buildFilterChip(
@@ -1537,7 +1537,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _buildFilterChip(
                 label: "Ingresos",
                 selected: _selectedType == 'income',
@@ -1547,7 +1547,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _buildFilterChip(
                 label: "Gastos",
                 selected: _selectedType == 'expense',
@@ -1557,7 +1557,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _buildFilterChip(
                 label: "Sugerencias",
                 selected: _selectedType == 'suggestion',
@@ -1573,17 +1573,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
         
         // Secondary filter row
         if (_selectedType == 'income' || _selectedType == 'expense') ...[
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Builder(
             builder: (context) {
               final typeFilter = _selectedType == 'income' ? TransactionType.income : TransactionType.expense;
               final relevantRecurrents = appState.recurringPayments.where((p) => p.type == typeFilter).toList();
               
-              if (relevantRecurrents.isEmpty) return const SizedBox.shrink();
+              if (relevantRecurrents.isEmpty) return SizedBox.shrink();
               
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildFilterChip(
@@ -1593,7 +1593,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                     ...relevantRecurrents.map((p) {
                       return Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: EdgeInsets.only(left: 8.0),
                         child: _buildFilterChip(
                           label: p.name,
                           selected: _selectedRecurringId == p.id,
@@ -1607,15 +1607,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
             }
           ),
         ] else if (_selectedType == 'suggestion') ...[
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Builder(
             builder: (context) {
               final relevantPockets = appState.pockets;
-              if (relevantPockets.isEmpty) return const SizedBox.shrink();
+              if (relevantPockets.isEmpty) return SizedBox.shrink();
               
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildFilterChip(
@@ -1625,7 +1625,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                     ...relevantPockets.map((p) {
                       return Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: EdgeInsets.only(left: 8.0),
                         child: _buildFilterChip(
                           label: p.name,
                           selected: _selectedPocketId == p.id,
@@ -1651,8 +1651,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : AppColors.nestedTabTrackBg,
           borderRadius: BorderRadius.circular(10),
@@ -1744,7 +1744,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           description: "Muestra tu 'Dinero Seguro', que es el dinero disponible actual libre de obligaciones. Si tu saldo cae por debajo de cero en el futuro, verás una meta diaria recomendada para cubrir el déficit.",
           child: ClaymorphicCard(
             cornerRadius: 24,
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(20.0),
             backgroundColor: AppColors.cardBackground,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1752,19 +1752,19 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.shield_rounded,
                         color: AppColors.primary,
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Expanded(
+                    SizedBox(width: 10),
+                    Expanded(
                       child: Text(
                         "Planificación de Dinero Seguro",
                         style: TextStyle(
@@ -1775,20 +1775,20 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.info_outline_rounded,
                         color: AppColors.primary,
                         size: 20,
                       ),
                       onPressed: () => _showTimelineInfo(context),
-                      constraints: const BoxConstraints(),
+                      constraints: BoxConstraints(),
                       padding: EdgeInsets.zero,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(16),
@@ -1802,13 +1802,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.monetization_on_rounded,
                             color: AppColors.primary,
                             size: 16,
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
+                          SizedBox(width: 8),
+                          Text(
                             "Ahorro o Gasto Libre Extra",
                             style: TextStyle(
                               fontSize: 13,
@@ -1818,18 +1818,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Text(
                         formatUSD(maxToSave),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
                           color: AppColors.primary,
                           letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         "Dinero adicional que puedes ahorrar en tus bolsillos o gastar libremente en antojos hoy sin afectar tus pagos planificados.",
                         style: TextStyle(
                           fontSize: 11,
@@ -1840,7 +1840,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   safeAmount < 0
                       ? "¡Alerta de déficit! Tu dinero proyectado caerá por debajo de cero, llegando a ${formatUSD(safeAmount)} el ${formatDate(minDate!)} debido al compromiso '$minReason'. No deberías ahorrar ni realizar gastos discrecionales hasta solucionar este déficit."
@@ -1851,13 +1851,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                   )
                                   ? "Tienes gastos programados, pero tus ingresos proyectados los cubren por completo. ¡Es seguro destinar tu dinero disponible actual al ahorro en bolsillos o a gastos libres!"
                                   : "No tienes gastos programados en tu agenda. ¡Es seguro destinar todo tu dinero disponible actual al ahorro en bolsillos o a gastos libres!")),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -1868,17 +1868,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
                             builder: (context) =>
-                                const PurchaseSimulationBottomSheet(),
+                                PurchaseSimulationBottomSheet(),
                           );
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.shopping_cart_checkout_rounded,
                           size: 18,
                         ),
-                        label: const Text("Simular"),
+                        label: Text("Simular"),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: AppColors.primary.withOpacity(0.08),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1886,15 +1886,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: TextButton.icon(
                         onPressed: () => _showTimelineSummaryBottomSheet(context),
-                        icon: const Icon(Icons.analytics_outlined, size: 18),
-                        label: const Text("Resumen"),
+                        icon: Icon(Icons.analytics_outlined, size: 18),
+                        label: Text("Resumen"),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: AppColors.primary.withOpacity(0.08),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1909,10 +1909,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
           ),
         ),
         if (safeAmount < 0 && minDate != null) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildSalesGoalCard(context, safeAmount, minDate, minReason ?? ''),
         ],
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // Timeline header
         Row(
@@ -1925,10 +1925,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               "Timeline de Proyección ($periodTitle)",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
@@ -1937,7 +1937,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
 
         // Filters UI
         Showcase(
@@ -1946,7 +1946,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           description: "Filtra el listado por ingresos, gastos o 'Sugerencias'. Las Sugerencias son recomendaciones automáticas que te indican cuándo y cuánto transferir a tus bolsillos de ahorro para pre-fondear cuotas futuras y proteger tu saldo líquido.",
           child: _buildFilterChips(),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
 
         if (filteredEvents.isEmpty)
           Showcase(
@@ -1954,7 +1954,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             title: "Agenda de Proyección Futura",
             description: "Aquí verás la evolución de tus saldos día a día. Actualmente está vacía porque no tienes obligaciones recurrentes registradas. Cuando agregues cobros o pagos programados en la pestaña 'Recurrentes', verás el flujo proyectado y sugerencias inteligentes de ahorro.",
             child: ClaymorphicCard(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 vertical: 36.0,
                 horizontal: 24.0,
               ),
@@ -1964,19 +1964,19 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.timeline_rounded,
                       size: 38,
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     "Sin Proyecciones",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -1985,7 +1985,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       color: AppColors.cardText,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     "No hay transacciones programadas para el filtro seleccionado en este período.",
                     textAlign: TextAlign.center,
@@ -2003,13 +2003,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
         else
           ListView.builder(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+            physics: NeverScrollableScrollPhysics(),
             itemCount: listItems.length,
             itemBuilder: (context, index) {
               final item = listItems[index];
               if (item is String) {
                 return Padding(
-                  padding: const EdgeInsets.only(
+                  padding: EdgeInsets.only(
                     top: 20.0,
                     bottom: 8.0,
                     left: 4.0,
@@ -2023,15 +2023,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppColors.primary,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             item,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w900,
                               color: AppColors.primary,
@@ -2041,7 +2041,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.more_horiz_rounded,
                           color: AppColors.primary,
                           size: 20,
@@ -2060,7 +2060,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             ),
                           );
                         },
-                        constraints: const BoxConstraints(),
+                        constraints: BoxConstraints(),
                         padding: EdgeInsets.zero,
                       ),
                     ],

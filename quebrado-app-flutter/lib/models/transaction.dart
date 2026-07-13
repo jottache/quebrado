@@ -64,7 +64,7 @@ class Transaction {
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       date: map['date'] is String
           ? DateTime.parse(map['date'])
           : DateTime.fromMillisecondsSinceEpoch(map['date']),

@@ -17,7 +17,7 @@ void main() async {
     debugPrint("Failed to initialize NotificationManager: $e");
   }
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,35 +27,39 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AppState>(
       create: (_) => AppState(),
-      child: MaterialApp(
-        title: 'Quebrado',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          textTheme: GoogleFonts.josefinSansTextTheme(ThemeData.light().textTheme),
-          scaffoldBackgroundColor: AppColors.background,
-          iconButtonTheme: IconButtonThemeData(
-            style: IconButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              backgroundColor: AppColors.primary.withOpacity(0.12),
+      child: Consumer<AppState>(
+        builder: (context, appState, child) {
+          return MaterialApp(
+            title: 'Quebrado',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              textTheme: GoogleFonts.josefinSansTextTheme(ThemeData.light().textTheme),
+              scaffoldBackgroundColor: AppColors.background,
+              iconButtonTheme: IconButtonThemeData(
+                style: IconButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  backgroundColor: AppColors.primary.withOpacity(0.12),
+                ),
+              ),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.primary,
+                surface: AppColors.background,
+              ),
+              appBarTheme: AppBarTheme(
+                centerTitle: true,
+                iconTheme: IconThemeData(color: AppColors.primary),
+                actionsIconTheme: IconThemeData(color: AppColors.primary),
+                titleTextStyle: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
-            surface: AppColors.background,
-          ),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            iconTheme: IconThemeData(color: AppColors.primary),
-            actionsIconTheme: IconThemeData(color: AppColors.primary),
-            titleTextStyle: TextStyle(
-              color: Colors.black87,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        home: const MainScreen(),
+            home: MainScreen(),
+          );
+        }
       ),
     );
   }

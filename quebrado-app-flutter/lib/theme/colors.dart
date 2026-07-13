@@ -3,10 +3,18 @@ import 'package:flutter/material.dart';
 class AppColors {
   // --- USER PALETTE CONFIGURATION ---
   // Modify these hex codes to test new color palettes.
-  static const Color primary = Color(0xFF1F6F5F);       // Dark teal-green (First bar)
-  static const Color secondary = Color(0xFF2FA084);     // Medium teal-green (Second bar)
-  static const Color accent = Color(0xFF6FCF97);        // Light green (Third bar)
+  static Color primary = Color(0xFF1F6F5F);       // Dark teal-green (First bar)
+  static Color secondary = Color(0xFF2FA084);     // Medium teal-green (Second bar)
+  static Color accent = Color(0xFF6FCF97);        // Light green (Third bar)
   static const Color background = Color(0xFFEEEEEE);    // Very light grey (Fourth bar)
+
+  // Update theme colors dynamically
+  static void updateThemeColor(Color newPrimary) {
+    primary = newPrimary;
+    final hsl = HSLColor.fromColor(newPrimary);
+    secondary = hsl.withLightness((hsl.lightness + 0.1).clamp(0.0, 1.0)).toColor();
+    accent = hsl.withLightness((hsl.lightness + 0.25).clamp(0.0, 1.0)).toColor();
+  }
 
   // --- GLOBAL CARD STYLING ---
   static const Color cardBackground = Colors.white;
@@ -24,14 +32,14 @@ class AppColors {
 
   // --- TABS STYLING ---
   // Main tabs (outside cards)
-  static const Color mainTabActiveBg = primary;
+  static Color get mainTabActiveBg => primary;
   static const Color mainTabActiveText = Colors.white;
   static const Color mainTabInactiveText = Colors.black54;
   static const Color mainTabTrackBg = Color(0x0D000000); // Colors.black.withOpacity(0.05)
   
   // Nested tabs (inside cards)
   static const Color nestedTabTrackBg = Color(0x0D000000); // Colors.black.withOpacity(0.05)
-  static const Color nestedTabActiveBg = secondary;
+  static Color get nestedTabActiveBg => secondary;
   static const Color nestedTabActiveText = Colors.white;
   static const Color nestedTabInactiveText = Colors.black54;
 
@@ -44,7 +52,7 @@ class AppColors {
   static const Color expense = Color(0xFFC84E4E);       // Red/coral for expenses (negative)
 
   // Centralized colors for pockets and subscriptions creation
-  static const List<String> creationColors = [
+  static List<String> creationColors = [
     "#1F6F5F", // primary (Dark teal-green)
     "#2FA084", // secondary (Medium teal-green)
     "#6FCF97", // accent (Light green)

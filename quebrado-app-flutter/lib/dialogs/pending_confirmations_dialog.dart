@@ -25,17 +25,20 @@ class PendingConfirmationsBottomSheet extends StatefulWidget {
   State<PendingConfirmationsBottomSheet> createState() => _PendingConfirmationsBottomSheetState();
 }
 
-class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBottomSheet> {
+class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBottomSheet> with TickerProviderStateMixin {
   final List<_PendingPaymentState> _states = [];
   bool _initialized = false;
   late final TextEditingController _p2pRateController;
   final ScrollController _scrollController = ScrollController();
+  TabController? _tabController;
+  bool _tabControllerInitialized = false;
+  bool _isLoading = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final appState = Provider.of<AppState>(context);
     if (!_initialized) {
-      final appState = Provider.of<AppState>(context);
       if (widget.filterOccurrence != null) {
         final occ = widget.filterOccurrence!;
         final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
@@ -53,6 +56,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       _p2pRateController = TextEditingController(text: appState.parallelRate.toStringAsFixed(2));
       _initialized = true;
     }
+
+    if (widget.filterOccurrence == null && !_tabControllerInitialized && appState.profiles.isNotEmpty) {
+      int activeIndex = appState.profiles.indexWhere((p) => p['id'] == appState.activeDbName);
+      if (activeIndex == -1) activeIndex = 0;
+      
+      _tabController = TabController(
+        length: appState.profiles.length,
+        vsync: this,
+        initialIndex: activeIndex,
+      );
+      _tabController!.addListener(_handleTabSelection);
+      _tabControllerInitialized = true;
+    }
   }
 
   @override
@@ -63,7 +79,43 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     }
     _p2pRateController.dispose();
     _scrollController.dispose();
+    _tabController?.removeListener(_handleTabSelection);
+    _tabController?.dispose();
     super.dispose();
+  }
+
+  void _handleTabSelection() async {
+    if (_tabController == null || _tabController!.indexIsChanging) return;
+    
+    final appState = Provider.of<AppState>(context, listen: false);
+    final targetProfile = appState.profiles[_tabController!.index];
+    final targetDb = targetProfile['id']!;
+    
+    if (targetDb != appState.activeDbName) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        await appState.switchProfile(targetDb);
+        
+        setState(() {
+          _states.clear();
+          for (var occ in appState.pendingPaymentsToday) {
+            final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
+            final state = _PendingPaymentState(occ, rate);
+            if (widget.forceShowCustomAmount) state.showCustomAmount = true;
+            _states.add(state);
+          }
+          _p2pRateController.text = appState.parallelRate.toStringAsFixed(2);
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<bool> _handleConsolidatedDeficits({
@@ -156,7 +208,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Copiado $label: $text"),
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
         backgroundColor: AppColors.primary,
       ),
     );
@@ -173,7 +225,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text("Autenticación biométrica fallida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
@@ -232,7 +284,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     if (context.mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registros agregados al historial")),
+        SnackBar(content: Text("Registros agregados al historial")),
       );
     }
   }
@@ -241,36 +293,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final size = MediaQuery.of(context).size;
-
-    if (_states.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: const SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "¡Todo al día!",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "No tienes ningún pago programado pendiente para hoy.",
-                style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    final showTabs = widget.filterOccurrence == null && _tabController != null && appState.profiles.isNotEmpty;
 
     return Container(
       constraints: BoxConstraints(
@@ -278,12 +301,12 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       ),
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 8),
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 8),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -299,23 +322,23 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.notifications_active_rounded,
                     color: AppColors.primary,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Expanded(
+                SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     "Cobros y Pagos de Hoy",
                     style: TextStyle(
@@ -327,8 +350,8 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            const Text(
+            SizedBox(height: 12),
+            Text(
               "Tienes registros programados pendientes para hoy. Elige cuáles quieres registrar automáticamente en tus cuentas:",
               style: TextStyle(
                 fontSize: 13,
@@ -336,14 +359,88 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 16),
-            Flexible(
+            if (showTabs) ...[
+              SizedBox(height: 12),
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: appState.profiles.length > 3,
+                  indicator: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      )
+                    ],
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey[500],
+                  labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                  physics: BouncingScrollPhysics(),
+                  tabs: appState.profiles.map((p) {
+                    final String name = p['name'] ?? 'Personal';
+                    return Tab(
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text(name),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            SizedBox(height: 16),
+            if (_isLoading)
+              Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                ),
+              )
+            else if (_states.isEmpty)
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: AppColors.primary,
+                      size: 48,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      "¡Todo al día!",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "No tienes ningún pago programado pendiente para hoy en este libro.",
+                      style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              Flexible(
               child: Scrollbar(
                 controller: _scrollController,
                 thumbVisibility: true,
                 child: SingleChildScrollView(
                   controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
+                  physics: BouncingScrollPhysics(),
                   child: Column(
                     children: [
                       ..._states.map((state) {
@@ -356,8 +453,8 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                     final needsConversion = (p.currency == CurrencyType.usd || p.currency == CurrencyType.eur) && targetAccount.currency == CurrencyType.bsBCV;
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.04),
                         borderRadius: BorderRadius.circular(16),
@@ -377,7 +474,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   Checkbox(
                                     value: state.isChecked,
                                     activeColor: AppColors.primary,
-                                    visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                                    visualDensity: VisualDensity(horizontal: -4, vertical: -4),
                                     onChanged: (val) {
                                       setState(() {
                                         state.isChecked = val ?? false;
@@ -387,7 +484,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: iconColor.withOpacity(0.12),
                                   shape: BoxShape.circle,
@@ -398,20 +495,20 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   size: 18,
                                 ),
                               ),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 6),
                                 Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       p.name,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    SizedBox(height: 2),
                                     Text(
                                       "${isIncome ? 'Ingreso' : 'Gasto'} • Vence: ${formatDate(state.occurrence.occurrenceDate)}",
                                       style: TextStyle(
@@ -421,10 +518,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                       ),
                                     ),
                                     if (state.occurrence.partialAmountPaid > 0) ...[
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       Text(
                                         "Pagado parcial: ${formatCurrency(state.occurrence.partialAmountPaid, p.currency)}",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.income,
@@ -446,31 +543,31 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ],
                           ),
                           if ((p.isVariable || state.showCustomAmount) && state.isChecked && !state.willSkip) ...[
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                       Text(
                                         "Rango: ${formatCurrency(p.amount, p.currency)} - ${formatCurrency(p.maxAmount ?? p.amount, p.currency)}",
-                                        style: const TextStyle(fontSize: 10, color: AppColors.cardSubtitleText),
+                                        style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       SizedBox(
                                         height: 36,
                                         child: TextField(
                                           controller: state.amountController,
-                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                           decoration: InputDecoration(
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                            prefixText: p.currency.symbol + " ",
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            prefixText: "${p.currency.symbol} ",
                                             border: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(10),
-                                              borderSide: const BorderSide(color: Colors.black12),
+                                              borderSide: BorderSide(color: Colors.black12),
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(10),
-                                              borderSide: const BorderSide(color: AppColors.primary),
+                                              borderSide: BorderSide(color: AppColors.primary),
                                             ),
                                           ),
                                           onChanged: (_) => setState(() {}),
@@ -480,22 +577,22 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ),
                           ],
                           if (needsConversion && state.isChecked && !state.willSkip) ...[
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                       if (!p.isVariable) ...[
                                         Text(
                                           "Monto Base: ${formatCurrency(p.amount, p.currency)}",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.cardText,
                                           ),
                                         ),
-                                        const SizedBox(height: 6),
+                                        SizedBox(height: 6),
                                       ],
-                                      const Text(
+                                      Text(
                                         "TASA DE CAMBIO",
                                         style: TextStyle(
                                           fontSize: 9,
@@ -504,9 +601,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           letterSpacing: 0.8,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       Container(
-                                        padding: const EdgeInsets.all(2),
+                                        padding: EdgeInsets.all(2),
                                         decoration: BoxDecoration(
                                           color: AppColors.nestedTabTrackBg,
                                           borderRadius: BorderRadius.circular(8),
@@ -517,7 +614,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               child: GestureDetector(
                                                 onTap: () => setState(() => state.isCustomRate = false),
                                                 child: Container(
-                                                  padding: const EdgeInsets.symmetric(vertical: 6),
+                                                  padding: EdgeInsets.symmetric(vertical: 6),
                                                   decoration: BoxDecoration(
                                                     color: !state.isCustomRate
                                                         ? AppColors.nestedTabActiveBg
@@ -542,7 +639,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               child: GestureDetector(
                                                 onTap: () => setState(() => state.isCustomRate = true),
                                                 child: Container(
-                                                  padding: const EdgeInsets.symmetric(vertical: 6),
+                                                  padding: EdgeInsets.symmetric(vertical: 6),
                                                   decoration: BoxDecoration(
                                                     color: state.isCustomRate
                                                         ? AppColors.nestedTabActiveBg
@@ -567,31 +664,31 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         ),
                                       ),
                                       if (state.isCustomRate) ...[
-                                        const SizedBox(height: 6),
+                                        SizedBox(height: 6),
                                         SizedBox(
                                           height: 36,
                                           child: TextField(
                                             controller: state.rateController,
-                                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                             decoration: InputDecoration(
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                               prefixText: "Bs. ",
                                               hintText: "Ingrese tasa",
                                               border: OutlineInputBorder(
                                                 borderRadius: BorderRadius.circular(8),
-                                                borderSide: const BorderSide(color: Colors.black12),
+                                                borderSide: BorderSide(color: Colors.black12),
                                               ),
                                               focusedBorder: OutlineInputBorder(
                                                 borderRadius: BorderRadius.circular(8),
-                                                borderSide: const BorderSide(color: AppColors.primary),
+                                                borderSide: BorderSide(color: AppColors.primary),
                                               ),
                                             ),
                                             onChanged: (_) => setState(() {}),
                                           ),
                                         ),
                                       ],
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: 8),
                                       Builder(
                                         builder: (context) {
                                           final usdVal = double.tryParse(state.amountController.text.replaceAll(',', '.')) ?? state.occurrence.remainingAmount;
@@ -602,7 +699,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           final calculatedBs = usdVal * rateVal;
                                           return Container(
                                             width: double.infinity,
-                                            padding: const EdgeInsets.all(8),
+                                            padding: EdgeInsets.all(8),
                                             decoration: BoxDecoration(
                                               color: AppColors.primary.withOpacity(0.06),
                                               borderRadius: BorderRadius.circular(8),
@@ -610,13 +707,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             child: Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                const Text(
+                                                Text(
                                                   "Se registrará en Banco Bs.:",
                                                   style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
                                                 ),
                                                 Text(
                                                   formatBs(calculatedBs),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w900,
                                                     color: AppColors.primary,
@@ -631,7 +728,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ),
                           ],
                           if (!p.isVariable) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
@@ -639,7 +736,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   foregroundColor: AppColors.primary,
                                   side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: EdgeInsets.symmetric(vertical: 8),
                                   visualDensity: VisualDensity.compact,
                                 ),
                                 onPressed: () {
@@ -650,10 +747,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     }
                                   });
                                 },
-                                child: Text(state.showCustomAmount ? "Usar monto completo" : "Modificar monto", style: const TextStyle(fontSize: 12)),
+                                child: Text(state.showCustomAmount ? "Usar monto completo" : "Modificar monto", style: TextStyle(fontSize: 12)),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
@@ -662,7 +759,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   backgroundColor: state.willSkip ? AppColors.expense : Colors.transparent,
                                   side: BorderSide(color: AppColors.expense.withOpacity(0.5)),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: EdgeInsets.symmetric(vertical: 8),
                                   visualDensity: VisualDensity.compact,
                                 ),
                                 onPressed: () {
@@ -676,7 +773,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     }
                                   });
                                 },
-                                child: Text(state.willSkip ? "Se omitirá este ${isIncome ? 'ingreso' : 'pago'}" : "Omitir ${isIncome ? 'ingreso' : 'pago'}", style: const TextStyle(fontSize: 12)),
+                                child: Text(state.willSkip ? "Se omitirá este ${isIncome ? 'ingreso' : 'pago'}" : "Omitir ${isIncome ? 'ingreso' : 'pago'}", style: TextStyle(fontSize: 12)),
                               ),
                             ),
                           ],
@@ -685,7 +782,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                     );
                   }),
                     if (_states.any((s) => s.isChecked)) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Builder(
                       builder: (context) {
                         double totalIncomeUSD = 0.0;
@@ -783,7 +880,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                         final Color netColor = netUSD >= 0 ? AppColors.income : AppColors.expense;
 
                         return Container(
-                          padding: const EdgeInsets.all(14),
+                          padding: EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.6), // Premium glassmorphic look
                             borderRadius: BorderRadius.circular(16),
@@ -795,14 +892,14 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.02),
                                 blurRadius: 8,
-                                offset: const Offset(0, 4),
+                                offset: Offset(0, 4),
                               ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 "RESUMEN DE SELECCIÓN",
                                 style: TextStyle(
                                   fontSize: 9,
@@ -811,7 +908,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   letterSpacing: 0.8,
                                 ),
                               ),
-                               const SizedBox(height: 10),
+                               SizedBox(height: 10),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -820,7 +917,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
+                                        Text(
                                           "Total Ingresos",
                                           style: TextStyle(
                                             fontSize: 10,
@@ -828,47 +925,47 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalIncomeUSD.toStringAsFixed(2), "Total Ingresos USD"),
                                           borderRadius: BorderRadius.circular(4),
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatUSD(totalIncomeUSD),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.bold,
                                                     color: AppColors.income,
                                                   ),
                                                 ),
-                                                const SizedBox(width: 6),
+                                                SizedBox(width: 6),
                                                 Icon(Icons.content_copy_rounded, size: 14, color: AppColors.income.withOpacity(0.5)),
                                               ],
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: 2),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalIncomeBs.toStringAsFixed(2), "Total Ingresos Bs."),
                                           borderRadius: BorderRadius.circular(4),
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatBs(totalIncomeBs),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w500,
                                                     color: AppColors.income,
                                                   ),
                                                 ),
-                                                const SizedBox(width: 6),
+                                                SizedBox(width: 6),
                                                 Icon(Icons.content_copy_rounded, size: 12, color: AppColors.income.withOpacity(0.4)),
                                               ],
                                             ),
@@ -883,13 +980,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     width: 1,
                                     color: Colors.black.withOpacity(0.06),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
                                   // Egresos
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
+                                        Text(
                                           "Total Egresos",
                                           style: TextStyle(
                                             fontSize: 10,
@@ -897,47 +994,47 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalExpenseUSD.toStringAsFixed(2), "Total Egresos USD"),
                                           borderRadius: BorderRadius.circular(4),
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatUSD(totalExpenseUSD),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.bold,
                                                     color: AppColors.expense,
                                                   ),
                                                 ),
-                                                const SizedBox(width: 6),
+                                                SizedBox(width: 6),
                                                 Icon(Icons.content_copy_rounded, size: 14, color: AppColors.expense.withOpacity(0.5)),
                                               ],
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: 2),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalExpenseBs.toStringAsFixed(2), "Total Egresos Bs."),
                                           borderRadius: BorderRadius.circular(4),
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatBs(totalExpenseBs),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w500,
                                                     color: AppColors.expense,
                                                   ),
                                                 ),
-                                                const SizedBox(width: 6),
+                                                SizedBox(width: 6),
                                                 Icon(Icons.content_copy_rounded, size: 12, color: AppColors.expense.withOpacity(0.4)),
                                               ],
                                             ),
@@ -948,13 +1045,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: 10),
                               Divider(color: Colors.black.withOpacity(0.05), height: 1),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Total Neto",
                                     style: TextStyle(
                                         fontSize: 11,
@@ -969,7 +1066,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         onTap: () => _copyToClipboard(context, netUSD.toStringAsFixed(2), "Total Neto USD"),
                                         borderRadius: BorderRadius.circular(4),
                                         child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             mainAxisAlignment: MainAxisAlignment.end,
@@ -982,18 +1079,18 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                   color: netColor,
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
+                                              SizedBox(width: 6),
                                               Icon(Icons.content_copy_rounded, size: 13, color: netColor.withOpacity(0.5)),
                                             ],
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       InkWell(
                                         onTap: () => _copyToClipboard(context, netBs.toStringAsFixed(2), "Total Neto Bs."),
                                         borderRadius: BorderRadius.circular(4),
                                         child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             mainAxisAlignment: MainAxisAlignment.end,
@@ -1006,7 +1103,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                   color: netColor,
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
+                                              SizedBox(width: 6),
                                               Icon(Icons.content_copy_rounded, size: 11, color: netColor.withOpacity(0.4)),
                                             ],
                                           ),
@@ -1017,9 +1114,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 ],
                               ),
                               if (totalDeficitBs > 0) ...[
-                                const SizedBox(height: 12),
+                                SizedBox(height: 12),
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: AppColors.secondary.withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(12),
@@ -1033,13 +1130,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     children: [
                                       Row(
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.calculate_outlined,
                                             color: AppColors.secondary,
                                             size: 16,
                                           ),
-                                          const SizedBox(width: 6),
-                                          const Text(
+                                          SizedBox(width: 6),
+                                          Text(
                                             "OPTIMIZADOR DE VENTA P2P (BINANCE)",
                                             style: TextStyle(
                                               fontSize: 9,
@@ -1050,24 +1147,24 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: 8),
                                       InkWell(
                                         onTap: () => _copyToClipboard(context, totalDeficitBs.toStringAsFixed(2), "Déficit en Bolívares"),
                                         borderRadius: BorderRadius.circular(4),
                                         child: Padding(
-                                          padding: const EdgeInsets.only(top: 4, bottom: 4, right: 8, left: 0),
+                                          padding: EdgeInsets.only(top: 4, bottom: 4, right: 8, left: 0),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
                                                 "Déficit (Falta por Cubrir): ${formatBs(totalDeficitBs)}",
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors.cardText,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              SizedBox(width: 8),
                                               Icon(
                                                 Icons.content_copy_rounded,
                                                 size: 13,
@@ -1077,8 +1174,8 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      const Text(
+                                      SizedBox(height: 4),
+                                      Text(
                                         "El déficit representa lo que le falta a tus cuentas en Bolívares para cubrir los egresos seleccionados (Egresos - Saldo Disponible).",
                                         style: TextStyle(
                                           fontSize: 9.5,
@@ -1086,24 +1183,24 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           height: 1.3,
                                         ),
                                       ),
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: 12),
                                       Row(
                                         children: [
-                                          const Text(
+                                          Text(
                                             "Tasa P2P de Venta: ",
                                             style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
                                           ),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: 8),
                                           SizedBox(
                                             width: 80,
                                             height: 28,
                                             child: TextField(
                                               controller: _p2pRateController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                                               textAlign: TextAlign.center,
                                               decoration: InputDecoration(
-                                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                                                 isDense: true,
                                                 border: OutlineInputBorder(
                                                   borderRadius: BorderRadius.circular(6),
@@ -1112,14 +1209,14 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               onChanged: (_) => setState(() {}),
                                             ),
                                           ),
-                                          const SizedBox(width: 4),
-                                          const Text(
+                                          SizedBox(width: 4),
+                                          Text(
                                             " Bs/\$",
                                             style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: 12),
                                       Builder(
                                         builder: (context) {
                                           final p2pRate = double.tryParse(_p2pRateController.text.replaceAll(',', '.')) ?? appState.parallelRate;
@@ -1139,7 +1236,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             children: [
                                               // Option A Card
                                               Container(
-                                                padding: const EdgeInsets.all(10),
+                                                padding: EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
                                                   color: AppColors.primary.withOpacity(0.06),
                                                   borderRadius: BorderRadius.circular(10),
@@ -1151,7 +1248,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Text(
+                                                    Text(
                                                       "OPCIÓN A: VENDER SOLO EL DÉFICIT",
                                                       style: TextStyle(
                                                         fontSize: 8.5,
@@ -1160,7 +1257,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                         letterSpacing: 0.5,
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 4),
+                                                    SizedBox(height: 4),
                                                     InkWell(
                                                       onTap: () => _copyToClipboard(context, usdNeededDeficit.toStringAsFixed(2), "Binance P2P (Déficit)"),
                                                       borderRadius: BorderRadius.circular(4),
@@ -1169,13 +1266,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                         children: [
                                                           Text(
                                                             "Debes vender: ${formatUSD(usdNeededDeficit)}",
-                                                            style: const TextStyle(
+                                                            style: TextStyle(
                                                               fontSize: 14,
                                                               fontWeight: FontWeight.bold,
                                                               color: AppColors.primary,
                                                             ),
                                                           ),
-                                                          const SizedBox(width: 8),
+                                                          SizedBox(width: 8),
                                                           Icon(
                                                             Icons.content_copy_rounded,
                                                             size: 13,
@@ -1185,10 +1282,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                       ),
                                                     ),
                                                     if (savedUsdDeficit > 0.01) ...[
-                                                      const SizedBox(height: 2),
+                                                      SizedBox(height: 2),
                                                       Text(
                                                         "¡Ahorras ${formatUSD(savedUsdDeficit)}! (Vs. ${formatUSD(usdNominalDeficit)} a tasa BCV)",
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 9.5,
                                                           fontWeight: FontWeight.bold,
                                                           color: AppColors.income,
@@ -1198,10 +1295,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                   ],
                                                 ),
                                               ),
-                                              const SizedBox(height: 10),
+                                              SizedBox(height: 10),
                                               // Option B Card
                                               Container(
-                                                padding: const EdgeInsets.all(10),
+                                                padding: EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey[100],
                                                   borderRadius: BorderRadius.circular(10),
@@ -1213,7 +1310,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Text(
+                                                    Text(
                                                       "OPCIÓN B: VENDER EL EGRESO TOTAL",
                                                       style: TextStyle(
                                                         fontSize: 8.5,
@@ -1222,7 +1319,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                         letterSpacing: 0.5,
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 4),
+                                                    SizedBox(height: 4),
                                                     InkWell(
                                                       onTap: () => _copyToClipboard(context, usdNeededTotal.toStringAsFixed(2), "Binance P2P (Total)"),
                                                       borderRadius: BorderRadius.circular(4),
@@ -1231,13 +1328,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                         children: [
                                                           Text(
                                                             "Debes vender: ${formatUSD(usdNeededTotal)}",
-                                                            style: const TextStyle(
+                                                            style: TextStyle(
                                                               fontSize: 14,
                                                               fontWeight: FontWeight.bold,
                                                               color: AppColors.cardText,
                                                             ),
                                                           ),
-                                                          const SizedBox(width: 8),
+                                                          SizedBox(width: 8),
                                                           Icon(
                                                             Icons.content_copy_rounded,
                                                             size: 13,
@@ -1247,10 +1344,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                       ),
                                                     ),
                                                     if (savedUsdTotal > 0.01) ...[
-                                                      const SizedBox(height: 2),
+                                                      SizedBox(height: 2),
                                                       Text(
                                                         "¡Ahorras ${formatUSD(savedUsdTotal)}! (Vs. ${formatUSD(usdNominalTotal)} a tasa BCV)",
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 9.5,
                                                           fontWeight: FontWeight.bold,
                                                           color: AppColors.income,
@@ -1280,13 +1377,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
           ),
         ),
           if (_states.length > 2) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.unfold_more, size: 14, color: AppColors.cardSubtitleText.withOpacity(0.6)),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     "Desliza para ver más",
                     style: TextStyle(
@@ -1299,7 +1396,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
               ),
             ),
           ],
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
             Column(
               children: [
                 SizedBox(
@@ -1425,15 +1522,15 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text(
+                          child: Text(
                             "Registrar",
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -1448,7 +1545,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                           if (context.mounted) {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Cobros/pagos omitidos por hoy")),
+                              SnackBar(content: Text("Cobros/pagos omitidos por hoy")),
                             );
                           }
                         },
@@ -1458,15 +1555,15 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             borderRadius: BorderRadius.circular(12),
                           ),
                           side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Omitir hoy",
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
@@ -1475,9 +1572,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Decidir más tarde",
                           style: TextStyle(
                             fontSize: 12,
@@ -1490,6 +1587,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 ),
               ],
             ),
+            ],
           ],
         ),
       ),
@@ -1532,12 +1630,12 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1553,12 +1651,12 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
-                const SizedBox(width: 10),
-                const Expanded(
+                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
+                SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     "Saldo Insuficiente",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
@@ -1566,12 +1664,12 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               "El saldo en '${targetAccount.name}' (${targetAccount.balance.toStringAsFixed(2)} ${targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados (Déficit consolidado de $deficitFormatted).\n\nNo tienes otras cuentas con fondos disponibles para realizar una transferencia. ¿Deseas registrar los pagos de todas formas?",
-              style: const TextStyle(fontSize: 13, color: AppColors.cardSubtitleText, height: 1.4),
+              style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText, height: 1.4),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -1581,12 +1679,12 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
                       foregroundColor: AppColors.cardSubtitleText,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text("Cancelar", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    child: Text("Cancelar", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
@@ -1594,9 +1692,9 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text("Registrar de todas formas", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    child: Text("Registrar de todas formas", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -1683,12 +1781,12 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1704,12 +1802,12 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
-                const SizedBox(width: 10),
-                const Expanded(
+                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
+                SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     "Saldo Insuficiente",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
@@ -1717,22 +1815,22 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               "El saldo de '${widget.targetAccount.name}' (${widget.targetAccount.balance.toStringAsFixed(2)} ${widget.targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados.\n\nSe necesita cubrir un déficit consolidado de $deficitFormatted.",
-              style: const TextStyle(fontSize: 12.5, color: AppColors.cardSubtitleText, height: 1.4),
+              style: TextStyle(fontSize: 12.5, color: AppColors.cardSubtitleText, height: 1.4),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               "Origen de los fondos:",
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             DropdownButtonFormField<Account>(
-              value: selectedSource,
+              initialValue: selectedSource,
               dropdownColor: AppColors.cardBackground,
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               items: widget.sourceAccounts.map((acc) {
@@ -1743,7 +1841,7 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   value: acc,
                   child: Text(
                     "${acc.name} ($balFormatted)",
-                    style: const TextStyle(fontSize: 12, color: AppColors.cardText),
+                    style: TextStyle(fontSize: 12, color: AppColors.cardText),
                   ),
                 );
               }).toList(),
@@ -1756,33 +1854,33 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
               },
             ),
             if (isCrossCurrency) ...[
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 12),
+              Text(
                 "Tasa de cambio para la transferencia:",
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                value: selectedRateType,
+                initialValue: selectedRateType,
                 dropdownColor: AppColors.cardBackground,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 items: [
                   DropdownMenuItem(
                     value: 'parallel',
-                    child: Text("Paralela / P2P (${widget.appState.parallelRate.toStringAsFixed(2)} Bs/\$)", style: const TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("Paralela / P2P (${widget.appState.parallelRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
                   ),
                   DropdownMenuItem(
                     value: 'bcv',
-                    child: Text("BCV Oficial (${widget.appState.bcvRate.toStringAsFixed(2)} Bs/\$)", style: const TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("BCV Oficial (${widget.appState.bcvRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
                   ),
                   DropdownMenuItem(
                     value: 'euro',
-                    child: Text("Euro Oficial (${widget.appState.euroRate.toStringAsFixed(2)} Bs/\$)", style: const TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("Euro Oficial (${widget.appState.euroRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
                   ),
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: 'custom',
                     child: Text("Personalizada", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
                   ),
@@ -1796,12 +1894,12 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 },
               ),
               if (selectedRateType == 'custom') ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextFormField(
                   controller: customRateController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  style: TextStyle(fontSize: 12),
+                  decoration: InputDecoration(
                     labelText: "Tasa de cambio personalizada (Bs/\$)",
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(),
@@ -1812,9 +1910,9 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 ),
               ],
             ],
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
@@ -1823,20 +1921,20 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 16),
-                  const SizedBox(width: 8),
+                  Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 16),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       isCrossCurrency
                           ? "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}' para cubrir el déficit usando la tasa seleccionada (${activeRate.toStringAsFixed(2)} Bs/\$)."
                           : "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}' para cubrir el déficit.",
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.cardText, height: 1.4),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.cardText, height: 1.4),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -1853,12 +1951,12 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text("Transferir y Registrar", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text("Transferir y Registrar", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -1866,17 +1964,17 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.expense,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: const BorderSide(color: AppColors.expense, width: 1.2),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: AppColors.expense, width: 1.2),
+                  padding: EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text("Registrar sin transferir", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                child: Text("Registrar sin transferir", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, null),
-                child: const Text("Cancelar", style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                child: Text("Cancelar", style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

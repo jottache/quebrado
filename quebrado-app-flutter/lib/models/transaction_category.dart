@@ -51,7 +51,7 @@ class TransactionCategory {
 
   factory TransactionCategory.fromMap(Map<String, dynamic> map) {
     return TransactionCategory(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       name: map['name'] ?? '',
       icon: map['icon'] ?? 'tag',
       colorHex: map['color_hex'] ?? '#8E8E93',
@@ -59,4 +59,14 @@ class TransactionCategory {
       position: map['position'] ?? 0,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TransactionCategory &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

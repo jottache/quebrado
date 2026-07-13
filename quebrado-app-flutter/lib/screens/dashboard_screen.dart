@@ -21,6 +21,7 @@ import '../models/timeline_event.dart';
 import '../widgets/timeline_event_row.dart';
 import '../dialogs/day_actions_dialog.dart';
 import '../widgets/dashboard_charts_card.dart';
+import 'rates_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -101,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
+    final tomorrow = today.add(Duration(days: 1));
     final eventDate = DateTime(date.year, date.month, date.day);
 
     if (eventDate == today) {
@@ -140,7 +141,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
+          padding: EdgeInsets.only(right: 30.5),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -148,10 +149,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.settings_rounded),
+          icon: Icon(Icons.settings_rounded),
           onPressed: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              MaterialPageRoute(builder: (context) => SettingsScreen()),
             );
           },
         ),
@@ -160,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none_rounded),
+                icon: Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
                   showModalBottomSheet(
@@ -168,7 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) =>
-                        const PendingConfirmationsBottomSheet(),
+                        PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -177,19 +178,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: const BoxConstraints(
+                    constraints: BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -202,18 +203,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.calculate_outlined),
+            icon: Icon(Icons.calculate_outlined),
             iconSize: 26,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const CalculatorBottomSheet(),
+                builder: (context) => CalculatorBottomSheet(),
               );
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
@@ -222,8 +223,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         child: SingleChildScrollView(
           controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(
+          physics: AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(
             left: 16.0,
             right: 16.0,
             top: 16.0,
@@ -238,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final now = DateTime.now();
                   final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
                   final futureTxs = appState.transactions.where((t) => t.date.isAfter(todayEnd)).toList();
-                  if (futureTxs.isEmpty) return const SizedBox.shrink();
+                  if (futureTxs.isEmpty) return SizedBox.shrink();
 
                   final count = futureTxs.length;
                   double expensesUSD = 0.0;
@@ -250,17 +251,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     }
                   }
 
-                  if (expensesUSD <= 0) return const SizedBox.shrink();
+                  if (expensesUSD <= 0) return SizedBox.shrink();
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
+                    padding: EdgeInsets.only(bottom: 16.0),
                     child: GestureDetector(
                       onTap: () {
                         appState.setHistoryFilterIndex(4); // "Futuras" filter
                         appState.setTabIndex(2);           // "Historial" tab
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(16),
@@ -268,17 +269,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.info_outline_rounded,
                               color: AppColors.primary,
                               size: 18,
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Pagos a futuro detectados",
                                     style: TextStyle(
                                       fontSize: 12,
@@ -286,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: AppColors.primary,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2),
                                   Text(
                                     "Tienes $count ${count == 1 ? 'pago programado' : 'pagos programados'} por un total de ${formatUSD(expensesUSD)}. Ya se descontaron de tu saldo actual.",
                                     style: TextStyle(
@@ -298,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right_rounded,
                               color: AppColors.primary,
                               size: 20,
@@ -317,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 description: "Muestra el balance total unificado o el saldo de una cuenta específica. Puedes pulsar sobre la tarjeta para alternar entre Dólares y Bolívares oficiales, y deslizar (slide) hacia la izquierda o derecha para ver el detalle de cada una de tus cuentas.",
                 child: _BouncyBalanceCard(balanceActionsKey: _balanceActionsKey),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 2. MOTOR DE TASAS
               Showcase(
@@ -340,8 +341,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
+                            SizedBox(width: 8),
+                            Text(
                               "Tasas Oficiales",
                               style: TextStyle(
                                 fontSize: 14,
@@ -352,39 +353,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        appState.hasInternet
-                            ? IconButton(
-                                icon: appState.isFetchingRates
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                AppColors.primary,
-                                              ),
-                                        ),
-                                      )
-                                    : const Icon(Icons.refresh_rounded),
-                                onPressed: appState.isFetchingRates
-                                    ? null
-                                    : () => appState.refreshRates(),
-                              )
-                            : const Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: Icon(
-                                  Icons.wifi_off_rounded,
-                                  color: Colors.grey,
-                                  size: 20,
-                                ),
-                              ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.show_chart_rounded, color: AppColors.primary),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => RatesHistoryScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            appState.hasInternet
+                                ? IconButton(
+                                    icon: appState.isFetchingRates
+                                        ? SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    AppColors.primary,
+                                                  ),
+                                            ),
+                                          )
+                                        : Icon(Icons.refresh_rounded),
+                                    onPressed: appState.isFetchingRates
+                                        ? null
+                                        : () => appState.refreshRates(),
+                                  )
+                                : Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: Icon(
+                                      Icons.wifi_off_rounded,
+                                      color: Colors.grey,
+                                      size: 20,
+                                    ),
+                                  ),
+                          ],
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
+                      physics: BouncingScrollPhysics(),
                       child: Row(
                         children: [
                           _RateCard(
@@ -393,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             date: appState.rateHistory.isNotEmpty
                                 ? appState.rateHistory.first.date
                                 : null,
-                            badge: const Text(
+                            badge: Text(
                               "\$",
                               style: TextStyle(
                                 color: AppColors.primary,
@@ -402,14 +418,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           _RateCard(
                             title: "Euro Oficial",
                             rate: appState.euroRate,
                             date: appState.euroRateHistory.isNotEmpty
                                 ? appState.euroRateHistory.first.date
                                 : null,
-                            badge: const Text(
+                            badge: Text(
                               "€",
                               style: TextStyle(
                                 color: AppColors.primary,
@@ -418,14 +434,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           _RateCard(
                             title: "Paralelo",
                             rate: appState.parallelRate,
                             date: appState.rateHistory.isNotEmpty
                                 ? appState.rateHistory.first.date
                                 : null,
-                            badge: const Text(
+                            badge: Text(
                               "\$",
                               style: TextStyle(
                                 color: AppColors.primary,
@@ -440,7 +456,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 1.5. MIS CUENTAS
               Showcase(
@@ -463,8 +479,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
+                            SizedBox(width: 8),
+                            Text(
                               "Mis Cuentas",
                               style: TextStyle(
                                 fontSize: 14,
@@ -476,7 +492,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.add_circle_outline_rounded,
                             color: AppColors.primary,
                           ),
@@ -485,22 +501,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               context: context,
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
-                              builder: (context) => const AddAccountBottomSheet(),
+                              builder: (context) => AddAccountBottomSheet(),
                             );
                           },
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
+                      physics: BouncingScrollPhysics(),
                       child: Row(
                         children: appState.accounts.map((acc) {
                           final color = parseHexColor(acc.colorHex);
                           final isUsd = acc.currency == CurrencyType.usd;
                           return Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
+                            padding: EdgeInsets.only(right: 12.0),
                             child: GestureDetector(
                               onTap: () {
                                 showModalBottomSheet(
@@ -513,7 +529,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               },
                               child: ClaymorphicCard(
                                 cornerRadius: 18,
-                                padding: const EdgeInsets.all(12.0),
+                                padding: EdgeInsets.all(12.0),
                                 child: SizedBox(
                                   width: 140,
                                   height: 110,
@@ -547,10 +563,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                         ],
                                       ),
-                                      const Spacer(),
+                                      Spacer(),
                                       Text(
                                         acc.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.cardText,
@@ -558,7 +574,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       Text(
                                         isUsd
                                             ? formatUSD(acc.balance)
@@ -581,17 +597,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // ANALYTICS CHARTS SECTION
-              const DashboardChartsCard(),
-              const SizedBox(height: 24),
+              DashboardChartsCard(),
+              SizedBox(height: 24),
 
               // PROJECTION SECTION
               Builder(
                 builder: (context) {
                   final events = appState.getTimelineEvents(365);
-                  if (events.isEmpty) return const SizedBox.shrink();
+                  if (events.isEmpty) return SizedBox.shrink();
 
                   final Map<DateTime, List<TimelineEvent>> grouped = {};
                   for (var ev in events) {
@@ -626,7 +642,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     }
                   }
 
-                  if (daysToShow.isEmpty) return const SizedBox.shrink();
+                  if (daysToShow.isEmpty) return SizedBox.shrink();
 
                   final List<dynamic> dashboardItems = [];
                   for (var day in daysToShow) {
@@ -659,8 +675,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 "Proyecciones Recientes",
                                 style: TextStyle(
                                   fontSize: 14,
@@ -678,10 +694,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              minimumSize: const Size(50, 30),
+                              minimumSize: Size(50, 30),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const Text(
+                            child: Text(
                               "Ver más",
                               style: TextStyle(
                                 fontSize: 12,
@@ -692,13 +708,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Column(
                         children: List.generate(dashboardItems.length, (index) {
                           final item = dashboardItems[index];
                           if (item is String) {
                             return Padding(
-                              padding: const EdgeInsets.only(
+                              padding: EdgeInsets.only(
                                 top: 16.0,
                                 bottom: 8.0,
                                 left: 4.0,
@@ -712,15 +728,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       Container(
                                         width: 6,
                                         height: 6,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           color: AppColors.primary,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       Text(
                                         item,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.primary,
@@ -730,7 +746,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ],
                                   ),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.more_horiz_rounded,
                                       color: AppColors.primary,
                                       size: 20,
@@ -749,7 +765,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ),
                                       );
                                     },
-                                    constraints: const BoxConstraints(),
+                                    constraints: BoxConstraints(),
                                     padding: EdgeInsets.zero,
                                   ),
                                 ],
@@ -765,18 +781,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }
                         }),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                     ],
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               if (appState.rateFetchError != null) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Center(
                   child: Text(
                     "Error de Conexión: ${appState.rateFetchError}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppColors.expense,
                     ),
@@ -813,7 +829,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: Duration(milliseconds: 100),
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
@@ -836,10 +852,12 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
     // Sort accounts: USD first, then VES
     final sortedAccounts = List<Account>.from(appState.accounts);
     sortedAccounts.sort((a, b) {
-      if (a.currency == CurrencyType.usd && b.currency != CurrencyType.usd)
+      if (a.currency == CurrencyType.usd && b.currency != CurrencyType.usd) {
         return -1;
-      if (a.currency != CurrencyType.usd && b.currency == CurrencyType.usd)
+      }
+      if (a.currency != CurrencyType.usd && b.currency == CurrencyType.usd) {
         return 1;
+      }
       return 0;
     });
 
@@ -868,7 +886,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
       scale: _scaleAnimation,
       child: ClaymorphicCard(
         cornerRadius: 24,
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
         child: Column(
           children: [
             SizedBox(
@@ -895,11 +913,11 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           vertical: 14.0,
                           horizontal: 16.0,
                         ),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.all(Radius.circular(16)),
                         ),
@@ -915,7 +933,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                             CurrencyType.usd
                                         ? "CONSOLIDADO (USD)"
                                         : "CONSOLIDADO (VES)",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white,
@@ -932,7 +950,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(6),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.25),
                                         shape: BoxShape.circle,
@@ -949,28 +967,28 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayBalance,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 34,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               conversionText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             _HorizontalAccountsList(
                               accounts: sortedAccounts,
                               appState: appState,
@@ -1006,13 +1024,13 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           vertical: 16.0,
                           horizontal: 16.0,
                         ),
                         decoration: BoxDecoration(
                           color: cardColor,
-                          borderRadius: const BorderRadius.all(
+                          borderRadius: BorderRadius.all(
                             Radius.circular(16),
                           ),
                         ),
@@ -1031,10 +1049,10 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                         color: Colors.white,
                                         size: 14,
                                       ),
-                                      const SizedBox(width: 6),
+                                      SizedBox(width: 6),
                                       Text(
                                         acc.name.toUpperCase(),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
                                           color: Colors.white,
@@ -1053,7 +1071,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(6),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.25),
                                         shape: BoxShape.circle,
@@ -1070,33 +1088,33 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               isUsd
                                   ? "Cuenta en Dólares"
                                   : "Cuenta en Bolívares",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayAccBalance,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Text(
                               accConversionText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -1110,16 +1128,16 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(totalPages, (i) {
                 final isSelected = _currentPage == i;
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: Duration(milliseconds: 150),
                   width: isSelected ? 16 : 6,
                   height: 6,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  margin: EdgeInsets.symmetric(horizontal: 3),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.grey[300],
                     borderRadius: BorderRadius.circular(3),
@@ -1127,18 +1145,18 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                 );
               }),
             ),
-            const SizedBox(height: 8),
-            const Padding(
+            SizedBox(height: 8),
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Divider(height: 1, color: Colors.black12),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Showcase(
               key: widget.balanceActionsKey,
               title: "Acciones de Balance",
               description: "Registra rápidamente un ingreso, gasto o realiza una compra-venta de divisas (dólares o bolívares) asociada a la cuenta activa.",
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                padding: EdgeInsets.symmetric(vertical: 4.0),
                 child: Row(
                   children: [
                     Expanded(
@@ -1160,7 +1178,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1169,8 +1187,8 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                 color: Colors.grey[700],
                                 size: 24,
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
+                              SizedBox(height: 4),
+                              Text(
                                 "Ingreso",
                                 style: TextStyle(
                                   fontSize: 11,
@@ -1206,7 +1224,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1215,8 +1233,8 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                 color: Colors.grey[700],
                                 size: 24,
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
+                              SizedBox(height: 4),
+                              Text(
                                 "Compra-Venta",
                                 style: TextStyle(
                                   fontSize: 11,
@@ -1253,7 +1271,7 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1262,8 +1280,8 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                 color: Colors.grey[700],
                                 size: 24,
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
+                              SizedBox(height: 4),
+                              Text(
                                 "Gasto",
                                 style: TextStyle(
                                   fontSize: 11,
@@ -1307,7 +1325,7 @@ class _RateCard extends StatelessWidget {
     return ClaymorphicCard(
       cornerRadius: 18,
       backgroundColor: backgroundColor,
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(12.0),
       child: GestureDetector(
         onTap: () {
           Clipboard.setData(ClipboardData(text: rate.toStringAsFixed(2)));
@@ -1317,7 +1335,7 @@ class _RateCard extends StatelessWidget {
               content: Text(
                 'Tasa "$title" copiada al portapapeles: ${rate.toStringAsFixed(2)}',
               ),
-              duration: const Duration(seconds: 1),
+              duration: Duration(seconds: 1),
             ),
           );
         },
@@ -1329,32 +1347,32 @@ class _RateCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               badge,
-              const Spacer(),
+              Spacer(),
               Icon(
                 Icons.content_copy_rounded,
                 size: 12,
                 color: Colors.grey[400],
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardSubtitleText,
                 ),
               ),
               if (date != null) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   formatDate(date!),
                   style: TextStyle(fontSize: 9, color: Colors.grey[500]),
                 ),
               ],
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 formatRate(rate),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardText,
@@ -1424,11 +1442,11 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.accounts.isEmpty) return const SizedBox.shrink();
+    if (widget.accounts.isEmpty) return SizedBox.shrink();
 
     return Container(
       height: 60,
-      margin: const EdgeInsets.only(top: 8.0),
+      margin: EdgeInsets.only(top: 8.0),
       child: Stack(
         children: [
           NotificationListener<ScrollNotification>(
@@ -1439,7 +1457,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
             child: ListView.builder(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
               itemCount: widget.accounts.length,
               itemBuilder: (context, index) {
                 final acc = widget.accounts[index];
@@ -1456,7 +1474,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                   margin: EdgeInsets.only(
                     right: index == widget.accounts.length - 1 ? 0.0 : 8.0,
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -1477,7 +1495,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                             color: Colors.white.withOpacity(0.7),
                             size: 9,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             acc.name.toUpperCase(),
                             style: TextStyle(
@@ -1489,10 +1507,10 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         displayAccBalance,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
@@ -1532,7 +1550,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                     ),
                   ),
                   alignment: Alignment.centerLeft,
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.only(left: 4.0),
                     child: Icon(
                       Icons.chevron_left_rounded,
@@ -1563,7 +1581,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                     ),
                   ),
                   alignment: Alignment.centerRight,
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.only(right: 4.0),
                     child: Icon(
                       Icons.chevron_right_rounded,

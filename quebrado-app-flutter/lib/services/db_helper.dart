@@ -11,6 +11,13 @@ import '../models/exchange_rate_record.dart';
 import '../models/recurring_payment.dart';
 import '../models/account.dart';
 import '../models/mobile_payment_recipient.dart';
+import '../models/currency_type.dart';
+import '../models/market_store.dart';
+import '../models/market_item.dart';
+import '../models/market_product.dart';
+import '../models/market_trip.dart';
+import '../models/market_shopping_list.dart';
+import '../models/market_shopping_list_item.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -32,13 +39,17 @@ class DatabaseHelper {
     return await getDatabasesPath();
   }
 
+  Future<String> getDbPath() async {
+    return await _getDbPath();
+  }
+
   Future<Database> _initDB(String filePath) async {
     final dbPath = await _getDbPath();
     final path = join(dbPath, filePath);
 
     return await openDatabase(
       path,
-      version: 13,
+      version: 19,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -244,6 +255,112 @@ class DatabaseHelper {
         // Handle migration gracefully
       }
     }
+    if (oldVersion < 14) {
+      try {
+        await db.execute('''
+          CREATE TABLE market_stores (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT,
+            color_hex TEXT,
+            icon TEXT
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE market_items (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            price_usd REAL NOT NULL,
+            price_ves REAL NOT NULL,
+            exchange_rate_used REAL NOT NULL,
+            store_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            FOREIGN KEY (store_id) REFERENCES market_stores (id) ON DELETE CASCADE
+          )
+        ''');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 15) {
+      try {
+        await db.execute('''
+          CREATE TABLE market_trips (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            date TEXT NOT NULL
+          )
+        ''');
+        await db.execute('ALTER TABLE market_items ADD COLUMN trip_id TEXT');
+        
+        final List<Map<String, dynamic>> items = await db.query('market_items');
+        if (items.isNotEmpty) {
+           final legacyTripId = const Uuid().v4();
+           await db.insert('market_trips', {
+             'id': legacyTripId,
+             'title': 'Compras Anteriores',
+             'date': DateTime.now().toIso8601String(),
+           });
+           await db.update('market_items', {'trip_id': legacyTripId});
+        }
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 16) {
+      try {
+        await db.execute('ALTER TABLE market_trips ADD COLUMN is_active INTEGER DEFAULT 1');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 17) {
+      try {
+        await db.execute('''
+          CREATE TABLE market_products (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            storeIds TEXT NOT NULL,
+            referencePriceUSD REAL
+          )
+        ''');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 18) {
+      try {
+        await db.execute('''
+          CREATE TABLE market_shopping_lists (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            date TEXT NOT NULL,
+            is_active INTEGER DEFAULT 1
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE market_shopping_list_items (
+            id TEXT PRIMARY KEY,
+            list_id TEXT NOT NULL,
+            product_id TEXT NOT NULL,
+            is_checked INTEGER DEFAULT 0,
+            FOREIGN KEY (list_id) REFERENCES market_shopping_lists (id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES market_products (id) ON DELETE CASCADE
+          )
+        ''');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 19) {
+      try {
+        await db.execute('ALTER TABLE market_trips ADD COLUMN transaction_id TEXT');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
   }
 
   Future _onConfigure(Database db) async {
@@ -416,6 +533,78 @@ class DatabaseHelper {
       'color_hex': '#3B6B7B',
       'icon': 'creditcard',
     });
+
+    // 11. Market Stores Table
+    await db.execute('''
+      CREATE TABLE market_stores (
+        id TEXT PRIMARY KEY,
+        name $textType,
+        description TEXT,
+        color_hex TEXT,
+        icon TEXT
+      )
+    ''');
+
+    // 12. Market Products Table
+    await db.execute('''
+      CREATE TABLE market_products (
+        id TEXT PRIMARY KEY,
+        name $textType,
+        category $textType,
+        storeIds $textType,
+        referencePriceUSD REAL
+      )
+    ''');
+
+    // 13. Market Trips Table
+    await db.execute('''
+      CREATE TABLE market_trips (
+        id TEXT PRIMARY KEY,
+        title $textType,
+        date $textType,
+        is_active INTEGER DEFAULT 1,
+        transaction_id TEXT
+      )
+    ''');
+
+    // 14. Market Items Table
+    await db.execute('''
+      CREATE TABLE market_items (
+        id TEXT PRIMARY KEY,
+        name $textType,
+        category $textType,
+        price_usd $doubleType,
+        price_ves $doubleType,
+        exchange_rate_used $doubleType,
+        store_id TEXT NOT NULL,
+        trip_id TEXT NOT NULL,
+        date $textType,
+        FOREIGN KEY (store_id) REFERENCES market_stores (id) ON DELETE CASCADE,
+        FOREIGN KEY (trip_id) REFERENCES market_trips (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // 15. Market Shopping Lists Table
+    await db.execute('''
+      CREATE TABLE market_shopping_lists (
+        id TEXT PRIMARY KEY,
+        title $textType,
+        date $textType,
+        is_active INTEGER DEFAULT 1
+      )
+    ''');
+
+    // 16. Market Shopping List Items Table
+    await db.execute('''
+      CREATE TABLE market_shopping_list_items (
+        id TEXT PRIMARY KEY,
+        list_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        is_checked INTEGER DEFAULT 0,
+        FOREIGN KEY (list_id) REFERENCES market_shopping_lists (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES market_products (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future _seedDefaultCategories(Database db) async {
@@ -866,6 +1055,55 @@ class DatabaseHelper {
     }
   }
 
+  Future<List<Account>> getAccountsForProfile(String profileId) async {
+    final dbPath = await _getDbPath();
+    final path = join(dbPath, profileId);
+    
+    // Abrir la base de datos de destino temporalmente
+    final targetDb = await openDatabase(path);
+    final result = await targetDb.query('accounts');
+    await targetDb.close();
+    
+    return result.map((json) => Account.fromMap(json)).toList();
+  }
+
+  Future<void> insertCrossProfileTransaction(String targetProfileId, Transaction tx, Account targetAccount) async {
+    final dbPath = await _getDbPath();
+    final path = join(dbPath, targetProfileId);
+    
+    // Abrir la base de datos de destino temporalmente
+    final targetDb = await openDatabase(
+      path,
+      version: 19,
+    );
+    
+    // Insertar la transacción (Ingreso)
+    await targetDb.insert('transactions', tx.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    
+    // Actualizar el balance de la cuenta destino
+    double amountInAccCurrency = tx.amount;
+    if (tx.currency == CurrencyType.usd && targetAccount.currency == CurrencyType.bsBCV) {
+      amountInAccCurrency = tx.amount * (tx.exchangeRate > 0 ? tx.exchangeRate : 1.0);
+    } else if (tx.currency == CurrencyType.bsBCV && targetAccount.currency == CurrencyType.usd) {
+      amountInAccCurrency = tx.exchangeRate > 0 ? tx.amount / tx.exchangeRate : 0.0;
+    }
+    
+    if (tx.type == TransactionType.income) {
+      targetAccount.balance += amountInAccCurrency;
+    } else {
+      targetAccount.balance -= amountInAccCurrency;
+    }
+    
+    await targetDb.update(
+      'accounts',
+      targetAccount.toMap(),
+      where: 'id = ?',
+      whereArgs: [targetAccount.id],
+    );
+    
+    await targetDb.close();
+  }
+
   Future<void> deleteDatabaseFile(String dbName) async {
     if (dbName == 'quebrado.db') return;
     final dbPath = await _getDbPath();
@@ -1094,5 +1332,221 @@ class DatabaseHelper {
       await saveBackupMetadata(metadata);
       return false;
     }
+  }
+
+  Future<Map<String, dynamic>> getBackupPreview(String folderPath) async {
+    final Map<String, dynamic> preview = {
+      'profiles': [],
+      'total_transactions': 0,
+      'total_pockets': 0,
+      'total_market_items': 0,
+    };
+
+    try {
+      final profilesFile = File(join(folderPath, 'quebrado_profiles.json'));
+      if (await profilesFile.exists()) {
+        final content = await profilesFile.readAsString();
+        final data = jsonDecode(content) as Map<String, dynamic>;
+        final profilesList = data['profiles'] as List? ?? [];
+        
+        int transCount = 0;
+        int pocketsCount = 0;
+        int itemsCount = 0;
+        
+        final List<Map<String, dynamic>> profilesPreview = [];
+        
+        for (var p in profilesList) {
+          final dbName = p['id'] as String;
+          final name = p['name'] as String;
+          final dbFile = File(join(folderPath, dbName));
+          
+          if (await dbFile.exists()) {
+            final tempDb = await openDatabase(dbFile.path, readOnly: true);
+            
+            List<Map<String, dynamic>> accountsList = [];
+            try {
+              accountsList = await tempDb.query('accounts');
+            } catch (_) {}
+            
+            try {
+              final txRes = Sqflite.firstIntValue(await tempDb.rawQuery('SELECT COUNT(*) FROM transactions')) ?? 0;
+              transCount += txRes;
+            } catch (_) {}
+            
+            try {
+              final pkRes = Sqflite.firstIntValue(await tempDb.rawQuery('SELECT COUNT(*) FROM pockets')) ?? 0;
+              pocketsCount += pkRes;
+            } catch (_) {}
+            
+            try {
+              final mkRes = Sqflite.firstIntValue(await tempDb.rawQuery('SELECT COUNT(*) FROM market_items')) ?? 0;
+              itemsCount += mkRes;
+            } catch (_) {}
+            
+            await tempDb.close();
+            
+            profilesPreview.add({
+              'name': name,
+              'accounts': accountsList.map((a) => {
+                'name': a['name'],
+                'balance': a['balance'],
+                'currency': a['currency'],
+              }).toList(),
+            });
+          }
+        }
+        
+        preview['profiles'] = profilesPreview;
+        preview['total_transactions'] = transCount;
+        preview['total_pockets'] = pocketsCount;
+        preview['total_market_items'] = itemsCount;
+      }
+    } catch (e) {
+      print("Error loading backup preview: $e");
+    }
+    
+    return preview;
+  }
+
+  // MARK: - Market Stores CRUD
+  Future<List<MarketStore>> getMarketStores() async {
+    final db = await instance.database;
+    final result = await db.query('market_stores', orderBy: 'name ASC');
+    return result.map((json) => MarketStore.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketStore(MarketStore store) async {
+    final db = await instance.database;
+    await db.insert('market_stores', store.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateMarketStore(MarketStore store) async {
+    final db = await instance.database;
+    await db.update(
+      'market_stores',
+      store.toMap(),
+      where: 'id = ?',
+      whereArgs: [store.id],
+    );
+  }
+
+  Future<void> deleteMarketStore(String id) async {
+    final db = await instance.database;
+    await db.delete('market_stores', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // MARK: - Market Items CRUD
+  Future<List<MarketItem>> getMarketItems() async {
+    final db = await instance.database;
+    final result = await db.query('market_items', orderBy: 'date DESC');
+    return result.map((json) => MarketItem.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketItem(MarketItem item) async {
+    final db = await instance.database;
+    await db.insert('market_items', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> deleteMarketItem(String id) async {
+    final db = await instance.database;
+    await db.delete('market_items', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // MARK: - Market Products CRUD
+  Future<List<MarketProduct>> getMarketProducts() async {
+    final db = await instance.database;
+    final result = await db.query('market_products', orderBy: 'name ASC');
+    return result.map((json) => MarketProduct.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketProduct(MarketProduct product) async {
+    final db = await instance.database;
+    await db.insert('market_products', product.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateMarketProduct(MarketProduct product) async {
+    final db = await instance.database;
+    await db.update(
+      'market_products',
+      product.toMap(),
+      where: 'id = ?',
+      whereArgs: [product.id],
+    );
+  }
+
+  Future<void> deleteMarketProduct(String id) async {
+    final db = await instance.database;
+    await db.delete('market_products', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // MARK: - Market Trips CRUD
+  Future<List<MarketTrip>> getMarketTrips() async {
+    final db = await instance.database;
+    final result = await db.query('market_trips', orderBy: 'date DESC');
+    return result.map((json) => MarketTrip.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketTrip(MarketTrip trip) async {
+    final db = await instance.database;
+    await db.insert('market_trips', trip.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> deleteMarketTrip(String id) async {
+    final db = await instance.database;
+    await db.delete('market_trips', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // MARK: - Market Shopping Lists CRUD
+  Future<List<MarketShoppingList>> getMarketShoppingLists() async {
+    final db = await instance.database;
+    final result = await db.query('market_shopping_lists', orderBy: 'date DESC');
+    return result.map((json) => MarketShoppingList.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketShoppingList(MarketShoppingList list) async {
+    final db = await instance.database;
+    await db.insert('market_shopping_lists', list.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateMarketShoppingList(MarketShoppingList list) async {
+    final db = await instance.database;
+    await db.update(
+      'market_shopping_lists',
+      list.toMap(),
+      where: 'id = ?',
+      whereArgs: [list.id],
+    );
+  }
+
+  Future<void> deleteMarketShoppingList(String id) async {
+    final db = await instance.database;
+    await db.delete('market_shopping_lists', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // MARK: - Market Shopping List Items CRUD
+  Future<List<MarketShoppingListItem>> getMarketShoppingListItems() async {
+    final db = await instance.database;
+    final result = await db.query('market_shopping_list_items');
+    return result.map((json) => MarketShoppingListItem.fromMap(json)).toList();
+  }
+
+  Future<void> insertMarketShoppingListItem(MarketShoppingListItem item) async {
+    final db = await instance.database;
+    await db.insert('market_shopping_list_items', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateMarketShoppingListItem(MarketShoppingListItem item) async {
+    final db = await instance.database;
+    await db.update(
+      'market_shopping_list_items',
+      item.toMap(),
+      where: 'id = ?',
+      whereArgs: [item.id],
+    );
+  }
+
+  Future<void> deleteMarketShoppingListItem(String id) async {
+    final db = await instance.database;
+    await db.delete('market_shopping_list_items', where: 'id = ?', whereArgs: [id]);
   }
 }

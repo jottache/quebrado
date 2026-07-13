@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../theme/colors.dart';
 import '../models/currency_type.dart';
 import '../models/exchange_rate_record.dart';
 import '../models/saving_pocket.dart';
@@ -13,6 +14,12 @@ import '../models/transaction_category.dart';
 import '../models/account.dart';
 import '../models/recurring_payment_partial.dart';
 import '../models/mobile_payment_recipient.dart';
+import '../models/market_store.dart';
+import '../models/market_item.dart';
+import '../models/market_product.dart';
+import '../models/market_trip.dart';
+import '../models/market_shopping_list.dart';
+import '../models/market_shopping_list_item.dart';
 import '../services/db_helper.dart';
 import '../services/rate_service.dart';
 import '../services/notification_manager.dart';
@@ -41,6 +48,12 @@ class AppState extends ChangeNotifier {
   List<Account> accounts = [];
   List<RecurringPaymentPartial> partialPayments = [];
   List<MobilePaymentRecipient> recipients = [];
+  List<MarketStore> marketStores = [];
+  List<MarketItem> marketItems = [];
+  List<MarketProduct> marketProducts = [];
+  List<MarketTrip> marketTrips = [];
+  List<MarketShoppingList> shoppingLists = [];
+  List<MarketShoppingListItem> shoppingListItems = [];
   List<PendingOccurrence> _pendingPaymentsToday = [];
   List<PendingOccurrence> get pendingPaymentsToday => _pendingPaymentsToday;
   final Set<String> _confirmedKeys = {};
@@ -99,6 +112,19 @@ class AppState extends ChangeNotifier {
     try {
       _profiles = await DatabaseHelper.instance.loadProfiles();
       _activeDbName = await DatabaseHelper.instance.getActiveProfile();
+      
+      // Update theme color based on active profile
+      final activeProfile = _profiles.firstWhere(
+        (p) => p['id'] == _activeDbName,
+        orElse: () => _profiles.first,
+      );
+      if (activeProfile.containsKey('color') && activeProfile['color'] != null) {
+        final colorHex = activeProfile['color']!;
+        AppColors.updateThemeColor(Color(int.parse(colorHex.replaceFirst('#', '0xFF'))));
+      } else {
+        AppColors.updateThemeColor(Color(0xFF1F6F5F)); // Default color
+      }
+      
       await DatabaseHelper.instance.checkAndPerformAutoBackup();
 
       final bcvVal = await DatabaseHelper.instance.getSetting('bcvRate');
@@ -133,6 +159,12 @@ class AppState extends ChangeNotifier {
       recurringPayments = await DatabaseHelper.instance.getRecurringPayments();
       accounts = await DatabaseHelper.instance.getAccounts();
       recipients = await DatabaseHelper.instance.getRecipients();
+      marketStores = await DatabaseHelper.instance.getMarketStores();
+      marketItems = await DatabaseHelper.instance.getMarketItems();
+      marketProducts = await DatabaseHelper.instance.getMarketProducts();
+      marketTrips = await DatabaseHelper.instance.getMarketTrips();
+      shoppingLists = await DatabaseHelper.instance.getMarketShoppingLists();
+      shoppingListItems = await DatabaseHelper.instance.getMarketShoppingListItems();
 
       _confirmedKeys.clear();
       final allConfirmations = await DatabaseHelper.instance
@@ -207,7 +239,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final lookup = await InternetAddress.lookup('example.com').timeout(const Duration(seconds: 2));
+      final lookup = await InternetAddress.lookup('example.com').timeout(Duration(seconds: 2));
       _hasInternet = lookup.isNotEmpty && lookup[0].rawAddress.isNotEmpty;
     } catch (_) {
       _hasInternet = false;
@@ -308,7 +340,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final lookup = await InternetAddress.lookup('example.com').timeout(const Duration(seconds: 2));
+      final lookup = await InternetAddress.lookup('example.com').timeout(Duration(seconds: 2));
       _hasInternet = lookup.isNotEmpty && lookup[0].rawAddress.isNotEmpty;
     } catch (_) {
       _hasInternet = false;
@@ -442,6 +474,193 @@ class AppState extends ChangeNotifier {
     await DatabaseHelper.instance.updatePocket(pocket);
     pockets = await DatabaseHelper.instance.getPockets();
     notifyListeners();
+  }
+
+  // MARK: - Market Trips
+  Future<void> updateMarketStore(MarketStore store) async {
+    final index = marketStores.indexWhere((s) => s.id == store.id);
+    if (index >= 0) {
+      marketStores[index] = store;
+      marketStores.sort((a, b) => a.name.compareTo(b.name));
+      notifyListeners();
+      await DatabaseHelper.instance.updateMarketStore(store);
+    }
+  }
+
+  Future<void> addMarketTrip(MarketTrip trip) async {
+    marketTrips.insert(0, trip);
+    notifyListeners();
+    await DatabaseHelper.instance.insertMarketTrip(trip);
+  }
+
+  Future<void> updateMarketTrip(MarketTrip trip) async {
+    final index = marketTrips.indexWhere((t) => t.id == trip.id);
+    if (index != -1) {
+      marketTrips[index] = trip;
+      notifyListeners();
+      await DatabaseHelper.instance.insertMarketTrip(trip);
+    }
+  }
+
+  Future<void> deleteMarketTrip(String id) async {
+    marketTrips.removeWhere((t) => t.id == id);
+    // Delete all items associated with this trip
+    marketItems.removeWhere((i) => i.tripId == id);
+    notifyListeners();
+    await DatabaseHelper.instance.deleteMarketTrip(id);
+  }
+
+  // MARK: - Market Methods
+  Future<void> addMarketStore(MarketStore store) async {
+    final index = marketStores.indexWhere((s) => s.id == store.id);
+    if (index >= 0) {
+      marketStores[index] = store;
+    } else {
+      marketStores.add(store);
+    }
+    marketStores.sort((a, b) => a.name.compareTo(b.name));
+    notifyListeners();
+    
+    await DatabaseHelper.instance.insertMarketStore(store);
+  }
+
+  Future<void> deleteMarketStore(String id) async {
+    await DatabaseHelper.instance.deleteMarketStore(id);
+    marketStores.removeWhere((s) => s.id == id);
+    marketItems.removeWhere((i) => i.storeId == id);
+    notifyListeners();
+  }
+
+  Future<void> addMarketItem(MarketItem item) async {
+    final index = marketItems.indexWhere((i) => i.id == item.id);
+    if (index >= 0) {
+      marketItems[index] = item;
+    } else {
+      marketItems.add(item);
+    }
+    marketItems.sort((a, b) => b.date.compareTo(a.date));
+    notifyListeners();
+    
+    await DatabaseHelper.instance.insertMarketItem(item);
+  }
+
+  Future<void> deleteMarketItem(String id) async {
+    await DatabaseHelper.instance.deleteMarketItem(id);
+    marketItems.removeWhere((i) => i.id == id);
+    notifyListeners();
+  }
+
+  // MARK: - Market Products
+  Future<void> addMarketProduct(MarketProduct product) async {
+    final index = marketProducts.indexWhere((p) => p.id == product.id);
+    if (index >= 0) {
+      marketProducts[index] = product;
+    } else {
+      marketProducts.add(product);
+    }
+    marketProducts.sort((a, b) => a.name.compareTo(b.name));
+    notifyListeners();
+    
+    await DatabaseHelper.instance.insertMarketProduct(product);
+  }
+
+  Future<void> updateMarketProduct(MarketProduct product) async {
+    final index = marketProducts.indexWhere((p) => p.id == product.id);
+    if (index >= 0) {
+      marketProducts[index] = product;
+      marketProducts.sort((a, b) => a.name.compareTo(b.name));
+      notifyListeners();
+      await DatabaseHelper.instance.updateMarketProduct(product);
+    }
+  }
+
+  // MARK: - Market Shopping Lists Methods
+  Future<void> addMarketShoppingList(MarketShoppingList list) async {
+    if (list.isActive) {
+      for (var i = 0; i < shoppingLists.length; i++) {
+        if (shoppingLists[i].isActive) {
+          final deactivated = MarketShoppingList(
+            id: shoppingLists[i].id,
+            title: shoppingLists[i].title,
+            date: shoppingLists[i].date,
+            isActive: false,
+          );
+          shoppingLists[i] = deactivated;
+          await DatabaseHelper.instance.updateMarketShoppingList(deactivated);
+        }
+      }
+    }
+    shoppingLists.insert(0, list);
+    notifyListeners();
+    await DatabaseHelper.instance.insertMarketShoppingList(list);
+  }
+
+  Future<void> updateMarketShoppingList(MarketShoppingList list) async {
+    if (list.isActive) {
+      for (var i = 0; i < shoppingLists.length; i++) {
+        if (shoppingLists[i].id != list.id && shoppingLists[i].isActive) {
+          final deactivated = MarketShoppingList(
+            id: shoppingLists[i].id,
+            title: shoppingLists[i].title,
+            date: shoppingLists[i].date,
+            isActive: false,
+          );
+          shoppingLists[i] = deactivated;
+          await DatabaseHelper.instance.updateMarketShoppingList(deactivated);
+        }
+      }
+    }
+    final index = shoppingLists.indexWhere((l) => l.id == list.id);
+    if (index != -1) {
+      shoppingLists[index] = list;
+      notifyListeners();
+      await DatabaseHelper.instance.updateMarketShoppingList(list);
+    }
+  }
+
+  Future<void> deleteMarketShoppingList(String id) async {
+    shoppingLists.removeWhere((l) => l.id == id);
+    shoppingListItems.removeWhere((item) => item.listId == id);
+    notifyListeners();
+    await DatabaseHelper.instance.deleteMarketShoppingList(id);
+  }
+
+  Future<void> addMarketShoppingListItem(MarketShoppingListItem item) async {
+    shoppingListItems.add(item);
+    notifyListeners();
+    await DatabaseHelper.instance.insertMarketShoppingListItem(item);
+  }
+
+  Future<void> updateMarketShoppingListItem(MarketShoppingListItem item) async {
+    final index = shoppingListItems.indexWhere((i) => i.id == item.id);
+    if (index != -1) {
+      shoppingListItems[index] = item;
+      notifyListeners();
+      await DatabaseHelper.instance.updateMarketShoppingListItem(item);
+    }
+  }
+
+  Future<void> deleteMarketShoppingListItem(String id) async {
+    shoppingListItems.removeWhere((i) => i.id == id);
+    notifyListeners();
+    await DatabaseHelper.instance.deleteMarketShoppingListItem(id);
+  }
+
+  Future<void> deleteMarketProduct(String id) async {
+    await DatabaseHelper.instance.deleteMarketProduct(id);
+    marketProducts.removeWhere((p) => p.id == id);
+    notifyListeners();
+  }
+
+  double get totalMarketSpentThisMonthUSD {
+    final now = DateTime.now();
+    double total = 0.0;
+    for (var item in marketItems) {
+      if (item.date.year == now.year && item.date.month == now.month) {
+        total += item.priceUSD;
+      }
+    }
+    return total;
   }
 
   Future<void> deletePocket(String id) async {
@@ -602,6 +821,56 @@ class AppState extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  Future<void> performCrossProfileTransfer({
+    required String targetProfileId,
+    required String targetProfileName,
+    required String sourceAccountId,
+    required Account targetAccount,
+    required double amount,
+    required CurrencyType currency,
+  }) async {
+    // 1. Crear Gasto en el perfil actual
+    final sourceTx = Transaction(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      amount: amount,
+      currency: currency,
+      type: TransactionType.expense,
+      accountId: sourceAccountId,
+      note: 'Transferencia hacia libro: $targetProfileName',
+      exchangeRate: bcvRate,
+    );
+    await addTransaction(sourceTx); // Esto también actualiza el balance local
+
+    // 2. Determinar el nombre del perfil actual para la nota destino
+    String currentProfileName = activeProfileName;
+
+    // 3. Crear Ingreso en el perfil destino
+    final targetTx = Transaction(
+      id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+      date: DateTime.now(),
+      amount: amount,
+      currency: currency,
+      type: TransactionType.income,
+      accountId: targetAccount.id,
+      note: 'Transferencia desde libro: $currentProfileName',
+      exchangeRate: bcvRate,
+    );
+
+    // Guardar en el perfil destino
+    try {
+      await DatabaseHelper.instance.insertCrossProfileTransaction(
+        targetProfileId,
+        targetTx,
+        targetAccount,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting cross profile transaction: $e");
+      }
+    }
   }
 
   Future<void> updateTransaction(Transaction oldTx, Transaction newTx) async {
@@ -956,7 +1225,7 @@ class AppState extends ChangeNotifier {
       microsecond: 0,
     );
     // Always simulate a full year (365 days) internally for consistent calculations, deficits, and suggestions
-    final rangeEnd = rangeStart.add(const Duration(days: 365));
+    final rangeEnd = rangeStart.add(Duration(days: 365));
     final filterEnd = rangeStart.add(Duration(days: daysToProject));
 
     List<_OccurrenceRaw> occurrences = [];
@@ -992,26 +1261,29 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        if (current.isAfter(rangeStart) ||
-            current.isAtSameMomentAs(rangeStart)) {
-          if (!isConfirmed) {
-            occurrences.add(_OccurrenceRaw(payment, current, count, partialAmountPaid: partialPaid));
-          }
-        } else {
-          if (!isConfirmed) {
-            occurrences.add(
-              _OccurrenceRaw(payment, current, count, isOverdue: true, partialAmountPaid: partialPaid),
-            );
+        final remainingAmount = payment.amount - partialPaid;
+        if (remainingAmount > 0.01) {
+          if (current.isAfter(rangeStart) ||
+              current.isAtSameMomentAs(rangeStart)) {
+            if (!isConfirmed) {
+              occurrences.add(_OccurrenceRaw(payment, current, count, partialAmountPaid: partialPaid));
+            }
+          } else {
+            if (!isConfirmed) {
+              occurrences.add(
+                _OccurrenceRaw(payment, current, count, isOverdue: true, partialAmountPaid: partialPaid),
+              );
+            }
           }
         }
 
         // Advance
         switch (payment.frequency) {
           case SubscriptionFrequency.weekly:
-            current = current.add(const Duration(days: 7));
+            current = current.add(Duration(days: 7));
             break;
           case SubscriptionFrequency.biweekly:
-            current = current.add(const Duration(days: 14));
+            current = current.add(Duration(days: 14));
             break;
           case SubscriptionFrequency.fifteenDays:
             if (current.day == 15) {
@@ -1057,7 +1329,7 @@ class AppState extends ChangeNotifier {
             current = current.add(Duration(days: days > 0 ? days : 30));
             break;
           case SubscriptionFrequency.once:
-            current = rangeEnd.add(const Duration(days: 1)); // stop loop
+            current = rangeEnd.add(Duration(days: 1)); // stop loop
             break;
         }
       }
@@ -1087,20 +1359,20 @@ class AppState extends ChangeNotifier {
         );
         final bool isVesTarget = targetAccount.currency == CurrencyType.bsBCV;
 
-        double amountUSD = payment.amount;
+        double amountUSD = occ.remainingAmount;
         if (isVesTarget) {
-          double amountBs = payment.amount;
+          double amountBs = occ.remainingAmount;
           if (payment.currency == CurrencyType.usd) {
-            amountBs = payment.amount * bcvRate;
+            amountBs = occ.remainingAmount * bcvRate;
           } else if (payment.currency == CurrencyType.eur) {
-            amountBs = payment.amount * euroRate;
+            amountBs = occ.remainingAmount * euroRate;
           }
-          amountUSD = parallelRate > 0 ? amountBs / parallelRate : 0.0;
+          amountUSD = bcvRate > 0 ? amountBs / bcvRate : 0.0;
         } else {
           if (payment.currency == CurrencyType.bsBCV) {
-            amountUSD = bcvRate > 0 ? payment.amount / bcvRate : 0.0;
+            amountUSD = bcvRate > 0 ? occ.remainingAmount / bcvRate : 0.0;
           } else if (payment.currency == CurrencyType.eur) {
-            amountUSD = bcvRate > 0 ? (payment.amount * euroRate) / bcvRate : 0.0;
+            amountUSD = bcvRate > 0 ? (occ.remainingAmount * euroRate) / bcvRate : 0.0;
           }
         }
 
@@ -1117,6 +1389,7 @@ class AppState extends ChangeNotifier {
             DateTime depositDate = rangeStart;
             for (var other in occurrences) {
               if (other.payment.type == TransactionType.income &&
+                  other.payment.currency == CurrencyType.usd &&
                   other.date.isBefore(occ.date)) {
                 if (other.date.isAfter(depositDate) ||
                     other.date.isAtSameMomentAs(depositDate)) {
@@ -1145,9 +1418,7 @@ class AppState extends ChangeNotifier {
 
               double displayAmountChange = deficit;
               if (payment.currency == CurrencyType.bsBCV) {
-                displayAmountChange = isVesTarget
-                    ? deficit * parallelRate
-                    : deficit * bcvRate;
+                displayAmountChange = deficit * bcvRate;
               }
 
               consolidatedDeposits[dateKey] = _VirtualDeposit(
@@ -1161,9 +1432,7 @@ class AppState extends ChangeNotifier {
             } else {
               double displayAmount = deficit;
               if (payment.currency == CurrencyType.bsBCV) {
-                displayAmount = isVesTarget
-                    ? deficit * parallelRate
-                    : deficit * bcvRate;
+                displayAmount = deficit * bcvRate;
               }
 
               consolidatedDeposits[dateKey] = _VirtualDeposit(
@@ -1218,7 +1487,7 @@ class AppState extends ChangeNotifier {
         // Find income paydays between startD and targetD (inclusive) regardless of simulation horizon
         List<DateTime> pocketPaydays = [];
         for (var payment in recurringPayments) {
-          if (payment.type == TransactionType.income) {
+          if (payment.type == TransactionType.income && payment.currency == CurrencyType.usd) {
             DateTime current = payment.startDate.copyWith(
               hour: 0,
               minute: 0,
@@ -1243,10 +1512,10 @@ class AppState extends ChangeNotifier {
               // Advance
               switch (payment.frequency) {
                 case SubscriptionFrequency.weekly:
-                  current = current.add(const Duration(days: 7));
+                  current = current.add(Duration(days: 7));
                   break;
                 case SubscriptionFrequency.biweekly:
-                  current = current.add(const Duration(days: 14));
+                  current = current.add(Duration(days: 14));
                   break;
                 case SubscriptionFrequency.fifteenDays:
                   if (current.day == 15) {
@@ -1304,7 +1573,7 @@ class AppState extends ChangeNotifier {
                   current = current.add(Duration(days: days > 0 ? days : 30));
                   break;
                 case SubscriptionFrequency.once:
-                  current = targetD.add(const Duration(days: 1)); // stop loop
+                  current = targetD.add(Duration(days: 1)); // stop loop
                   break;
               }
             }
@@ -1396,9 +1665,9 @@ class AppState extends ChangeNotifier {
                 ? pocket.targetAmountUSD - simulatedBalance
                 : double.infinity;
             if (pocket.targetAmountUSD > 0 && remainingToMeta <= 0) break;
-            double occAmountUSD = occ.payment.amount;
+            double occAmountUSD = occ.remainingAmount;
             if (occ.payment.currency == CurrencyType.bsBCV) {
-              occAmountUSD = bcvRate > 0 ? occ.payment.amount / bcvRate : 0.0;
+              occAmountUSD = bcvRate > 0 ? occ.remainingAmount / bcvRate : 0.0;
             }
             double proposedSaving = 0.0;
             String ruleReason = '';
@@ -1452,18 +1721,27 @@ class AppState extends ChangeNotifier {
     }
 
     // --- Evaluate manual USD incomes from today/past ---
-    for (var t in transactions) {
-      if (t.type != TransactionType.income) continue;
-      if (t.currency != CurrencyType.usd) continue;
+    // Keep track of how much pocket balance is available to cover unconfirmed suggestions.
+    Map<String, double> pocketCoveredAmounts = {
+      for (var p in allPockets) p.id: p.currentAmountUSD,
+    };
+
+    // Filter and sort manual incomes chronologically (oldest first)
+    final manualIncomes = transactions.where((t) {
+      if (t.type != TransactionType.income) return false;
+      if (t.currency != CurrencyType.usd) return false;
 
       final accId = t.accountId;
-      if (accId == null) continue;
+      if (accId == null) return false;
       final accIndex = accounts.indexWhere((a) => a.id == accId);
-      if (accIndex == -1) continue;
-      if (accounts[accIndex].currency != CurrencyType.usd) continue;
+      if (accIndex == -1) return false;
+      if (accounts[accIndex].currency != CurrencyType.usd) return false;
 
-      if (t.id.contains("_rec") || t.id.contains("_partial")) continue;
+      if (t.id.contains("_rec") || t.id.contains("_partial")) return false;
+      return true;
+    }).toList()..sort((a, b) => a.date.compareTo(b.date));
 
+    for (var t in manualIncomes) {
       final tDateMidnight = t.date.copyWith(
         hour: 0,
         minute: 0,
@@ -1477,9 +1755,6 @@ class AppState extends ChangeNotifier {
           for (var pocket in allPockets) {
             if (pocket.targetDate != null) continue;
             if (pocket.fundingRuleType == 'none') continue;
-
-            final confirmKey = "${t.id}_${pocket.id}";
-            if (_manualSavingsConfirmed.contains(confirmKey)) continue;
 
             double remainingToMeta = pocket.targetAmountUSD > 0
                 ? pocket.targetAmountUSD - pocket.currentAmountUSD
@@ -1506,6 +1781,26 @@ class AppState extends ChangeNotifier {
             }
 
             if (proposedSaving > 0) {
+              final confirmKey = "${t.id}_${pocket.id}";
+              
+              if (_manualSavingsConfirmed.contains(confirmKey)) {
+                // Already confirmed, consume the amount from our tracking map
+                pocketCoveredAmounts[pocket.id] = (pocketCoveredAmounts[pocket.id] ?? 0.0) - proposedSaving;
+                continue;
+              }
+
+              // Check if we can cover this suggestion with direct manual deposits
+              final availableCover = pocketCoveredAmounts[pocket.id] ?? 0.0;
+              if (availableCover >= proposedSaving) {
+                // Fully covered! Subtract from available and do not show suggestion.
+                pocketCoveredAmounts[pocket.id] = availableCover - proposedSaving;
+                continue;
+              } else if (availableCover > 0) {
+                // Partially covered! Reduce the suggestion and consume all cover.
+                proposedSaving -= availableCover;
+                pocketCoveredAmounts[pocket.id] = 0.0;
+              }
+
               final dateKey = "${tDateMidnight.year}-${tDateMidnight.month.toString().padLeft(2, '0')}-${tDateMidnight.day.toString().padLeft(2, '0')}_${pocket.id}";
               if (consolidatedDeposits.containsKey(dateKey)) {
                 final existing = consolidatedDeposits[dateKey]!;
@@ -1770,7 +2065,7 @@ class AppState extends ChangeNotifier {
               // VES
               amountInAccountCurrency = remainingVal;
             }
-            amountUSD = parallelRate > 0 ? amountInAccountCurrency / parallelRate : 0.0;
+            amountUSD = bcvRate > 0 ? amountInAccountCurrency / bcvRate : 0.0;
           }
         } else {
           // No account associated
@@ -1917,7 +2212,7 @@ class AppState extends ChangeNotifier {
         } else if (payment.currency == CurrencyType.eur) {
           amountBs = payment.amount * euroRate;
         }
-        amountUSD = parallelRate > 0 ? amountBs / parallelRate : 0.0;
+        amountUSD = bcvRate > 0 ? amountBs / bcvRate : 0.0;
       } else {
         if (payment.currency == CurrencyType.bsBCV) {
           amountUSD = bcvRate > 0 ? payment.amount / bcvRate : 0.0;
@@ -1987,7 +2282,7 @@ class AppState extends ChangeNotifier {
           } else if (payment.currency == CurrencyType.eur) {
             amountBs = payment.amount * euroRate;
           }
-          amountUSD = parallelRate > 0 ? amountBs / parallelRate : 0.0;
+          amountUSD = bcvRate > 0 ? amountBs / bcvRate : 0.0;
         } else {
           if (payment.currency == CurrencyType.bsBCV) {
             amountUSD = bcvRate > 0 ? payment.amount / bcvRate : 0.0;
@@ -2065,7 +2360,7 @@ class AppState extends ChangeNotifier {
         final remaining = p.targetAmountUSD - p.currentAmountUSD;
         // Default target date of 365 days if none specified to estimate a required rate
         final targetD =
-            p.targetDate ?? DateTime.now().add(const Duration(days: 365));
+            p.targetDate ?? DateTime.now().add(Duration(days: 365));
         final today = DateTime.now().copyWith(
           hour: 0,
           minute: 0,
@@ -2258,10 +2553,10 @@ class AppState extends ChangeNotifier {
         // Advance current by frequency
         switch (payment.frequency) {
           case SubscriptionFrequency.weekly:
-            current = current.add(const Duration(days: 7));
+            current = current.add(Duration(days: 7));
             break;
           case SubscriptionFrequency.biweekly:
-            current = current.add(const Duration(days: 14));
+            current = current.add(Duration(days: 14));
             break;
           case SubscriptionFrequency.fifteenDays:
             if (current.day == 15) {
@@ -2307,7 +2602,7 @@ class AppState extends ChangeNotifier {
             current = current.add(Duration(days: days > 0 ? days : 30));
             break;
           case SubscriptionFrequency.once:
-            current = today.add(const Duration(days: 1)); // stop loop
+            current = today.add(Duration(days: 1)); // stop loop
             break;
         }
       }
@@ -2557,10 +2852,12 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> deleteAccount(String id) async {
-    if (id == 'default_usd' || id == 'default_ves')
+    if (id == 'default_usd' || id == 'default_ves') {
       return; // Prevent deleting default accounts
-    if (accounts.length <= 1)
+    }
+    if (accounts.length <= 1) {
       return; // Prevent deleting the last remaining account
+    }
     await DatabaseHelper.instance.deleteAccount(id);
     accounts = await DatabaseHelper.instance.getAccounts();
     notifyListeners();
@@ -2847,21 +3144,39 @@ class AppState extends ChangeNotifier {
   Future<void> switchProfile(String dbName) async {
     await DatabaseHelper.instance.switchProfile(dbName);
     _activeDbName = dbName;
+    
+    final activeProfile = _profiles.firstWhere(
+      (p) => p['id'] == _activeDbName,
+      orElse: () => _profiles.first,
+    );
+    if (activeProfile.containsKey('color') && activeProfile['color'] != null) {
+      final colorHex = activeProfile['color']!;
+      AppColors.updateThemeColor(Color(int.parse(colorHex.replaceFirst('#', '0xFF'))));
+    } else {
+      AppColors.updateThemeColor(Color(0xFF1F6F5F)); // Default color
+    }
+    
     await DatabaseHelper.instance.saveProfiles(dbName, _profiles);
     await loadData();
     notifyListeners();
   }
 
-  Future<void> createProfile(String name) async {
+  Future<void> createProfile(String name, String color) async {
     final id = "quebrado_${DateTime.now().millisecondsSinceEpoch}.db";
-    _profiles.add({'id': id, 'name': name});
+    _profiles.add({'id': id, 'name': name, 'color': color});
     await switchProfile(id);
   }
 
-  Future<void> renameProfile(String id, String newName) async {
+  Future<void> updateProfile(String id, String newName, String newColor) async {
     final index = _profiles.indexWhere((p) => p['id'] == id);
     if (index != -1) {
       _profiles[index]['name'] = newName;
+      _profiles[index]['color'] = newColor;
+      
+      if (_activeDbName == id) {
+        AppColors.updateThemeColor(Color(int.parse(newColor.replaceFirst('#', '0xFF'))));
+      }
+      
       await DatabaseHelper.instance.saveProfiles(_activeDbName, _profiles);
       notifyListeners();
     }
@@ -2958,6 +3273,10 @@ class AppState extends ChangeNotifier {
 
   Future<void> exportBackupFolder(String folderName, {Rect? sharePositionOrigin}) async {
     await BackupService.exportBackupFolder(folderName, sharePositionOrigin: sharePositionOrigin);
+  }
+
+  Future<Map<String, dynamic>> getBackupPreview(String folderPath) async {
+    return await DatabaseHelper.instance.getBackupPreview(folderPath);
   }
 }
 

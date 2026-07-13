@@ -30,7 +30,7 @@ class MobilePaymentRecipient {
 
   factory MobilePaymentRecipient.fromMap(Map<String, dynamic> map) {
     return MobilePaymentRecipient(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       alias: map['alias'] ?? '',
       bankCode: map['bank_code'] ?? '',
       bankName: map['bank_name'] ?? '',

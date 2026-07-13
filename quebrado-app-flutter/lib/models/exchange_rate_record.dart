@@ -21,7 +21,7 @@ class ExchangeRateRecord {
 
   factory ExchangeRateRecord.fromMap(Map<String, dynamic> map) {
     return ExchangeRateRecord(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       date: map['date'] is String ? DateTime.parse(map['date']) : DateTime.fromMillisecondsSinceEpoch(map['date']),
       rate: (map['rate'] as num).toDouble(),
     );

@@ -11,11 +11,11 @@ class RateServiceException implements Exception {
 }
 
 class RateService {
-  static const String _officialUSDUrl = "https://ve.dolarapi.com/v1/dolares/oficial";
-  static const String _parallelUSDUrl = "https://ve.dolarapi.com/v1/dolares/paralelo";
-  static const String _officialEURUrl = "https://ve.dolarapi.com/v1/euros/oficial";
-  static const String _bcvHistoricUrl = "https://ve.dolarapi.com/v1/historicos/dolares/oficial";
-  static const String _euroHistoricUrl = "https://ve.dolarapi.com/v1/historicos/euros/oficial";
+  static final String _officialUSDUrl = "https://ve.dolarapi.com/v1/dolares/oficial";
+  static final String _parallelUSDUrl = "https://ve.dolarapi.com/v1/dolares/paralelo";
+  static final String _officialEURUrl = "https://ve.dolarapi.com/v1/euros/oficial";
+  static final String _bcvHistoricUrl = "https://ve.dolarapi.com/v1/historicos/dolares/oficial";
+  static final String _euroHistoricUrl = "https://ve.dolarapi.com/v1/historicos/euros/oficial";
 
   /// Fetches latest official USD exchange rate (BCV)
   Future<double> fetchOfficialRate() async {

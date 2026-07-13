@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
-import '../widgets/claymorphic_card.dart';
 
 class BookSelectorBottomSheet extends StatefulWidget {
   const BookSelectorBottomSheet({super.key});
@@ -22,119 +21,177 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
 
   void _showCreateBookDialog(BuildContext context, AppState appState) {
     _textController.clear();
+    String selectedColor = AppColors.creationColors[0];
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.dialogBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "Nueva Contabilidad",
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
-        ),
-        content: TextField(
-          controller: _textController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: "Ej. Mi Negocio, Finanzas Compartidas",
-            hintStyle: TextStyle(color: Colors.grey),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: AppColors.dialogBg,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(
+              "Nueva Contabilidad",
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
             ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
-            ),
-          ),
-          style: const TextStyle(color: AppColors.cardText),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = _textController.text.trim();
-              if (name.isNotEmpty) {
-                Navigator.pop(context); // Close input dialog
-                
-                // Show loader while switching
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _textController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: "Ej. Mi Negocio",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
                   ),
-                );
-                
-                await appState.createProfile(name);
-                
-                if (mounted) {
-                  Navigator.pop(context); // Remove loader
-                  Navigator.pop(context); // Close bottom sheet
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Libro '$name' creado y seleccionado."),
-                      backgroundColor: AppColors.primary,
-                    ),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  style: TextStyle(color: AppColors.cardText),
+                ),
+                const SizedBox(height: 16),
+                Text("Color Principal", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: AppColors.creationColors.map((colorHex) {
+                    final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+                    final isSelected = selectedColor == colorHex;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedColor = colorHex),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected ? Border.all(color: AppColors.cardText, width: 2) : null,
+                        ),
+                        child: isSelected ? Icon(Icons.check, color: Colors.white, size: 18) : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-            child: const Text("Crear", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final name = _textController.text.trim();
+                  if (name.isNotEmpty) {
+                    Navigator.pop(context); // Close input dialog
+                    
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    );
+                    
+                    await appState.createProfile(name, selectedColor);
+                    appState.setTabIndex(0);
+                    
+                    if (mounted) {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Libro '$name' creado."), backgroundColor: AppColors.primary),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text("Crear", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _showRenameBookDialog(BuildContext context, AppState appState, String profileId, String currentName) {
+  void _showRenameBookDialog(BuildContext context, AppState appState, String profileId, String currentName, String currentColor) {
     _textController.text = currentName;
+    String selectedColor = currentColor.isNotEmpty ? currentColor : AppColors.creationColors[0];
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.dialogBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "Renombrar Contabilidad",
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
-        ),
-        content: TextField(
-          controller: _textController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: AppColors.dialogBg,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(
+              "Editar Contabilidad",
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
             ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _textController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
+                  ),
+                  style: TextStyle(color: AppColors.cardText),
+                ),
+                const SizedBox(height: 16),
+                Text("Color Principal", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: AppColors.creationColors.map((colorHex) {
+                    final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+                    final isSelected = selectedColor == colorHex;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedColor = colorHex),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected ? Border.all(color: AppColors.cardText, width: 2) : null,
+                        ),
+                        child: isSelected ? Icon(Icons.check, color: Colors.white, size: 18) : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-          ),
-          style: const TextStyle(color: AppColors.cardText),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newName = _textController.text.trim();
-              if (newName.isNotEmpty) {
-                await appState.renameProfile(profileId, newName);
-                if (mounted) Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text("Guardar", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final newName = _textController.text.trim();
+                  if (newName.isNotEmpty) {
+                    await appState.updateProfile(profileId, newName, selectedColor);
+                    if (mounted) Navigator.pop(context);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text("Guardar", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        }
       ),
     );
   }
@@ -145,18 +202,18 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.dialogBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           "¿Eliminar Contabilidad?",
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.expense),
         ),
         content: Text(
           "¿Estás seguro de que deseas eliminar el libro '$name'? Se borrarán de forma PERMANENTE todas sus cuentas, transacciones y configuraciones registradas. Esta acción no se puede deshacer.",
-          style: const TextStyle(color: AppColors.cardText, fontSize: 13, height: 1.4),
+          style: TextStyle(color: AppColors.cardText, fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -166,7 +223,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(
+                builder: (context) => Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
               );
@@ -187,7 +244,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
               backgroundColor: AppColors.expense,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text("Eliminar", style: TextStyle(color: Colors.white)),
+            child: Text("Eliminar", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -205,12 +262,12 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
       ),
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -226,23 +283,23 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.menu_book_rounded,
                     color: AppColors.primary,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Expanded(
+                SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     "Libros de Contabilidad",
                     style: TextStyle(
@@ -254,8 +311,8 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               "Cada libro funciona de forma aislada. Puedes tener un libro para tus finanzas personales y otro independiente para los gastos de tu negocio.",
               style: TextStyle(
                 fontSize: 12,
@@ -263,7 +320,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             
             // List of books
             Flexible(
@@ -274,10 +331,11 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                   final profile = appState.profiles[index];
                   final profileId = profile['id']!;
                   final profileName = profile['name']!;
+                  final profileColor = profile['color'] ?? '';
                   final isActive = appState.activeDbName == profileId;
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
+                    padding: EdgeInsets.only(bottom: 12.0),
                     child: GestureDetector(
                       onTap: isActive
                           ? null
@@ -286,16 +344,16 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
-                                builder: (context) => const Center(
+                                builder: (context) => Center(
                                   child: CircularProgressIndicator(color: AppColors.primary),
                                 ),
                               );
                               
                               await appState.switchProfile(profileId);
+                              appState.setTabIndex(0); // Volver al dashboard
                               
                               if (mounted) {
-                                Navigator.pop(context); // Remove loader
-                                Navigator.pop(context); // Close bottom sheet
+                                Navigator.of(context).popUntil((route) => route.isFirst);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text("Cargada contabilidad: $profileName"),
@@ -305,7 +363,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               }
                             },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                        padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
@@ -323,7 +381,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               color: isActive ? AppColors.primary : Colors.grey,
                               size: 20,
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 profileName,
@@ -335,12 +393,33 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               ),
                             ),
                             if (profileId != 'quebrado.db') ...[
-                              IconButton(
-                                icon: const Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
-                                onPressed: () => _showRenameBookDialog(context, appState, profileId, profileName),
+                              Container(
+                                width: 40,
+                                height: 40,
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: profileColor.isNotEmpty 
+                                          ? Color(int.parse(profileColor.replaceFirst('#', '0xFF'))) 
+                                          : const Color(0xFF1F6F5F),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.grey),
+                                icon: Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
+                                onPressed: () => _showRenameBookDialog(context, appState, profileId, profileName, profileColor),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete_outline_rounded, size: 18, color: Colors.grey),
                                 onPressed: () => _confirmDeleteBook(context, appState, profileId, profileName),
                               ),
                             ],
@@ -353,17 +432,17 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
               ),
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => _showCreateBookDialog(context, appState),
-              icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-              label: const Text(
+              icon: Icon(Icons.add_rounded, color: Colors.white, size: 20),
+              label: Text(
                 "Crear nueva contabilidad",
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),

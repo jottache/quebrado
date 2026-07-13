@@ -129,7 +129,7 @@ class RecurringPayment {
 
   factory RecurringPayment.fromMap(Map<String, dynamic> map) {
     return RecurringPayment(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       name: map['name'] ?? '',
       amount: (map['amount'] as num).toDouble(),
       currency: CurrencyType.fromString(map['currency'] ?? 'usd'),

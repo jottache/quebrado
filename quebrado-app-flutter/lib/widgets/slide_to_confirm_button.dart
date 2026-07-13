@@ -35,7 +35,7 @@ class _SlideToConfirmButtonState extends State<SlideToConfirmButton> with Single
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 300),
     );
     _animation = Tween<double>(begin: 0.0, end: 0.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
@@ -134,7 +134,7 @@ class _SlideToConfirmButtonState extends State<SlideToConfirmButton> with Single
                       });
                       widget.onConfirmed();
                       // Reset state after a short delay so if the page doesn't close, it resets
-                      Future.delayed(const Duration(milliseconds: 1000), () {
+                      Future.delayed(Duration(milliseconds: 1000), () {
                         if (mounted) {
                           setState(() {
                             _isConfirmed = false;
@@ -157,7 +157,7 @@ class _SlideToConfirmButtonState extends State<SlideToConfirmButton> with Single
                               BoxShadow(
                                 color: themeHandleColor.withOpacity(0.3),
                                 blurRadius: 6,
-                                offset: const Offset(0, 2),
+                                offset: Offset(0, 2),
                               ),
                             ]
                           : null,

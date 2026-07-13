@@ -53,7 +53,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
 
     return ClaymorphicCard(
       cornerRadius: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -61,19 +61,19 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.bar_chart_rounded,
                   color: AppColors.primary,
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 10),
-              const Text(
+              SizedBox(width: 10),
+              Text(
                 "Análisis Financiero",
                 style: TextStyle(
                   fontSize: 15,
@@ -83,11 +83,11 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Custom Tabs Selector
           Container(
-            padding: const EdgeInsets.all(2),
+            padding: EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: AppColors.nestedTabTrackBg,
               borderRadius: BorderRadius.circular(12),
@@ -106,11 +106,11 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // Active Graph Container
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
+            duration: Duration(milliseconds: 300),
             child: SizedBox(
               key: ValueKey<int>(_activeTab),
               height: 260,
@@ -127,8 +127,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     return GestureDetector(
       onTap: () => setState(() => _activeTab = tabIndex),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.nestedTabActiveBg : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
@@ -157,7 +157,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       case 2:
         return _buildTrendChart(appState);
       default:
-        return const SizedBox.shrink();
+        return SizedBox.shrink();
     }
   }
 
@@ -181,7 +181,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     final Color colIngRec = AppColors.primary; // Teal/Primary
     final Color colIngInd = AppColors.accent;  // Accent Green
     final Color colEgrRec = AppColors.expense; // Expense Red
-    const Color colEgrInd = Color(0xFFE28743);  // Orange/Amber
+    Color colEgrInd = Color(0xFFE28743);  // Orange/Amber
 
     List<FlSpot> incRecSpots = [];
     List<FlSpot> incIndSpots = [];
@@ -210,8 +210,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       if (isPast) {
         // Historical only
         for (var tx in appState.transactions) {
-          if (tx.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-              tx.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          if (tx.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+              tx.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             final amt = _convertToDisplayCurrency(tx.amount, tx.currency, tx.exchangeRate, appState);
             final isRecurring = tx.id.endsWith('_rec') || tx.note.contains('Confirmado:');
             
@@ -233,8 +233,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       } else if (isFuture) {
         // Projected only (all projections count as recurring)
         for (var e in events) {
-          if (e.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-              e.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          if (e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+              e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             final amt = _convertToDisplayCurrency(e.amount, e.currency, appState.bcvRate, appState);
             if (e.type == TransactionType.income) {
               incRec += amt;
@@ -246,8 +246,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       } else if (isCurrent) {
         // Mixed: real transactions up to today + projections for rest of month
         for (var tx in appState.transactions) {
-          if (tx.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-              tx.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          if (tx.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+              tx.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             // Check if tx is today or past
             final txDay = DateTime(tx.date.year, tx.date.month, tx.date.day);
             if (!txDay.isAfter(todayMidnight)) {
@@ -271,8 +271,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
         }
 
         for (var e in events) {
-          if (e.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-              e.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          if (e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+              e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             // Check if projection is strictly after today
             final eDay = DateTime(e.date.year, e.date.month, e.date.day);
             if (eDay.isAfter(todayMidnight)) {
@@ -304,18 +304,18 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
         Expanded(
           child: LineChart(
             LineChartData(
-              gridData: const FlGridData(show: false),
+              gridData: FlGridData(show: false),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
                 show: true,
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 45,
                     getTitlesWidget: (value, meta) {
-                      if (value == 0 || value == maxYCeiling) return const SizedBox.shrink();
+                      if (value == 0 || value == maxYCeiling) return SizedBox.shrink();
                       String text = "";
                       if (value >= 1000) {
                         text = "${(value / 1000).toStringAsFixed(1)}K";
@@ -327,7 +327,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         space: 4,
                         child: Text(
                           text,
-                          style: const TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
+                          style: TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
                         ),
                       );
                     },
@@ -338,7 +338,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
                       final index = value.toInt();
-                      if (index < 0 || index >= 6) return const SizedBox.shrink();
+                      if (index < 0 || index >= 6) return SizedBox.shrink();
                       final dt = monthDates[index];
                       final name = monthNamesShort[dt.month - 1];
                       final isCurr = dt.year == now.year && dt.month == now.month;
@@ -378,7 +378,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                           "Ingresos Individuales: ${_formatDisplayAmount(ii, appState)}\n"
                           "Egresos Recurrentes: ${_formatDisplayAmount(er, appState)}\n"
                           "Egresos Individuales: ${_formatDisplayAmount(ei, appState)}",
-                          const TextStyle(
+                          TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -402,7 +402,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   color: colIngRec,
                   barWidth: 3.5,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -422,7 +422,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   color: colIngInd,
                   barWidth: 3.5,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -442,7 +442,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   color: colEgrRec,
                   barWidth: 3.5,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -462,7 +462,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   color: colEgrInd,
                   barWidth: 3.5,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -479,7 +479,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         // Legends Scrollable
         SizedBox(
           height: 22,
@@ -487,18 +487,18 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             onNotification: (notification) => true,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+              physics: BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _buildLegendItem("Ingresos Recurrentes", colIngRec),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   _buildLegendItem("Ingresos Individuales", colIngInd),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   _buildLegendItem("Egresos Recurrentes", colEgrRec),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   _buildLegendItem("Egresos Individuales", colEgrInd),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                 ],
               ),
             ),
@@ -520,10 +520,10 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             color: AppColors.cardSubtitleText,
             fontWeight: FontWeight.bold,
@@ -546,8 +546,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     // 1. Process historical expenses for current month up to today
     for (var tx in appState.transactions) {
       if (tx.type == TransactionType.expense &&
-          tx.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-          tx.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          tx.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+          tx.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
         final txDay = DateTime(tx.date.year, tx.date.month, tx.date.day);
         if (!txDay.isAfter(todayMidnight)) {
           final amt = _convertToDisplayCurrency(tx.amount, tx.currency, tx.exchangeRate, appState);
@@ -562,8 +562,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     final events = appState.getTimelineEvents(31);
     for (var e in events) {
       if (e.type == TransactionType.expense &&
-          e.date.isAfter(monthStart.subtract(const Duration(seconds: 1))) &&
-          e.date.isBefore(monthEnd.add(const Duration(seconds: 1)))) {
+          e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
+          e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
         final eDay = DateTime(e.date.year, e.date.month, e.date.day);
         if (eDay.isAfter(todayMidnight)) {
           final amt = _convertToDisplayCurrency(e.amount, e.currency, appState.bcvRate, appState);
@@ -583,8 +583,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               size: 44,
               color: AppColors.primary.withOpacity(0.3),
             ),
-            const SizedBox(height: 10),
-            const Text(
+            SizedBox(height: 10),
+            Text(
               "No hay egresos registrados o proyectados\npara el mes en curso.",
               style: TextStyle(
                 fontSize: 12,
@@ -612,7 +612,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       IconData catIcon = Icons.folder_open;
 
       if (catId == 'projected') {
-        catColor = const Color(0xFFD4A373); // Custom sand gold color
+        catColor = Color(0xFFD4A373); // Custom sand gold color
         catName = "Pagos Programados";
         catIcon = Icons.calendar_today_rounded;
       } else {
@@ -635,7 +635,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
           title: "${percentage.toStringAsFixed(0)}%",
           radius: 22,
           showTitle: percentage >= 10,
-          titleStyle: const TextStyle(
+          titleStyle: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -645,7 +645,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
 
       legendWidgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
+          padding: EdgeInsets.only(bottom: 8.0),
           child: Row(
             children: [
               Container(
@@ -663,11 +663,11 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   catName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
@@ -676,7 +676,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 _formatDisplayAmount(sum, appState),
                 style: TextStyle(
@@ -711,7 +711,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       "Total",
                       style: TextStyle(
                         fontSize: 9,
@@ -719,10 +719,10 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 1),
+                    SizedBox(height: 1),
                     Text(
                       _formatDisplayAmount(totalSpend, appState),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
                         color: AppColors.cardText,
@@ -735,14 +735,14 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         // Breakdown List Scrollable at Bottom with Scrollbar indicator
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: (notification) => true,
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(right: 12.0),
+              physics: BouncingScrollPhysics(),
+              padding: EdgeInsets.only(right: 12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: legendWidgets,
@@ -812,18 +812,18 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
         Expanded(
           child: LineChart(
             LineChartData(
-              gridData: const FlGridData(show: false),
+              gridData: FlGridData(show: false),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
                 show: true,
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 45,
                     getTitlesWidget: (value, meta) {
-                      if (value == yMin || value == yMax) return const SizedBox.shrink();
+                      if (value == yMin || value == yMax) return SizedBox.shrink();
                       String text = "";
                       if (value >= 1000) {
                         text = "${(value / 1000).toStringAsFixed(1)}K";
@@ -835,7 +835,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         space: 4,
                         child: Text(
                           text,
-                          style: const TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
+                          style: TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
                         ),
                       );
                     },
@@ -847,7 +847,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     getTitlesWidget: (value, meta) {
                       final dayIndex = value.toInt();
                       if (dayIndex != 0 && dayIndex != 9 && dayIndex != 19 && dayIndex != 29) {
-                        return const SizedBox.shrink();
+                        return SizedBox.shrink();
                       }
                       
                       final date = todayMidnight.add(Duration(days: dayIndex));
@@ -862,7 +862,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         space: 8,
                         child: Text(
                           dayIndex == 0 ? "Hoy" : text,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9,
                             color: AppColors.cardSubtitleText,
                             fontWeight: FontWeight.bold,
@@ -884,7 +884,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                       return LineTooltipItem(
                         "${formatDate(date)}\n"
                         "Saldo Líq: $amtFormatted",
-                        const TextStyle(
+                        TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -905,7 +905,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   color: AppColors.primary,
                   barWidth: 3,
                   isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -922,7 +922,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -934,8 +934,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(width: 6),
-            const Text(
+            SizedBox(width: 6),
+            Text(
               "Proyección Saldo Líquido Consolidado (30 Días)",
               style: TextStyle(
                 fontSize: 9,

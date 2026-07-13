@@ -4,7 +4,6 @@ import '../viewmodels/app_state.dart';
 import '../widgets/claymorphic_background.dart';
 import 'category_management_screen.dart';
 import '../theme/colors.dart';
-import '../services/backup_service.dart';
 import 'account_management_screen.dart';
 import 'mobile_payment_recipient_screen.dart';
 import '../dialogs/book_selector_dialog.dart';
@@ -37,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 0),
+          padding: EdgeInsets.only(right: 0),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -47,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ClaymorphicBackground(
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           children: [
             // Libros de Contabilidad Section
             _buildSectionHeader("Contabilidad"),
@@ -56,13 +55,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
               ),
               child: ListTile(
-                title: const Text(
+                title: Text(
                   "Libros de Contabilidad",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
@@ -71,12 +70,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 subtitle: Text(
                   "Libro activo: ${appState.activeProfileName}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey,
                   ),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   color: Colors.black54,
                 ),
@@ -85,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) => const BookSelectorBottomSheet(),
+                    builder: (context) => BookSelectorBottomSheet(),
                   );
                 },
               ),
@@ -93,7 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Cambia de contabilidad, crea nuevos libros aislados para tus negocios o renómbralos.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Copias de Seguridad Section
             _buildSectionHeader("Copias de Seguridad"),
@@ -102,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
@@ -110,49 +109,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Gestionar Copias de Seguridad",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       "Crea copias manuales, restaura datos previos y ve el historial.",
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const BackupManagementScreen(),
+                          builder: (context) => BackupManagementScreen(),
                         ),
                       );
                     },
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "PIN de Seguridad",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       "Cambia el código PIN de 4 dígitos requerido para restaurar datos.",
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
@@ -164,7 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Administra tus respaldos locales de seguridad y configura el PIN de confirmación.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Personalizacion Section
             _buildSectionHeader("Personalización"),
@@ -173,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
@@ -181,63 +180,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Cuentas y Bancos",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const AccountManagementScreen(),
+                          builder: (context) => AccountManagementScreen(),
                         ),
                       );
                     },
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Categorías de Transacción",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const CategoryManagementScreen(),
+                          builder: (context) => CategoryManagementScreen(),
                         ),
                       );
                     },
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Contactos Pago Móvil",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const MobilePaymentRecipientScreen(),
+                          builder: (context) => MobilePaymentRecipientScreen(),
                         ),
                       );
                     },
@@ -248,7 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
              _buildSectionFooter(
               "Administra tus cuentas financieras y edita las categorías y colores disponibles para tus transacciones.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Seguridad y Confirmación Section
             _buildSectionHeader("Seguridad y Confirmación"),
@@ -257,7 +256,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
@@ -265,15 +264,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   SwitchListTile(
-                    activeColor: AppColors.primary,
-                    title: const Text(
+                    activeThumbColor: AppColors.primary,
+                    title: Text(
                       "Confirmación Biométrica",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       "Solicita tu huella o rostro al registrar transacciones.",
                       style: TextStyle(fontSize: 11),
                     ),
@@ -284,15 +283,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   SwitchListTile(
-                    activeColor: AppColors.primary,
-                    title: const Text(
+                    activeThumbColor: AppColors.primary,
+                    title: Text(
                       "Botón Deslizable",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       "Reemplaza los botones de registrar por un control deslizable.",
                       style: TextStyle(fontSize: 11),
                     ),
@@ -307,7 +306,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Configura capas extra de protección para evitar toques accidentales al registrar tus movimientos.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Guías y Ayuda Section
             _buildSectionHeader("Guías y Ayuda"),
@@ -316,7 +315,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
@@ -324,14 +323,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Ver Guía del Tablero",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
@@ -342,14 +341,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Ver Guía de Bolsillos",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
@@ -360,14 +359,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Ver Guía de Pagos Recurrentes",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
@@ -378,14 +377,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   ListTile(
-                    title: const Text(
+                    title: Text(
                       "Ver Guía de Proyección",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.chevron_right_rounded,
                       color: Colors.black54,
                     ),
@@ -401,7 +400,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Inicia las guías interactivas para aprender a usar las funciones clave o restablécelas para verlas de nuevo.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Tasas de Cambio Section
             _buildSectionHeader("Tasas de Cambio"),
@@ -410,7 +409,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
@@ -453,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Sincroniza y descarga el historial completo de tasas de cambio oficiales del BCV y Euro en el dispositivo.",
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Mantenimiento Section
             _buildSectionHeader("Mantenimiento"),
@@ -462,20 +461,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.cardBorderColor,
                   width: AppColors.cardBorderWidth,
                 ),
               ),
               child: ListTile(
-                title: const Text(
+                title: Text(
                   "Reiniciar Datos",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   color: Colors.black54,
                 ),
@@ -493,7 +492,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+      padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
@@ -508,7 +507,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionFooter(String text) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, top: 6.0, right: 8.0),
+      padding: EdgeInsets.only(left: 8.0, top: 6.0, right: 8.0),
       child: Text(
         text,
         style: TextStyle(fontSize: 11, color: Colors.grey[500]),
@@ -523,12 +522,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -544,8 +543,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 "Reiniciar Aplicación",
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -554,8 +553,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.cardText,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 "Selecciona una opción para reiniciar tu app desde cero. Esta acción es irreversible.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -563,7 +562,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.cardSubtitleText,
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Option 1: Partial reset (keep metadata, clear records)
               GestureDetector(
@@ -576,7 +575,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
@@ -585,22 +584,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.cleaning_services_rounded,
                           color: Colors.orange,
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               "Limpieza Parcial (Conservar Registros)",
                               style: TextStyle(
@@ -625,7 +624,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
 
               // Option 2: Absolute Reset
               GestureDetector(
@@ -638,7 +637,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.expense.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
@@ -649,22 +648,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: AppColors.expense.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.delete_forever_rounded,
                           color: AppColors.expense,
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               "Borrado Absoluto (Restablecer Todo)",
                               style: TextStyle(
@@ -689,7 +688,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -719,7 +718,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 isAbsolute
                     ? "¿Confirmar Borrado Absoluto?"
                     : "¿Confirmar Limpieza Parcial?",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -729,15 +728,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     isAbsolute
                         ? "Esta acción es irreversible y eliminará TODO: bolsillos, cuentas, categorías e historial. Escribe '$confirmWord' para continuar."
                         : "Esta acción es irreversible y borrará tus transacciones y programaciones recurrentes, pero mantendrá tus bolsillos, cuentas y categorías (con saldos en cero). Escribe '$confirmWord' para continuar.",
-                    style: const TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     controller: _confirmController,
                     textCapitalization: TextCapitalization.characters,
                     decoration: InputDecoration(
                       hintText: "Escribe $confirmWord para confirmar",
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                     ),
                     onChanged: (val) {
                       setDialogState(() {
@@ -751,7 +750,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar"),
+                  child: Text("Cancelar"),
                 ),
                 TextButton(
                   onPressed: _isConfirmEnabled
@@ -772,7 +771,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? AppColors.expense
                         : Colors.grey,
                   ),
-                  child: const Text("Confirmar y Borrar"),
+                  child: Text("Confirmar y Borrar"),
                 ),
               ],
             );
@@ -800,7 +799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (updated == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("PIN configurado con éxito"),
           backgroundColor: AppColors.income,
         ),

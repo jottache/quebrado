@@ -55,7 +55,7 @@ class ClaymorphicCard extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.04),
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                   blurRadius: 12.0,
                 ),
               ]
@@ -63,19 +63,19 @@ class ClaymorphicCard extends StatelessWidget {
                 // 3D Soft outer dark shadow
                 BoxShadow(
                   color: Colors.black.withOpacity(0.12),
-                  offset: const Offset(6, 6),
+                  offset: Offset(6, 6),
                   blurRadius: 16.0,
                 ),
                 // Subsurface scattering glow/colored ambient shadow
                 BoxShadow(
                   color: darkColor.withOpacity(0.35),
-                  offset: const Offset(3, 3),
+                  offset: Offset(3, 3),
                   blurRadius: 10.0,
                 ),
                 // 3D Soft outer light highlight
                 BoxShadow(
                   color: Colors.white.withOpacity(0.15),
-                  offset: const Offset(-6, -6),
+                  offset: Offset(-6, -6),
                   blurRadius: 16.0,
                 ),
               ],

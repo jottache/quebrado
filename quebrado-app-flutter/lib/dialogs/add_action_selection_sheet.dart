@@ -17,12 +17,12 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
       ),
-      padding: const EdgeInsets.only(
+      padding: EdgeInsets.only(
         left: 16.0,
         right: 16.0,
         top: 20.0,
@@ -43,8 +43,8 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          SizedBox(height: 20),
+          Text(
             "Nueva Operación",
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -53,7 +53,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -68,7 +68,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) => const AddTransactionBottomSheet(
+                    builder: (context) => AddTransactionBottomSheet(
                       initialType: TransactionType.income,
                     ),
                   );
@@ -85,7 +85,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) => const AddExchangeBottomSheet(),
+                    builder: (context) => AddExchangeBottomSheet(),
                   );
                 },
               ),
@@ -100,7 +100,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) => const AddTransactionBottomSheet(
+                    builder: (context) => AddTransactionBottomSheet(
                       initialType: TransactionType.expense,
                     ),
                   );
@@ -118,7 +118,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (context) => const PendingConfirmationsBottomSheet(),
+                      builder: (context) => PendingConfirmationsBottomSheet(),
                     );
                   },
                   badgeCount: appState.pendingPaymentsToday.length,
@@ -140,13 +140,13 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
   }) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.symmetric(horizontal: 6.0),
         child: GestureDetector(
           onTap: onTap,
           child: ClaymorphicCard(
             cornerRadius: 18,
             backgroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -154,7 +154,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.12),
                         shape: BoxShape.circle,
@@ -170,19 +170,19 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                         right: -4,
                         top: -4,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
                             color: AppColors.expense,
                             shape: BoxShape.circle,
                           ),
-                          constraints: const BoxConstraints(
+                          constraints: BoxConstraints(
                             minWidth: 18,
                             minHeight: 18,
                           ),
                           child: Center(
                             child: Text(
                               '$badgeCount',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
@@ -193,7 +193,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

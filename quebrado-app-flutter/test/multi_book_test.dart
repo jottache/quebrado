@@ -32,7 +32,7 @@ void main() {
 
     test('Creates new book and switches to it', () async {
       // 1. Create and switch to new book 'Business'
-      await appState.createProfile('Business');
+      await appState.createProfile('Business', '#1F6F5F');
 
       expect(appState.profiles.length, 2);
       expect(appState.activeProfileName, 'Business');
@@ -44,10 +44,10 @@ void main() {
     });
 
     test('Can rename a custom book', () async {
-      await appState.createProfile('Travel');
+      await appState.createProfile('Travel', '#1F6F5F');
       final newBookId = appState.activeDbName;
 
-      await appState.renameProfile(newBookId, 'Business Trip');
+      await appState.updateProfile(newBookId, 'Business Trip', '#2FA084');
       expect(appState.activeProfileName, 'Business Trip');
 
       await appState.switchProfile('quebrado.db');
@@ -55,7 +55,7 @@ void main() {
     });
 
     test('Deleting custom book falls back to Personal', () async {
-      await appState.createProfile('Temp Book');
+      await appState.createProfile('Temp Book', '#1F6F5F');
       final tempId = appState.activeDbName;
 
       expect(appState.activeDbName, tempId);

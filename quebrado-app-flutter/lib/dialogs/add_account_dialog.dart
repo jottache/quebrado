@@ -101,7 +101,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -128,7 +128,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -136,31 +136,31 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
               children: [
                 Text(
                   widget.editingAccount == null ? "Nueva Cuenta" : "Editar Cuenta",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable content
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Information Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -173,13 +173,13 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: "Nombre (ej. Banesco Bs, Efectivo \$)",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -187,17 +187,17 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextField(
                             controller: _balanceController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               hintText: "Monto / Saldo Actual",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -205,13 +205,13 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
                           if (widget.editingAccount != null) ...[
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding: EdgeInsets.symmetric(horizontal: 4.0),
                               child: Text(
                                 "Nota: Si editas este campo, ajustarás el saldo de la cuenta de forma directa. No se crearán transacciones ficticias ni se afectarán tus gráficas de ingresos y gastos.",
                                 style: TextStyle(
@@ -223,9 +223,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                            Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
                               borderRadius: BorderRadius.circular(12),
@@ -236,7 +236,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                   child: GestureDetector(
                                     onTap: isDefaultAccount ? null : () => setState(() => _selectedCurrency = CurrencyType.usd),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: _selectedCurrency == CurrencyType.usd
                                             ? AppColors.nestedTabActiveBg.withOpacity(isDefaultAccount ? 0.6 : 1.0)
@@ -261,7 +261,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                   child: GestureDetector(
                                     onTap: isDefaultAccount ? null : () => setState(() => _selectedCurrency = CurrencyType.bsBCV),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: _selectedCurrency == CurrencyType.bsBCV
                                             ? AppColors.nestedTabActiveBg.withOpacity(isDefaultAccount ? 0.6 : 1.0)
@@ -287,7 +287,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                           ),
                           if (isDefaultAccount)
                             Padding(
-                              padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                              padding: EdgeInsets.only(top: 8.0, left: 4.0),
                               child: Text(
                                 "La moneda de la cuenta principal no se puede modificar.",
                                 style: TextStyle(
@@ -300,12 +300,12 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Icon Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -318,11 +318,11 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            physics: NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 4,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
@@ -351,12 +351,12 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Color Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -369,7 +369,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -398,28 +398,28 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
 
                     // Destructive Delete Button
                     if (canDelete) ...[
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.expense.withOpacity(0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         onPressed: () => _deleteAccount(appState),
-                        child: const Text(
+                        child: Text(
                           "Eliminar Cuenta",
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Save / Cancel Buttons Row
             Row(
@@ -427,28 +427,28 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: _nameController.text.trim().isEmpty ? null : () => _saveAccount(appState),
-                    child: const Text(
+                    child: Text(
                       "Guardar",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),

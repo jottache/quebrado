@@ -6,7 +6,7 @@ import '../widgets/claymorphic_background.dart';
 import '../widgets/claymorphic_card.dart';
 import '../theme/colors.dart';
 
-const List<Map<String, String>> venezuelanBanks = [
+List<Map<String, String>> venezuelanBanks = [
   {"code": "0102", "name": "Banco de Venezuela"},
   {"code": "0134", "name": "Banesco"},
   {"code": "0105", "name": "Banco Mercantil"},
@@ -64,7 +64,7 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 0),
+          padding: EdgeInsets.only(right: 0),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -73,7 +73,7 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
               size: 28,
@@ -86,7 +86,7 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Text(
                 "Agenda Pago Móvil",
@@ -98,18 +98,18 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: ClaymorphicCard(
                 cornerRadius: 16,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: "Buscar por nombre, banco, cédula...",
                     border: InputBorder.none,
                     icon: Icon(Icons.search_rounded, color: AppColors.primary),
                   ),
-                  style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                  style: TextStyle(fontSize: 14, color: AppColors.cardText),
                   onChanged: (val) {
                     setState(() {
                       _searchQuery = val;
@@ -135,26 +135,26 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
     if (list.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.contact_phone_rounded, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 _searchQuery.isEmpty ? "Sin contactos guardados" : "Sin resultados",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black54,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 _searchQuery.isEmpty
                     ? "Registra contactos de Pago Móvil presionando el botón '+' en la esquina superior derecha."
                     : "Intenta con un término de búsqueda diferente.",
-                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                style: TextStyle(fontSize: 13, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -164,18 +164,18 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(16.0),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final recipient = list[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: EdgeInsets.only(bottom: 12.0),
           child: GestureDetector(
             onTap: () => _openRecipientFormSheet(context, appState, recipient),
             child: ClaymorphicCard(
               cornerRadius: 18,
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 12.0,
               ),
@@ -189,20 +189,20 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
                       color: AppColors.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person_rounded,
                       color: AppColors.primary,
                       size: 22,
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           recipient.alias,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
@@ -210,7 +210,7 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           "${recipient.bankName} (${recipient.bankCode})",
                           style: TextStyle(
@@ -221,7 +221,7 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           "${recipient.identityCard} • ${recipient.phoneNumber}",
                           style: TextStyle(
@@ -232,8 +232,8 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const Icon(
+                  SizedBox(width: 12),
+                  Icon(
                     Icons.chevron_right_rounded,
                     color: Colors.black54,
                   ),
@@ -322,7 +322,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
 
     if (alias.isEmpty || idNum.isEmpty || phone.isEmpty || bankCode == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor rellena todos los campos.")),
+        SnackBar(content: Text("Por favor rellena todos los campos.")),
       );
       return;
     }
@@ -370,7 +370,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -397,7 +397,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -405,30 +405,30 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
               children: [
                 Text(
                   isEditing ? "Editar Destinatario" : "Nuevo Destinatario",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable form
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -441,20 +441,20 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           
                           // Alias
-                          const Text(
+                          Text(
                             "Nombre o Alias",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _aliasController,
                             decoration: InputDecoration(
                               hintText: "Ej. Mamá, Juan Pérez, CANTV",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -462,20 +462,20 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
 
                           // Banco Receptor
-                          const Text(
+                          Text(
                             "Banco Receptor",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           DropdownButtonFormField<String>(
-                            value: _selectedBankCode,
+                            initialValue: _selectedBankCode,
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -484,7 +484,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                               ),
                             ),
                             dropdownColor: Colors.white,
-                            style: const TextStyle(color: AppColors.cardText, fontSize: 14),
+                            style: TextStyle(color: AppColors.cardText, fontSize: 14),
                             items: venezuelanBanks.map((b) {
                               return DropdownMenuItem<String>(
                                 value: b["code"],
@@ -498,14 +498,14 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                               setState(() => _selectedBankCode = code);
                             },
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
 
                           // Cédula o RIF
-                          const Text(
+                          Text(
                             "Cédula de Identidad / RIF",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Row(
                             children: [
                               Container(
@@ -514,12 +514,12 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                   color: Colors.grey[100],
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                padding: EdgeInsets.symmetric(horizontal: 12),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
                                     value: _selectedIdPrefix,
                                     dropdownColor: Colors.white,
-                                    style: const TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold),
                                     items: ["V", "E", "J", "G"].map((prefix) {
                                       return DropdownMenuItem<String>(
                                         value: prefix,
@@ -534,7 +534,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Expanded(
                                 child: TextField(
                                   controller: _idCardController,
@@ -542,7 +542,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                   decoration: InputDecoration(
                                     hintText: "Número de identificación",
                                     hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                    contentPadding: const EdgeInsets.all(14),
+                                    contentPadding: EdgeInsets.all(14),
                                     filled: true,
                                     fillColor: Colors.grey[100],
                                     border: OutlineInputBorder(
@@ -550,26 +550,26 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                       borderSide: BorderSide.none,
                                     ),
                                   ),
-                                  style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: 14, color: AppColors.cardText),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
 
                           // Número de Teléfono
-                          const Text(
+                          Text(
                             "Número de Teléfono",
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           TextField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               hintText: "Ej. 04121234567",
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -577,12 +577,12 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Actions
                     ElevatedButton(
@@ -590,7 +590,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -598,15 +598,15 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                       onPressed: _saveRecipient,
                       child: Text(
                         isEditing ? "Guardar Cambios" : "Guardar Destinatario",
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                     ),
                     if (isEditing) ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextButton.icon(
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.expense,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -618,15 +618,15 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(24),
                               ),
-                              title: const Text("¿Eliminar Destinatario?", style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text("¿Eliminar Destinatario?", style: TextStyle(fontWeight: FontWeight.bold)),
                               content: Text(
                                 "¿Estás seguro de que deseas eliminar a ${_aliasController.text.trim()} de tus contactos?",
-                                style: const TextStyle(fontSize: 13),
+                                style: TextStyle(fontSize: 13),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(dialogCtx),
-                                  child: const Text("Cancelar"),
+                                  child: Text("Cancelar"),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -634,14 +634,14 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                     _deleteRecipient();
                                   },
                                   style: TextButton.styleFrom(foregroundColor: AppColors.expense),
-                                  child: const Text("Eliminar"),
+                                  child: Text("Eliminar"),
                                 ),
                               ],
                             ),
                           );
                         },
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                        label: const Text("Eliminar Destinatario", style: TextStyle(fontWeight: FontWeight.bold)),
+                        icon: Icon(Icons.delete_outline_rounded, size: 18),
+                        label: Text("Eliminar Destinatario", style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ],

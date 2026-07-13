@@ -17,7 +17,7 @@ class CalculatorBottomSheet extends StatefulWidget {
 class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   String _amountText = "";
   CurrencyType _selectedCurrency = CurrencyType.usd;
-  String? _copiedRateName;
+  String _selectedRate = "BCV";
 
   double get _amount => double.tryParse(_amountText) ?? 0.0;
 
@@ -29,13 +29,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
     }
   }
 
-  double _getParallelConverted(AppState appState) {
-    if (_selectedCurrency == CurrencyType.usd) {
-      return _amount * appState.parallelRate;
-    } else {
-      return appState.parallelRate > 0 ? _amount / appState.parallelRate : 0.0;
-    }
-  }
+
 
   double _getEuroConverted(AppState appState) {
     if (_selectedCurrency == CurrencyType.usd) {
@@ -48,16 +42,21 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   void _copyToClipboard(double value, String rateName) {
     final formattedValue = value.toStringAsFixed(2);
     Clipboard.setData(ClipboardData(text: formattedValue));
-    setState(() {
-      _copiedRateName = rateName;
-    });
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted && _copiedRateName == rateName) {
-        setState(() {
-          _copiedRateName = null;
-        });
-      }
-    });
+    _showFloatingToast(context, "¡Copiado valor de $rateName al portapapeles!");
+  }
+
+  void _showFloatingToast(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => _ToastWidget(
+        message: message,
+        onDismiss: () => overlayEntry.remove(),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
   }
 
   void _onKeyPress(String char) {
@@ -102,7 +101,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   Widget _buildKey(String label, {bool isBackspace = false}) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
         child: Material(
           color: isBackspace
               ? AppColors.expense.withOpacity(0.08)
@@ -131,14 +130,14 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 ),
               ),
               child: isBackspace
-                  ? const Icon(
+                  ? Icon(
                       Icons.backspace_rounded,
                       size: 18,
                       color: AppColors.expense,
                     )
                   : Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: AppColors.cardText,
@@ -192,14 +191,23 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
     required double value,
     required String symbol,
   }) {
+    final isSelected = _selectedRate == title;
+
     return ClaymorphicCard(
       cornerRadius: 16,
       padding: EdgeInsets.zero,
+      borderColor: isSelected ? AppColors.primary : null,
+      borderWidth: isSelected ? 2.5 : null,
       child: InkWell(
-        onTap: () => _copyToClipboard(value, title),
+        onTap: () {
+          setState(() {
+            _selectedRate = title;
+          });
+          _copyToClipboard(value, title);
+        },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,38 +218,38 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardSubtitleText,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(
+                  SizedBox(width: 4),
+                  Icon(
                     Icons.copy_rounded,
                     size: 10,
                     color: AppColors.primary,
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   "$symbol${value.toStringAsFixed(2)}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                     color: AppColors.cardText,
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   "Tasa: ${rate.toStringAsFixed(2)}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
                     color: AppColors.cardSubtitleText,
                   ),
@@ -261,7 +269,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -288,11 +296,11 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Calculadora de Divisas",
                   style: TextStyle(
                     fontSize: 20,
@@ -301,12 +309,12 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 1. Conversion List (Top)
             Text(
@@ -318,7 +326,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             Row(
               children: [
@@ -330,7 +338,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                     symbol: _selectedCurrency == CurrencyType.usd ? "Bs." : "\$",
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _buildConversionCard(
                     title: "Euro",
@@ -339,48 +347,16 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                     symbol: _selectedCurrency == CurrencyType.usd ? "Bs." : "\$",
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildConversionCard(
-                    title: "Paralelo",
-                    rate: appState.parallelRate,
-                    value: _getParallelConverted(appState),
-                    symbol: _selectedCurrency == CurrencyType.usd ? "Bs." : "\$",
-                  ),
-                ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            // Copied Toast Status
-            if (_copiedRateName != null) ...[
-              AnimatedOpacity(
-                opacity: _copiedRateName != null ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.income.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    "¡Copiado valor de $_copiedRateName al portapapeles!",
-                    style: const TextStyle(
-                      color: AppColors.income,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+
 
             // 2. Amount Input Card (Middle)
             ClaymorphicCard(
               cornerRadius: 24,
-              padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+              padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
               child: Column(
                 children: [
                   Text(
@@ -392,9 +368,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
                       _amountText.isEmpty ? "0.00" : _amountText,
                       style: TextStyle(
@@ -407,9 +383,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: AppColors.nestedTabTrackBg,
                       borderRadius: BorderRadius.circular(12),
@@ -420,7 +396,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                           child: GestureDetector(
                             onTap: () => setState(() => _selectedCurrency = CurrencyType.usd),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
                                 color: _selectedCurrency == CurrencyType.usd
                                     ? AppColors.nestedTabActiveBg
@@ -445,7 +421,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                           child: GestureDetector(
                             onTap: () => setState(() => _selectedCurrency = CurrencyType.bsBCV),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
                                 color: _selectedCurrency == CurrencyType.bsBCV
                                     ? AppColors.nestedTabActiveBg
@@ -472,43 +448,166 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Transferir a banco Button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
               onPressed: () {
+                double transferAmount = 0.0;
+                if (_selectedCurrency == CurrencyType.usd) {
+                  if (_selectedRate == "BCV") {
+                    transferAmount = _getBcvConverted(appState);
+                  } else {
+                    transferAmount = _getEuroConverted(appState);
+                  }
+                } else {
+                  transferAmount = _amount;
+                }
+
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => TransferBankBottomSheet(
-                    initialAmount: _amount,
-                    selectedCurrency: _selectedCurrency,
+                    initialAmount: transferAmount,
+                    selectedCurrency: CurrencyType.bsBCV,
                     appState: appState,
                     openedFromCalculator: true,
                   ),
                 );
               },
-              icon: const Icon(Icons.account_balance_rounded, size: 18),
-              label: const Text(
+              icon: Icon(Icons.account_balance_rounded, size: 18),
+              label: Text(
                 "Transferir a banco",
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 3. Custom Keyboard (Bottom)
             _buildKeyboard(),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ToastWidget extends StatefulWidget {
+  final String message;
+  final VoidCallback onDismiss;
+
+  const _ToastWidget({
+    required this.message,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_ToastWidget> createState() => _ToastWidgetState();
+}
+
+class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<double> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _opacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _slide = Tween<double>(begin: 40.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _controller.forward();
+
+    Future.delayed(const Duration(milliseconds: 2000), () async {
+      if (mounted) {
+        await _controller.reverse();
+        widget.onDismiss();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: MediaQuery.of(context).size.height * 0.45,
+      left: 32,
+      right: 32,
+      child: Material(
+        color: Colors.transparent,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Opacity(
+              opacity: _opacity.value,
+              child: Transform.translate(
+                offset: Offset(0.0, _slide.value),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.income,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

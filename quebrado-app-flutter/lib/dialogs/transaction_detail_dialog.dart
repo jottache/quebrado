@@ -112,12 +112,12 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 20.0),
+      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 20.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -133,14 +133,14 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
 
           // Header Row with Category tag & Edit button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: displayCategoryColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(20),
@@ -157,7 +157,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                       color: displayCategoryColor,
                       size: 14,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
                       displayCategoryName,
                       style: TextStyle(
@@ -173,7 +173,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.primary.withOpacity(0.08),
                   foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -189,15 +189,15 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                     ),
                   );
                 },
-                icon: const Icon(Icons.edit_rounded, size: 14),
-                label: const Text(
+                icon: Icon(Icons.edit_rounded, size: 14),
+                label: Text(
                   "Editar",
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Amount Section
           Column(
@@ -212,10 +212,10 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                   letterSpacing: -1.0,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 "Equivalente: $counterpartStr",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardSubtitleText,
@@ -223,7 +223,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Details List Card
           Container(
@@ -235,7 +235,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                 width: AppColors.cardBorderWidth,
               ),
             ),
-            padding: const EdgeInsets.all(18.0),
+            padding: EdgeInsets.all(18.0),
             child: Column(
               children: [
                 _buildDetailRow(
@@ -262,12 +262,12 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Concept Note Card (if any)
           if (currentTx.note.isNotEmpty) ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(20),
@@ -279,7 +279,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "NOTA / CONCEPTO",
                     style: TextStyle(
                       fontSize: 9,
@@ -288,10 +288,10 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                       letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     "\"${currentTx.note}\"",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontStyle: FontStyle.italic,
                       color: AppColors.cardText,
                       fontSize: 13,
@@ -301,7 +301,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
           ],
 
           // Done Button
@@ -309,12 +309,12 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: EdgeInsets.symmetric(vertical: 14),
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               "Listo",
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
@@ -332,16 +332,16 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.cardSubtitleText,
           ),
         ),
-        const Spacer(),
+        Spacer(),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: AppColors.cardText,

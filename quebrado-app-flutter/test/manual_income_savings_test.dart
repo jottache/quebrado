@@ -1,10 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/models/account.dart';
-import '../lib/models/currency_type.dart';
-import '../lib/models/saving_pocket.dart';
-import '../lib/models/transaction.dart';
-import '../lib/models/transaction_category.dart';
-import '../lib/viewmodels/app_state.dart';
+import 'package:quebrado_app_flutter/models/account.dart';
+import 'package:quebrado_app_flutter/models/currency_type.dart';
+import 'package:quebrado_app_flutter/models/saving_pocket.dart';
+import 'package:quebrado_app_flutter/models/transaction.dart';
+import 'package:quebrado_app_flutter/viewmodels/app_state.dart';
 
 void main() {
   group('Manual Income Savings Suggestions', () {

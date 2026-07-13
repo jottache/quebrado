@@ -27,7 +27,7 @@ class RecurringPaymentPartial {
 
   factory RecurringPaymentPartial.fromMap(Map<String, dynamic> map) {
     return RecurringPaymentPartial(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       recurringPaymentId: map['recurring_payment_id'] ?? '',
       occurrenceDate: map['occurrence_date'] ?? '',
       amount: (map['amount'] as num).toDouble(),

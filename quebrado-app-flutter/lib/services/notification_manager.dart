@@ -15,17 +15,17 @@ class NotificationManager {
     tz.initializeTimeZones();
 
     // Android Settings: uses standard launcher icon resource name
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('launcher_icon');
 
     // iOS/Darwin Settings
-    const DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings(
+    DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -65,7 +65,7 @@ class NotificationManager {
     final String symbol = subscription.currency.symbol;
     final String amountFormatted = "$symbol${subscription.amount.toStringAsFixed(2)}";
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'subscription_reminders',
       'Recordatorios de Suscripción',
       channelDescription: 'Canal para alertas de pago de suscripciones',
@@ -73,13 +73,13 @@ class NotificationManager {
       priority: Priority.high,
     );
 
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -94,10 +94,10 @@ class NotificationManager {
       }
       switch (subscription.frequency) {
         case SubscriptionFrequency.weekly:
-          targetDate = targetDate.add(const Duration(days: 7));
+          targetDate = targetDate.add(Duration(days: 7));
           break;
         case SubscriptionFrequency.biweekly:
-          targetDate = targetDate.add(const Duration(days: 14));
+          targetDate = targetDate.add(Duration(days: 14));
           break;
         case SubscriptionFrequency.fifteenDays:
           if (targetDate.day == 15) {
@@ -122,7 +122,7 @@ class NotificationManager {
           targetDate = targetDate.add(Duration(days: days > 0 ? days : 30));
           break;
         case SubscriptionFrequency.once:
-          targetDate = now.add(const Duration(days: 1)); // stop loop
+          targetDate = now.add(Duration(days: 1)); // stop loop
           break;
       }
     }
@@ -144,7 +144,7 @@ class NotificationManager {
     // If already passed, schedule 10 seconds into the future for debugging/alert fallback
     if (notificationDate.isBefore(now)) {
       if (targetDate.isAfter(now)) {
-        notificationDate = now.add(const Duration(seconds: 10));
+        notificationDate = now.add(Duration(seconds: 10));
       } else {
         return; // Both in the past, skip
       }
@@ -206,7 +206,7 @@ class NotificationManager {
     final String symbol = payment.currency.symbol;
     final String amountFormatted = "${payment.type == TransactionType.income ? '+' : '-'}$symbol${payment.amount.toStringAsFixed(2)}";
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'recurring_reminders_today',
       'Recordatorios del Día',
       channelDescription: 'Recordatorios para registrar ingresos y gastos de hoy',
@@ -214,13 +214,13 @@ class NotificationManager {
       priority: Priority.high,
     );
 
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

@@ -9,6 +9,7 @@ import 'dashboard_screen.dart';
 import 'pockets_screen.dart';
 import 'transactions_history_screen.dart';
 import 'rates_history_screen.dart';
+import 'market_screen.dart';
 
 import '../dialogs/add_action_selection_sheet.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
@@ -21,11 +22,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final List<Widget> _screens = const [
+  final List<Widget> _screens = [
     DashboardScreen(),
     PocketsScreen(),
     TransactionsHistoryScreen(),
-    RatesHistoryScreen(),
+    MarketScreen(),
   ];
 
   @override
@@ -59,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (context) => const PendingConfirmationsBottomSheet(),
+          builder: (context) => PendingConfirmationsBottomSheet(),
         );
       }
     });
@@ -72,7 +73,7 @@ class _MainScreenState extends State<MainScreen> {
 
     return ShowCaseWidget(
       enableAutoScroll: true,
-      scrollDuration: const Duration(milliseconds: 350),
+      scrollDuration: Duration(milliseconds: 350),
       builder: (context) {
         return Scaffold(
           body: ClaymorphicBackground(
@@ -92,13 +93,13 @@ class _MainScreenState extends State<MainScreen> {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) => const AddActionSelectionBottomSheet(),
+                  builder: (context) => AddActionSelectionBottomSheet(),
                 );
               },
               backgroundColor: AppColors.primary,
               elevation: 6.0,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
+              shape: CircleBorder(),
+              child: Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -112,7 +113,7 @@ class _MainScreenState extends State<MainScreen> {
               elevation: 12,
               notchMargin: 8.0,
               clipBehavior: Clip.antiAlias,
-              shape: const AutomaticNotchedShape(
+              shape: AutomaticNotchedShape(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
@@ -125,9 +126,9 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _buildNavItem(context, appState, 0, Icons.grid_view_rounded, "Dashboard"),
                   _buildNavItem(context, appState, 1, Icons.inventory_2_rounded, "Bolsillos"),
-                  const SizedBox(width: 48), // Spacer for the floating action button notch
+                  SizedBox(width: 48), // Spacer for the floating action button notch
                   _buildNavItem(context, appState, 2, Icons.receipt_long_rounded, "Historial"),
-                  _buildNavItem(context, appState, 3, Icons.show_chart_rounded, "BCV"),
+                  _buildNavItem(context, appState, 3, Icons.shopping_cart_outlined, "Mercado"),
                 ],
               ),
             ),
@@ -145,13 +146,13 @@ class _MainScreenState extends State<MainScreen> {
       },
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.all(8),
+              duration: Duration(milliseconds: 180),
+              padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
                 shape: BoxShape.circle,
@@ -162,7 +163,7 @@ class _MainScreenState extends State<MainScreen> {
                 size: 24,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(

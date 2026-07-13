@@ -50,7 +50,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 0),
+          padding: EdgeInsets.only(right: 0),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -59,7 +59,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
               size: 28,
@@ -84,12 +84,12 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
           children: [
             // Segmented Tab Selector
             Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
               child: Container(
-                padding: const EdgeInsets.all(4.0),
+                padding: EdgeInsets.all(4.0),
                 decoration: BoxDecoration(
                   color: AppColors.mainTabTrackBg,
                   borderRadius: BorderRadius.circular(12),
@@ -105,28 +105,28 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
                         blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
                   labelColor: AppColors.mainTabActiveText,
                   unselectedLabelColor: AppColors.mainTabInactiveText,
-                  labelStyle: const TextStyle(
+                  labelStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
-                  unselectedLabelStyle: const TextStyle(
+                  unselectedLabelStyle: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
-                  tabs: const [
+                  tabs: [
                     Tab(text: "Ingresos"),
                     Tab(text: "Gastos"),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             // Tab Views
             Expanded(
@@ -152,13 +152,13 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
     if (categories.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.tag_rounded, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 "Sin categorías",
                 style: TextStyle(
                   fontSize: 18,
@@ -166,8 +166,8 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                   color: Colors.black54,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 "Crea una nueva categoría presionando el botón '+' en la esquina superior derecha.",
                 style: TextStyle(fontSize: 13, color: Colors.grey),
                 textAlign: TextAlign.center,
@@ -180,7 +180,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
 
     return ReorderableListView.builder(
       buildDefaultDragHandles: false,
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(16.0),
       itemCount: categories.length,
       onReorder: (oldIndex, newIndex) {
         if (newIndex > oldIndex) {
@@ -197,18 +197,18 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
 
         return Padding(
           key: Key(category.id),
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: EdgeInsets.only(bottom: 12.0),
           child: Dismissible(
             key: Key('dismiss_${category.id}'),
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20.0),
+              padding: EdgeInsets.only(right: 20.0),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.delete_forever_rounded,
                 color: Colors.white,
               ),
@@ -220,18 +220,18 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      title: const Text(
+                      title: Text(
                         "Confirmar Eliminación",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       content: Text(
                         "¿Estás seguro de que deseas eliminar la categoría '${category.name}'?",
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(fontSize: 13),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text(
+                          child: Text(
                             "Cancelar",
                             style: TextStyle(
                               color: Colors.grey,
@@ -241,7 +241,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text(
+                          child: Text(
                             "Eliminar",
                             style: TextStyle(
                               color: AppColors.expense,
@@ -276,7 +276,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
               },
               child: ClaymorphicCard(
                 cornerRadius: 18,
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 12.0,
                 ),
@@ -296,16 +296,16 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                         size: 18,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Text(
                       category.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: AppColors.cardText,
                       ),
                     ),
-                    const Spacer(),
+                    Spacer(),
                     ReorderableDragStartListener(
                       index: index,
                       child: Icon(

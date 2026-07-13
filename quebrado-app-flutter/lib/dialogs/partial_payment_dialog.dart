@@ -73,7 +73,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text("Autenticación biométrica fallida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
@@ -102,8 +102,8 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_outline_rounded, color: Colors.white),
-              const SizedBox(width: 8),
+              Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   p.type == TransactionType.income
@@ -154,11 +154,11 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
       ),
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: BouncingScrollPhysics(),
           child: Form(
             key: _formKey,
             child: Column(
@@ -175,25 +175,25 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Registrar Pago Parcial",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   "Restante: ${p.currency == CurrencyType.usd ? formatUSD(widget.occurrence.remainingAmount) : formatBs(widget.occurrence.remainingAmount)}",
-                  style: const TextStyle(fontSize: 14, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 14, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 ClaymorphicCard(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "MONTO PARCIAL",
                           style: TextStyle(
                             fontSize: 10,
@@ -202,16 +202,16 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             letterSpacing: 0.8,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         TextFormField(
                           controller: _amountController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           decoration: InputDecoration(
                             prefixText: p.currency == CurrencyType.usd ? "\$ " : "Bs. ",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.black12),
+                              borderSide: BorderSide(color: Colors.black12),
                             ),
                           ),
                           onChanged: (_) => setState(() {}),
@@ -224,8 +224,8 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           },
                         ),
                         
-                        const SizedBox(height: 16),
-                        const Text(
+                        SizedBox(height: 16),
+                        Text(
                           "CUENTA ASOCIADA",
                           style: TextStyle(
                             fontSize: 10,
@@ -234,9 +234,9 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             letterSpacing: 0.8,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.black12),
                             borderRadius: BorderRadius.circular(12),
@@ -245,15 +245,15 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           child: Row(
                             children: [
                               Icon(getIconData(targetAccount.icon), size: 18, color: parseHexColor(targetAccount.colorHex)),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   targetAccount.name,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: targetAccount.currency == CurrencyType.usd 
                                       ? AppColors.primary.withOpacity(0.1) 
@@ -276,8 +276,8 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                         ),
 
                         if (needsConversion) ...[
-                          const SizedBox(height: 16),
-                          const Text(
+                          SizedBox(height: 16),
+                          Text(
                             "TASA DE CAMBIO",
                             style: TextStyle(
                               fontSize: 10,
@@ -286,9 +286,9 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                               letterSpacing: 0.8,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
                               borderRadius: BorderRadius.circular(10),
@@ -299,7 +299,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _isCustomRate = false),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: !_isCustomRate ? AppColors.nestedTabActiveBg : Colors.transparent,
                                         borderRadius: BorderRadius.circular(8),
@@ -320,7 +320,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _isCustomRate = true),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: 8),
                                       decoration: BoxDecoration(
                                         color: _isCustomRate ? AppColors.nestedTabActiveBg : Colors.transparent,
                                         borderRadius: BorderRadius.circular(8),
@@ -341,10 +341,10 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             ),
                           ),
                           if (_isCustomRate) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             TextFormField(
                               controller: _rateController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 prefixText: "Bs. ",
                                 hintText: "Tasa personalizada",
@@ -363,8 +363,8 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           ],
                         ],
 
-                        const SizedBox(height: 16),
-                        const Text(
+                        SizedBox(height: 16),
+                        Text(
                           "NOTA (OPCIONAL)",
                           style: TextStyle(
                             fontSize: 10,
@@ -373,7 +373,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             letterSpacing: 0.8,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         TextFormField(
                           controller: _noteController,
                           textCapitalization: TextCapitalization.sentences,
@@ -381,7 +381,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             hintText: "Ej. Adelanto de la semana",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.black12),
+                              borderSide: BorderSide(color: Colors.black12),
                             ),
                           ),
                         ),
@@ -390,10 +390,10 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                   ),
                 ),
                 
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 _buildSummarySection(p, inputAmount, targetAccount, activeRate, needsConversion, isIncome),
 
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 appState.useSlideToConfirm
                     ? SlideToConfirmButton(
                         enabled: inputAmount > 0 && inputAmount <= widget.occurrence.remainingAmount,
@@ -414,7 +414,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           onPressed: (inputAmount > 0 && inputAmount <= widget.occurrence.remainingAmount)
                               ? () => _submitPartialPayment(appState, p, needsConversion, activeRate)
                               : null,
-                          child: const Text(
+                          child: Text(
                             "Registrar Parcial",
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                           ),
@@ -439,7 +439,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
     final remainingAfter = widget.occurrence.remainingAmount - inputAmount;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.background.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
@@ -448,7 +448,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "RESUMEN DEL ADELANTO",
             style: TextStyle(
               fontSize: 10,
@@ -457,7 +457,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
               letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _buildSummaryRow(
             "Fecha Proyectada:",
             formatDate(widget.occurrence.occurrenceDate),
@@ -491,7 +491,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
               formatBs(inputAmount * activeRate),
               valueColor: AppColors.primary,
             ),
-          const Divider(height: 16, color: AppColors.cardBorderColor),
+          Divider(height: 16, color: AppColors.cardBorderColor),
           _buildSummaryRow(
             "Restante para el próximo pago:",
             p.currency == CurrencyType.usd 
@@ -516,17 +516,17 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
     Color? iconColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+            style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
           ),
-          const Spacer(),
+          Spacer(),
           if (icon != null) ...[
             Icon(icon, size: 14, color: iconColor ?? AppColors.cardSubtitleText),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
           ],
           Text(
             value,

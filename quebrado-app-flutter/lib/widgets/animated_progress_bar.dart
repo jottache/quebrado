@@ -32,7 +32,7 @@ class AnimatedProgressBar extends StatelessWidget {
             ),
             // Animating progress overlay bar
             AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
+              duration: Duration(milliseconds: 600),
               curve: Curves.easeOutBack, // Playful bouncy feel matching iOS springs
               height: height,
               width: progressWidth,

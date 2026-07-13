@@ -44,7 +44,7 @@ class PocketCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: ClaymorphicCard(
         cornerRadius: 20,
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         backgroundColor: themeColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +87,7 @@ class PocketCard extends StatelessWidget {
                         ),
                       ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
             ],
 
             Row(
@@ -108,7 +108,7 @@ class PocketCard extends StatelessWidget {
                     size: 22,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +121,7 @@ class PocketCard extends StatelessWidget {
                           color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         pocket.targetAmountUSD > 0
                             ? "${(pocket.progress * 100).toInt()}% Completado"
@@ -156,7 +156,7 @@ class PocketCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     GestureDetector(
                       onTap: onAdd,
                       child: Container(
@@ -180,7 +180,7 @@ class PocketCard extends StatelessWidget {
             
             // Description (if description exists)
             if (pocket.description != null && pocket.description!.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Text(
                 pocket.description!,
                 style: TextStyle(
@@ -194,7 +194,7 @@ class PocketCard extends StatelessWidget {
             ],
             
             if (pocket.targetAmountUSD > 0) ...[
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               AnimatedProgressBar(
                 progress: pocket.progress,
                 fillColor: isLightCard ? pocketAccentColor : Colors.white,
@@ -204,7 +204,7 @@ class PocketCard extends StatelessWidget {
 
             // Target date indicator & feasibility warnings
             if (pocket.targetDate != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 children: [
                   Icon(
@@ -212,7 +212,7 @@ class PocketCard extends StatelessWidget {
                     size: 14,
                     color: isLightCard ? AppColors.cardSubtitleText : Colors.white.withOpacity(0.9),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     "Fecha límite: ${formatDate(pocket.targetDate!)}",
                     style: TextStyle(
@@ -224,9 +224,9 @@ class PocketCard extends StatelessWidget {
                 ],
               ),
               if (isFeasible != null && !isFeasible!) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.expense.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
@@ -234,13 +234,13 @@ class PocketCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 16),
-                      const SizedBox(width: 6),
+                      Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 16),
+                      SizedBox(width: 6),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               "Fecha límite no viable (saldo negativo proyectado)",
                               style: TextStyle(
                                 fontSize: 10,
@@ -252,7 +252,7 @@ class PocketCard extends StatelessWidget {
                               viableTargetDate != null
                                   ? "Fecha viable recalculada: ${formatDate(viableTargetDate!)}"
                                   : "Sin flujos suficientes para estimar.",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 9,
                                 color: AppColors.expense,
                               ),
@@ -266,8 +266,8 @@ class PocketCard extends StatelessWidget {
               ],
             ],
             // Automatic saving rule indicator
-            if (pocket.fundingRuleType != null && pocket.fundingRuleType != 'none') ...[
-              const SizedBox(height: 12),
+            if (pocket.fundingRuleType != 'none') ...[
+              SizedBox(height: 12),
               Row(
                 children: [
                   Icon(
@@ -275,7 +275,7 @@ class PocketCard extends StatelessWidget {
                     size: 14,
                     color: isLightCard ? pocketAccentColor : Colors.white,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     pocket.fundingRuleType == 'percentage'
                         ? "Ahorro auto: ${pocket.fundingRuleValue?.toStringAsFixed(0)}% por ingreso"
@@ -289,7 +289,7 @@ class PocketCard extends StatelessWidget {
                 ],
               ),
             ],
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
 
             // Amounts & Priority Row
             Row(
@@ -308,7 +308,7 @@ class PocketCard extends StatelessWidget {
                         letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       formatUSD(pocket.currentAmountUSD),
                       style: TextStyle(
@@ -322,7 +322,7 @@ class PocketCard extends StatelessWidget {
                 
                 // Priority Badge in same row
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isLightCard
                         ? pocketAccentColor.withOpacity(0.08)
@@ -337,7 +337,7 @@ class PocketCard extends StatelessWidget {
                         size: 10,
                         color: isLightCard ? pocketAccentColor : Colors.white,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         "Prioridad ${pocket.priority}",
                         style: TextStyle(
@@ -363,7 +363,7 @@ class PocketCard extends StatelessWidget {
                           letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         formatUSD(pocket.targetAmountUSD),
                         style: TextStyle(

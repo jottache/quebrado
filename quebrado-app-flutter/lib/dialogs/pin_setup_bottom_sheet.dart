@@ -82,7 +82,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
         if (_newPinInput.length < 4) {
           setState(() => _newPinInput += val.toString());
           if (_newPinInput.length == 4) {
-            Future.delayed(const Duration(milliseconds: 200), () {
+            Future.delayed(Duration(milliseconds: 200), () {
               setState(() => _currentStep = 2);
             });
           }
@@ -91,7 +91,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
         if (_confirmPinInput.length < 4) {
           setState(() => _confirmPinInput += val.toString());
           if (_confirmPinInput.length == 4) {
-            Future.delayed(const Duration(milliseconds: 200), _processCreatePin);
+            Future.delayed(Duration(milliseconds: 200), _processCreatePin);
           }
         }
       }
@@ -100,14 +100,14 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
         if (_currentPinInput.length < 4) {
           setState(() => _currentPinInput += val.toString());
           if (_currentPinInput.length == 4) {
-            Future.delayed(const Duration(milliseconds: 200), _verifyCurrentPin);
+            Future.delayed(Duration(milliseconds: 200), _verifyCurrentPin);
           }
         }
       } else if (_currentStep == 2) {
         if (_newPinInput.length < 4) {
           setState(() => _newPinInput += val.toString());
           if (_newPinInput.length == 4) {
-            Future.delayed(const Duration(milliseconds: 200), () {
+            Future.delayed(Duration(milliseconds: 200), () {
               setState(() => _currentStep = 3);
             });
           }
@@ -116,7 +116,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
         if (_confirmPinInput.length < 4) {
           setState(() => _confirmPinInput += val.toString());
           if (_confirmPinInput.length == 4) {
-            Future.delayed(const Duration(milliseconds: 200), _processUpdatePin);
+            Future.delayed(Duration(milliseconds: 200), _processUpdatePin);
           }
         }
       }
@@ -202,14 +202,14 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -226,28 +226,28 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             
             Text(
               _title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               _subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.cardSubtitleText,
                 height: 1.3,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Dots indicators
             Row(
@@ -255,8 +255,8 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
               children: List.generate(4, (index) {
                 final isFilled = index < _activeInput.length;
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  duration: Duration(milliseconds: 150),
+                  margin: EdgeInsets.symmetric(horizontal: 10),
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
@@ -270,22 +270,22 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                 );
               }),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             
             if (_errorMessage != null)
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.expense,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               )
             else
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Number keypad grid
             Column(
@@ -294,17 +294,17 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [1, 2, 3].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [4, 5, 6].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [7, 8, 9].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -313,10 +313,10 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                         onPressed: () => Navigator.of(context).pop(false),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.cardSubtitleText,
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(12),
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(12),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Cancelar",
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
@@ -326,10 +326,10 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                     Expanded(
                       child: IconButton(
                         onPressed: _onBackspaceTap,
-                        icon: const Icon(Icons.backspace_outlined),
+                        icon: Icon(Icons.backspace_outlined),
                         color: AppColors.cardText,
                         iconSize: 20,
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                       ),
                     ),
                   ],
@@ -345,7 +345,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
   Widget _buildKeypadButton(int val) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.symmetric(horizontal: 6.0),
         child: InkWell(
           onTap: () => _onNumberTap(val),
           borderRadius: BorderRadius.circular(40),
@@ -359,7 +359,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
             ),
             child: Text(
               val.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,

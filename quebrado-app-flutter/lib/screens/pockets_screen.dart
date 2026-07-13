@@ -150,12 +150,12 @@ class _PocketsScreenState extends State<PocketsScreen> {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -172,8 +172,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "¿Por qué usar Bolsillos para tus Deudas?",
                   style: TextStyle(
                     fontSize: 16,
@@ -181,8 +181,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Evita la Ilusión de Liquidez",
                   style: TextStyle(
                     fontSize: 13,
@@ -190,8 +190,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "Al separar dinero en un bolsillo para una compra a cuotas (ej. Cashea), retiras ese dinero de tu saldo líquido disponible. Esto te impide gastarlo por error y te asegura tener los fondos listos cuando venza la cuota.",
                   style: TextStyle(
                     fontSize: 12,
@@ -199,8 +199,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Estrategias de Financiamiento",
                   style: TextStyle(
                     fontSize: 13,
@@ -208,8 +208,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "• Pre-fondeo: Guarda el monto total de la compra en el bolsillo hoy. Cada cuota se debitará sola sin tocar tu cuenta del día a día.\n• Apartado Progresivo: Usa tu sueldo recurrente para apartar y transferir la cuota al bolsillo automáticamente antes de la fecha de cobro.",
                   style: TextStyle(
                     fontSize: 12,
@@ -217,8 +217,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Ejemplo Práctico (Cashea)",
                   style: TextStyle(
                     fontSize: 13,
@@ -226,8 +226,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "Si compras un teléfono financiado a 6 cuotas de \$20 cada 14 días (total \$120):\n• Si pre-fondeas: Metes los \$120 al bolsillo hoy. Tu cuenta diaria muestra tu balance real y las cuotas se cobran del bolsillo.\n• Si apartas progresivamente: Programas tu sueldo recurrente para depositar \$20 en el bolsillo justo antes de cada cobro de Cashea.",
                   style: TextStyle(
                     fontSize: 12,
@@ -235,8 +235,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   "Monitoreo en el Timeline",
                   style: TextStyle(
                     fontSize: 13,
@@ -244,8 +244,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   "Si asocias tus gastos recurrentes a un bolsillo, el simulador vigilará si el bolsillo se queda sin fondos y te dirá cuánto 'Dinero Seguro' tienes realmente para gastar.",
                   style: TextStyle(
                     fontSize: 12,
@@ -253,7 +253,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -265,7 +265,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Entendido"),
+                    child: Text("Entendido"),
                   ),
                 ),
               ],
@@ -286,7 +286,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
+          padding: EdgeInsets.only(right: 30.5),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -294,10 +294,10 @@ class _PocketsScreenState extends State<PocketsScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.settings_rounded),
+          icon: Icon(Icons.settings_rounded),
           onPressed: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              MaterialPageRoute(builder: (context) => SettingsScreen()),
             );
           },
         ),
@@ -306,7 +306,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none_rounded),
+                icon: Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
                   showModalBottomSheet(
@@ -314,7 +314,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) =>
-                        const PendingConfirmationsBottomSheet(),
+                        PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -323,19 +323,19 @@ class _PocketsScreenState extends State<PocketsScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: const BoxConstraints(
+                    constraints: BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -348,25 +348,25 @@ class _PocketsScreenState extends State<PocketsScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.calculate_outlined),
+            icon: Icon(Icons.calculate_outlined),
             iconSize: 26,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const CalculatorBottomSheet(),
+                builder: (context) => CalculatorBottomSheet(),
               );
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
           // Spacing at the top of the CustomScrollView
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: SizedBox(height: 12),
           ),
 
@@ -376,7 +376,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
             delegate: _StickyTabBarDelegate(
               child: Container(
                 color: AppColors.background,
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,
                 ),
@@ -426,7 +426,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
 
           // 3. Tab Content Sliver
           SliverPadding(
-            padding: const EdgeInsets.only(
+            padding: EdgeInsets.only(
               left: 16.0,
               right: 16.0,
               top: 12.0,
@@ -455,8 +455,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 "Bolsillos de Ahorro",
                                 style: TextStyle(
                                   fontSize: 14,
@@ -465,15 +465,15 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                   letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.info_outline_rounded,
                                   color: AppColors.primary,
                                   size: 18,
                                 ),
                                 onPressed: () => _showPocketsInfo(context),
-                                constraints: const BoxConstraints(),
+                                constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
@@ -484,7 +484,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                           title: "Añadir Bolsillo",
                           description: "Presiona aquí para crear una nueva meta de ahorro, fijar su monto objetivo, prioridad y fecha límite.",
                           child: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle_rounded,
                               color: AppColors.primary,
                               size: 24,
@@ -494,12 +494,12 @@ class _PocketsScreenState extends State<PocketsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     // Pockets list
                     if (appState.pockets.isEmpty)
                       ClaymorphicCard(
-                        padding: const EdgeInsets.symmetric(vertical: 32.0),
+                        padding: EdgeInsets.symmetric(vertical: 32.0),
                         width: double.infinity,
                         child: Column(
                           children: [
@@ -508,7 +508,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                               size: 40,
                               color: Colors.grey[400],
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               "No tienes bolsillos aún",
                               style: TextStyle(
@@ -579,8 +579,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 "Pagos Recurrentes y Cuotas",
                                 style: TextStyle(
                                   fontSize: 14,
@@ -592,7 +592,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle_rounded,
                               color: AppColors.primary,
                               size: 24,
@@ -603,14 +603,14 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
                                 builder: (context) =>
-                                    const AddRecurringPaymentBottomSheet(),
+                                    AddRecurringPaymentBottomSheet(),
                               );
                             },
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     // Filter Segmented Control
                     Showcase(
@@ -619,7 +619,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                       description: "Filtra rápidamente el listado para ver solo tus ingresos planificados, tus pagos recurrentes, o todos al mismo tiempo.",
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           color: AppColors.mainTabTrackBg,
                           borderRadius: BorderRadius.circular(10),
@@ -645,7 +645,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // Recurring payments list
                     Builder(
@@ -654,8 +654,9 @@ class _PocketsScreenState extends State<PocketsScreen> {
                           pay,
                         ) {
                           if (_selectedRecurrentFilter == 0) return true;
-                          if (_selectedRecurrentFilter == 1)
+                          if (_selectedRecurrentFilter == 1) {
                             return pay.type == TransactionType.income;
+                          }
                           return pay.type == TransactionType.expense;
                         }).toList();
 
@@ -665,7 +666,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                             title: "Listado de Obligaciones",
                             description: "Aquí verás tus obligaciones y planificaciones una vez las agregues. El simulador las usará para proyectar tu flujo de caja.",
                             child: ClaymorphicCard(
-                              padding: const EdgeInsets.symmetric(vertical: 32.0),
+                              padding: EdgeInsets.symmetric(vertical: 32.0),
                               width: double.infinity,
                               child: Column(
                                 children: [
@@ -674,7 +675,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                     size: 40,
                                     color: Colors.grey[400],
                                   ),
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12),
                                   Text(
                                     _selectedRecurrentFilter == 0
                                         ? "Sin registros recurrentes"
@@ -725,7 +726,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     ),
                   ] else ...[
                     // Timeline Proyección
-                    const TimelineScreen(),
+                    TimelineScreen(),
                   ],
                 ],
               ),
@@ -826,7 +827,7 @@ class _RecurringPaymentRow extends StatelessWidget {
       },
       child: ClaymorphicCard(
         cornerRadius: 18,
-        padding: const EdgeInsets.all(14.0),
+        padding: EdgeInsets.all(14.0),
         backgroundColor: themeColor,
         child: Row(
           children: [
@@ -846,7 +847,7 @@ class _RecurringPaymentRow extends StatelessWidget {
                 size: 18,
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
 
             // Text info
             Expanded(
@@ -863,13 +864,13 @@ class _RecurringPaymentRow extends StatelessWidget {
                       color: textColor,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Text(
                     "${payment.frequency.value} • ${payment.notificationOption.value}",
                     style: TextStyle(fontSize: 11, color: subtitleColor),
                   ),
                   if (accountName != null) ...[
-                    const SizedBox(height: 3),
+                    SizedBox(height: 3),
                     Row(
                       children: [
                         Icon(
@@ -877,7 +878,7 @@ class _RecurringPaymentRow extends StatelessWidget {
                           size: 11,
                           color: subtitleColor,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             accountName,
@@ -893,7 +894,7 @@ class _RecurringPaymentRow extends StatelessWidget {
                     ),
                   ],
                   if (pocketName != null) ...[
-                    const SizedBox(height: 3),
+                    SizedBox(height: 3),
                     Row(
                       children: [
                         Icon(
@@ -901,7 +902,7 @@ class _RecurringPaymentRow extends StatelessWidget {
                           size: 11,
                           color: subtitleColor,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             pocketName,
@@ -934,7 +935,7 @@ class _RecurringPaymentRow extends StatelessWidget {
                         : (isLightCard ? Colors.red[700] : Colors.white),
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 3),
                 Text(
                   payment.frequency == SubscriptionFrequency.once
                       ? "Fecha: ${formatDate(payment.startDate)}"
@@ -945,9 +946,9 @@ class _RecurringPaymentRow extends StatelessWidget {
                     color: subtitleColor,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 5,
                     vertical: 1.5,
                   ),
@@ -1063,7 +1064,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
       child: GestureDetector(
         onTap: () => setState(() => _priority = val),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? themeColor : themeColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
@@ -1096,7 +1097,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
       },
       child: Container(
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1109,7 +1110,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                   BoxShadow(
                     color: AppColors.primary.withOpacity(0.2),
                     blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   )
                 ]
               : null,
@@ -1146,7 +1147,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
             (_targetDate!.isBefore(maxTargetOfHigherPriority) ||
                 _targetDate!.isAtSameMomentAs(maxTargetOfHigherPriority))) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
                 'La fecha debe ser posterior a la de los bolsillos de mayor prioridad',
               ),
@@ -1170,7 +1171,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
             (_targetDate!.isAfter(minTargetOfLowerPriority) ||
                 _targetDate!.isAtSameMomentAs(minTargetOfLowerPriority))) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
                 'La fecha debe ser anterior a la de los bolsillos de menor prioridad',
               ),
@@ -1193,7 +1194,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
           final val = double.tryParse(valText);
           if (val == null || val <= 0 || val > 100) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Por favor ingrese un porcentaje válido entre 1 y 100%')),
+              SnackBar(content: Text('Por favor ingrese un porcentaje válido entre 1 y 100%')),
             );
             return;
           }
@@ -1205,13 +1206,13 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
           final threshold = double.tryParse(thresholdText);
           if (val == null || val <= 0) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Por favor ingrese un monto fijo a ahorrar válido')),
+              SnackBar(content: Text('Por favor ingrese un monto fijo a ahorrar válido')),
             );
             return;
           }
           if (threshold == null || threshold <= 0) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Por favor ingrese un umbral de ingreso válido')),
+              SnackBar(content: Text('Por favor ingrese un umbral de ingreso válido')),
             );
             return;
           }
@@ -1292,18 +1293,18 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
         return Container(
           decoration: BoxDecoration(
             color: AppColors.dialogBg,
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   "Seleccionar Origen de Imagen",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -1312,7 +1313,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                     color: AppColors.cardText,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -1332,14 +1333,14 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               color: AppColors.primary.withOpacity(0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt_rounded,
                               color: AppColors.primary,
                               size: 26,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             "Cámara",
                             style: TextStyle(
                               fontSize: 13,
@@ -1366,14 +1367,14 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               color: AppColors.primary.withOpacity(0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.photo_library_rounded,
                               color: AppColors.primary,
                               size: 26,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             "Galería",
                             style: TextStyle(
                               fontSize: 13,
@@ -1386,7 +1387,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
               ],
             ),
           ),
@@ -1402,7 +1403,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -1429,7 +1430,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -1439,31 +1440,31 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                   widget.editingPocket == null
                       ? "Nuevo Bolsillo"
                       : "Editar Bolsillo",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Scrollable fields
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Information Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1476,7 +1477,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
@@ -1485,7 +1486,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 color: Colors.grey[400],
                                 fontSize: 13,
                               ),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -1493,16 +1494,16 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextField(
                             controller: _targetController,
-                            keyboardType: const TextInputType.numberWithOptions(
+                            keyboardType: TextInputType.numberWithOptions(
                               decimal: true,
                             ),
                             decoration: InputDecoration(
@@ -1511,7 +1512,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 color: Colors.grey[400],
                                 fontSize: 13,
                               ),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -1519,17 +1520,17 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Fecha Límite Estimada",
                                 style: TextStyle(
                                   fontSize: 13,
@@ -1547,7 +1548,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 14,
                                         vertical: 8,
                                       ),
@@ -1558,7 +1559,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                         initialDate:
                                             _targetDate ??
                                             DateTime.now().add(
-                                              const Duration(days: 30),
+                                              Duration(days: 30),
                                             ),
                                         firstDate: DateTime.now(),
                                         lastDate: DateTime(2100),
@@ -1571,16 +1572,16 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                       _targetDate != null
                                           ? formatDate(_targetDate!)
                                           : "Sin fecha límite",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
                                       ),
                                     ),
                                   ),
                                   if (_targetDate != null) ...[
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     IconButton(
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.clear_rounded,
                                         size: 18,
                                         color: AppColors.expense,
@@ -1595,9 +1596,9 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                             ],
                           ),
                           if (_targetDate == null) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
                                 borderRadius: BorderRadius.circular(16),
@@ -1610,7 +1611,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    children: const [
+                                    children: [
                                       Icon(
                                         Icons.auto_awesome_rounded,
                                         size: 16,
@@ -1627,7 +1628,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 10),
+                                  SizedBox(height: 10),
                                   Row(
                                     children: [
                                       Expanded(
@@ -1636,14 +1637,14 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           'Ninguno',
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       Expanded(
                                         child: _buildRuleTypeButton(
                                           'percentage',
                                           '% Recurrente',
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       Expanded(
                                         child: _buildRuleTypeButton(
                                           'fixedThreshold',
@@ -1653,9 +1654,9 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                     ],
                                   ),
                                   if (_fundingRuleType != 'none') ...[
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
                                     if (_fundingRuleType == 'percentage') ...[
-                                      const Text(
+                                      Text(
                                         "Porcentaje a ahorrar de cada ingreso recurrente:",
                                         style: TextStyle(
                                           fontSize: 12,
@@ -1663,15 +1664,15 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
+                                      SizedBox(height: 6),
                                       TextField(
                                         controller: _fundingRuleValueController,
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                                         decoration: InputDecoration(
                                           hintText: "Ej: 10",
                                           suffixText: "%",
-                                          suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          suffixStyle: TextStyle(fontWeight: FontWeight.bold),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           filled: true,
                                           fillColor: Colors.white,
                                           border: OutlineInputBorder(
@@ -1683,10 +1684,10 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                             borderSide: BorderSide(color: Colors.grey[300]!),
                                           ),
                                         ),
-                                        style: const TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: 14),
                                       ),
                                     ] else if (_fundingRuleType == 'fixedThreshold') ...[
-                                      const Text(
+                                      Text(
                                         "Monto fijo a ahorrar:",
                                         style: TextStyle(
                                           fontSize: 12,
@@ -1694,15 +1695,15 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       TextField(
                                         controller: _fundingRuleValueController,
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                                         decoration: InputDecoration(
                                           hintText: "Ej: 20",
                                           suffixText: "\$",
-                                          suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          suffixStyle: TextStyle(fontWeight: FontWeight.bold),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           filled: true,
                                           fillColor: Colors.white,
                                           border: OutlineInputBorder(
@@ -1714,10 +1715,10 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                             borderSide: BorderSide(color: Colors.grey[300]!),
                                           ),
                                         ),
-                                        style: const TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: 14),
                                       ),
-                                      const SizedBox(height: 8),
-                                      const Text(
+                                      SizedBox(height: 8),
+                                      Text(
                                         "Cuando un ingreso sea igual o supere:",
                                         style: TextStyle(
                                           fontSize: 12,
@@ -1725,15 +1726,15 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4),
                                       TextField(
                                         controller: _fundingRuleThresholdController,
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                                         decoration: InputDecoration(
                                           hintText: "Ej: 100",
                                           suffixText: "\$",
-                                          suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          suffixStyle: TextStyle(fontWeight: FontWeight.bold),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           filled: true,
                                           fillColor: Colors.white,
                                           border: OutlineInputBorder(
@@ -1745,7 +1746,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                             borderSide: BorderSide(color: Colors.grey[300]!),
                                           ),
                                         ),
-                                        style: const TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: 14),
                                       ),
                                     ],
                                   ],
@@ -1753,7 +1754,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextField(
                             controller: _descriptionController,
                             maxLines: 2,
@@ -1764,7 +1765,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 color: Colors.grey[400],
                                 fontSize: 13,
                               ),
-                              contentPadding: const EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(14),
                               filled: true,
                               fillColor: Colors.grey[100],
                               border: OutlineInputBorder(
@@ -1772,13 +1773,13 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Text(
                             "FOTO DEL BOLSILLO",
                             style: TextStyle(
@@ -1788,7 +1789,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           if (_selectedImagePath != null &&
                               _selectedImagePath!.isNotEmpty) ...[
                             Stack(
@@ -1817,7 +1818,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                                 width: double.infinity,
                                                 color: Colors.grey[200],
                                                 alignment: Alignment.center,
-                                                child: const Icon(
+                                                child: Icon(
                                                   Icons.broken_image_rounded,
                                                   size: 36,
                                                   color: Colors.grey,
@@ -1835,28 +1836,28 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           () => _selectedImagePath = null,
                                         ),
                                         child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: const BoxDecoration(
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
                                             color: Colors.black54,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.delete_outline_rounded,
                                             color: Colors.white,
                                             size: 18,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       GestureDetector(
                                         onTap: _showImagePickerSourceSheet,
                                         child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: const BoxDecoration(
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
                                             color: Colors.black54,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.edit_rounded,
                                             color: Colors.white,
                                             size: 18,
@@ -1891,8 +1892,8 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                       color: themeColor.withOpacity(0.8),
                                       size: 28,
                                     ),
-                                    const SizedBox(height: 6),
-                                    const Text(
+                                    SizedBox(height: 6),
+                                    Text(
                                       "Agregar foto (Cámara o Galería)",
                                       style: TextStyle(
                                         fontSize: 12,
@@ -1908,12 +1909,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Priority Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1926,18 +1927,18 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             children: [
                               _buildPriorityButton(1, "Alta (1)", themeColor),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               _buildPriorityButton(2, "Media (2)", themeColor),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               _buildPriorityButton(3, "Baja (3)", themeColor),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: 12),
+                          Text(
                             "Los bolsillos con prioridad alta se financiarán primero con tu potencial de ahorro diario. Si hay varios en el mismo nivel, compartirán los fondos proporcionalmente.",
                             style: TextStyle(
                               fontSize: 11,
@@ -1948,12 +1949,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Icon section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1966,12 +1967,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
+                            physics: NeverScrollableScrollPhysics(),
                             gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 4,
                                   crossAxisSpacing: 10,
                                   mainAxisSpacing: 10,
@@ -2005,12 +2006,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Color Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -2023,7 +2024,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -2055,19 +2056,19 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
 
                     // Destructive Delete Button
                     if (widget.editingPocket != null) ...[
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.expense.withOpacity(0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         onPressed: _deletePocket,
-                        child: const Text(
+                        child: Text(
                           "Eliminar Bolsillo",
                           style: TextStyle(
                             fontSize: 15,
@@ -2076,12 +2077,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Save / Cancel Buttons Row
             Row(
@@ -2089,13 +2090,13 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       "Cancelar",
                       style: TextStyle(
                         fontSize: 15,
@@ -2105,13 +2106,13 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -2127,7 +2128,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                       }
                       return _savePocket;
                     }(),
-                    child: const Text(
+                    child: Text(
                       "Guardar",
                       style: TextStyle(
                         fontSize: 15,
@@ -2165,7 +2166,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: Duration(milliseconds: 100),
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
@@ -2188,10 +2189,12 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
     // Sort accounts: USD first, then VES
     final sortedAccounts = List<Account>.from(appState.accounts);
     sortedAccounts.sort((a, b) {
-      if (a.currency == CurrencyType.usd && b.currency != CurrencyType.usd)
+      if (a.currency == CurrencyType.usd && b.currency != CurrencyType.usd) {
         return -1;
-      if (a.currency != CurrencyType.usd && b.currency == CurrencyType.usd)
+      }
+      if (a.currency != CurrencyType.usd && b.currency == CurrencyType.usd) {
         return 1;
+      }
       return 0;
     });
 
@@ -2220,7 +2223,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
       scale: _scaleAnimation,
       child: ClaymorphicCard(
         cornerRadius: 24,
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
         child: Column(
           children: [
             SizedBox(
@@ -2247,11 +2250,11 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           vertical: 16.0,
                           horizontal: 16.0,
                         ),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.all(Radius.circular(16)),
                         ),
@@ -2267,7 +2270,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                             CurrencyType.usd
                                         ? "DISPONIBLE (USD)"
                                         : "DISPONIBLE (VES)",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white,
@@ -2284,7 +2287,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(6),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.25),
                                         shape: BoxShape.circle,
@@ -2301,31 +2304,31 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               "1 USD = Bs. ${appState.bcvRate.toStringAsFixed(2)} (BCV)",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayBalance,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Text(
                               conversionText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -2361,13 +2364,13 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           vertical: 16.0,
                           horizontal: 16.0,
                         ),
                         decoration: BoxDecoration(
                           color: cardColor,
-                          borderRadius: const BorderRadius.all(
+                          borderRadius: BorderRadius.all(
                             Radius.circular(16),
                           ),
                         ),
@@ -2386,10 +2389,10 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                         color: Colors.white,
                                         size: 14,
                                       ),
-                                      const SizedBox(width: 6),
+                                      SizedBox(width: 6),
                                       Text(
                                         acc.name.toUpperCase(),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
                                           color: Colors.white,
@@ -2408,7 +2411,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(6),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.25),
                                         shape: BoxShape.circle,
@@ -2425,33 +2428,33 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               isUsd
                                   ? "Cuenta en Dólares"
                                   : "Cuenta en Bolívares",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayAccBalance,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Text(
                               accConversionText,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -2465,16 +2468,16 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(totalPages, (i) {
                 final isSelected = _currentPage == i;
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: Duration(milliseconds: 150),
                   width: isSelected ? 16 : 6,
                   height: 6,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  margin: EdgeInsets.symmetric(horizontal: 3),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.grey[300],
                     borderRadius: BorderRadius.circular(3),
@@ -2540,7 +2543,7 @@ class _PocketTransactionBottomSheetState
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -2560,13 +2563,13 @@ class _PocketTransactionBottomSheetState
             child: Container(
               width: 40,
               height: 5,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Color(0xFFD6D6D6),
                 borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Header Row
           Row(
@@ -2574,24 +2577,24 @@ class _PocketTransactionBottomSheetState
             children: [
               Text(
                 isDeposit ? "Asignar Fondos" : "Retirar Fondos",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: Colors.black87,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded),
+                icon: Icon(Icons.close_rounded),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Card content
           ClaymorphicCard(
             cornerRadius: 24,
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(20.0),
             child: Column(
               children: [
                 // Pocket Icon & Name Badge
@@ -2610,20 +2613,20 @@ class _PocketTransactionBottomSheetState
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             pocket.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
                             isDeposit
                                 ? "Disponible: ${formatUSD(widget.appState.liquidBalanceUSD)}"
@@ -2638,11 +2641,11 @@ class _PocketTransactionBottomSheetState
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Amount Text Field (Modern layout)
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
@@ -2652,10 +2655,10 @@ class _PocketTransactionBottomSheetState
                   ),
                   child: TextField(
                     controller: _amountController,
-                    keyboardType: const TextInputType.numberWithOptions(
+                    keyboardType: TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardText,
@@ -2665,7 +2668,7 @@ class _PocketTransactionBottomSheetState
                       hintText: "0.00",
                       hintStyle: TextStyle(color: Colors.grey[400]),
                       suffixText: "USD",
-                      suffixStyle: const TextStyle(
+                      suffixStyle: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.grey,
@@ -2675,7 +2678,7 @@ class _PocketTransactionBottomSheetState
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Preset Shortcuts
                 Row(
@@ -2688,7 +2691,7 @@ class _PocketTransactionBottomSheetState
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
@@ -2699,7 +2702,7 @@ class _PocketTransactionBottomSheetState
                       },
                       child: Text(
                         "+$val USD",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -2710,7 +2713,7 @@ class _PocketTransactionBottomSheetState
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // Action buttons row
           Row(
@@ -2718,13 +2721,13 @@ class _PocketTransactionBottomSheetState
               Expanded(
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     "Cancelar",
                     style: TextStyle(
                       fontSize: 15,
@@ -2734,13 +2737,13 @@ class _PocketTransactionBottomSheetState
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -2753,7 +2756,7 @@ class _PocketTransactionBottomSheetState
                       : _confirmTransaction,
                   child: Text(
                     isDeposit ? "Asignar" : "Retirar",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2785,7 +2788,7 @@ class _TabSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: 10.0),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
@@ -2795,7 +2798,7 @@ class _TabSegment extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ]
                 : null,
@@ -2833,7 +2836,7 @@ class _RecurrentFilterSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: EdgeInsets.symmetric(vertical: 8.0),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
@@ -2843,7 +2846,7 @@ class _RecurrentFilterSegment extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
                       blurRadius: 2,
-                      offset: const Offset(0, 1),
+                      offset: Offset(0, 1),
                     ),
                   ]
                 : null,

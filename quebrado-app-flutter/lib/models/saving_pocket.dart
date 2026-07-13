@@ -56,7 +56,7 @@ class SavingPocket {
 
   factory SavingPocket.fromMap(Map<String, dynamic> map) {
     return SavingPocket(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       name: map['name'] ?? '',
       currentAmountUSD: (map['current_amount_usd'] as num).toDouble(),
       targetAmountUSD: (map['target_amount_usd'] as num).toDouble(),

@@ -27,7 +27,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 0),
+          padding: EdgeInsets.only(right: 0),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -36,7 +36,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
               size: 28,
@@ -46,7 +46,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const AddAccountBottomSheet(),
+                builder: (context) => AddAccountBottomSheet(),
               );
             },
           ),
@@ -56,7 +56,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Text(
                 "Cuentas y Bancos",
@@ -84,13 +84,13 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     if (accounts.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.account_balance_wallet_rounded, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 "Sin cuentas registradas",
                 style: TextStyle(
                   fontSize: 18,
@@ -98,8 +98,8 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                   color: Colors.black54,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 "Crea una nueva cuenta presionando el botón '+' en la esquina superior derecha.",
                 style: TextStyle(fontSize: 13, color: Colors.grey),
                 textAlign: TextAlign.center,
@@ -111,7 +111,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(16.0),
       itemCount: accounts.length,
       itemBuilder: (context, index) {
         final account = accounts[index];
@@ -120,7 +120,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         final balanceText = isUsd ? formatUSD(account.balance) : formatBs(account.balance);
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: EdgeInsets.only(bottom: 12.0),
           child: GestureDetector(
             onTap: () {
               showModalBottomSheet(
@@ -132,7 +132,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
             },
             child: ClaymorphicCard(
               cornerRadius: 18,
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 12.0,
               ),
@@ -152,14 +152,14 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                       size: 18,
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           account.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
@@ -167,7 +167,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           isUsd ? "Dólares (\$)" : "Bolívares (Bs.)",
                           style: TextStyle(
@@ -179,7 +179,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Text(
                     balanceText,
                     style: TextStyle(
@@ -188,8 +188,8 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                       color: color,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const Icon(
+                  SizedBox(width: 12),
+                  Icon(
                     Icons.chevron_right_rounded,
                     color: Colors.black54,
                   ),

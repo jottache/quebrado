@@ -31,7 +31,7 @@ class Account {
 
   factory Account.fromMap(Map<String, dynamic> map) {
     return Account(
-      id: map['id'] ?? const Uuid().v4(),
+      id: map['id'] ?? Uuid().v4(),
       name: map['name'] ?? '',
       currency: CurrencyType.fromString(map['currency'] ?? 'usd'),
       balance: (map['balance'] as num?)?.toDouble() ?? 0.0,
@@ -39,4 +39,14 @@ class Account {
       icon: map['icon'] ?? 'creditcard',
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Account &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

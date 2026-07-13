@@ -73,7 +73,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Copiado $label: $text"),
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
         backgroundColor: AppColors.primary,
       ),
     );
@@ -130,12 +130,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
       ),
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -152,28 +152,28 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.calendar_today_rounded,
                     color: AppColors.primary,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     "Acciones del Día: ${widget.headerText}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
@@ -182,10 +182,10 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Exchange Rate Selector
-            const Text(
+            Text(
               "TASA DE CAMBIO PARA EL DÍA",
               style: TextStyle(
                 fontSize: 9,
@@ -194,9 +194,9 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 letterSpacing: 0.8,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(2),
+              padding: EdgeInsets.all(2),
               decoration: BoxDecoration(
                 color: AppColors.nestedTabTrackBg,
                 borderRadius: BorderRadius.circular(10),
@@ -228,20 +228,20 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
               ),
             ),
             if (_rateType == 'custom') ...[
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               SizedBox(
                 height: 40,
                 child: TextField(
                   controller: _customRateController,
-                  keyboardType: const TextInputType.numberWithOptions(
+                  keyboardType: TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
                   decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
+                    contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
                     ),
@@ -249,21 +249,21 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                     hintText: "Ingrese tasa personalizada",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.black12),
+                      borderSide: BorderSide(color: Colors.black12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.primary),
+                      borderSide: BorderSide(color: AppColors.primary),
                     ),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
             ],
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Events List
-            const Text(
+            Text(
               "EVENTOS Y PAGOS DEL DÍA",
               style: TextStyle(
                 fontSize: 9,
@@ -272,15 +272,15 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 letterSpacing: 0.8,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Flexible(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     if (widget.dayEvents.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
                         child: Text(
                           "No hay eventos programados para este día.",
                           style: TextStyle(
@@ -344,8 +344,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                             : formatUSD(convertedAmt);
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(10),
+                          margin: EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.04),
                             borderRadius: BorderRadius.circular(14),
@@ -369,7 +369,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   },
                                 ),
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: iconColor.withOpacity(0.12),
                                   shape: BoxShape.circle,
@@ -380,20 +380,20 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   size: 16,
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       e.title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    SizedBox(height: 2),
                                     Text(
                                       e.pocketName != null
                                           ? "Bolsillo: ${e.pocketName}"
@@ -402,14 +402,14 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                               : (e.isSuggestion
                                                   ? "Sugerencia del simulador"
                                                   : "")),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 10,
                                         color: AppColors.cardSubtitleText,
                                       ),
                                     ),
                                     if (e.isCompletedAbono) ...[
-                                      const SizedBox(height: 2),
-                                      const Text(
+                                      SizedBox(height: 2),
+                                      Text(
                                         "Abono Parcial (Confirmado)",
                                         style: TextStyle(
                                           fontSize: 9,
@@ -443,8 +443,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                                 : AppColors.expense,
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Icon(
+                                        SizedBox(width: 4),
+                                        Icon(
                                           Icons.content_copy_rounded,
                                           color: AppColors.primary,
                                           size: 14,
@@ -452,7 +452,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2),
                                   InkWell(
                                     onTap: () => _copyToClipboard(
                                       convertedAmt.toStringAsFixed(2),
@@ -464,13 +464,13 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                       children: [
                                         Text(
                                           convertedFormatted,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Icon(
+                                        SizedBox(width: 4),
+                                        Icon(
                                           Icons.content_copy_rounded,
                                           color: AppColors.primary,
                                           size: 12,
@@ -488,11 +488,11 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Summary card
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(16),
@@ -504,7 +504,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "RESUMEN ACUMULADO DEL DÍA",
                     style: TextStyle(
                       fontSize: 8.5,
@@ -513,7 +513,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       letterSpacing: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -522,7 +522,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               "Total Ingresos",
                               style: TextStyle(
                                 fontSize: 9.5,
@@ -530,7 +530,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             InkWell(
                               onTap: () => _copyToClipboard(
                                 totalIncomeUSD.toStringAsFixed(2),
@@ -541,14 +541,14 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 children: [
                                   Text(
                                     formatUSD(totalIncomeUSD),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.income,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
+                                  SizedBox(width: 4),
+                                  Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
                                     size: 14,
@@ -566,13 +566,13 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 children: [
                                   Text(
                                     formatBs(totalIncomeBs),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       color: AppColors.income,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
+                                  SizedBox(width: 4),
+                                  Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
                                     size: 12,
@@ -589,13 +589,13 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                         width: 1,
                         color: Colors.black.withOpacity(0.06),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       // Expenses
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               "Total Egresos",
                               style: TextStyle(
                                 fontSize: 9.5,
@@ -603,7 +603,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             InkWell(
                               onTap: () => _copyToClipboard(
                                 totalExpenseUSD.toStringAsFixed(2),
@@ -614,14 +614,14 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 children: [
                                   Text(
                                     formatUSD(totalExpenseUSD),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.expense,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
+                                  SizedBox(width: 4),
+                                  Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
                                     size: 14,
@@ -639,13 +639,13 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 children: [
                                   Text(
                                     formatBs(totalExpenseBs),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       color: AppColors.expense,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
+                                  SizedBox(width: 4),
+                                  Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
                                     size: 12,
@@ -658,11 +658,11 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       ),
                     ],
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Saldo Neto Proyectado",
                         style: TextStyle(
                           fontSize: 10,
@@ -689,8 +689,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                     color: netColor,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                const Icon(
+                                SizedBox(width: 4),
+                                Icon(
                                   Icons.content_copy_rounded,
                                   color: AppColors.primary,
                                   size: 14,
@@ -714,8 +714,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                     color: netColor,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                const Icon(
+                                SizedBox(width: 4),
+                                Icon(
                                   Icons.content_copy_rounded,
                                   color: AppColors.primary,
                                   size: 12,
@@ -730,7 +730,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Confirmation / Close buttons
             Row(
@@ -744,9 +744,9 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Cerrar",
                       style: TextStyle(
                         fontSize: 13,
@@ -756,7 +756,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                   ),
                 ),
                 if (checkableEvents.isNotEmpty) ...[
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -767,7 +767,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
 
                         if (selectedEvents.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text("Ningún registro seleccionado"),
                             ),
                           );
@@ -835,9 +835,9 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Registrar",
                         style: TextStyle(
                           fontSize: 13,
@@ -863,8 +863,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.nestedTabActiveBg : Colors.transparent,
           borderRadius: BorderRadius.circular(8),

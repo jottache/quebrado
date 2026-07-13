@@ -156,7 +156,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text("Autenticación biométrica fallida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
@@ -305,7 +305,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -332,11 +332,11 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Transferir a Banco (Pago Móvil)",
                   style: TextStyle(
                     fontSize: 18,
@@ -345,17 +345,17 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Form Fields Card
             ClaymorphicCard(
               cornerRadius: 20,
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -364,7 +364,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "DATOS DE LA TRANSFERENCIA",
                           style: TextStyle(
                             fontSize: 10,
@@ -378,12 +378,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                             onTap: () => _showRecipientSelector(context),
                             borderRadius: BorderRadius.circular(10),
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.contact_phone_rounded,
                                 size: 18,
                                 color: AppColors.primary,
@@ -392,24 +392,24 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     // Bank selector
                     Row(
                       children: [
-                        const Icon(Icons.account_balance_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 12),
+                        Icon(Icons.account_balance_rounded, size: 20, color: AppColors.primary),
+                        SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _selectedBankName,
-                            decoration: const InputDecoration(
+                            initialValue: _selectedBankName,
+                            decoration: InputDecoration(
                               labelText: "Banco Destinatario",
                               border: UnderlineInputBorder(),
                             ),
                             items: _venezuelanBanks.keys.map((name) {
                               return DropdownMenuItem<String>(
                                 value: name,
-                                child: Text(name, style: const TextStyle(fontSize: 14)),
+                                child: Text(name, style: TextStyle(fontSize: 14)),
                               );
                             }).toList(),
                             onChanged: (val) {
@@ -425,16 +425,16 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     ),
                     
                     if (_selectedBankName == "Otro") ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Row(
                         children: [
-                          const SizedBox(width: 32),
+                          SizedBox(width: 32),
                           Expanded(
                             child: TextFormField(
                               controller: _customBankCodeController,
                               keyboardType: TextInputType.number,
                               maxLength: 4,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: "Código del Banco (4 dígitos)",
                                 counterText: "",
                                 hintText: "Ej. 0102",
@@ -456,18 +456,18 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                       ),
                     ],
 
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     // ID Cédula / RIF Row (aligned center by default to fix the badge icon alignment)
                     Row(
                       children: [
-                        const Icon(Icons.badge_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 12),
+                        Icon(Icons.badge_rounded, size: 20, color: AppColors.primary),
+                        SizedBox(width: 12),
                         SizedBox(
                           width: 60,
                           child: DropdownButtonFormField<String>(
-                            value: _selectedIdLetter,
-                            decoration: const InputDecoration(
+                            initialValue: _selectedIdLetter,
+                            decoration: InputDecoration(
                               labelText: "Tipo",
                               border: UnderlineInputBorder(),
                             ),
@@ -486,12 +486,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
                             controller: _idNumberController,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: "Cédula / RIF Destinatario",
                               hintText: "Ej. 30945839",
                             ),
@@ -506,18 +506,18 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     // Phone number
                     Row(
                       children: [
-                        const Icon(Icons.phone_iphone_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 12),
+                        Icon(Icons.phone_iphone_rounded, size: 20, color: AppColors.primary),
+                        SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: "Teléfono",
                               hintText: "Ej. 04128884456",
                             ),
@@ -535,18 +535,18 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                                    Row(
                       children: [
-                        const Icon(Icons.attach_money_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 12),
+                        Icon(Icons.attach_money_rounded, size: 20, color: AppColors.primary),
+                        SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
                             controller: _amountController,
                             readOnly: widget.preselectedPendingOccurrence != null,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
                               labelText: "Monto en Bolívares (Bs.)",
                               hintText: "0.00",
                             ),
@@ -566,8 +566,8 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     ),
 
                     if (widget.preselectedPendingOccurrence != null) ...[
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         "VINCULADO A PAGO RECURRENTE",
                         style: TextStyle(
                           fontSize: 10,
@@ -576,13 +576,13 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Builder(
                         builder: (context) {
                           final p = widget.preselectedPendingOccurrence!.payment;
                           final cardColor = parseHexColor(p.colorHex);
                           return Container(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: EdgeInsets.all(12.0),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
@@ -594,7 +594,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: cardColor.withOpacity(0.12),
                                     shape: BoxShape.circle,
@@ -605,14 +605,14 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                     size: 16,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         p.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.cardText,
@@ -620,12 +620,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       Text(
                                         p.currency == CurrencyType.usd
                                             ? "Ref: ${formatUSD(p.amount)} (BCV)"
                                             : "Monto: ${formatBs(p.amount)}",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 10,
                                           color: AppColors.cardSubtitleText,
                                         ),
@@ -633,8 +633,8 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(
+                                SizedBox(width: 8),
+                                Icon(
                                   Icons.link_rounded,
                                   color: AppColors.primary,
                                   size: 18,
@@ -647,8 +647,8 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     ],
 
                     if (widget.preselectedPendingOccurrence == null && matchingOccurrences.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         "VINCULAR A PAGO RECURRENTE PENDIENTE",
                         style: TextStyle(
                           fontSize: 10,
@@ -657,13 +657,13 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       ...matchingOccurrences.map((occ) {
                         final p = occ.payment;
                         final isSelected = _selectedPendingOccurrence?.payment.id == p.id;
                         final cardColor = parseHexColor(p.colorHex);
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
+                          padding: EdgeInsets.only(bottom: 8.0),
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
@@ -684,8 +684,8 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                               });
                             },
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(12.0),
+                              duration: Duration(milliseconds: 200),
+                              padding: EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primary.withOpacity(0.08)
@@ -701,7 +701,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                               child: Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(8),
+                                    padding: EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: cardColor.withOpacity(0.12),
                                       shape: BoxShape.circle,
@@ -712,7 +712,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                       size: 16,
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,12 +727,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: 2),
                                         Text(
                                           p.currency == CurrencyType.usd
                                               ? "Ref: ${formatUSD(p.amount)} (BCV)"
                                               : "Monto: ${formatBs(p.amount)}",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 10,
                                             color: AppColors.cardSubtitleText,
                                           ),
@@ -740,7 +740,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Icon(
                                     isSelected
                                         ? Icons.radio_button_checked_rounded
@@ -759,19 +759,19 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Registry Options Card
             ClaymorphicCard(
               cornerRadius: 20,
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "REGISTRAR TRANSACCIÓN EN LA APP",
                         style: TextStyle(
                           fontSize: 10,
@@ -782,7 +782,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                       ),
                       Switch(
                         value: _registerTransaction,
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         onChanged: _selectedPendingOccurrence != null
                             ? null
                             : (val) {
@@ -798,17 +798,17 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                   ),
                   
                   if (_registerTransaction) ...[
-                    const Divider(height: 20),
+                    Divider(height: 20),
                     
                     if (_selectedPendingOccurrence != null) ...[
                       Row(
                         children: [
-                          const Icon(Icons.link_rounded, color: AppColors.primary, size: 20),
-                          const SizedBox(width: 8),
+                          Icon(Icons.link_rounded, color: AppColors.primary, size: 20),
+                          SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               "Vinculado al pago recurrente: ${_selectedPendingOccurrence!.payment.name}",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
@@ -817,20 +817,20 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                     ] else ...[
                       // Transaction Type Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Tipo de Registro",
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                           Row(
                             children: [
                               ChoiceChip(
-                                label: const Text("Gasto"),
+                                label: Text("Gasto"),
                                 selected: _transactionType == TransactionType.expense,
                                 selectedColor: AppColors.expense.withOpacity(0.15),
                                 checkmarkColor: AppColors.expense,
@@ -848,9 +848,9 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                   }
                                 },
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               ChoiceChip(
-                                label: const Text("Ingreso"),
+                                label: Text("Ingreso"),
                                 selected: _transactionType == TransactionType.income,
                                 selectedColor: AppColors.income.withOpacity(0.15),
                                 checkmarkColor: AppColors.income,
@@ -872,13 +872,13 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                     ],
 
                     // Account Selector
                     DropdownButtonFormField<String>(
-                      value: _selectedAccountId,
-                      decoration: const InputDecoration(
+                      initialValue: _selectedAccountId,
+                      decoration: InputDecoration(
                         labelText: "Cuenta a afectar",
                       ),
                       items: widget.appState.accounts.map((acc) {
@@ -886,7 +886,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           value: acc.id,
                           child: Text(
                             "${acc.name} (${acc.currency.symbol})",
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 14),
                           ),
                         );
                       }).toList(),
@@ -908,11 +908,11 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     ),
                     
                     if (_selectedPendingOccurrence == null) ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       // Category Selector
                       DropdownButtonFormField<String>(
-                        value: _selectedCategoryId,
-                        decoration: const InputDecoration(
+                        initialValue: _selectedCategoryId,
+                        decoration: InputDecoration(
                           labelText: "Categoría",
                         ),
                         items: widget.appState.categories.map((cat) {
@@ -920,7 +920,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                             value: cat.id,
                             child: Text(
                               cat.name,
-                              style: const TextStyle(fontSize: 14),
+                              style: TextStyle(fontSize: 14),
                             ),
                           );
                         }).toList(),
@@ -937,7 +937,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Confirm / Copy Button
             widget.appState.useSlideToConfirm
@@ -949,17 +949,17 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 2,
                     ),
                     onPressed: _handleConfirmAction,
-                    icon: const Icon(Icons.copy_all_rounded, size: 20),
+                    icon: Icon(Icons.copy_all_rounded, size: 20),
                     label: Text(
                       _registerTransaction ? "Copiar Datos y Registrar" : "Copiar Datos y Cerrar",
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                   ),
           ],
@@ -977,12 +977,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
         return Container(
           decoration: BoxDecoration(
             color: AppColors.dialogBg,
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -997,8 +997,8 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 "Seleccionar Beneficiario",
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1007,9 +1007,9 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                   color: AppColors.cardText,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               if (recipients.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 24.0),
                   child: Text(
                     "No tienes contactos guardados en la agenda de Pago Móvil.",
@@ -1021,12 +1021,12 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
+                    physics: BouncingScrollPhysics(),
                     itemCount: recipients.length,
                     itemBuilder: (context, index) {
                       final MobilePaymentRecipient r = recipients[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
+                        padding: EdgeInsets.only(bottom: 8.0),
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -1061,7 +1061,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                           },
                           child: ClaymorphicCard(
                             cornerRadius: 12,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             backgroundColor: AppColors.getAlternateCardColor(index),
                             child: Row(
                               children: [
@@ -1072,26 +1072,26 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                                     color: AppColors.primary.withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.person_rounded,
                                     color: AppColors.primary,
                                     size: 18,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         r.alias,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       Text(
                                         "${r.bankName} • ${r.identityCard} • ${r.phoneNumber}",
                                         style: TextStyle(
@@ -1150,13 +1150,13 @@ class TransferSuccessDialog extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppColors.cardSubtitleText,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Flexible(
           child: Text(
             value,
@@ -1177,30 +1177,30 @@ class TransferSuccessDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: 24),
       child: ClaymorphicCard(
         cornerRadius: 24,
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.income.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_circle_outline_rounded,
                   color: AppColors.income,
                   size: 48,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Center(
+            SizedBox(height: 16),
+            Center(
               child: Text(
                 "¡Pago Móvil Copiado!",
                 style: TextStyle(
@@ -1210,22 +1210,22 @@ class TransferSuccessDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Center(
               child: Text(
                 registered
                     ? "Los datos se copiaron y se registró el gasto"
                     : "Los datos se copiaron al portapapeles",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppColors.cardSubtitleText,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.background.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(16),
@@ -1238,19 +1238,19 @@ class TransferSuccessDialog extends StatelessWidget {
                     bankName,
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Cédula / RIF",
                     idNumber,
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Teléfono",
                     phone,
                     AppColors.cardText,
                   ),
-                  const Divider(height: 16),
+                  Divider(height: 16),
                   _buildDetailRow(
                     "Monto Copiado",
                     "Bs. ${amount.toStringAsFixed(2)}",
@@ -1258,14 +1258,14 @@ class TransferSuccessDialog extends StatelessWidget {
                     isBold: true,
                   ),
                   if (registered) ...[
-                    const Divider(height: 16),
+                    Divider(height: 16),
                     _buildDetailRow(
                       "Registro App",
                       linkedPaymentName != null ? "Pago: $linkedPaymentName" : "Cuenta: $accountName",
                       AppColors.cardText,
                     ),
                     if (linkedPaymentName == null) ...[
-                      const Divider(height: 16),
+                      Divider(height: 16),
                       _buildDetailRow(
                         "Categoría",
                         categoryName ?? (isIncome ? "Ingreso" : "Gasto"),
@@ -1276,19 +1276,19 @@ class TransferSuccessDialog extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 0,
               ),
               onPressed: onClose,
-              child: const Text(
+              child: Text(
                 "Entendido",
                 style: TextStyle(
                   fontSize: 13,

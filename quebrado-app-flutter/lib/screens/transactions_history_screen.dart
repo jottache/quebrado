@@ -53,7 +53,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
+    final yesterday = today.subtract(Duration(days: 1));
     final txDate = DateTime(date.year, date.month, date.day);
 
     if (txDate == today) {
@@ -91,7 +91,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
       ),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w800,
           color: AppColors.cardSubtitleText,
@@ -122,7 +122,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
+          padding: EdgeInsets.only(right: 30.5),
           child: Image.asset(
             'assets/images/quebrado.png',
             height: 50,
@@ -130,10 +130,10 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.settings_rounded),
+          icon: Icon(Icons.settings_rounded),
           onPressed: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              MaterialPageRoute(builder: (context) => SettingsScreen()),
             );
           },
         ),
@@ -142,7 +142,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none_rounded),
+                icon: Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
                   showModalBottomSheet(
@@ -150,7 +150,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) =>
-                        const PendingConfirmationsBottomSheet(),
+                        PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -159,19 +159,19 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: const BoxConstraints(
+                    constraints: BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -184,25 +184,25 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.calculate_outlined),
+            icon: Icon(Icons.calculate_outlined),
             iconSize: 26,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const CalculatorBottomSheet(),
+                builder: (context) => CalculatorBottomSheet(),
               );
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
           // Filter segmented selector
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 8.0,
             ),
@@ -243,7 +243,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
 
           // Ledger transactions list
           Expanded(
@@ -257,7 +257,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                           size: 52,
                           color: Colors.grey[400],
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         Text(
                           "Historial vacío",
                           style: TextStyle(
@@ -266,9 +266,9 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                          padding: EdgeInsets.symmetric(horizontal: 48.0),
                           child: Text(
                             "Aún no tienes movimientos registrados en esta categoría.",
                             style: TextStyle(
@@ -282,7 +282,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.only(
+                    padding: EdgeInsets.only(
                       left: 16.0,
                       right: 16.0,
                       top: 8.0,
@@ -297,7 +297,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
 
                       final tx = item as Transaction;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: EdgeInsets.only(bottom: 12.0),
                         child: _TransactionRow(
                           transaction: tx,
                           backgroundColor: AppColors.getAlternateCardColor(
@@ -331,7 +331,7 @@ class _FilterSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: 10.0),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
@@ -341,7 +341,7 @@ class _FilterSegment extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ]
                 : null,
@@ -478,7 +478,7 @@ class _TransactionRow extends StatelessWidget {
       },
       child: ClaymorphicCard(
         cornerRadius: 18,
-        padding: const EdgeInsets.all(14.0),
+        padding: EdgeInsets.all(14.0),
         backgroundColor: cardBgColor,
         child: Row(
           children: [
@@ -498,7 +498,7 @@ class _TransactionRow extends StatelessWidget {
                 size: isExchange ? 20 : 18,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
 
             // Note / Date
             Expanded(
@@ -515,7 +515,7 @@ class _TransactionRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Row(
                     children: [
                       Text(
@@ -523,15 +523,15 @@ class _TransactionRow extends StatelessWidget {
                         style: TextStyle(fontSize: 11, color: subtitleColor),
                       ),
                       if (transaction.date.isAfter(DateTime.now())) ...[
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: Colors.orange.withOpacity(0.3), width: 0.5),
                           ),
-                          child: const Text(
+                          child: Text(
                             "Programado",
                             style: TextStyle(
                               fontSize: 8.5,
@@ -542,15 +542,15 @@ class _TransactionRow extends StatelessWidget {
                         ),
                       ],
                       if (appState.partialPayments.any((p) => p.transactionId == transaction.id)) ...[
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 0.5),
                           ),
-                          child: const Text(
+                          child: Text(
                             "Abono Parcial",
                             style: TextStyle(
                               fontSize: 8.5,
@@ -591,7 +591,7 @@ class _TransactionRow extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   counterpartText,
                   style: TextStyle(

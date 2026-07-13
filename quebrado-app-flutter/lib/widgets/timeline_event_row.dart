@@ -39,8 +39,8 @@ class TimelineEventRow extends StatelessWidget {
     required double viableAmount,
   }) {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(top: 16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.orange.withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
@@ -51,13 +51,13 @@ class TimelineEventRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.auto_awesome_rounded,
                 color: Colors.orange,
                 size: 18,
               ),
-              const SizedBox(width: 8),
-              const Expanded(
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   "Ajuste de Viabilidad Automático",
                   style: TextStyle(
@@ -69,8 +69,8 @@ class TimelineEventRow extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Text(
+          SizedBox(height: 12),
+          Text(
             "Tu flujo de caja mínimo proyectado no permite cumplir la meta original en la fecha planificada. Para protegerte de saldos negativos, la app extendió el plan automáticamente:",
             style: TextStyle(
               fontSize: 11,
@@ -78,13 +78,13 @@ class TimelineEventRow extends StatelessWidget {
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             children: [
               // Original Plan (Faded / Strikethrough)
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.grey[200]!.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(12),
@@ -100,7 +100,7 @@ class TimelineEventRow extends StatelessWidget {
                             size: 14,
                             color: Colors.grey[600],
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             "Plan Original",
                             style: TextStyle(
@@ -111,7 +111,7 @@ class TimelineEventRow extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         formatDate(originalDate),
                         style: TextStyle(
@@ -121,7 +121,7 @@ class TimelineEventRow extends StatelessWidget {
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "${formatUSD(originalAmount)} / pago",
                         style: TextStyle(
@@ -131,8 +131,8 @@ class TimelineEventRow extends StatelessWidget {
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
+                      SizedBox(height: 4),
+                      Text(
                         "No es viable",
                         style: TextStyle(
                           fontSize: 9,
@@ -144,18 +144,18 @@ class TimelineEventRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // Arrow Indicator
-              const Icon(
+              Icon(
                 Icons.arrow_forward_rounded,
                 color: Colors.orange,
                 size: 16,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // Viable Plan (Highlighted)
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -166,13 +166,13 @@ class TimelineEventRow extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle_rounded,
                             size: 14,
                             color: Colors.orange,
                           ),
-                          const SizedBox(width: 4),
-                          const Text(
+                          SizedBox(width: 4),
+                          Text(
                             "Ajuste Viable",
                             style: TextStyle(
                               fontSize: 10,
@@ -182,25 +182,25 @@ class TimelineEventRow extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         formatDate(viableDate),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Colors.orange,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "${formatUSD(viableAmount)} / pago",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
                           color: Colors.orange,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         "¡Seguro!",
                         style: TextStyle(
@@ -248,7 +248,7 @@ class TimelineEventRow extends StatelessWidget {
 
     // Calculate original payday amount if stretched
     double? originalPaydayAmount;
-    if (isStretched && pocket != null && pocket.targetDate != null) {
+    if (isStretched && pocket.targetDate != null) {
       final today = DateTime.now().copyWith(
         hour: 0,
         minute: 0,
@@ -279,10 +279,10 @@ class TimelineEventRow extends StatelessWidget {
             // Advance frequency
             switch (payment.frequency) {
               case SubscriptionFrequency.weekly:
-                current = current.add(const Duration(days: 7));
+                current = current.add(Duration(days: 7));
                 break;
               case SubscriptionFrequency.biweekly:
-                current = current.add(const Duration(days: 14));
+                current = current.add(Duration(days: 14));
                 break;
               case SubscriptionFrequency.fifteenDays:
                 if (current.day == 15) {
@@ -340,7 +340,7 @@ class TimelineEventRow extends StatelessWidget {
                 current = current.add(Duration(days: days > 0 ? days : 30));
                 break;
               case SubscriptionFrequency.once:
-                current = targetD.add(const Duration(days: 1)); // stop loop
+                current = targetD.add(Duration(days: 1)); // stop loop
                 break;
             }
           }
@@ -361,12 +361,12 @@ class TimelineEventRow extends StatelessWidget {
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +381,7 @@ class TimelineEventRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -390,7 +390,7 @@ class TimelineEventRow extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: color.withOpacity(0.12),
                               shape: BoxShape.circle,
@@ -407,11 +407,11 @@ class TimelineEventRow extends StatelessWidget {
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               event.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.cardText,
@@ -420,7 +420,7 @@ class TimelineEventRow extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
 
                       _buildDetailRow(
                         event.isCompletedAbono ? "Fecha del Abono" : "Fecha Proyectada",
@@ -503,9 +503,9 @@ class TimelineEventRow extends StatelessWidget {
                             : AppColors.primary,
                         isBold: true,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
@@ -521,7 +521,7 @@ class TimelineEventRow extends StatelessWidget {
                                   size: 14,
                                   color: Colors.grey[700],
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 6),
                                 Text(
                                   "¿Cómo entender estos montos?",
                                   style: TextStyle(
@@ -532,7 +532,7 @@ class TimelineEventRow extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               "• Total en tus cuentas: Es la suma de todo tu dinero, incluyendo lo que tienes ahorrado o apartado en tus bolsillos.\n"
                               "• ${event.projectedLiquidBalanceUSD >= 0 ? 'Dinero disponible' : 'Dinero que te faltará'}: Es el dinero real que te queda libre para gastar en el día a día (restando lo que ya apartaste en tus bolsillos para metas).",
@@ -550,15 +550,15 @@ class TimelineEventRow extends StatelessWidget {
                         if (isStretched)
                           _buildAhorroEstiradoVisualComparison(
                             context: context,
-                            originalDate: pocket!.targetDate!,
-                            viableDate: viableDate!,
+                            originalDate: pocket.targetDate!,
+                            viableDate: viableDate,
                             originalAmount: originalPaydayAmount ?? 0.0,
                             viableAmount: event.amount,
                           )
                         else ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: event.isLastProvisioning
                                   ? Colors.blue.withOpacity(0.12)
@@ -575,12 +575,12 @@ class TimelineEventRow extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (event.isLastProvisioning) ...[
-                                  const Icon(
+                                  Icon(
                                     Icons.flag_rounded,
                                     color: Colors.blue,
                                     size: 16,
                                   ),
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: 6),
                                 ],
                                 Expanded(
                                   child: Text(
@@ -603,9 +603,9 @@ class TimelineEventRow extends StatelessWidget {
                         ],
                       ],
                       if (event.isVariable) ...[
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: AppColors.expense.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(10),
@@ -615,16 +615,16 @@ class TimelineEventRow extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.warning_amber_rounded,
                                 color: AppColors.expense,
                                 size: 16,
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   "Este ingreso es variable. Tu proyección se calcula asumiendo el peor escenario (monto mínimo de ${event.currency.symbol}${event.amount.toStringAsFixed(2)}) para evitar riesgos de deudas.",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.expense,
                                     height: 1.4,
@@ -639,7 +639,7 @@ class TimelineEventRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               if (event.recurringPaymentId != null &&
                   !event.isSuggestion &&
                   !event.isCompletedAbono) ...[
@@ -652,7 +652,7 @@ class TimelineEventRow extends StatelessWidget {
                         (payment.accountId != null &&
                             appState.accounts.any((a) => a.id == payment.accountId && a.currency == CurrencyType.bsBCV));
 
-                    final void Function() onTrigger = () async {
+                    void onTrigger() async {
                       // Calculate partial paid
                       double partialPaid = 0.0;
                       final dateStr = "${event.date.year}-${event.date.month.toString().padLeft(2, '0')}-${event.date.day.toString().padLeft(2, '0')}";
@@ -671,7 +671,7 @@ class TimelineEventRow extends StatelessWidget {
                         if (!authenticated) {
                           if (btnCtx.mounted) {
                             ScaffoldMessenger.of(btnCtx).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text("Autenticación biométrica fallida o cancelada."),
                                 backgroundColor: AppColors.expense,
                               ),
@@ -734,11 +734,11 @@ class TimelineEventRow extends StatelessWidget {
                         if (btnCtx.mounted) {
                           Navigator.pop(btnCtx);
                           ScaffoldMessenger.of(btnCtx).showSnackBar(
-                            const SnackBar(content: Text("Registro agregado al historial")),
+                            SnackBar(content: Text("Registro agregado al historial")),
                           );
                         }
                       }
-                    };
+                    }
 
                     return Column(
                       mainAxisSize: MainAxisSize.min,
@@ -766,7 +766,7 @@ class TimelineEventRow extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -779,7 +779,7 @@ class TimelineEventRow extends StatelessWidget {
                                 side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
                               ),
                             ),
-                            icon: const Icon(Icons.pie_chart_outline_rounded, size: 18),
+                            icon: Icon(Icons.pie_chart_outline_rounded, size: 18),
                             label: Text(isIncome ? "Registrar Cobro Parcial" : "Registrar Pago Parcial"),
                             onPressed: () {
                               // Calculate partial paid
@@ -807,7 +807,7 @@ class TimelineEventRow extends StatelessWidget {
                             },
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -820,8 +820,8 @@ class TimelineEventRow extends StatelessWidget {
                                 side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
                               ),
                             ),
-                            icon: const Icon(Icons.edit_rounded, size: 18),
-                            label: const Text("Modificar monto y saldar"),
+                            icon: Icon(Icons.edit_rounded, size: 18),
+                            label: Text("Modificar monto y saldar"),
                             onPressed: () {
                               double partialPaid = 0.0;
                               final dateStr = "${event.date.year}-${event.date.month.toString().padLeft(2, '0')}-${event.date.day.toString().padLeft(2, '0')}";
@@ -849,7 +849,7 @@ class TimelineEventRow extends StatelessWidget {
                           ),
                         ),
                         if (!isIncome && isVesPayment) ...[
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -860,8 +860,8 @@ class TimelineEventRow extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              icon: const Icon(Icons.account_balance_rounded, size: 18),
-                              label: const Text("Transferir a Banco"),
+                              icon: Icon(Icons.account_balance_rounded, size: 18),
+                              label: Text("Transferir a Banco"),
                               onPressed: () {
                                 // 1. Close details sheet
                                 Navigator.pop(context);
@@ -894,7 +894,7 @@ class TimelineEventRow extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
               ],
               if (event.isSuggestion &&
                   event.pocketId != null &&
@@ -957,10 +957,10 @@ class TimelineEventRow extends StatelessWidget {
                         );
                       }
                     },
-                    child: const Text("Apartar para Bolsillo Ahora"),
+                    child: Text("Apartar para Bolsillo Ahora"),
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
               ],
               SizedBox(
                 width: double.infinity,
@@ -973,7 +973,7 @@ class TimelineEventRow extends StatelessWidget {
                     side: BorderSide(color: Colors.black.withOpacity(0.08)),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cerrar"),
+                  child: Text("Cerrar"),
                 ),
               ),
             ],
@@ -990,19 +990,19 @@ class TimelineEventRow extends StatelessWidget {
     bool isBold = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppColors.cardSubtitleText,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
@@ -1075,7 +1075,7 @@ class TimelineEventRow extends StatelessWidget {
 
     final Color color = event.isSuggestion
         ? (event.recurringPaymentId != null
-              ? const Color.fromARGB(255, 255, 230, 7)
+              ? Color.fromARGB(255, 255, 230, 7)
               : (isStretched ? Colors.orange : Colors.blue))
         : (event.isCompletedAbono
             ? AppColors.primary
@@ -1134,17 +1134,17 @@ class TimelineEventRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
 
           // Event Card details
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              padding: EdgeInsets.symmetric(vertical: 6.0),
               child: GestureDetector(
                 onTap: () => _showEventDetailsBottomSheet(context, event),
                 child: ClaymorphicCard(
                   cornerRadius: 16,
-                  padding: const EdgeInsets.all(12.0),
+                  padding: EdgeInsets.all(12.0),
                   borderColor: event.isLastProvisioning
                       ? Colors.blue
                       : (isSimulatedSuggestion
@@ -1177,13 +1177,13 @@ class TimelineEventRow extends StatelessWidget {
                                           : event.title),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardText,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 Row(
                                   children: [
                                     if (event.accountName != null &&
@@ -1193,7 +1193,7 @@ class TimelineEventRow extends StatelessWidget {
                                         size: 10,
                                         color: Colors.grey[600],
                                       ),
-                                      const SizedBox(width: 3),
+                                      SizedBox(width: 3),
                                       Flexible(
                                         child: Text(
                                           event.accountName!,
@@ -1209,13 +1209,13 @@ class TimelineEventRow extends StatelessWidget {
                                     if (event.pocketName != null) ...[
                                       if (event.accountName != null &&
                                           !event.isSuggestion)
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8),
                                       Icon(
                                         Icons.archive_rounded,
                                         size: 10,
                                         color: Colors.grey[600],
                                       ),
-                                      const SizedBox(width: 3),
+                                      SizedBox(width: 3),
                                       Flexible(
                                         child: Text(
                                           event.pocketName!,
@@ -1230,7 +1230,7 @@ class TimelineEventRow extends StatelessWidget {
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 // Projected balance impact
                                 Text(
                                   event.isSuggestion
@@ -1253,7 +1253,7 @@ class TimelineEventRow extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -1267,12 +1267,12 @@ class TimelineEventRow extends StatelessWidget {
                                 ),
                               ),
                               if (showVesConversion) ...[
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2),
                                 Text(
                                   event.isVariable && event.maxAmount != null
                                       ? "≈ ${formatBs(event.amount * appState.bcvRate)} - ${formatBs(event.maxAmount! * appState.bcvRate)}"
                                       : "≈ ${formatBs(event.amount * appState.bcvRate)}",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardSubtitleText,
@@ -1288,7 +1288,7 @@ class TimelineEventRow extends StatelessWidget {
                           event.isOverdue ||
                           event.partialAmountPaid > 0 ||
                           event.isCompletedAbono) ...[
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -1301,7 +1301,7 @@ class TimelineEventRow extends StatelessWidget {
                                 children: [
                                   if (event.isCompletedAbono)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
@@ -1315,7 +1315,7 @@ class TimelineEventRow extends StatelessWidget {
                                       ),
                                       child: Text(
                                         "Abonado el ${formatDate(event.date)}",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.primary,
@@ -1324,7 +1324,7 @@ class TimelineEventRow extends StatelessWidget {
                                     )
                                   else if (event.partialAmountPaid > 0)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
@@ -1338,7 +1338,7 @@ class TimelineEventRow extends StatelessWidget {
                                       ),
                                       child: Text(
                                         "Abonado: ${event.currency.symbol}${event.partialAmountPaid.toStringAsFixed(2)} de ${event.currency.symbol}${(event.amount + event.partialAmountPaid).toStringAsFixed(2)}",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.primary,
@@ -1347,7 +1347,7 @@ class TimelineEventRow extends StatelessWidget {
                                     ),
                                   if (event.isLastProvisioning)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
@@ -1355,7 +1355,7 @@ class TimelineEventRow extends StatelessWidget {
                                         color: Colors.blue,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         "Último Apartado",
                                         style: TextStyle(
                                           fontSize: 9,
@@ -1366,13 +1366,13 @@ class TimelineEventRow extends StatelessWidget {
                                     ),
                                   if (event.isSuggestion)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
                                         color: event.recurringPaymentId != null
-                                            ? const Color.fromARGB(255, 255, 230, 7)
+                                            ? Color.fromARGB(255, 255, 230, 7)
                                             : (isStretched
                                                   ? Colors.orange.withOpacity(0.15)
                                                   : Colors.blue.withOpacity(0.15)),
@@ -1400,7 +1400,7 @@ class TimelineEventRow extends StatelessWidget {
                                   if (!event.isSuggestion &&
                                       event.installmentNumber != null)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
@@ -1410,7 +1410,7 @@ class TimelineEventRow extends StatelessWidget {
                                       ),
                                       child: Text(
                                         "Cuota ${event.installmentNumber}/${event.totalInstallments}",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.orange,
@@ -1419,7 +1419,7 @@ class TimelineEventRow extends StatelessWidget {
                                     ),
                                   if (event.isOverdue)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: 6,
                                         vertical: 2,
                                       ),
@@ -1427,7 +1427,7 @@ class TimelineEventRow extends StatelessWidget {
                                         color: AppColors.expense.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         "¡Vencido!",
                                         style: TextStyle(
                                           fontSize: 9,

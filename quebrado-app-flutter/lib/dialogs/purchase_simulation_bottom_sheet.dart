@@ -28,7 +28,7 @@ class _PurchaseSimulationBottomSheetState
 
   bool _isInstallments = false; // Toggle: false = Ahorro, true = Cashea
   int _installmentsCount = 3; // Choice: 3, 6, 12
-  SubscriptionFrequency _installmentsFrequency =
+  final SubscriptionFrequency _installmentsFrequency =
       SubscriptionFrequency.biweekly; // Fixed to biweekly (Cada 14 días)
   String? _installmentsCountError;
 
@@ -100,7 +100,7 @@ class _PurchaseSimulationBottomSheetState
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
+    final tomorrow = today.add(Duration(days: 1));
     final eventDate = DateTime(date.year, date.month, date.day);
 
     if (eventDate == today) {
@@ -183,7 +183,7 @@ class _PurchaseSimulationBottomSheetState
       _isLoading = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(Duration(seconds: 2), () {
       if (!mounted) return;
 
       final amountRaw =
@@ -202,8 +202,8 @@ class _PurchaseSimulationBottomSheetState
         final installmentsAmount = amountRaw - initialRaw;
         final amountPerInstallment = installmentsAmount / _installmentsCount;
 
-        final initialId = const Uuid().v4();
-        final installmentsId = const Uuid().v4();
+        final initialId = Uuid().v4();
+        final installmentsId = Uuid().v4();
         _simulatedPaymentIds = [initialId, installmentsId];
 
         final initialPayment = RecurringPayment(
@@ -226,7 +226,7 @@ class _PurchaseSimulationBottomSheetState
           amount: amountPerInstallment,
           currency: _currency,
           frequency: SubscriptionFrequency.biweekly, // Cada 14 días
-          startDate: _targetDate!.add(const Duration(days: 14)),
+          startDate: _targetDate!.add(Duration(days: 14)),
           notificationOption: NotificationOption.none,
           icon: 'shopping_bag',
           colorHex: '#FFE607',
@@ -253,7 +253,7 @@ class _PurchaseSimulationBottomSheetState
         }
       } else {
         _simulatedPocket = SavingPocket(
-          id: const Uuid().v4(),
+          id: Uuid().v4(),
           name: _nameController.text.trim(),
           targetAmountUSD: amountUSD,
           currentAmountUSD: 0,
@@ -293,12 +293,12 @@ class _PurchaseSimulationBottomSheetState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(
+          CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             strokeWidth: 3.5,
           ),
-          const SizedBox(height: 24),
-          const Text(
+          SizedBox(height: 24),
+          Text(
             "Realizando simulación de compra para",
             style: TextStyle(
               fontSize: 13,
@@ -306,11 +306,11 @@ class _PurchaseSimulationBottomSheetState
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             _nameController.text.trim(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
@@ -327,7 +327,7 @@ class _PurchaseSimulationBottomSheetState
       child: GestureDetector(
         onTap: () => setState(() => _priority = val),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? themeColor : themeColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
@@ -352,13 +352,13 @@ class _PurchaseSimulationBottomSheetState
 
   Widget _buildFormFields(AppState appState) {
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ClaymorphicCard(
             cornerRadius: 24,
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -368,7 +368,7 @@ class _PurchaseSimulationBottomSheetState
                       child: GestureDetector(
                         onTap: () => setState(() => _isInstallments = false),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
                             color: !_isInstallments
                                 ? AppColors.primary
@@ -390,12 +390,12 @@ class _PurchaseSimulationBottomSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
                         onTap: () => setState(() => _isInstallments = true),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
                             color: _isInstallments
                                 ? AppColors.primary
@@ -419,7 +419,7 @@ class _PurchaseSimulationBottomSheetState
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Text(
                   "INFORMACIÓN DE LA SIMULACIÓN",
                   style: TextStyle(
@@ -429,13 +429,13 @@ class _PurchaseSimulationBottomSheetState
                     letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
                     hintText: "Nombre (ej. PlayStation 5)",
                     hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                    contentPadding: const EdgeInsets.all(14),
+                    contentPadding: EdgeInsets.all(14),
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
@@ -444,7 +444,7 @@ class _PurchaseSimulationBottomSheetState
                     ),
                     errorText: _nameError,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: AppColors.cardText,
                   ),
@@ -454,7 +454,7 @@ class _PurchaseSimulationBottomSheetState
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -462,7 +462,7 @@ class _PurchaseSimulationBottomSheetState
                       flex: 3,
                       child: TextField(
                         controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(
+                        keyboardType: TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         decoration: InputDecoration(
@@ -473,7 +473,7 @@ class _PurchaseSimulationBottomSheetState
                             color: Colors.grey[400],
                             fontSize: 13,
                           ),
-                          contentPadding: const EdgeInsets.all(14),
+                          contentPadding: EdgeInsets.all(14),
                           filled: true,
                           fillColor: Colors.grey[100],
                           border: OutlineInputBorder(
@@ -482,7 +482,7 @@ class _PurchaseSimulationBottomSheetState
                           ),
                           errorText: _amountError,
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           color: AppColors.cardText,
                         ),
@@ -493,11 +493,11 @@ class _PurchaseSimulationBottomSheetState
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       flex: 2,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 2,
                         ),
@@ -509,7 +509,7 @@ class _PurchaseSimulationBottomSheetState
                           child: DropdownButton<CurrencyType>(
                             value: _currency,
                             isExpanded: true,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.bold,
@@ -530,10 +530,10 @@ class _PurchaseSimulationBottomSheetState
                   ],
                 ),
                 if (_isInstallments) ...[
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: _casheaInitialController,
-                    keyboardType: const TextInputType.numberWithOptions(
+                    keyboardType: TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     decoration: InputDecoration(
@@ -542,7 +542,7 @@ class _PurchaseSimulationBottomSheetState
                         color: Colors.grey[400],
                         fontSize: 13,
                       ),
-                      contentPadding: const EdgeInsets.all(14),
+                      contentPadding: EdgeInsets.all(14),
                       filled: true,
                       fillColor: Colors.grey[100],
                       border: OutlineInputBorder(
@@ -551,7 +551,7 @@ class _PurchaseSimulationBottomSheetState
                       ),
                       errorText: _casheaInitialError,
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       color: AppColors.cardText,
                     ),
@@ -561,8 +561,8 @@ class _PurchaseSimulationBottomSheetState
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     "NÚMERO DE CUOTAS CASHEA",
                     style: TextStyle(
                       fontSize: 10,
@@ -571,27 +571,27 @@ class _PurchaseSimulationBottomSheetState
                       letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [3, 6, 12].map((count) {
                       final isSelected = _installmentsCount == count;
                       return Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          padding: EdgeInsets.symmetric(horizontal: 4.0),
                           child: GestureDetector(
                             onTap: () =>
                                 setState(() => _installmentsCount = count),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color.fromARGB(255, 255, 230, 7)
+                                    ? Color.fromARGB(255, 255, 230, 7)
                                     : Colors.grey[100],
                                 borderRadius: BorderRadius.circular(12),
                                 border: isSelected
                                     ? Border.all(
-                                        color: const Color.fromARGB(
+                                        color: Color.fromARGB(
                                           255,
                                           220,
                                           200,
@@ -619,11 +619,11 @@ class _PurchaseSimulationBottomSheetState
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(
+                      color: Color.fromARGB(
                         255,
                         255,
                         230,
@@ -631,7 +631,7 @@ class _PurchaseSimulationBottomSheetState
                       ).withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color.fromARGB(
+                        color: Color.fromARGB(
                           255,
                           255,
                           230,
@@ -641,12 +641,12 @@ class _PurchaseSimulationBottomSheetState
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.info_outline_rounded,
                           color: Color.fromARGB(255, 180, 160, 0),
                           size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             "Frecuencia fija: Cada 14 días (Modelo catorcenal de Cashea)",
@@ -662,8 +662,8 @@ class _PurchaseSimulationBottomSheetState
                   ),
                 ],
                 if (!_isInstallments) ...[
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     "PRIORIDAD DE AHORRO",
                     style: TextStyle(
                       fontSize: 10,
@@ -672,18 +672,18 @@ class _PurchaseSimulationBottomSheetState
                       letterSpacing: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Row(
                     children: [
                       _buildPriorityButton(1, "Alta", Colors.red[400]!),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _buildPriorityButton(2, "Media", Colors.orange[400]!),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _buildPriorityButton(3, "Baja", Colors.blue[400]!),
                     ],
                   ),
                 ],
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -691,7 +691,7 @@ class _PurchaseSimulationBottomSheetState
                       _isInstallments
                           ? "Fecha de Compra"
                           : "Fecha Límite Estimada",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.cardText,
@@ -706,7 +706,7 @@ class _PurchaseSimulationBottomSheetState
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 14,
                               vertical: 8,
                             ),
@@ -719,7 +719,7 @@ class _PurchaseSimulationBottomSheetState
                                   (_isInstallments
                                       ? DateTime.now()
                                       : DateTime.now().add(
-                                          const Duration(days: 30),
+                                          Duration(days: 30),
                                         )),
                               firstDate: DateTime.now(),
                               lastDate: DateTime(2100),
@@ -735,7 +735,7 @@ class _PurchaseSimulationBottomSheetState
                             _targetDate != null
                                 ? formatDate(_targetDate!)
                                 : "Seleccionar fecha",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
@@ -747,10 +747,10 @@ class _PurchaseSimulationBottomSheetState
                 ),
                 if (_dateError != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 6.0, left: 4.0),
+                    padding: EdgeInsets.only(top: 6.0, left: 4.0),
                     child: Text(
                       _dateError!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.expense,
                         fontSize: 11,
                       ),
@@ -780,7 +780,7 @@ class _PurchaseSimulationBottomSheetState
 
     _scrollController.animateTo(
       targetOffset,
-      duration: const Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
   }
@@ -863,7 +863,7 @@ class _PurchaseSimulationBottomSheetState
             // Warnings / Recommendations
             if (!_isFeasible)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
@@ -872,12 +872,12 @@ class _PurchaseSimulationBottomSheetState
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.warning_amber_rounded,
                       color: Colors.orange,
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _isInstallments
@@ -895,7 +895,7 @@ class _PurchaseSimulationBottomSheetState
               )
             else
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
@@ -904,18 +904,18 @@ class _PurchaseSimulationBottomSheetState
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.check_circle_outline_rounded,
                       color: Colors.green,
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _isInstallments
                             ? "¡Es viable! Tu flujo de caja actual soporta el pago de estas cuotas."
                             : "¡Es viable! Tu flujo de caja actual soporta esta meta de ahorro para la fecha indicada.",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: Colors.green,
                           height: 1.4,
@@ -926,7 +926,7 @@ class _PurchaseSimulationBottomSheetState
                 ),
               ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Toggle Filter: "Solo Simulación" is first, "Timeline Completo" is second!
             Container(
@@ -943,7 +943,7 @@ class _PurchaseSimulationBottomSheetState
                         _currentScrollSuggestionIndex = 0;
                       }),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: !_showFullTimeline
                               ? Colors.white
@@ -982,7 +982,7 @@ class _PurchaseSimulationBottomSheetState
                         _currentScrollSuggestionIndex = 0;
                       }),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: _showFullTimeline
                               ? Colors.white
@@ -1018,7 +1018,7 @@ class _PurchaseSimulationBottomSheetState
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Timeline List
             Expanded(
@@ -1034,13 +1034,13 @@ class _PurchaseSimulationBottomSheetState
                       padding: EdgeInsets.only(
                         bottom: _showFullTimeline ? 80 : 20,
                       ),
-                      physics: const BouncingScrollPhysics(),
+                      physics: BouncingScrollPhysics(),
                       itemCount: listItems.length,
                       itemBuilder: (context, index) {
                         final item = listItems[index];
                         if (item is String) {
                           return Padding(
-                            padding: const EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               top: 20.0,
                               bottom: 8.0,
                               left: 4.0,
@@ -1050,15 +1050,15 @@ class _PurchaseSimulationBottomSheetState
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     color: AppColors.primary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Text(
                                   item,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.primary,
@@ -1076,7 +1076,7 @@ class _PurchaseSimulationBottomSheetState
                             isLast: index == lastEventIndex,
                             virtualPockets: _simulatedPocket != null
                                 ? [_simulatedPocket!]
-                                : const [],
+                                : [],
                             virtualPayments: _simulatedPayments,
                           );
                         }
@@ -1095,7 +1095,7 @@ class _PurchaseSimulationBottomSheetState
               child: GestureDetector(
                 onTap: () => _scrollToNextSuggestion(appState, listItems),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),
@@ -1106,22 +1106,22 @@ class _PurchaseSimulationBottomSheetState
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.3),
                         blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.keyboard_arrow_down_rounded,
                         color: Colors.white,
                         size: 20,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(
                         "Ir a sugerencia (${_currentScrollSuggestionIndex + 1}/${simulatedSuggestions.length})",
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -1144,7 +1144,7 @@ class _PurchaseSimulationBottomSheetState
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
@@ -1171,7 +1171,7 @@ class _PurchaseSimulationBottomSheetState
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Header
             Row(
@@ -1181,7 +1181,7 @@ class _PurchaseSimulationBottomSheetState
                   _isSimulated
                       ? "Simulación"
                       : (_isLoading ? "Simulando..." : "Simular"),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
@@ -1189,24 +1189,24 @@ class _PurchaseSimulationBottomSheetState
                 ),
                 if (!_isLoading)
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(Icons.close_rounded),
                     onPressed: () => Navigator.pop(context),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Body
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: Duration(milliseconds: 300),
                 layoutBuilder:
                     (Widget? currentChild, List<Widget> previousChildren) {
                       return Stack(
                         alignment: Alignment.topCenter,
                         children: <Widget>[
                           ...previousChildren,
-                          if (currentChild != null) currentChild,
+                          ?currentChild,
                         ],
                       );
                     },
@@ -1217,7 +1217,7 @@ class _PurchaseSimulationBottomSheetState
                           : _buildFormFields(appState)),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // Action Buttons at the bottom
             if (!_isLoading) ...[
@@ -1227,13 +1227,13 @@ class _PurchaseSimulationBottomSheetState
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         onPressed: () => Navigator.pop(context),
-                        child: const Text(
+                        child: Text(
                           "Cancelar",
                           style: TextStyle(
                             fontSize: 15,
@@ -1243,20 +1243,20 @@ class _PurchaseSimulationBottomSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
                         ),
                         onPressed: () => _runSimulation(appState),
-                        child: const Text(
+                        child: Text(
                           "Simular",
                           style: TextStyle(
                             fontSize: 15,
@@ -1273,13 +1273,13 @@ class _PurchaseSimulationBottomSheetState
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         onPressed: () => setState(() => _isSimulated = false),
-                        child: const Text(
+                        child: Text(
                           "Volver a configurar",
                           style: TextStyle(
                             fontSize: 15,
@@ -1289,20 +1289,20 @@ class _PurchaseSimulationBottomSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
                         ),
                         onPressed: () => Navigator.pop(context),
-                        child: const Text(
+                        child: Text(
                           "Cerrar",
                           style: TextStyle(
                             fontSize: 15,

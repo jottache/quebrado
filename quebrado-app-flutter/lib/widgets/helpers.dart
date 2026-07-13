@@ -1,5 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/currency_type.dart';
+
+class CommaTextInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue, TextEditingValue newValue) {
+    String newText = newValue.text.replaceAll(',', '.');
+    return newValue.copyWith(
+        text: newText,
+        selection: newValue.selection.copyWith(
+          baseOffset: newValue.selection.baseOffset,
+          extentOffset: newValue.selection.extentOffset,
+        ));
+  }
+}
 
 Color parseHexColor(String hex) {
   var hexStr = hex.replaceAll('#', '');
