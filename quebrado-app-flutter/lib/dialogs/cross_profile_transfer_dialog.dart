@@ -242,8 +242,8 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
                     keyboardType: TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: "Monto a transferir",
+                      hintText: _getSourceAccount()?.currency == CurrencyType.usd ? "0.00 \$" : (_getSourceAccount()?.currency == CurrencyType.eur ? "0.00 €" : "0.00 Bs."),
                       border: InputBorder.none,
-                      suffixText: _getSourceAccount()?.currency == CurrencyType.usd ? "USD" : "Bs",
                     ),
                     validator: (val) {
                       if (val == null || val.isEmpty) return "Ingresa un monto";

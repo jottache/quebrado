@@ -5,6 +5,7 @@ import '../widgets/claymorphic_card.dart';
 import '../widgets/animated_progress_bar.dart';
 import '../widgets/helpers.dart';
 import '../theme/colors.dart';
+import '../dialogs/pocket_details_bottom_sheet.dart';
 
 class PocketCard extends StatelessWidget {
   final SavingPocket pocket;
@@ -135,45 +136,33 @@ class PocketCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Buttons
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: onWithdraw,
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: isLightCard
-                              ? pocketAccentColor.withOpacity(0.12)
-                              : Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.remove,
-                          size: 16,
-                          color: isLightCard ? pocketAccentColor : Colors.white,
-                        ),
+                // Action Button (Menu)
+                GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => PocketDetailsBottomSheet(
+                        pocket: pocket,
+                        onAdd: onAdd,
+                        onWithdraw: onWithdraw,
                       ),
+                    );
+                  },
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isLightCard ? pocketAccentColor : Colors.white,
+                      shape: BoxShape.circle,
                     ),
-                    SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: onAdd,
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: isLightCard ? pocketAccentColor : Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          size: 16,
-                          color: isLightCard ? Colors.white : themeColor,
-                        ),
-                      ),
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      size: 20,
+                      color: isLightCard ? Colors.white : themeColor,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),

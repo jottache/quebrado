@@ -19,7 +19,13 @@ class BackupService {
     'recurring_payments',
     'recurring_payment_confirmations',
     'recurring_payment_partials',
-    'mobile_payment_recipients'
+    'mobile_payment_recipients',
+    'market_stores',
+    'market_products',
+    'market_trips',
+    'market_items',
+    'market_shopping_lists',
+    'market_shopping_list_items'
   ];
 
   static Future<void> exportBackup({Rect? sharePositionOrigin}) async {
@@ -157,7 +163,7 @@ class BackupService {
                 await db.execute('PRAGMA foreign_keys = ON');
               }
             } else {
-              await _restoreDatabase(targetPath, dbData);
+              await _restoreDatabase(dbName, dbData);
             }
           }
         }
@@ -337,8 +343,8 @@ class BackupService {
     return backupData;
   }
 
-  static Future<void> _restoreDatabase(String path, Map<String, dynamic> decoded) async {
-    final db = await openDatabase(path);
+  static Future<void> _restoreDatabase(String profileId, Map<String, dynamic> decoded) async {
+    final db = await DatabaseHelper.instance.initProfileDb(profileId);
     await db.execute('PRAGMA foreign_keys = OFF');
     try {
       await db.transaction((txn) async {

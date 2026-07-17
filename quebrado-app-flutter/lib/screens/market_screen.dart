@@ -12,6 +12,7 @@ import '../models/market_shopping_list_item.dart';
 import '../widgets/add_market_item_bottom_sheet.dart';
 import '../widgets/add_market_product_bottom_sheet.dart';
 import '../widgets/add_market_store_bottom_sheet.dart';
+import '../widgets/product_details_bottom_sheet.dart';
 import 'market_trip_screen.dart';
 import 'market_shopping_list_screen.dart';
 import 'package:uuid/uuid.dart';
@@ -627,9 +628,18 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                     final product = appState.marketProducts[index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                      child: ClaymorphicCard(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        child: Row(
+                      child: GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => ProductDetailsBottomSheet(product: product),
+                          );
+                        },
+                        child: ClaymorphicCard(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
@@ -705,8 +715,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                           ],
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
                 ),
         ),
       ],

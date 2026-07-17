@@ -1,6 +1,12 @@
 import 'currency_type.dart';
 import 'transaction.dart';
 
+class SuggestionReason {
+  final String name;
+  final String detail;
+  SuggestionReason(this.name, this.detail);
+}
+
 class TimelineEvent {
   final DateTime date;
   final String title;
@@ -23,6 +29,7 @@ class TimelineEvent {
   final bool isCompletedAbono;
   final bool isLastProvisioning;
   final List<String>? associatedTransactionIds;
+  final List<SuggestionReason>? suggestionReasons;
 
   TimelineEvent({
     required this.date,
@@ -46,5 +53,6 @@ class TimelineEvent {
     this.isCompletedAbono = false,
     this.isLastProvisioning = false,
     this.associatedTransactionIds,
+    this.suggestionReasons,
   });
 }

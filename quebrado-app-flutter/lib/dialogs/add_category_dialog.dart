@@ -25,6 +25,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
   late TransactionCategoryType _categoryType;
   late String _selectedColorHex;
   late String _selectedIcon;
+  String? _selectedParentId;
 
   final List<String> _icons = [
     "briefcase", "computer", "gift", "trendingup", "creditcard", "wallet",
@@ -41,10 +42,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
       _categoryType = widget.editingCategory!.type;
       _selectedColorHex = widget.editingCategory!.colorHex;
       _selectedIcon = widget.editingCategory!.icon;
+      _selectedParentId = widget.editingCategory!.parentId;
     } else {
       _categoryType = widget.initialType;
       _selectedColorHex = AppColors.creationColors[0];
       _selectedIcon = _icons[0];
+      _selectedParentId = null;
     }
   }
 
@@ -63,6 +66,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
       widget.editingCategory!.icon = _selectedIcon;
       widget.editingCategory!.colorHex = _selectedColorHex;
       widget.editingCategory!.type = _categoryType;
+      widget.editingCategory!.parentId = _selectedParentId;
       appState.updateCategory(widget.editingCategory!);
     } else {
       appState.addCategory(
@@ -70,6 +74,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
         icon: _selectedIcon,
         colorHex: _selectedColorHex,
         type: _categoryType,
+        parentId: _selectedParentId,
       );
     }
     Navigator.pop(context);
@@ -289,6 +294,51 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          // Parent Category Picker
+                          Text(
+                            "Categoría Padre (Opcional)",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.cardText,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String?>(
+                                isExpanded: true,
+                                value: _selectedParentId,
+                                hint: Text("Ninguna", style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                items: [
+                                  DropdownMenuItem<String?>(
+                                    value: null,
+                                    child: Text("Ninguna", style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                  ),
+                                  ...appState.getParentCategories(_categoryType)
+                                    .where((c) => c.id != widget.editingCategory?.id)
+                                    .map((cat) {
+                                    return DropdownMenuItem<String?>(
+                                      value: cat.id,
+                                      child: Text(cat.name, style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                    );
+                                  }).toList(),
+                                ],
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedParentId = val;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ],

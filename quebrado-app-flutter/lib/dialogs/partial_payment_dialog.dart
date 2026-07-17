@@ -208,7 +208,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           decoration: InputDecoration(
-                            prefixText: p.currency == CurrencyType.usd ? "\$ " : "Bs. ",
+                            hintText: p.currency == CurrencyType.usd ? "0.00 \$" : (p.currency == CurrencyType.eur ? "0.00 €" : "0.00 Bs."),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(color: Colors.black12),
@@ -346,8 +346,7 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                               controller: _rateController,
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
-                                prefixText: "Bs. ",
-                                hintText: "Tasa personalizada",
+                                hintText: "Tasa personalizada Bs.",
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

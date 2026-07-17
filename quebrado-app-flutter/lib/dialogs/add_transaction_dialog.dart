@@ -63,11 +63,13 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
   CurrencyType _selectedCurrency = CurrencyType.usd;
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategoryId;
+  String? _expandedParentId;
   String? _destinationPocketId;
   final _noteController = TextEditingController();
   final RateSource _selectedRateSource = RateSource.bcv;
   String? _selectedAccountId;
-  String _vesMode = "bcv";
+  // Para cuentas VES: puede ser 'bcv', 'eur', 'custom' o 'bs'
+  String _vesMode = 'bs'; 
   final _customRateController = TextEditingController();
 
   // Pago Móvil fields
@@ -151,6 +153,8 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
         } else if (tx.exchangeRate != appState.bcvRate && tx.exchangeRate != appState.euroRate) {
           _vesMode = 'custom';
           _customRateController.text = tx.exchangeRate.toString();
+        } else if (tx.currency == CurrencyType.bsBCV) {
+          _vesMode = 'bs';
         } else {
           _vesMode = 'bcv';
         }
@@ -158,6 +162,14 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
         _vesMode = 'bcv';
       }
       _customRateController.text = tx.exchangeRate.toString();
+      if (_selectedCategoryId != null) {
+        try {
+          final cat = appState.categories.firstWhere((c) => c.id == _selectedCategoryId);
+          if (cat.parentId != null) {
+            _expandedParentId = cat.parentId;
+          }
+        } catch (_) {}
+      }
     } else {
       _transactionType = widget.initialType;
       final appState = Provider.of<AppState>(context, listen: false);
@@ -203,7 +215,17 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     final targetType = _transactionType == TransactionType.income
         ? TransactionCategoryType.income
         : TransactionCategoryType.expense;
-    return appState.categories.where((cat) => cat.type == targetType).toList();
+    if (_expandedParentId == null) {
+      return appState.getParentCategories(targetType);
+    } else {
+      try {
+        final parent = appState.categories.firstWhere((c) => c.id == _expandedParentId);
+        final children = appState.getSubcategories(_expandedParentId!);
+        return [parent, ...children];
+      } catch (e) {
+        return appState.getParentCategories(targetType);
+      }
+    }
   }
 
   Future<void> _handleConfirmAction(AppState appState) async {
@@ -290,19 +312,26 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     );
     final isAccVES = selectedAcc.currency == CurrencyType.bsBCV;
 
-    final CurrencyType txCurrency = selectedAcc.currency;
+    final CurrencyType txCurrency;
     final double rate;
 
     if (isAccVES) {
       if (_vesMode == 'eur') {
         rate = appState.euroRate;
+        txCurrency = CurrencyType.eur;
       } else if (_vesMode == 'custom') {
         rate = double.tryParse(_customRateController.text) ?? appState.parallelRate;
+        txCurrency = CurrencyType.usd;
+      } else if (_vesMode == 'bs') {
+        rate = appState.bcvRate;
+        txCurrency = CurrencyType.bsBCV;
       } else {
         rate = appState.bcvRate;
+        txCurrency = CurrencyType.usd;
       }
     } else {
       rate = appState.bcvRate;
+      txCurrency = _selectedCurrency;
     }
 
     final isEditing = widget.editingTransaction != null;
@@ -348,14 +377,14 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
           ? widget.editingTransaction!.id
           : DateTime.now().millisecondsSinceEpoch.toString(),
       date: _selectedDate,
+      categoryId: (_selectedCategoryId != null && _selectedCategoryId!.isNotEmpty) ? _selectedCategoryId : null,
       amount: amount,
       currency: txCurrency,
-      destinationPocketId: _destinationPocketId,
-      categoryId: _selectedCategoryId,
+      exchangeRate: rate,
       accountId: _selectedAccountId,
       note: finalNote,
       type: _transactionType,
-      exchangeRate: rate,
+      destinationPocketId: _destinationPocketId,
     );
 
     final navigator = Navigator.of(context);
@@ -756,7 +785,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   _selectedAccountId = accId;
                                   _selectedCurrency = selectedAcc.currency;
                                   if (selectedAcc.currency == CurrencyType.bsBCV) {
-                                    _vesMode = 'bcv';
+                                    _vesMode = 'bs';
                                     _destinationPocketId = null;
                                   }
                                 });
@@ -800,7 +829,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             ),
                             textAlign: TextAlign.center,
                             decoration: InputDecoration(
-                              hintText: "0.00",
+                              hintText: isAccVES 
+                                ? (_vesMode == 'eur' ? "0.00 €" : (_vesMode == 'bs' ? "0.00 Bs." : "0.00 \$"))
+                                : (_selectedCurrency == CurrencyType.eur ? "0.00 €" : (_selectedCurrency == CurrencyType.usd ? "0.00 \$" : "0.00 Bs.")),
                               border: InputBorder.none,
                               hintStyle: TextStyle(color: AppColors.cardSubtitleText),
                             ),
@@ -842,6 +873,31 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               ),
                               child: Row(
                                 children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => setState(() => _vesMode = 'bs'),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _vesMode == 'bs'
+                                              ? AppColors.nestedTabActiveBg
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          "Bs.",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: _vesMode == 'bs'
+                                                ? AppColors.nestedTabActiveText
+                                                : AppColors.nestedTabInactiveText,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'bcv'),
@@ -1465,81 +1521,149 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               itemCount: filteredCategories.length + 1,
                               itemBuilder: (context, index) {
                                 if (index == 0) {
-                                  final isSelected = _selectedCategoryId == null;
-                                  final Color catColor = _transactionType == TransactionType.income
-                                      ? AppColors.income
-                                      : AppColors.expense;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() => _selectedCategoryId = null);
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? catColor.withOpacity(0.18)
-                                            : catColor.withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
+                                  if (_expandedParentId == null) {
+                                    final isSelected = _selectedCategoryId == null;
+                                    final Color catColor = _transactionType == TransactionType.income
+                                        ? AppColors.income
+                                        : AppColors.expense;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() => _selectedCategoryId = null);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
                                           color: isSelected
-                                              ? catColor
-                                              : Colors.transparent,
-                                          width: 1.5,
+                                              ? catColor.withOpacity(0.18)
+                                              : catColor.withOpacity(0.08),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? catColor
+                                                : Colors.transparent,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? catColor
+                                                    : catColor.withOpacity(0.12),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                _transactionType == TransactionType.income
+                                                    ? Icons.arrow_upward
+                                                    : Icons.arrow_downward,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : catColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              "Ninguna",
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.cardText,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color: isSelected
-                                                  ? catColor
-                                                  : catColor.withOpacity(0.12),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              _transactionType == TransactionType.income
-                                                  ? Icons.arrow_upward
-                                                  : Icons.arrow_downward,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : catColor,
-                                              size: 20,
-                                            ),
+                                    );
+                                  } else {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() => _expandedParentId = null);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.withOpacity(0.08),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: Colors.transparent,
+                                            width: 1.5,
                                           ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            "Ninguna",
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.cardText,
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 10),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.withOpacity(0.12),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                Icons.arrow_back_rounded,
+                                                color: AppColors.cardText,
+                                                size: 20,
+                                              ),
                                             ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
+                                            SizedBox(height: 8),
+                                            Text(
+                                              "Atrás",
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.cardText,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 }
 
                                 final cat = filteredCategories[index - 1];
                                 final catColor = parseHexColor(cat.colorHex);
-                                final isSelected =
-                                    _selectedCategoryId == cat.id;
+                                
+                                bool isSelected = _selectedCategoryId == cat.id;
+                                if (_expandedParentId == null && _selectedCategoryId != null) {
+                                  try {
+                                    final appState = Provider.of<AppState>(context, listen: false);
+                                    final selectedCat = appState.categories.firstWhere((c) => c.id == _selectedCategoryId);
+                                    if (selectedCat.parentId == cat.id) {
+                                      isSelected = true;
+                                    }
+                                  } catch (_) {}
+                                }
+
+                                bool isExpandable = false;
+                                if (_expandedParentId == null) {
+                                  final appState = Provider.of<AppState>(context, listen: false);
+                                  if (appState.getSubcategories(cat.id).isNotEmpty) {
+                                    isExpandable = true;
+                                  }
+                                }
 
                                 return GestureDetector(
                                   onTap: () {
-                                    setState(
-                                      () => _selectedCategoryId = cat.id,
-                                    );
+                                    if (isExpandable) {
+                                      setState(() => _expandedParentId = cat.id);
+                                    } else {
+                                      setState(() => _selectedCategoryId = cat.id);
+                                    }
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -1561,26 +1685,48 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? catColor
-                                                : catColor.withOpacity(0.12),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            getIconData(cat.icon),
-                                            color: isSelected
-                                                ? Colors.white
-                                                : catColor,
-                                            size: 20,
-                                          ),
+                                        Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? catColor
+                                                    : catColor.withOpacity(0.12),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                getIconData(cat.icon),
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : catColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            if (isExpandable)
+                                              Positioned(
+                                                bottom: 0,
+                                                right: 0,
+                                                child: Container(
+                                                  padding: EdgeInsets.all(2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.more_horiz_rounded,
+                                                    size: 14,
+                                                    color: catColor,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                         SizedBox(height: 8),
                                         Text(
-                                          cat.name,
+                                          (cat.parentId != null ? "↳ " : "") + cat.name,
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,

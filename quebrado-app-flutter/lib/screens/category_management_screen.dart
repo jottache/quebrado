@@ -37,13 +37,11 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
     final appState = Provider.of<AppState>(context);
 
     // Segmented tab filtered lists
-    final incomeCategories = appState.categories
-        .where((cat) => cat.type == TransactionCategoryType.income)
-        .toList();
+    final incomeCategories = appState.getParentCategories(TransactionCategoryType.income)
+      ..sort((a, b) => a.position.compareTo(b.position));
 
-    final expenseCategories = appState.categories
-        .where((cat) => cat.type == TransactionCategoryType.expense)
-        .toList();
+    final expenseCategories = appState.getParentCategories(TransactionCategoryType.expense)
+      ..sort((a, b) => a.position.compareTo(b.position));
 
     return Scaffold(
       appBar: AppBar(
@@ -193,133 +191,165 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
       },
       itemBuilder: (context, index) {
         final category = categories[index];
-        final color = parseHexColor(category.colorHex);
+        final subcategories = appState.getSubcategories(category.id)
+          ..sort((a, b) => a.position.compareTo(b.position));
 
         return Padding(
           key: Key(category.id),
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: Dismissible(
-            key: Key('dismiss_${category.id}'),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 20.0),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                Icons.delete_forever_rounded,
-                color: Colors.white,
-              ),
-            ),
-            confirmDismiss: (direction) async {
-              return await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      title: Text(
-                        "Confirmar Eliminación",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      content: Text(
-                        "¿Estás seguro de que deseas eliminar la categoría '${category.name}'?",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(
-                            "Cancelar",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: Text(
-                            "Eliminar",
-                            style: TextStyle(
-                              color: AppColors.expense,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ) ??
-                  false;
-            },
-            onDismissed: (_) {
-              appState.deleteCategory(category.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Categoría '${category.name}' eliminada"),
-                ),
-              );
-            },
-            child: GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => AddCategoryBottomSheet(
-                    initialType: category.type,
-                    editingCategory: category,
+          padding: EdgeInsets.only(bottom: 0.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCategoryItem(context, appState, category, index, isSubcategory: false),
+              if (subcategories.isNotEmpty) SizedBox(height: 4),
+              ...subcategories.map((sub) => _buildCategoryItem(context, appState, sub, index, isSubcategory: true)).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryItem(
+    BuildContext context,
+    AppState appState,
+    TransactionCategory category,
+    int index, {
+    bool isSubcategory = false,
+  }) {
+    final color = parseHexColor(category.colorHex);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: isSubcategory ? 8.0 : 12.0,
+        left: isSubcategory ? 32.0 : 0.0,
+      ),
+      child: Dismissible(
+        key: Key('dismiss_${category.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(right: 20.0),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Icon(
+            Icons.delete_forever_rounded,
+            color: Colors.white,
+          ),
+        ),
+        confirmDismiss: (direction) async {
+          return await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                );
-              },
-              child: ClaymorphicCard(
-                cornerRadius: 18,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
-                backgroundColor: AppColors.getAlternateCardColor(index),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        getIconData(category.icon),
-                        color: color,
-                        size: 18,
+                  title: Text(
+                    "Confirmar Eliminación",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: Text(
+                    "¿Estás seguro de que deseas eliminar la categoría '${category.name}'?",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(
+                        "Cancelar",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    SizedBox(width: 14),
-                    Text(
-                      category.name,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.cardText,
-                      ),
-                    ),
-                    Spacer(),
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: Icon(
-                        Icons.drag_indicator_rounded,
-                        color: AppColors.cardSubtitleText.withOpacity(0.6),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(
+                        "Eliminar",
+                        style: TextStyle(
+                          color: AppColors.expense,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
+              ) ??
+              false;
+        },
+        onDismissed: (_) {
+          appState.deleteCategory(category.id);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Categoría '${category.name}' eliminada"),
+            ),
+          );
+        },
+        child: GestureDetector(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => AddCategoryBottomSheet(
+                initialType: category.type,
+                editingCategory: category,
               ),
+            );
+          },
+          child: ClaymorphicCard(
+            cornerRadius: 18,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            backgroundColor: isSubcategory ? AppColors.cardBackground : AppColors.getAlternateCardColor(index),
+            child: Row(
+              children: [
+                if (isSubcategory)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(Icons.subdirectory_arrow_right_rounded, color: AppColors.cardSubtitleText, size: 16),
+                  ),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    getIconData(category.icon),
+                    color: color,
+                    size: 18,
+                  ),
+                ),
+                SizedBox(width: 14),
+                Text(
+                  category.name,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.cardText,
+                  ),
+                ),
+                Spacer(),
+                if (!isSubcategory)
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Icon(
+                      Icons.drag_indicator_rounded,
+                      color: AppColors.cardSubtitleText.withOpacity(0.6),
+                    ),
+                  ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

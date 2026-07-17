@@ -26,34 +26,24 @@ class PendingConfirmationsBottomSheet extends StatefulWidget {
 }
 
 class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBottomSheet> with TickerProviderStateMixin {
-  final List<_PendingPaymentState> _states = [];
+  final Map<String, List<_PendingPaymentState>> _profileStates = {};
+  String? _currentViewedDb;
   bool _initialized = false;
   late final TextEditingController _p2pRateController;
   final ScrollController _scrollController = ScrollController();
   TabController? _tabController;
   bool _tabControllerInitialized = false;
   bool _isLoading = false;
+  bool _isSwitchingProfile = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final appState = Provider.of<AppState>(context);
     if (!_initialized) {
-      if (widget.filterOccurrence != null) {
-        final occ = widget.filterOccurrence!;
-        final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
-        final state = _PendingPaymentState(occ, rate);
-        if (widget.forceShowCustomAmount) state.showCustomAmount = true;
-        _states.add(state);
-      } else {
-        for (var occ in appState.pendingPaymentsToday) {
-          final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
-          final state = _PendingPaymentState(occ, rate);
-          if (widget.forceShowCustomAmount) state.showCustomAmount = true;
-          _states.add(state);
-        }
-      }
+      _currentViewedDb = appState.activeDbName;
       _p2pRateController = TextEditingController(text: appState.parallelRate.toStringAsFixed(2));
+      _loadAllProfilesData(appState);
       _initialized = true;
     }
 
@@ -71,11 +61,50 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     }
   }
 
+  Future<void> _loadAllProfilesData(AppState appState) async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (widget.filterOccurrence != null) {
+      final occ = widget.filterOccurrence!;
+      final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
+      final state = _PendingPaymentState(occ, rate);
+      if (widget.forceShowCustomAmount) state.showCustomAmount = true;
+      
+      final String profileId = appState.activeDbName;
+      _profileStates[profileId] = [state];
+    } else {
+      for (var profile in appState.profiles) {
+        final String profileId = profile['id']!;
+        final pending = await appState.fetchPendingPaymentsForProfile(profileId);
+        
+        final List<_PendingPaymentState> states = [];
+        for (var occ in pending) {
+          final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
+          final state = _PendingPaymentState(occ, rate);
+          if (widget.forceShowCustomAmount) state.showCustomAmount = true;
+          states.add(state);
+        }
+        _profileStates[profileId] = states;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
-    for (var s in _states) {
-      s.amountController.dispose();
-      s.rateController.dispose();
+    for (var list in _profileStates.values) {
+      for (var s in list) {
+        s.amountController.dispose();
+        s.rateController.dispose();
+      }
     }
     _p2pRateController.dispose();
     _scrollController.dispose();
@@ -84,35 +113,17 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     super.dispose();
   }
 
-  void _handleTabSelection() async {
-    if (_tabController == null || _tabController!.indexIsChanging) return;
+  void _handleTabSelection() {
+    if (_tabController == null) return;
     
     final appState = Provider.of<AppState>(context, listen: false);
-    final targetProfile = appState.profiles[_tabController!.index];
-    final targetDb = targetProfile['id']!;
-    
-    if (targetDb != appState.activeDbName) {
-      setState(() {
-        _isLoading = true;
-      });
+    if (_tabController!.index < appState.profiles.length) {
+      final targetProfile = appState.profiles[_tabController!.index];
+      final targetDb = targetProfile['id']!;
       
-      try {
-        await appState.switchProfile(targetDb);
-        
+      if (targetDb != _currentViewedDb) {
         setState(() {
-          _states.clear();
-          for (var occ in appState.pendingPaymentsToday) {
-            final rate = occ.payment.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
-            final state = _PendingPaymentState(occ, rate);
-            if (widget.forceShowCustomAmount) state.showCustomAmount = true;
-            _states.add(state);
-          }
-          _p2pRateController.text = appState.parallelRate.toStringAsFixed(2);
-          _isLoading = false;
-        });
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
+          _currentViewedDb = targetDb;
         });
       }
     }
@@ -215,6 +226,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
   }
 
   Future<void> _submitConfirmations(AppState appState) async {
+    final _states = _profileStates[_currentViewedDb] ?? [];
     final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
     if (selected.isEmpty) return;
 
@@ -235,8 +247,62 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       }
     }
 
+    // Switch profile if necessary before making DB changes
+    if (_currentViewedDb != null && appState.activeDbName != _currentViewedDb) {
+      if (mounted) {
+        setState(() => _isLoading = true);
+      }
+      await appState.switchProfile(_currentViewedDb!);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+
     // Map of accountId -> net balance change
     final Map<String, double> netChanges = {};
+    List<RecurringPayment> finishedPayments = [];
+    double totalUsdIncomeForAutoSave = 0.0;
+
+    // First verify useExistingBalance
+    for (var s in selected) {
+      if (s.willSkip || !s.useExistingBalance) continue;
+      
+      final usdVal = double.tryParse(s.amountController.text.replaceAll(',', '.')) ?? s.occurrence.remainingAmount;
+      final targetCurr = s.payment.currency;
+      double usdAmountNeeded = 0.0;
+      if (targetCurr == CurrencyType.usd) {
+        usdAmountNeeded = usdVal;
+      } else if (targetCurr == CurrencyType.bsBCV) {
+        usdAmountNeeded = appState.bcvRate > 0 ? usdVal / appState.bcvRate : 0.0;
+      }
+      
+      final usdAccounts = appState.accounts.where((a) => a.currency == CurrencyType.usd).toList();
+      if (usdAccounts.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("No tienes cuentas en USD creadas para usar saldo existente."),
+              backgroundColor: AppColors.expense,
+            )
+          );
+        }
+        return; // Prevent registration
+      } else {
+        final targetAccId = s.selectedExistingBalanceAccountId ?? usdAccounts.first.id;
+        final targetAcc = appState.accounts.firstWhere((a) => a.id == targetAccId, orElse: () => usdAccounts.first);
+        if (targetAcc.balance < usdAmountNeeded) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("La cuenta '${targetAcc.name}' no tiene suficiente saldo (\$${targetAcc.balance.toStringAsFixed(2)}) para cubrir el ingreso '${s.payment.name}' (\$${usdAmountNeeded.toStringAsFixed(2)})."),
+                backgroundColor: AppColors.expense,
+              )
+            );
+          }
+          return; // Prevent registration
+        }
+      }
+    }
 
     for (var s in selected) {
       if (s.willSkip) {
@@ -250,43 +316,192 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       final needsConversion = (p.currency == CurrencyType.usd || p.currency == CurrencyType.eur) && targetAccount.currency == CurrencyType.bsBCV;
 
       double remainingVal = double.tryParse(s.amountController.text.replaceAll(',', '.')) ?? s.occurrence.remainingAmount;
-      double actualAmt = remainingVal;
+      double actualAmt = s.useExistingBalance ? 0.0 : remainingVal;
       final isPartialRest = remainingVal < p.amount;
+
+      bool isLast = false;
+      
+      String existingBalanceStr = "";
+      if (s.useExistingBalance) {
+        String accName = "saldo existente";
+        if (s.selectedExistingBalanceAccountId != null) {
+          final acc = appState.accounts.firstWhere((a) => a.id == s.selectedExistingBalanceAccountId, orElse: () => appState.accounts.first);
+          accName = acc.name;
+        }
+        existingBalanceStr = " (con saldo de $accName)";
+      }
 
       if (needsConversion) {
         final rateController = s.rateController;
         final double defaultRate = p.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
         final double rateVal = double.tryParse(rateController.text.replaceAll(',', '.')) ?? defaultRate;
-        actualAmt = remainingVal * rateVal;
+        actualAmt = s.useExistingBalance ? 0.0 : (remainingVal * rateVal);
         
-        await appState.confirmRecurringPayment(
+        isLast = await appState.confirmRecurringPayment(
           payment: p,
           actualAmount: actualAmt,
           occurrenceDate: s.occurrence.occurrenceDate,
           overrideCurrency: CurrencyType.bsBCV,
           customExchangeRate: rateVal,
           customNote: p.currency == CurrencyType.eur
-              ? "Confirmado: ${p.name} (€${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)"
-              : "Confirmado: ${p.name} (\$${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)",
+              ? "Confirmado${existingBalanceStr}: ${p.name} (€${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)"
+              : "Confirmado${existingBalanceStr}: ${p.name} (\$${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)",
         );
       } else {
-        await appState.confirmRecurringPayment(
+        isLast = await appState.confirmRecurringPayment(
           payment: p,
           actualAmount: actualAmt,
           occurrenceDate: s.occurrence.occurrenceDate,
           customNote: isPartialRest 
-              ? "Confirmado: ${p.name} (Restante: ${p.currency.symbol}${remainingVal.toStringAsFixed(2)})"
-              : null,
+              ? "Confirmado${existingBalanceStr}: ${p.name} (Restante: ${p.currency.symbol}${remainingVal.toStringAsFixed(2)})"
+              : s.useExistingBalance ? "Confirmado${existingBalanceStr}: ${p.name}" : null,
         );
       }
+
+      if (s.useExistingBalance && p.type == TransactionType.income) {
+        if (p.currency == CurrencyType.usd) {
+           totalUsdIncomeForAutoSave += remainingVal;
+        } else if (p.currency == CurrencyType.bsBCV) {
+           totalUsdIncomeForAutoSave += appState.bcvRate > 0 ? remainingVal / appState.bcvRate : 0.0;
+        }
+      }
+      
+      if (isLast) finishedPayments.add(p);
     }
 
     if (context.mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registros agregados al historial")),
-      );
+      for (var payment in finishedPayments) {
+        if (context.mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              title: Text("Última Cuota", style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Text("Has registrado la última cuota de '${payment.name}'. ¿Deseas eliminar este registro de la lista de pagos por cuotas?"),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text("Mantener", style: TextStyle(color: Colors.grey[700])),
+                ),
+                TextButton(
+                  onPressed: () {
+                    appState.deleteRecurringPayment(payment.id);
+                    Navigator.pop(ctx);
+                  },
+                  child: Text("Eliminar", style: TextStyle(color: AppColors.expense, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+      if (context.mounted) {
+        if (totalUsdIncomeForAutoSave > 0) {
+          await _showAutoSaveDialog(context, appState, totalUsdIncomeForAutoSave);
+        } else {
+          final messenger = ScaffoldMessenger.of(context);
+          Navigator.pop(context);
+          messenger.showSnackBar(
+            SnackBar(content: Text("Registros agregados al historial")),
+          );
+        }
+      }
     }
+  }
+
+  Future<void> _showAutoSaveDialog(BuildContext context, AppState appState, double usdIncomeAmount) async {
+    final Map<String, double> proposedDeposits = {};
+    for (var pocket in appState.pockets) {
+      if (pocket.targetDate != null) continue;
+      if (pocket.fundingRuleType == 'none') continue;
+      
+      double proposedSaving = 0.0;
+      if (pocket.fundingRuleType == 'percentage') {
+        final pct = pocket.fundingRuleValue ?? 0.0;
+        proposedSaving = usdIncomeAmount * (pct / 100.0);
+      } else if (pocket.fundingRuleType == 'fixedThreshold') {
+        final threshold = pocket.fundingRuleThreshold ?? 0.0;
+        final fixedVal = pocket.fundingRuleValue ?? 0.0;
+        if (usdIncomeAmount >= threshold) proposedSaving = fixedVal;
+      }
+      
+      if (pocket.targetAmountUSD > 0) {
+        final remaining = pocket.targetAmountUSD - pocket.currentAmountUSD;
+        if (proposedSaving > remaining) proposedSaving = remaining;
+      }
+      
+      if (proposedSaving > 0) {
+        proposedDeposits[pocket.id] = proposedSaving;
+      }
+    }
+
+    if (proposedDeposits.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text("Sugerencias de Auto-Ahorro", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Basado en el ingreso cobrado (\$${usdIncomeAmount.toStringAsFixed(2)}), te sugerimos apartar a tus bolsillos:", style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText)),
+            SizedBox(height: 16),
+            ...proposedDeposits.entries.map((e) {
+              final pocket = appState.pockets.firstWhere((p) => p.id == e.key);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text("• ${pocket.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.cardText))),
+                    Text(formatUSD(e.value), style: TextStyle(color: AppColors.income, fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: Text("Ignorar", style: TextStyle(color: Colors.grey[700])),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              double totalRequired = proposedDeposits.values.fold(0.0, (a, b) => a + b);
+              if (appState.liquidBalanceUSD < totalRequired) {
+                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text("No tienes suficiente saldo líquido en USD (\$${appState.liquidBalanceUSD.toStringAsFixed(2)}) para este aporte (\$${totalRequired.toStringAsFixed(2)})."), backgroundColor: AppColors.expense));
+                return;
+              }
+              for (var entry in proposedDeposits.entries) {
+                await appState.depositToPocket(id: entry.key, amountUSD: entry.value);
+              }
+              if (ctx.mounted) {
+                 Navigator.pop(ctx);
+                 Navigator.pop(context);
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Aportes realizados con éxito"), backgroundColor: AppColors.primary));
+              }
+            },
+            child: Text("Aportar Todo", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -294,6 +509,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     final appState = Provider.of<AppState>(context);
     final size = MediaQuery.of(context).size;
     final showTabs = widget.filterOccurrence == null && _tabController != null && appState.profiles.isNotEmpty;
+    final _states = _profileStates[_currentViewedDb] ?? [];
 
     return Container(
       constraints: BoxConstraints(
@@ -340,7 +556,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Cobros y Pagos de Hoy",
+                    widget.filterOccurrence != null 
+                        ? "Registrar ${widget.filterOccurrence!.payment.type == TransactionType.income ? 'Cobro' : 'Pago'}"
+                        : "Cobros y Pagos de Hoy",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -352,7 +570,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
             ),
             SizedBox(height: 12),
             Text(
-              "Tienes registros programados pendientes para hoy. Elige cuáles quieres registrar automáticamente en tus cuentas:",
+              widget.filterOccurrence != null
+                  ? "Confirma los detalles para registrar este ${widget.filterOccurrence!.payment.type == TransactionType.income ? 'ingreso' : 'egreso'} en tus cuentas:"
+                  : "Tienes registros programados pendientes para hoy. Elige cuáles quieres registrar automáticamente en tus cuentas:",
               style: TextStyle(
                 fontSize: 13,
                 color: AppColors.cardSubtitleText,
@@ -560,7 +780,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                           decoration: InputDecoration(
                                             contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                            prefixText: "${p.currency.symbol} ",
+                                            hintText: "0.00 ${p.currency.symbol}",
                                             border: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(10),
                                               borderSide: BorderSide(color: Colors.black12),
@@ -673,8 +893,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                             decoration: InputDecoration(
                                               contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                              prefixText: "Bs. ",
-                                              hintText: "Ingrese tasa",
+                                              hintText: "Ingrese tasa Bs.",
                                               border: OutlineInputBorder(
                                                 borderRadius: BorderRadius.circular(8),
                                                 borderSide: BorderSide(color: Colors.black12),
@@ -776,6 +995,112 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 child: Text(state.willSkip ? "Se omitirá este ${isIncome ? 'ingreso' : 'pago'}" : "Omitir ${isIncome ? 'ingreso' : 'pago'}", style: TextStyle(fontSize: 12)),
                               ),
                             ),
+                          ],
+                          if (isIncome && !state.willSkip && state.isChecked) ...[
+                            SizedBox(height: 8),
+                            CheckboxListTile(
+                              value: state.useExistingBalance,
+                              dense: true,
+                              activeColor: AppColors.primary,
+                              visualDensity: VisualDensity.compact,
+                              title: Text("Usar saldo existente", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                              subtitle: Text("No se añadirá saldo extra a la cuenta, previniendo dinero duplicado si ya compraste las divisas manualmente.", style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText)),
+                              onChanged: (val) {
+                                if (val == true) {
+                                  final usdAccounts = appState.accounts.where((a) => a.currency == CurrencyType.usd).toList();
+                                  if (usdAccounts.isNotEmpty) {
+                                    state.selectedExistingBalanceAccountId = usdAccounts.first.id;
+                                  }
+                                }
+                                setState(() {
+                                  state.useExistingBalance = val ?? false;
+                                });
+                              },
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            if (state.useExistingBalance) ...[
+                              Builder(
+                                builder: (ctx) {
+                                  String? existingBalanceError;
+                                  final usdVal = double.tryParse(state.amountController.text.replaceAll(',', '.')) ?? state.occurrence.remainingAmount;
+                                  final targetCurr = p.currency;
+                                  double usdAmountNeeded = 0.0;
+                                  if (targetCurr == CurrencyType.usd) {
+                                    usdAmountNeeded = usdVal;
+                                  } else if (targetCurr == CurrencyType.bsBCV) {
+                                    usdAmountNeeded = appState.bcvRate > 0 ? usdVal / appState.bcvRate : 0.0;
+                                  }
+                                  
+                                  final usdAccounts = appState.accounts.where((a) => a.currency == CurrencyType.usd).toList();
+                                  if (usdAccounts.isEmpty) {
+                                    existingBalanceError = "No tienes cuentas en USD creadas para usar saldo existente.";
+                                  } else {
+                                    final targetAccId = state.selectedExistingBalanceAccountId ?? usdAccounts.first.id;
+                                    final targetAcc = appState.accounts.firstWhere((a) => a.id == targetAccId, orElse: () => usdAccounts.first);
+                                    if (targetAcc.balance < usdAmountNeeded) {
+                                      existingBalanceError = "La cuenta '${targetAcc.name}' no tiene suficiente saldo (\$${targetAcc.balance.toStringAsFixed(2)}) para cubrir este ingreso (\$${usdAmountNeeded.toStringAsFixed(2)}).";
+                                    }
+                                  }
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (usdAccounts.length > 1)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                                          child: DropdownButtonFormField<String>(
+                                            value: state.selectedExistingBalanceAccountId,
+                                            decoration: InputDecoration(
+                                              labelText: "Selecciona la cuenta donde ya tienes el dinero",
+                                              labelStyle: TextStyle(fontSize: 11),
+                                              isDense: true,
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                            ),
+                                            items: usdAccounts.map((a) {
+                                              return DropdownMenuItem(
+                                                value: a.id,
+                                                child: Text("${a.name} (\$${a.balance.toStringAsFixed(2)})", style: TextStyle(fontSize: 12)),
+                                              );
+                                            }).toList(),
+                                            onChanged: (val) {
+                                              setState(() {
+                                                state.selectedExistingBalanceAccountId = val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      if (existingBalanceError != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                                          child: Container(
+                                            padding: EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.expense.withOpacity(0.08),
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: AppColors.expense.withOpacity(0.3)),
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 16),
+                                                SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    existingBalanceError,
+                                                    style: TextStyle(fontSize: 11, color: AppColors.expense, fontWeight: FontWeight.w600, height: 1.3),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                }
+                              ),
+                            ],
                           ],
                         ],
                       ),
@@ -1370,42 +1695,79 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                         );
                       }
                     ),
-                  ],
-                ],
+                  ], // closes if (_states.any...)
+                ], // closes children: [
+              ), // closes Column
               ),
             ),
           ),
-        ),
-          if (_states.length > 2) ...[
-            SizedBox(height: 6),
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.unfold_more, size: 14, color: AppColors.cardSubtitleText.withOpacity(0.6)),
-                  SizedBox(width: 4),
-                  Text(
-                    "Desliza para ver más",
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.cardSubtitleText.withOpacity(0.6),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          SizedBox(height: 16),
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: appState.useSlideToConfirm
-                      ? SlideToConfirmButton(
-                          enabled: _states.any((s) => s.isChecked || s.willSkip),
+        ],
+                Builder(
+                  builder: (context) {
+                    final _states = _profileStates[_currentViewedDb] ?? [];
+                    
+                    bool hasExistingBalanceError = false;
+                    for (var s in _states) {
+                      if (!s.isChecked || !s.useExistingBalance || s.willSkip) continue;
+                      final usdVal = double.tryParse(s.amountController.text.replaceAll(',', '.')) ?? s.occurrence.remainingAmount;
+                      final targetCurr = s.payment.currency;
+                      double usdAmountNeeded = 0.0;
+                      if (targetCurr == CurrencyType.usd) {
+                        usdAmountNeeded = usdVal;
+                      } else if (targetCurr == CurrencyType.bsBCV) {
+                        usdAmountNeeded = appState.bcvRate > 0 ? usdVal / appState.bcvRate : 0.0;
+                      }
+                      
+                      final usdAccounts = appState.accounts.where((a) => a.currency == CurrencyType.usd).toList();
+                      if (usdAccounts.isEmpty) {
+                        hasExistingBalanceError = true;
+                        break;
+                      } else {
+                        final targetAccId = s.selectedExistingBalanceAccountId ?? usdAccounts.first.id;
+                        final targetAcc = appState.accounts.firstWhere((a) => a.id == targetAccId, orElse: () => usdAccounts.first);
+                        if (targetAcc.balance < usdAmountNeeded) {
+                          hasExistingBalanceError = true;
+                          break;
+                        }
+                      }
+                    }
+
+                    final bool isEnabled = _states.any((s) => s.isChecked || s.willSkip) && !hasExistingBalanceError;
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_states.length > 2) ...[
+                          SizedBox(height: 6),
+                          Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.unfold_more, size: 14, color: AppColors.cardSubtitleText.withOpacity(0.6)),
+                                SizedBox(width: 4),
+                                Text(
+                                  "Desliza para ver más",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.cardSubtitleText.withOpacity(0.6),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: 16),
+                        Column(
+                          children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: appState.useSlideToConfirm
+                              ? SlideToConfirmButton(
+                                  enabled: isEnabled,
                           label: "Desliza para registrar",
                           onConfirmed: () async {
+                            final _states = _profileStates[_currentViewedDb] ?? [];
                             final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
                             if (selected.isEmpty) return;
 
@@ -1460,9 +1822,10 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                           },
                         )
                       : ElevatedButton(
-                          onPressed: _states.any((s) => s.isChecked || s.willSkip)
+                          onPressed: isEnabled && !_isLoading
                               ? () async {
                                   // Confirm and register all selected
+                                  final _states = _profileStates[_currentViewedDb] ?? [];
                                   final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
                                   if (selected.isEmpty) return;
 
@@ -1537,14 +1900,28 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                       child: OutlinedButton(
                         onPressed: () async {
                           // Skip all selected items today (mark as confirmed in database)
+                          final _states = _profileStates[_currentViewedDb] ?? [];
                           final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
                           if (selected.isEmpty) return;
+                          
+                          // Switch profile if necessary
+                          if (_currentViewedDb != null && appState.activeDbName != _currentViewedDb) {
+                            if (context.mounted) {
+                              setState(() => _isLoading = true);
+                            }
+                            await appState.switchProfile(_currentViewedDb!);
+                            if (context.mounted) {
+                              setState(() => _isLoading = false);
+                            }
+                          }
+                          
                           for (var s in selected) {
                             await appState.dismissRecurringPaymentToday(s.payment, occurrenceDate: s.occurrence.occurrenceDate);
                           }
                           if (context.mounted) {
+                            final messenger = ScaffoldMessenger.of(context);
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.showSnackBar(
                               SnackBar(content: Text("Cobros/pagos omitidos por hoy")),
                             );
                           }
@@ -1585,10 +1962,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                     ),
                   ],
                 ),
+                  ],
+                ),
               ],
-            ),
-            ],
-          ],
+            );
+          },
+        ),
+      ],
         ),
       ),
     );
@@ -1603,6 +1983,8 @@ class _PendingPaymentState {
   late final TextEditingController rateController;
   bool showCustomAmount = false;
   bool willSkip = false;
+  bool useExistingBalance = false;
+  String? selectedExistingBalanceAccountId;
 
   RecurringPayment get payment => occurrence.payment;
 
@@ -1666,38 +2048,22 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              "El saldo en '${targetAccount.name}' (${targetAccount.balance.toStringAsFixed(2)} ${targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados (Déficit consolidado de $deficitFormatted).\n\nNo tienes otras cuentas con fondos disponibles para realizar una transferencia. ¿Deseas registrar los pagos de todas formas?",
+              "El saldo en '${targetAccount.name}' (${targetAccount.balance.toStringAsFixed(2)} ${targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados (Déficit consolidado de $deficitFormatted).\n\nNo tienes otras cuentas con fondos disponibles para realizar una transferencia. Por favor, agrega fondos a tus cuentas primero para poder proceder.",
               style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText, height: 1.4),
             ),
             SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.cardSubtitleText,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: Text("Cancelar", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                  ),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.cardSubtitleText,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  side: BorderSide(color: Colors.black.withOpacity(0.08)),
+                  padding: EdgeInsets.symmetric(vertical: 14),
                 ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: Text("Registrar de todas formas", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
+                child: Text("Cerrar", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
             ),
           ],
         ),
@@ -1727,6 +2093,8 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
   late Account selectedSource;
   late String selectedRateType;
   late final TextEditingController customRateController;
+  late final TextEditingController customAmountController;
+  bool _amountEditedByUser = false;
 
   @override
   void initState() {
@@ -1734,12 +2102,39 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
     selectedSource = widget.sourceAccounts.first;
     selectedRateType = 'parallel'; // default to parallel/P2P
     customRateController = TextEditingController(text: widget.appState.bcvRate.toStringAsFixed(2));
+    customAmountController = TextEditingController();
+    _updateDefaultAmount();
   }
 
   @override
   void dispose() {
     customRateController.dispose();
+    customAmountController.dispose();
     super.dispose();
+  }
+
+  double _getActiveRate() {
+    if (selectedRateType == 'parallel') return widget.appState.parallelRate;
+    if (selectedRateType == 'bcv') return widget.appState.bcvRate;
+    if (selectedRateType == 'euro') return widget.appState.euroRate;
+    if (selectedRateType == 'custom') return double.tryParse(customRateController.text) ?? widget.appState.bcvRate;
+    return widget.appState.bcvRate;
+  }
+
+  void _updateDefaultAmount() {
+    if (_amountEditedByUser) return;
+    double activeRate = _getActiveRate();
+    double requiredSourceAmt = widget.deficit;
+    bool isCrossCurrency = widget.targetAccount.currency != selectedSource.currency;
+
+    if (isCrossCurrency) {
+      if (selectedSource.currency == CurrencyType.usd) {
+        requiredSourceAmt = activeRate > 0 ? widget.deficit / activeRate : 0.0;
+      } else {
+        requiredSourceAmt = widget.deficit * activeRate;
+      }
+    }
+    customAmountController.text = requiredSourceAmt.toStringAsFixed(2);
   }
 
   @override
@@ -1749,34 +2144,41 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
         : "${widget.deficit.toStringAsFixed(2)} Bs.";
 
     // Determine rate to use based on selected type
-    double activeRate = widget.appState.bcvRate;
-    if (selectedRateType == 'parallel') {
-      activeRate = widget.appState.parallelRate;
-    } else if (selectedRateType == 'bcv') {
-      activeRate = widget.appState.bcvRate;
-    } else if (selectedRateType == 'euro') {
-      activeRate = widget.appState.euroRate;
-    } else if (selectedRateType == 'custom') {
-      activeRate = double.tryParse(customRateController.text) ?? widget.appState.bcvRate;
-    }
-
-    // Calculate source amount to deduct
-    double requiredSourceAmt = widget.deficit;
+    double activeRate = _getActiveRate();
     bool isCrossCurrency = widget.targetAccount.currency != selectedSource.currency;
 
+    // Source amount comes from the controller
+    double inputSourceAmt = double.tryParse(customAmountController.text) ?? 0.0;
+    
+    // Calculate how much the target account will actually receive
+    double targetAmt = inputSourceAmt;
     if (isCrossCurrency) {
       if (selectedSource.currency == CurrencyType.usd) {
-        // Bs deficit -> USD source
-        requiredSourceAmt = activeRate > 0 ? widget.deficit / activeRate : 0.0;
+        // Source is USD, target is Bs
+        targetAmt = inputSourceAmt * activeRate;
       } else {
-        // USD deficit -> Bs source
-        requiredSourceAmt = widget.deficit * activeRate;
+        // Source is Bs, target is USD
+        targetAmt = activeRate > 0 ? inputSourceAmt / activeRate : 0.0;
       }
     }
 
     final sourceAmtFormatted = selectedSource.currency == CurrencyType.usd
-        ? "\$${requiredSourceAmt.toStringAsFixed(2)}"
-        : "${requiredSourceAmt.toStringAsFixed(2)} Bs.";
+        ? "\$${inputSourceAmt.toStringAsFixed(2)}"
+        : "${inputSourceAmt.toStringAsFixed(2)} Bs.";
+
+    final targetAmtFormatted = widget.targetAccount.currency == CurrencyType.usd
+        ? "\$${targetAmt.toStringAsFixed(2)}"
+        : "${targetAmt.toStringAsFixed(2)} Bs.";
+
+    bool hasInsufficientFunds = inputSourceAmt > selectedSource.balance;
+    bool isAmountTooSmall = targetAmt < (widget.deficit - 0.01);
+
+    String? errorText;
+    if (hasInsufficientFunds) {
+      errorText = "Saldo insuficiente en cuenta origen";
+    } else if (isAmountTooSmall) {
+      errorText = "El monto no cubre el déficit";
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -1849,6 +2251,7 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 if (acc != null) {
                   setState(() {
                     selectedSource = acc;
+                    _updateDefaultAmount();
                   });
                 }
               },
@@ -1889,6 +2292,7 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   if (val != null) {
                     setState(() {
                       selectedRateType = val;
+                      _updateDefaultAmount();
                     });
                   }
                 },
@@ -1905,11 +2309,35 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (val) {
-                    setState(() {});
+                    setState(() {
+                      _updateDefaultAmount();
+                    });
                   },
                 ),
               ],
             ],
+            SizedBox(height: 12),
+            Text(
+              "Monto a transferir (origen):",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+            ),
+            SizedBox(height: 6),
+            TextFormField(
+              controller: customAmountController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                prefixText: selectedSource.currency == CurrencyType.usd ? "\$ " : "Bs. ",
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                errorText: errorText,
+              ),
+              onChanged: (val) {
+                setState(() {
+                  _amountEditedByUser = true;
+                });
+              },
+            ),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
@@ -1926,8 +2354,8 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   Expanded(
                     child: Text(
                       isCrossCurrency
-                          ? "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}' para cubrir el déficit usando la tasa seleccionada (${activeRate.toStringAsFixed(2)} Bs/\$)."
-                          : "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}' para cubrir el déficit.",
+                          ? "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}'. Recibirás $targetAmtFormatted usando la tasa seleccionada (${activeRate.toStringAsFixed(2)} Bs/\$)."
+                          : "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}'. Recibirás $targetAmtFormatted.",
                       style: TextStyle(fontSize: 11.5, color: AppColors.cardText, height: 1.4),
                     ),
                   ),
@@ -1938,12 +2366,12 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: errorText != null ? null : () {
                   Navigator.pop(context, {
                     "action": "transfer",
                     "source": selectedSource,
-                    "sourceAmount": requiredSourceAmt,
-                    "targetAmount": widget.deficit,
+                    "sourceAmount": inputSourceAmt,
+                    "targetAmount": targetAmt,
                     "rate": activeRate,
                   });
                 },
@@ -1954,20 +2382,6 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   padding: EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: Text("Transferir y Registrar", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context, {"action": "pay_only"}),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.expense,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: BorderSide(color: AppColors.expense, width: 1.2),
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text("Registrar sin transferir", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ),
             ),
             SizedBox(height: 8),

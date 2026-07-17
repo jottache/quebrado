@@ -151,7 +151,7 @@ class NotificationManager {
     }
 
     // Map UUID hashcode to integer notification ID
-    final int notificationId = subscription.id.hashCode;
+    final int notificationId = subscription.id.hashCode & 0x7FFFFFFF;
 
     // Convert DateTime to TZDateTime for local timezone scheduling
     final tz.TZDateTime tzNotificationDate = tz.TZDateTime.from(notificationDate, tz.local);
@@ -183,7 +183,7 @@ class NotificationManager {
           ? (subscription.type == TransactionType.income ? 'Cobro programado hoy' : 'Pago programado hoy')
           : (subscription.type == TransactionType.income ? 'Ingreso programado hoy' : 'Gasto programado hoy');
       await _notificationsPlugin.zonedSchedule(
-        subscription.id.hashCode + 2, // distinct ID for due day reminder
+        (subscription.id.hashCode & 0x7FFFFFFF) + 2, // distinct ID for due day reminder
         dueTitle,
         'Hoy corresponde registrar: ${subscription.name} ($amountFormatted)',
         tzDueDate,
@@ -196,7 +196,7 @@ class NotificationManager {
 
   /// Cancels any scheduled notification for a subscription.
   Future<void> cancelNotification(RecurringPayment subscription) async {
-    final int notificationId = subscription.id.hashCode;
+    final int notificationId = subscription.id.hashCode & 0x7FFFFFFF;
     await _notificationsPlugin.cancel(notificationId);
     await _notificationsPlugin.cancel(notificationId + 2); // Cancel due day reminder too
   }
@@ -230,7 +230,7 @@ class NotificationManager {
         : (payment.type == TransactionType.income ? '¡Ingreso programado hoy!' : '¡Gasto programado hoy!');
 
     await _notificationsPlugin.show(
-      payment.id.hashCode + 1, // distinct ID for immediate
+      (payment.id.hashCode & 0x7FFFFFFF) + 1, // distinct ID for immediate
       immediateTitle,
       'Es momento de registrar: ${payment.name} ($amountFormatted)',
       platformChannelSpecifics,

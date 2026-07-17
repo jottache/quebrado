@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../viewmodels/app_state.dart';
 import '../models/timeline_event.dart';
+import '../models/timeline_day_summary.dart';
 import '../models/currency_type.dart';
 import '../models/transaction.dart';
 import '../theme/colors.dart';
@@ -1711,13 +1712,140 @@ class _TimelineScreenState extends State<TimelineScreen> {
     // Build grouped list items
     final List<dynamic> listItems = [];
     String? currentHeader;
-    for (final event in filteredEvents) {
+
+    double dayIncomeNativeUSD = 0;
+    double dayIncomeNativeBs = 0;
+    double dayIncomeBsConvertedUsd = 0;
+    double dayIncomeNativeEur = 0;
+    double dayIncomeEurConvertedUsd = 0;
+    
+    double dayExpenseNativeUSD = 0;
+    double dayExpenseNativeBs = 0;
+    double dayExpenseBsConvertedUsd = 0;
+    double dayExpenseNativeEur = 0;
+    double dayExpenseEurConvertedUsd = 0;
+    
+    double dayPocketUSD = 0;
+    double finalBalanceUSD = 0;
+    double finalLiquidBalanceUSD = 0;
+
+    for (int i = 0; i < filteredEvents.length; i++) {
+      final event = filteredEvents[i];
       final header = _getDateHeader(event.date);
+
       if (header != currentHeader) {
+        if (currentHeader != null) {
+          listItems.add(TimelineDaySummaryEvent(
+            incomeNativeUSD: dayIncomeNativeUSD,
+            incomeNativeBs: dayIncomeNativeBs,
+            incomeBsConvertedUsd: dayIncomeBsConvertedUsd,
+            incomeNativeEur: dayIncomeNativeEur,
+            incomeEurConvertedUsd: dayIncomeEurConvertedUsd,
+            expenseNativeUSD: dayExpenseNativeUSD,
+            expenseNativeBs: dayExpenseNativeBs,
+            expenseBsConvertedUsd: dayExpenseBsConvertedUsd,
+            expenseNativeEur: dayExpenseNativeEur,
+            expenseEurConvertedUsd: dayExpenseEurConvertedUsd,
+            pocketUSD: dayPocketUSD,
+            finalBalanceUSD: finalBalanceUSD,
+            finalLiquidBalanceUSD: finalLiquidBalanceUSD,
+          ));
+        }
+
         currentHeader = header;
         listItems.add(header);
+        
+        // Reset counters
+        dayIncomeNativeUSD = 0;
+        dayIncomeNativeBs = 0;
+        dayIncomeBsConvertedUsd = 0;
+        dayIncomeNativeEur = 0;
+        dayIncomeEurConvertedUsd = 0;
+        
+        dayExpenseNativeUSD = 0;
+        dayExpenseNativeBs = 0;
+        dayExpenseBsConvertedUsd = 0;
+        dayExpenseNativeEur = 0;
+        dayExpenseEurConvertedUsd = 0;
+        
+        dayPocketUSD = 0;
       }
+
+      finalBalanceUSD = event.projectedBalanceUSD;
+      finalLiquidBalanceUSD = event.projectedLiquidBalanceUSD;
+
+      double amountNativeUSD = 0.0;
+      double amountNativeBs = 0.0;
+      double amountBsConvertedUsd = 0.0;
+      double amountNativeEur = 0.0;
+      double amountEurConvertedUsd = 0.0;
+
+      // Determine target currency (if account is present, use its currency, else use event currency)
+      var targetCurrency = event.currency;
+      if (event.accountName != null) {
+        try {
+          final targetAcc = appState.accounts.firstWhere((a) => a.name == event.accountName);
+          targetCurrency = targetAcc.currency;
+        } catch (_) {}
+      }
+
+      // 1. Calculate the amount in USD based on the event's original currency.
+      double eventAmountInUSD = 0.0;
+      if (event.currency == CurrencyType.usd) {
+        eventAmountInUSD = event.amount;
+      } else if (event.currency == CurrencyType.bsBCV) {
+        eventAmountInUSD = appState.bcvRate > 0 ? event.amount / appState.bcvRate : 0.0;
+      } else if (event.currency == CurrencyType.eur) {
+        eventAmountInUSD = appState.euroRate > 0 ? event.amount / appState.euroRate : 0.0;
+      }
+
+      // 2. Allocate it to the correct target bucket based on targetCurrency.
+      if (targetCurrency == CurrencyType.usd) {
+        amountNativeUSD = eventAmountInUSD;
+      } else if (targetCurrency == CurrencyType.bsBCV) {
+        amountNativeBs = eventAmountInUSD * appState.bcvRate;
+        amountBsConvertedUsd = eventAmountInUSD;
+      } else if (targetCurrency == CurrencyType.eur) {
+        amountNativeEur = eventAmountInUSD * appState.euroRate;
+        amountEurConvertedUsd = eventAmountInUSD;
+      }
+
+      if (event.isSuggestion) {
+        // Pockets logic currently aggregates all converted to USD
+        dayPocketUSD += eventAmountInUSD;
+      } else if (event.type == TransactionType.income) {
+        dayIncomeNativeUSD += amountNativeUSD;
+        dayIncomeNativeBs += amountNativeBs;
+        dayIncomeBsConvertedUsd += amountBsConvertedUsd;
+        dayIncomeNativeEur += amountNativeEur;
+        dayIncomeEurConvertedUsd += amountEurConvertedUsd;
+      } else if (event.type == TransactionType.expense) {
+        dayExpenseNativeUSD += amountNativeUSD;
+        dayExpenseNativeBs += amountNativeBs;
+        dayExpenseBsConvertedUsd += amountBsConvertedUsd;
+        dayExpenseNativeEur += amountNativeEur;
+        dayExpenseEurConvertedUsd += amountEurConvertedUsd;
+      }
+
       listItems.add(event);
+    }
+    
+    if (currentHeader != null) {
+      listItems.add(TimelineDaySummaryEvent(
+        incomeNativeUSD: dayIncomeNativeUSD,
+        incomeNativeBs: dayIncomeNativeBs,
+        incomeBsConvertedUsd: dayIncomeBsConvertedUsd,
+        incomeNativeEur: dayIncomeNativeEur,
+        incomeEurConvertedUsd: dayIncomeEurConvertedUsd,
+        expenseNativeUSD: dayExpenseNativeUSD,
+        expenseNativeBs: dayExpenseNativeBs,
+        expenseBsConvertedUsd: dayExpenseBsConvertedUsd,
+        expenseNativeEur: dayExpenseNativeEur,
+        expenseEurConvertedUsd: dayExpenseEurConvertedUsd,
+        pocketUSD: dayPocketUSD,
+        finalBalanceUSD: finalBalanceUSD,
+        finalLiquidBalanceUSD: finalLiquidBalanceUSD,
+      ));
     }
 
     int firstEventIndex = -1;
@@ -1734,222 +1862,229 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
     const periodTitle = "1 Año";
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Safe to Save Card - Flat White Card with black/teal contrast to match design
-        Showcase(
-          key: _dineroSeguroKey,
-          title: "Dinero Seguro y Límites",
-          description: "Muestra tu 'Dinero Seguro', que es el dinero disponible actual libre de obligaciones. Si tu saldo cae por debajo de cero en el futuro, verás una meta diaria recomendada para cubrir el déficit.",
-          child: ClaymorphicCard(
-            cornerRadius: 24,
-            padding: EdgeInsets.all(20.0),
-            backgroundColor: AppColors.cardBackground,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.shield_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "Planificación de Dinero Seguro",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.cardText,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.info_outline_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      onPressed: () => _showTimelineInfo(context),
-                      constraints: BoxConstraints(),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.15),
-                      width: 1,
-                    ),
-                  ),
+    return SliverList.builder(
+      itemCount: listItems.isEmpty ? 2 : listItems.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Safe to Save Card - Flat White Card with black/teal contrast to match design
+              Showcase(
+                key: _dineroSeguroKey,
+                title: "Dinero Seguro y Límites",
+                description: "Muestra tu 'Dinero Seguro', que es el dinero disponible actual libre de obligaciones. Si tu saldo cae por debajo de cero en el futuro, verás una meta diaria recomendada para cubrir el déficit.",
+                child: ClaymorphicCard(
+                  cornerRadius: 24,
+                  padding: EdgeInsets.all(20.0),
+                  backgroundColor: AppColors.cardBackground,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.monetization_on_rounded,
-                            color: AppColors.primary,
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            "Ahorro o Gasto Libre Extra",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.shield_rounded,
                               color: AppColors.primary,
+                              size: 20,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "Planificación de Dinero Seguro",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.cardText,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.info_outline_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                            onPressed: () => _showTimelineInfo(context),
+                            constraints: BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.15),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.monetization_on_rounded,
+                                  color: AppColors.primary,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Ahorro o Gasto Libre Extra",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              formatUSD(maxToSave),
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Dinero adicional que puedes ahorrar en tus bolsillos o gastar libremente en antojos hoy sin afectar tus pagos planificados.",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.cardSubtitleText,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        safeAmount < 0
+                            ? "¡Alerta de déficit! Tu dinero proyectado caerá por debajo de cero, llegando a ${formatUSD(safeAmount)} el ${formatDate(minDate!)} debido al compromiso '$minReason'. No deberías ahorrar ni realizar gastos discrecionales hasta solucionar este déficit."
+                            : (minDate != null
+                                  ? "El simulador YA reservó el dinero para tus pagos futuros (incluyendo '$minReason' y demás compromisos del ${formatDate(minDate)}). Estos límites representan dinero ADICIONAL y LIBRE que puedes ahorrar o gastar en antojos hoy sin arriesgar tus pagos."
+                                  : (appState.recurringPayments.any(
+                                          (p) => p.type == TransactionType.expense,
+                                        )
+                                        ? "Tienes gastos programados, pero tus ingresos proyectados los cubren por completo. ¡Es seguro destinar tu dinero disponible actual al ahorro en bolsillos o a gastos libres!"
+                                        : "No tienes gastos programados en tu agenda. ¡Es seguro destinar todo tu dinero disponible actual al ahorro en bolsillos o a gastos libres!")),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.cardSubtitleText,
+                          height: 1.4,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      PurchaseSimulationBottomSheet(),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.shopping_cart_checkout_rounded,
+                                size: 18,
+                              ),
+                              label: Text("Simular"),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor: AppColors.primary.withOpacity(0.08),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: TextButton.icon(
+                              onPressed: () => _showTimelineSummaryBottomSheet(context),
+                              icon: Icon(Icons.analytics_outlined, size: 18),
+                              label: Text("Resumen"),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor: AppColors.primary.withOpacity(0.08),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 12),
-                      Text(
-                        formatUSD(maxToSave),
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Dinero adicional que puedes ahorrar en tus bolsillos o gastar libremente en antojos hoy sin afectar tus pagos planificados.",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.cardSubtitleText,
-                          height: 1.3,
-                        ),
-                      ),
                     ],
                   ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  safeAmount < 0
-                      ? "¡Alerta de déficit! Tu dinero proyectado caerá por debajo de cero, llegando a ${formatUSD(safeAmount)} el ${formatDate(minDate!)} debido al compromiso '$minReason'. No deberías ahorrar ni realizar gastos discrecionales hasta solucionar este déficit."
-                      : (minDate != null
-                            ? "El simulador YA reservó el dinero para tus pagos futuros (incluyendo '$minReason' y demás compromisos del ${formatDate(minDate)}). Estos límites representan dinero ADICIONAL y LIBRE que puedes ahorrar o gastar en antojos hoy sin arriesgar tus pagos."
-                            : (appState.recurringPayments.any(
-                                    (p) => p.type == TransactionType.expense,
-                                  )
-                                  ? "Tienes gastos programados, pero tus ingresos proyectados los cubren por completo. ¡Es seguro destinar tu dinero disponible actual al ahorro en bolsillos o a gastos libres!"
-                                  : "No tienes gastos programados en tu agenda. ¡Es seguro destinar todo tu dinero disponible actual al ahorro en bolsillos o a gastos libres!")),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.cardSubtitleText,
-                    height: 1.4,
-                  ),
-                ),
+              ),
+              if (safeAmount < 0 && minDate != null) ...[
                 SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) =>
-                                PurchaseSimulationBottomSheet(),
-                          );
-                        },
-                        icon: Icon(
-                          Icons.shopping_cart_checkout_rounded,
-                          size: 18,
-                        ),
-                        label: Text("Simular"),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: AppColors.primary.withOpacity(0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => _showTimelineSummaryBottomSheet(context),
-                        icon: Icon(Icons.analytics_outlined, size: 18),
-                        label: Text("Resumen"),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: AppColors.primary.withOpacity(0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                _buildSalesGoalCard(context, safeAmount, minDate, minReason ?? ''),
               ],
-            ),
-          ),
-        ),
-        if (safeAmount < 0 && minDate != null) ...[
-          SizedBox(height: 16),
-          _buildSalesGoalCard(context, safeAmount, minDate, minReason ?? ''),
-        ],
-        SizedBox(height: 24),
+              SizedBox(height: 24),
 
-        // Timeline header
-        Row(
-          children: [
-            Container(
-              width: 4,
-              height: 16,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
+              // Timeline header
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Timeline de Proyección ($periodTitle)",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.cardText,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            SizedBox(width: 8),
-            Text(
-              "Timeline de Proyección ($periodTitle)",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: AppColors.cardText,
-                letterSpacing: 0.5,
+              SizedBox(height: 12),
+
+              // Filters UI
+              Showcase(
+                key: _filterTimelineKey,
+                title: "Filtros de Proyección",
+                description: "Filtra el listado por ingresos, gastos o 'Sugerencias'. Las Sugerencias son recomendaciones automáticas que te indican cuándo y cuánto transferir a tus bolsillos de ahorro para pre-fondear cuotas futuras y proteger tu saldo líquido.",
+                child: _buildFilterChips(),
               ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12),
+              SizedBox(height: 12),
+            ]
+          );
+        }
 
-        // Filters UI
-        Showcase(
-          key: _filterTimelineKey,
-          title: "Filtros de Proyección",
-          description: "Filtra el listado por ingresos, gastos o 'Sugerencias'. Las Sugerencias son recomendaciones automáticas que te indican cuándo y cuánto transferir a tus bolsillos de ahorro para pre-fondear cuotas futuras y proteger tu saldo líquido.",
-          child: _buildFilterChips(),
-        ),
-        SizedBox(height: 12),
-
-        if (filteredEvents.isEmpty)
-          Showcase(
+        if (filteredEvents.isEmpty) {
+          return Showcase(
             key: _timelineListKey,
             title: "Agenda de Proyección Futura",
             description: "Aquí verás la evolución de tus saldos día a día. Actualmente está vacía porque no tienes obligaciones recurrentes registradas. Cuando agregues cobros o pagos programados en la pestaña 'Recurrentes', verás el flujo proyectado y sugerencias inteligentes de ahorro.",
@@ -1999,93 +2134,167 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 ],
               ),
             ),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: listItems.length,
-            itemBuilder: (context, index) {
-              final item = listItems[index];
-              if (item is String) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    top: 20.0,
-                    bottom: 8.0,
-                    left: 4.0,
-                    right: 4.0,
+          );
+        }
+
+        final listIndex = index - 1;
+        final item = listItems[listIndex];
+        if (item is String) {
+          return Padding(
+            padding: EdgeInsets.only(
+              top: 20.0,
+              bottom: 8.0,
+              left: 4.0,
+              right: 4.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      item,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.more_horiz_rounded,
+                    color: AppColors.primary,
+                    size: 20,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            item,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.primary,
-                              letterSpacing: 0.5,
-                            ),
+                  onPressed: () {
+                    final dayEvents = events
+                        .where((e) => _getDateHeader(e.date) == item)
+                        .toList();
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => DayActionsBottomSheet(
+                        headerText: item,
+                        dayEvents: dayEvents,
+                      ),
+                    );
+                  },
+                  constraints: BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          );
+        } else if (item is TimelineDaySummaryEvent) {
+          return Padding(
+            padding: EdgeInsets.only(top: 8, bottom: 24),
+            child: Row(
+              children: [
+                SizedBox(width: 48), // 40 (timeline) + 8 (spacing in TimelineEventRow)
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Resumen del Día", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                        SizedBox(height: 8),
+                        
+                        // Ingresos
+                        if (item.incomeNativeUSD > 0 || item.incomeNativeBs > 0 || item.incomeNativeEur > 0) ...[
+                          Text("Ingresos:", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                          if (item.incomeNativeUSD > 0)
+                            Text("  - USD: \$${item.incomeNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
+                          if (item.incomeNativeBs > 0)
+                            Text("  - Bs: ${item.incomeNativeBs.toStringAsFixed(2)} (BCV: \$${item.incomeBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
+                          if (item.incomeNativeEur > 0)
+                            Text("  - EUR: ${item.incomeNativeEur.toStringAsFixed(2)} (BCV: \$${item.incomeEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
+                          SizedBox(height: 6),
+                        ],
+
+                        // Gastos
+                        if (item.expenseNativeUSD > 0 || item.expenseNativeBs > 0 || item.expenseNativeEur > 0) ...[
+                          Text("Gastos:", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                          if (item.expenseNativeUSD > 0)
+                            Text("  - USD: \$${item.expenseNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                          if (item.expenseNativeBs > 0)
+                            Text("  - Bs: ${item.expenseNativeBs.toStringAsFixed(2)} (BCV: \$${item.expenseBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                          if (item.expenseNativeEur > 0)
+                            Text("  - EUR: ${item.expenseNativeEur.toStringAsFixed(2)} (BCV: \$${item.expenseEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                          SizedBox(height: 6),
+                        ],
+
+                        if (item.pocketUSD > 0) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Bolsillos (Sugerido):", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                              Text("\$${item.pocketUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
+                            ],
                           ),
                         ],
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.more_horiz_rounded,
-                          color: AppColors.primary,
-                          size: 20,
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Container(height: 1, color: AppColors.primary.withOpacity(0.1)),
                         ),
-                        onPressed: () {
-                          final dayEvents = events
-                              .where((e) => _getDateHeader(e.date) == item)
-                              .toList();
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => DayActionsBottomSheet(
-                              headerText: item,
-                              dayEvents: dayEvents,
-                            ),
-                          );
-                        },
-                        constraints: BoxConstraints(),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Balance General Final:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                            Text("\$${item.finalBalanceUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Dinero Libre Final:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                            Text("\$${item.finalLiquidBalanceUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              } else {
-                final event = item as TimelineEvent;
-                final row = TimelineEventRow(
-                  event: event,
-                  isFirst: index == firstEventIndex,
-                  isLast: index == lastEventIndex,
-                );
-                if (index == firstEventIndex) {
-                  return Showcase(
-                    key: _timelineListKey,
-                    title: "Agenda de Proyección Futura",
-                    description: "Esta lista detalla cronológicamente cómo afectarán tus cobros y pagos programados al saldo de tus cuentas. También verás sugerencias automáticas del simulador para transferir fondos a tus bolsillos y evitar saldo negativo.",
-                    child: row,
-                  );
-                }
-                return row;
-              }
-            },
-          ),
-      ],
+                ),
+              ],
+            ),
+          );
+        } else {
+          final event = item as TimelineEvent;
+          final row = TimelineEventRow(
+            event: event,
+            isFirst: listIndex == firstEventIndex,
+            isLast: listIndex == lastEventIndex,
+          );
+          if (listIndex == firstEventIndex) {
+            return Showcase(
+              key: _timelineListKey,
+              title: "Agenda de Proyección Futura",
+              description: "Esta lista detalla cronológicamente cómo afectarán tus cobros y pagos programados al saldo de tus cuentas. También verás sugerencias automáticas del simulador para transferir fondos a tus bolsillos y evitar saldo negativo.",
+              child: row,
+            );
+          }
+          return row;
+        }
+      },
     );
   }
 }

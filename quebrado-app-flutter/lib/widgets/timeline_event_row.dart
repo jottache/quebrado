@@ -467,7 +467,59 @@ class TimelineEventRow extends StatelessWidget {
                                       ? "Ingreso Programado"
                                       : "Gasto/Deuda Programada")),
                       ),
-                      if (event.accountName != null)
+                      if (event.isSuggestion && event.recurringPaymentId == null && event.suggestionReasons != null && event.suggestionReasons!.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Motivo sugerido",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.cardSubtitleText,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              ...event.suggestionReasons!.map((reason) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          reason.name,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.cardText,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ),
+                                      if (reason.detail.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 8.0),
+                                          child: Text(
+                                            reason.detail,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.cardText,
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        )
+                      else if (event.accountName != null)
                         _buildDetailRow(
                           event.isSuggestion
                               ? (event.recurringPaymentId != null
@@ -694,7 +746,7 @@ class TimelineEventRow extends StatelessWidget {
                         change = -change;
                       }
 
-                      if (targetAccount.balance + change < 0) {
+                      if (targetAccount.balance + change < 0 || isIncome) {
                         // Fallback to PendingConfirmationsBottomSheet
                         if (btnCtx.mounted) {
                           Navigator.pop(btnCtx);
@@ -713,10 +765,11 @@ class TimelineEventRow extends StatelessWidget {
                         }
                       } else {
                         // Register directly!
+                        bool isLast = false;
                         if (needsConversion) {
                           final double rateVal = appState.bcvRate;
                           final convertedAmt = (payment.amount - partialPaid) * rateVal;
-                          await appState.confirmRecurringPayment(
+                          isLast = await appState.confirmRecurringPayment(
                             payment: payment,
                             actualAmount: convertedAmt,
                             occurrenceDate: event.date,
@@ -725,7 +778,7 @@ class TimelineEventRow extends StatelessWidget {
                             customNote: "Confirmado: ${payment.name} (\$${(payment.amount - partialPaid).toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)",
                           );
                         } else {
-                          await appState.confirmRecurringPayment(
+                          isLast = await appState.confirmRecurringPayment(
                             payment: payment,
                             actualAmount: actualAmt,
                             occurrenceDate: event.date,
@@ -733,9 +786,41 @@ class TimelineEventRow extends StatelessWidget {
                         }
                         if (btnCtx.mounted) {
                           Navigator.pop(btnCtx);
-                          ScaffoldMessenger.of(btnCtx).showSnackBar(
-                            SnackBar(content: Text("Registro agregado al historial")),
-                          );
+                          if (isLast) {
+                            showDialog(
+                              context: btnCtx,
+                              builder: (ctx) => AlertDialog(
+                                title: Text("Última Cuota", style: TextStyle(fontWeight: FontWeight.bold)),
+                                content: Text("Has registrado la última cuota de este pago/ingreso recurrente. ¿Deseas eliminar este registro de la lista de pagos por cuotas?"),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                        SnackBar(content: Text("Registro agregado al historial.")),
+                                      );
+                                    },
+                                    child: Text("Mantener", style: TextStyle(color: Colors.grey[700])),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      appState.deleteRecurringPayment(payment.id);
+                                      Navigator.pop(ctx);
+                                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                        SnackBar(content: Text("Pago recurrente eliminado y registro agregado.")),
+                                      );
+                                    },
+                                    child: Text("Eliminar", style: TextStyle(color: AppColors.expense, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(btnCtx).showSnackBar(
+                              SnackBar(content: Text("Registro agregado al historial")),
+                            );
+                          }
                         }
                       }
                     }

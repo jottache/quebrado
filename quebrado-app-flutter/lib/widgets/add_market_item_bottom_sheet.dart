@@ -143,18 +143,6 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
 
     final String productName = _nameController.text.trim();
 
-    final item = MarketItem(
-      id: Uuid().v4(),
-      name: productName,
-      category: _selectedCategory!,
-      priceUSD: usd,
-      priceVES: ves,
-      exchangeRateUsed: rate,
-      storeId: _selectedStoreId!,
-      tripId: widget.tripId,
-      date: DateTime.now(),
-    );
-
     final appState = Provider.of<AppState>(context, listen: false);
     
     // Check if the product already exists in the catalogue (case-insensitive)
@@ -162,8 +150,11 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
       (p) => p.name.toLowerCase() == productName.toLowerCase()
     );
 
+    String assignedProductId;
+
     if (matches.isNotEmpty) {
       final existingProduct = matches.first;
+      assignedProductId = existingProduct.id;
       bool updated = false;
       
       // Associate with current store if not already present
@@ -189,8 +180,9 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
       }
     } else {
       // Create and save new product to catalogue
+      assignedProductId = Uuid().v4();
       final newProduct = MarketProduct(
-        id: Uuid().v4(),
+        id: assignedProductId,
         name: productName,
         category: _selectedCategory!,
         storeIds: [_selectedStoreId!],
@@ -198,6 +190,19 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
       );
       await appState.addMarketProduct(newProduct);
     }
+
+    final item = MarketItem(
+      id: Uuid().v4(),
+      name: productName,
+      category: _selectedCategory!,
+      priceUSD: usd,
+      priceVES: ves,
+      exchangeRateUsed: rate,
+      storeId: _selectedStoreId!,
+      tripId: widget.tripId,
+      productId: assignedProductId,
+      date: DateTime.now(),
+    );
 
     appState.addMarketItem(item);
     if (mounted) {
@@ -427,8 +432,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
-                            prefixText: "\$ ",
-                            hintText: "0.00",
+                            hintText: "0.00 \$",
                             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
                             contentPadding: EdgeInsets.all(12),
                             filled: true,
@@ -458,8 +462,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
-                            prefixText: "Bs ",
-                            hintText: "0.00",
+                            hintText: "0.00 Bs.",
                             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
                             contentPadding: EdgeInsets.all(12),
                             filled: true,

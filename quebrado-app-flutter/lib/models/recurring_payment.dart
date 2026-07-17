@@ -23,7 +23,7 @@ enum SubscriptionFrequency {
       case SubscriptionFrequency.yearly:
         return "Anual";
       case SubscriptionFrequency.fifteenDays:
-        return "Quincenal (15 y último)";
+        return "Quincenal";
       case SubscriptionFrequency.threeMonths:
         return "Cada 3 meses";
       case SubscriptionFrequency.custom:

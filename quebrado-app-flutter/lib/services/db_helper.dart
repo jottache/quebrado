@@ -9,6 +9,7 @@ import '../models/transaction_category.dart';
 import '../models/transaction.dart';
 import '../models/exchange_rate_record.dart';
 import '../models/recurring_payment.dart';
+import '../models/recurring_payment_partial.dart';
 import '../models/account.dart';
 import '../models/mobile_payment_recipient.dart';
 import '../models/currency_type.dart';
@@ -49,11 +50,15 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 19,
+      version: 21,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
     );
+  }
+
+  Future<Database> initProfileDb(String profileId) async {
+    return await _initDB(profileId);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -361,6 +366,39 @@ class DatabaseHelper {
         // Handle migration gracefully
       }
     }
+    if (oldVersion < 20) {
+      try {
+        await db.execute('ALTER TABLE market_items ADD COLUMN product_id TEXT');
+        // Migrate existing items by matching product name
+        final List<Map<String, dynamic>> items = await db.query('market_items');
+        final List<Map<String, dynamic>> products = await db.query('market_products');
+        for (var item in items) {
+          final String itemName = item['name'] as String;
+          // Find matching product
+          final matchingProduct = products.firstWhere(
+            (p) => (p['name'] as String).toLowerCase() == itemName.toLowerCase(),
+            orElse: () => <String, dynamic>{},
+          );
+          if (matchingProduct.isNotEmpty) {
+            await db.update(
+              'market_items',
+              {'product_id': matchingProduct['id']},
+              where: 'id = ?',
+              whereArgs: [item['id']],
+            );
+          }
+        }
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 21) {
+      try {
+        await db.execute('ALTER TABLE categories ADD COLUMN parent_id TEXT');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
   }
 
   Future _onConfigure(Database db) async {
@@ -408,7 +446,8 @@ class DatabaseHelper {
         icon $textType,
         color_hex $textType,
         type $textType,
-        position INTEGER DEFAULT 0
+        position INTEGER DEFAULT 0,
+        parent_id $textNullable
       )
     ''');
 
@@ -578,6 +617,7 @@ class DatabaseHelper {
         exchange_rate_used $doubleType,
         store_id TEXT NOT NULL,
         trip_id TEXT NOT NULL,
+        product_id TEXT,
         date $textType,
         FOREIGN KEY (store_id) REFERENCES market_stores (id) ON DELETE CASCADE,
         FOREIGN KEY (trip_id) REFERENCES market_trips (id) ON DELETE CASCADE
@@ -741,6 +781,11 @@ class DatabaseHelper {
 
   Future deleteCategory(String id) async {
     final db = await instance.database;
+    await db.delete(
+      'categories',
+      where: 'parent_id = ?',
+      whereArgs: [id],
+    );
     await db.delete(
       'categories',
       where: 'id = ?',
@@ -1056,26 +1101,34 @@ class DatabaseHelper {
   }
 
   Future<List<Account>> getAccountsForProfile(String profileId) async {
-    final dbPath = await _getDbPath();
-    final path = join(dbPath, profileId);
-    
-    // Abrir la base de datos de destino temporalmente
-    final targetDb = await openDatabase(path);
+    // Abrir la base de datos de destino temporalmente con la estructura completa
+    final targetDb = await _initDB(profileId);
     final result = await targetDb.query('accounts');
     await targetDb.close();
     
     return result.map((json) => Account.fromMap(json)).toList();
   }
 
-  Future<void> insertCrossProfileTransaction(String targetProfileId, Transaction tx, Account targetAccount) async {
-    final dbPath = await _getDbPath();
-    final path = join(dbPath, targetProfileId);
+  Future<Map<String, dynamic>> getPendingDataForProfile(String profileId) async {
+    // Abrir la base temporalmente asegurando que su esquema está creado
+    final targetDb = await _initDB(profileId);
     
-    // Abrir la base de datos de destino temporalmente
-    final targetDb = await openDatabase(
-      path,
-      version: 19,
-    );
+    final recList = await targetDb.query('recurring_payments');
+    final confList = await targetDb.query('recurring_payment_confirmations');
+    final partList = await targetDb.query('recurring_payment_partials');
+    
+    await targetDb.close();
+    
+    return {
+      'recurring': recList.map((j) => RecurringPayment.fromMap(j)).toList(),
+      'confirmations': confList,
+      'partials': partList.map((j) => RecurringPaymentPartial.fromMap(j)).toList(),
+    };
+  }
+
+  Future<void> insertCrossProfileTransaction(String targetProfileId, Transaction tx, Account targetAccount) async {
+    // Abrir la base de datos de destino temporalmente con esquema completo
+    final targetDb = await _initDB(targetProfileId);
     
     // Insertar la transacción (Ingreso)
     await targetDb.insert('transactions', tx.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);

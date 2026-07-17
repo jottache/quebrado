@@ -9,6 +9,7 @@ class MarketItem {
   double exchangeRateUsed;
   String storeId;
   String tripId;
+  String? productId;
   DateTime date;
 
   MarketItem({
@@ -20,6 +21,7 @@ class MarketItem {
     required this.exchangeRateUsed,
     required this.storeId,
     required this.tripId,
+    this.productId,
     required this.date,
   });
 
@@ -33,6 +35,7 @@ class MarketItem {
       'exchange_rate_used': exchangeRateUsed,
       'store_id': storeId,
       'trip_id': tripId,
+      'product_id': productId,
       'date': date.toIso8601String(),
     };
   }
@@ -47,6 +50,7 @@ class MarketItem {
       exchangeRateUsed: (map['exchange_rate_used'] as num?)?.toDouble() ?? 0.0,
       storeId: map['store_id'] ?? '',
       tripId: map['trip_id'] ?? '',
+      productId: map['product_id'],
       date: map['date'] != null ? DateTime.parse(map['date']) : DateTime.now(),
     );
   }

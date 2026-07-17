@@ -245,8 +245,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       horizontal: 12,
                       vertical: 10,
                     ),
-                    prefixText: "Bs. ",
-                    hintText: "Ingrese tasa personalizada",
+                    hintText: "Ingrese tasa personalizada Bs.",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.black12),
@@ -774,6 +773,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                           return;
                         }
 
+                        List<RecurringPayment> finishedPayments = [];
+
                         // Verify destination account and if conversion rate is required
                         for (var e in selectedEvents) {
                           final payment = _appState.recurringPayments.firstWhere(
@@ -793,12 +794,13 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
 
                           double usdVal = payment.amount;
                           double actualAmt = payment.amount;
+                          bool isLast = false;
 
                           if (needsConversion) {
                             usdVal = payment.amount - e.partialAmountPaid;
                             actualAmt = usdVal * activeRate;
 
-                            await _appState.confirmRecurringPayment(
+                            isLast = await _appState.confirmRecurringPayment(
                               payment: payment,
                               actualAmount: actualAmt,
                               occurrenceDate: e.date,
@@ -809,16 +811,40 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                             );
                           } else {
                             actualAmt = payment.amount - e.partialAmountPaid;
-                            await _appState.confirmRecurringPayment(
+                            isLast = await _appState.confirmRecurringPayment(
                               payment: payment,
                               actualAmount: actualAmt,
                               occurrenceDate: e.date,
                             );
                           }
+                          if (isLast) finishedPayments.add(payment);
                         }
 
                         if (context.mounted) {
                           Navigator.pop(context);
+                          for (var payment in finishedPayments) {
+                            await showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text("Última Cuota", style: TextStyle(fontWeight: FontWeight.bold)),
+                                content: Text("Has registrado la última cuota de '${payment.name}'. ¿Deseas eliminar este registro de la lista de pagos por cuotas?"),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: Text("Mantener", style: TextStyle(color: Colors.grey[700])),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      _appState.deleteRecurringPayment(payment.id);
+                                      Navigator.pop(ctx);
+                                    },
+                                    child: Text("Eliminar", style: TextStyle(color: AppColors.expense, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(

@@ -159,10 +159,18 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
     Navigator.pop(context);
   }
 
-  void _deletePayment(AppState appState) {
+  void _deletePayment(AppState appState) async {
     if (widget.editingPayment != null) {
-      appState.deleteRecurringPayment(widget.editingPayment!.id);
-      Navigator.pop(context);
+      try {
+        await appState.deleteRecurringPayment(widget.editingPayment!.id);
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error al eliminar: $e"), backgroundColor: AppColors.expense),
+          );
+        }
+      }
     }
   }
 
@@ -648,7 +656,9 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             controller: _amountController,
                             keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
-                              hintText: (_selectedType == TransactionType.income && _isVariable) ? "Monto Mínimo" : "Monto",
+                              hintText: (_selectedType == TransactionType.income && _isVariable) 
+                                  ? (_selectedCurrency == CurrencyType.eur ? "Monto Mínimo €" : (_selectedCurrency == CurrencyType.usd ? "Monto Mínimo \$" : "Monto Mínimo Bs.")) 
+                                  : (_selectedCurrency == CurrencyType.eur ? "0.00 €" : (_selectedCurrency == CurrencyType.usd ? "0.00 \$" : "0.00 Bs.")),
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
                               contentPadding: EdgeInsets.all(14),
                               filled: true,
@@ -785,7 +795,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 controller: _maxAmountController,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
-                                  hintText: "Monto Máximo",
+                                  hintText: _selectedCurrency == CurrencyType.eur ? "Monto Máximo €" : (_selectedCurrency == CurrencyType.usd ? "Monto Máximo \$" : "Monto Máximo Bs."),
                                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
                                   contentPadding: EdgeInsets.all(14),
                                   filled: true,

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -30,6 +31,11 @@ class PocketsScreen extends StatefulWidget {
 class _PocketsScreenState extends State<PocketsScreen> {
   int _selectedTab = 0; // 0 = Bolsillos, 1 = Suscripciones
   int _selectedRecurrentFilter = 0; // 0 = Todos, 1 = Ingresos, 2 = Pagos
+
+  bool _isFastScrolling = false;
+  double _fastScrollY = 0.0;
+  DateTime? _fastScrollDate;
+  int _lastHapticMonth = -1;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -362,9 +368,11 @@ class _PocketsScreenState extends State<PocketsScreen> {
           SizedBox(width: 8),
         ],
       ),
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
+      body: Stack(
+        children: [
+          CustomScrollView(
+            controller: _scrollController,
+            slivers: [
           // Spacing at the top of the CustomScrollView
           SliverToBoxAdapter(
             child: SizedBox(height: 12),
@@ -425,171 +433,60 @@ class _PocketsScreenState extends State<PocketsScreen> {
           ),
 
           // 3. Tab Content Sliver
-          SliverPadding(
-            padding: EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
-              top: 12.0,
-              bottom: 140.0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_selectedTab == 0) ...[
-                    // Bolsillos de Ahorro
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Showcase(
-                          key: _pocketsHeaderKey,
-                          title: "Bolsillos de Ahorro",
-                          description: "Crea 'bolsillos' para apartar fondos de tu dinero disponible líquido y protegerlos de tus gastos diarios. Ideal para pre-fondear cuotas o metas.",
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                "Bolsillos de Ahorro",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.cardText,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.info_outline_rounded,
-                                  color: AppColors.primary,
-                                  size: 18,
-                                ),
-                                onPressed: () => _showPocketsInfo(context),
-                                constraints: BoxConstraints(),
-                                padding: EdgeInsets.zero,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Showcase(
-                          key: _addPocketKey,
-                          title: "Añadir Bolsillo",
-                          description: "Presiona aquí para crear una nueva meta de ahorro, fijar su monto objetivo, prioridad y fecha límite.",
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.add_circle_rounded,
-                              color: AppColors.primary,
-                              size: 24,
-                            ),
-                            onPressed: () => _showAddPocketDialog(context, appState),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-
-                    // Pockets list
-                    if (appState.pockets.isEmpty)
-                      ClaymorphicCard(
-                        padding: EdgeInsets.symmetric(vertical: 32.0),
-                        width: double.infinity,
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.archive_rounded,
-                              size: 40,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              "No tienes bolsillos aún",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Column(
-                        children: List.generate(appState.pockets.length, (index) {
-                          final pocket = appState.pockets[index];
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index == appState.pockets.length - 1 ? 0 : 16,
-                            ),
-                            child: PocketCard(
-                              pocket: pocket,
-                              isFeasible: appState.isPocketTargetDateFeasible(pocket),
-                              viableTargetDate: appState.getViableTargetDate(pocket),
-                              onAdd: () => _showTransactionDialog(
-                                context,
-                                appState,
-                                pocket,
-                                isDeposit: true,
-                              ),
-                              onWithdraw: () => _showTransactionDialog(
-                                context,
-                                appState,
-                                pocket,
-                                isDeposit: false,
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) => AddPocketBottomSheet(
-                                    appState: appState,
-                                    editingPocket: pocket,
-                                  ),
-                                );
-                              },
-                              backgroundColor: AppColors.getAlternateCardColor(index),
-                            ),
-                          );
-                        }),
-                      ),
-                  ] else if (_selectedTab == 1) ...[
-                    // Recurrentes
-                    Showcase(
-                      key: _recurrentsHeaderKey,
-                      title: "Obligaciones Recurrentes",
-                      description: "Registra tus ingresos periódicos (como tu sueldo) y tus gastos recurrentes o cuotas (como suscripciones o deudas de Cashea). Usa el botón '+' para añadir una nueva obligación.",
-                      child: Row(
+          if (_selectedTab == 0 || _selectedTab == 1)
+            SliverPadding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 12.0,
+                bottom: 140.0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_selectedTab == 0) ...[
+                      // Bolsillos de Ahorro
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(2),
+                          Showcase(
+                            key: _pocketsHeaderKey,
+                            title: "Bolsillos de Ahorro",
+                            description: "Crea 'bolsillos' para apartar fondos de tu dinero disponible líquido y protegerlos de tus gastos diarios. Ideal para pre-fondear cuotas o metas.",
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                "Pagos Recurrentes y Cuotas",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.cardText,
-                                  letterSpacing: 0.5,
+                                SizedBox(width: 8),
+                                Text(
+                                  "Bolsillos de Ahorro",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.cardText,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 6),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.info_outline_rounded,
+                                    color: AppColors.primary,
+                                    size: 18,
+                                  ),
+                                  onPressed: () => _showPocketsInfo(context),
+                                  constraints: BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                ),
+                              ],
+                            ),
                           ),
                           IconButton(
                             icon: Icon(
@@ -597,141 +494,326 @@ class _PocketsScreenState extends State<PocketsScreen> {
                               color: AppColors.primary,
                               size: 24,
                             ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    AddRecurringPaymentBottomSheet(),
-                              );
-                            },
+                            onPressed: () =>
+                                _showAddPocketDialog(context, appState),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
                           ),
                         ],
                       ),
-                    ),
-                    SizedBox(height: 8),
+                      SizedBox(height: 16),
 
-                    // Filter Segmented Control
-                    Showcase(
-                      key: _recurrentsFilterKey,
-                      title: "Filtros de Obligaciones",
-                      description: "Filtra rápidamente el listado para ver solo tus ingresos planificados, tus pagos recurrentes, o todos al mismo tiempo.",
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.mainTabTrackBg,
-                          borderRadius: BorderRadius.circular(10),
+                      if (appState.pockets.isEmpty)
+                        ClaymorphicCard(
+                          padding: EdgeInsets.symmetric(vertical: 32.0),
+                          width: double.infinity,
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.archive_rounded,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "No tienes bolsillos aún",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Column(
+                          children: List.generate(appState.pockets.length, (index) {
+                            final pocket = appState.pockets[index];
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: index == appState.pockets.length - 1 ? 0 : 16,
+                              ),
+                              child: PocketCard(
+                                pocket: pocket,
+                                isFeasible: appState.isPocketTargetDateFeasible(pocket),
+                                viableTargetDate: appState.getViableTargetDate(pocket),
+                                onAdd: () => _showTransactionDialog(
+                                  context,
+                                  appState,
+                                  pocket,
+                                  isDeposit: true,
+                                ),
+                                onWithdraw: () => _showTransactionDialog(
+                                  context,
+                                  appState,
+                                  pocket,
+                                  isDeposit: false,
+                                ),
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => AddPocketBottomSheet(
+                                      appState: appState,
+                                      editingPocket: pocket,
+                                    ),
+                                  );
+                                },
+                                backgroundColor: AppColors.getAlternateCardColor(index),
+                              ),
+                            );
+                          }),
                         ),
+                    ] else if (_selectedTab == 1) ...[
+                      // Recurrentes
+                      Showcase(
+                        key: _recurrentsHeaderKey,
+                        title: "Obligaciones Recurrentes",
+                        description: "Registra tus ingresos periódicos (como tu sueldo) y tus gastos recurrentes o cuotas (como suscripciones o deudas de Cashea). Usa el botón '+' para añadir una nueva obligación.",
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _RecurrentFilterSegment(
-                              title: "Todos",
-                              isSelected: _selectedRecurrentFilter == 0,
-                              onTap: () => setState(() => _selectedRecurrentFilter = 0),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Pagos Recurrentes y Cuotas",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.cardText,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            _RecurrentFilterSegment(
-                              title: "Ingresos",
-                              isSelected: _selectedRecurrentFilter == 1,
-                              onTap: () => setState(() => _selectedRecurrentFilter = 1),
-                            ),
-                            _RecurrentFilterSegment(
-                              title: "Pagos",
-                              isSelected: _selectedRecurrentFilter == 2,
-                              onTap: () => setState(() => _selectedRecurrentFilter = 2),
+                            IconButton(
+                              icon: Icon(
+                                Icons.add_circle_rounded,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      AddRecurringPaymentBottomSheet(),
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: 16),
+                      SizedBox(height: 8),
 
-                    // Recurring payments list
-                    Builder(
-                      builder: (context) {
-                        final filteredRecurring = appState.recurringPayments.where((
-                          pay,
-                        ) {
-                          if (_selectedRecurrentFilter == 0) return true;
-                          if (_selectedRecurrentFilter == 1) {
-                            return pay.type == TransactionType.income;
-                          }
-                          return pay.type == TransactionType.expense;
-                        }).toList();
+                      // Filter Segmented Control
+                      Showcase(
+                        key: _recurrentsFilterKey,
+                        title: "Filtros de Obligaciones",
+                        description: "Filtra rápidamente el listado para ver solo tus ingresos planificados, tus pagos recurrentes, o todos al mismo tiempo.",
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.mainTabTrackBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              _RecurrentFilterSegment(
+                                title: "Todos",
+                                isSelected: _selectedRecurrentFilter == 0,
+                                onTap: () => setState(() => _selectedRecurrentFilter = 0),
+                              ),
+                              _RecurrentFilterSegment(
+                                title: "Ingresos",
+                                isSelected: _selectedRecurrentFilter == 1,
+                                onTap: () => setState(() => _selectedRecurrentFilter = 1),
+                              ),
+                              _RecurrentFilterSegment(
+                                title: "Pagos",
+                                isSelected: _selectedRecurrentFilter == 2,
+                                onTap: () => setState(() => _selectedRecurrentFilter = 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
 
-                        if (filteredRecurring.isEmpty) {
-                          return Showcase(
-                            key: _recurrentsListKey,
-                            title: "Listado de Obligaciones",
-                            description: "Aquí verás tus obligaciones y planificaciones una vez las agregues. El simulador las usará para proyectar tu flujo de caja.",
-                            child: ClaymorphicCard(
-                              padding: EdgeInsets.symmetric(vertical: 32.0),
-                              width: double.infinity,
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.credit_card_rounded,
-                                    size: 40,
-                                    color: Colors.grey[400],
-                                  ),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    _selectedRecurrentFilter == 0
-                                        ? "Sin registros recurrentes"
-                                        : _selectedRecurrentFilter == 1
-                                        ? "Sin ingresos recurrentes"
-                                        : "Sin pagos recurrentes",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[600],
+                      // Recurring payments list
+                      Builder(
+                        builder: (context) {
+                          final filteredRecurring = appState.recurringPayments.where((
+                            pay,
+                          ) {
+                            if (_selectedRecurrentFilter == 0) return true;
+                            if (_selectedRecurrentFilter == 1) {
+                              return pay.type == TransactionType.income;
+                            }
+                            return pay.type == TransactionType.expense;
+                          }).toList();
+
+                          if (filteredRecurring.isEmpty) {
+                            return Showcase(
+                              key: _recurrentsListKey,
+                              title: "Listado de Obligaciones",
+                              description: "Aquí verás tus obligaciones y planificaciones una vez las agregues. El simulador las usará para proyectar tu flujo de caja.",
+                              child: ClaymorphicCard(
+                                padding: EdgeInsets.symmetric(vertical: 32.0),
+                                width: double.infinity,
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.credit_card_rounded,
+                                      size: 40,
+                                      color: Colors.grey[400],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          children: List.generate(filteredRecurring.length, (index) {
-                            final pay = filteredRecurring[index];
-                            final row = Padding(
-                              padding: EdgeInsets.only(
-                                bottom: index == filteredRecurring.length - 1
-                                    ? 0
-                                    : 12,
-                              ),
-                              child: _RecurringPaymentRow(
-                                payment: pay,
-                                backgroundColor: AppColors.getAlternateCardColor(
-                                  index,
+                                    SizedBox(height: 12),
+                                    Text(
+                                      _selectedRecurrentFilter == 0
+                                          ? "Sin registros recurrentes"
+                                          : _selectedRecurrentFilter == 1
+                                          ? "Sin ingresos recurrentes"
+                                          : "Sin pagos recurrentes",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
+                          }
 
-                            if (index == 0) {
-                              return Showcase(
-                                key: _recurrentsListKey,
-                                title: "Tus Obligaciones",
-                                description: "Aquí verás tus programaciones. Presiona cualquier tarjeta para modificar sus detalles, cambiar la cuenta bancaria de origen o vincularla a un bolsillo.",
-                                child: row,
+                          return Column(
+                            children: List.generate(filteredRecurring.length, (index) {
+                              final pay = filteredRecurring[index];
+                              final row = Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: index == filteredRecurring.length - 1
+                                      ? 0
+                                      : 12,
+                                ),
+                                child: _RecurringPaymentRow(
+                                  payment: pay,
+                                  backgroundColor: AppColors.getAlternateCardColor(
+                                    index,
+                                  ),
+                                ),
                               );
-                            }
-                            return row;
-                          }),
-                        );
-                      },
-                    ),
-                  ] else ...[
-                    // Timeline Proyección
-                    TimelineScreen(),
+
+                              if (index == 0) {
+                                return Showcase(
+                                  key: _recurrentsListKey,
+                                  title: "Tus Obligaciones",
+                                  description: "Aquí verás tus programaciones. Presiona cualquier tarjeta para modificar sus detalles, cambiar la cuenta bancaria de origen o vincularla a un bolsillo.",
+                                  child: row,
+                                );
+                              }
+                              return row;
+                            }),
+                          );
+                        },
+                      ),
+                    ],
                   ],
-                ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 12.0,
+                bottom: 140.0,
+              ),
+              sliver: TimelineScreen(),
+            ),
+        ],
+          ),
+          
+          // FAST SCROLLER (Only active on Timeline tab)
+          if (_selectedTab == 2) ...[
+            // Hit Area
+            Positioned(
+              left: 0,
+              top: 140, // Below headers
+              bottom: 0,
+              width: 50,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onVerticalDragStart: (details) => _updateFastScroll(details.localPosition.dy, constraints.maxHeight, appState),
+                    onVerticalDragUpdate: (details) => _updateFastScroll(details.localPosition.dy, constraints.maxHeight, appState),
+                    onVerticalDragEnd: (_) {
+                      setState(() {
+                        _isFastScrolling = false;
+                        _lastHapticMonth = -1;
+                      });
+                    },
+                    onVerticalDragCancel: () {
+                      setState(() {
+                        _isFastScrolling = false;
+                        _lastHapticMonth = -1;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.transparent, // Hit area
+                    ),
+                  );
+                },
               ),
             ),
-          ),
+            
+            // Popover Date Bubble
+            if (_isFastScrolling && _fastScrollDate != null)
+              Positioned(
+                left: 60,
+                top: 140 + _fastScrollY - 25, // Align center of bubble with finger
+                child: Material(
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(20),
+                  shadowColor: Colors.black26,
+                  color: AppColors.primary,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_today_rounded, size: 16, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          _getFormattedMonthYear(_fastScrollDate!),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
     );
@@ -764,6 +846,45 @@ class _PocketsScreenState extends State<PocketsScreen> {
         isDeposit: isDeposit,
       ),
     );
+  }
+
+  void _updateFastScroll(double localY, double maxHeight, AppState appState) {
+    final events = appState.getTimelineEvents(365);
+    if (events.isEmpty) return;
+
+    double percentage = (localY / maxHeight).clamp(0.0, 1.0);
+    int targetIndex = (percentage * (events.length - 1)).round();
+    
+    DateTime targetDate = events[targetIndex].date;
+
+    // Estimate the scroll offset. 
+    // Header slivers take roughly 72px (12 + 60 for tab bar).
+    double headerHeight = 72.0;
+    double estimatedItemHeight = 110.0;
+    double targetOffset = headerHeight + (targetIndex * estimatedItemHeight);
+
+    if (_scrollController.hasClients) {
+       _scrollController.jumpTo(targetOffset);
+    }
+
+    if (_lastHapticMonth != targetDate.month) {
+      HapticFeedback.selectionClick();
+    }
+
+    setState(() {
+      _isFastScrolling = true;
+      _fastScrollY = localY;
+      _fastScrollDate = targetDate;
+      _lastHapticMonth = targetDate.month;
+    });
+  }
+
+  String _getFormattedMonthYear(DateTime date) {
+    const months = [
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ];
+    return '${months[date.month - 1]} ${date.year}';
   }
 }
 

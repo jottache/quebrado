@@ -23,6 +23,7 @@ import '../models/market_shopping_list_item.dart';
 import '../services/db_helper.dart';
 import '../services/rate_service.dart';
 import '../services/notification_manager.dart';
+import '../widgets/helpers.dart';
 import '../services/backup_service.dart';
 
 class AppState extends ChangeNotifier {
@@ -109,6 +110,16 @@ class AppState extends ChangeNotifier {
 
   /// Loads all settings and database tables asynchronously from SQLite.
   Future<void> loadData() async {
+    // Clear data from previous profile to avoid cross-profile caching if an error occurs
+    _pendingPaymentsToday = [];
+    recurringPayments = [];
+    pockets = [];
+    categories = [];
+    transactions = [];
+    accounts = [];
+    _confirmedKeys.clear();
+    partialPayments = [];
+    
     try {
       _profiles = await DatabaseHelper.instance.loadProfiles();
       _activeDbName = await DatabaseHelper.instance.getActiveProfile();
@@ -1101,6 +1112,7 @@ class AppState extends ChangeNotifier {
     required String icon,
     required String colorHex,
     required TransactionCategoryType type,
+    String? parentId,
   }) async {
     final cat = TransactionCategory(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -1108,6 +1120,7 @@ class AppState extends ChangeNotifier {
       icon: icon,
       colorHex: colorHex,
       type: type,
+      parentId: parentId,
     );
 
     await DatabaseHelper.instance.insertCategory(cat);
@@ -1136,6 +1149,28 @@ class AppState extends ChangeNotifier {
     }
     categories = await DatabaseHelper.instance.getCategories();
     notifyListeners();
+  }
+
+  List<TransactionCategory> getParentCategories(TransactionCategoryType type) {
+    return categories.where((c) => c.type == type && c.parentId == null).toList();
+  }
+
+  List<TransactionCategory> getSubcategories(String parentId) {
+    return categories.where((c) => c.parentId == parentId).toList();
+  }
+
+  List<TransactionCategory> getGroupedCategories(TransactionCategoryType type) {
+    final parents = getParentCategories(type);
+    parents.sort((a, b) => a.position.compareTo(b.position));
+    
+    List<TransactionCategory> grouped = [];
+    for (var parent in parents) {
+      grouped.add(parent);
+      final children = getSubcategories(parent.id);
+      children.sort((a, b) => a.position.compareTo(b.position));
+      grouped.addAll(children);
+    }
+    return grouped;
   }
 
   Future<void> updateTransactionCategory(
@@ -1214,8 +1249,23 @@ class AppState extends ChangeNotifier {
   }
 
   // MARK: - Projections & Timeline Calculations
+  
+  List<TimelineEvent>? _cachedTimelineEvents;
+  int? _cachedTimelineDays;
+
+  @override
+  void notifyListeners() {
+    _cachedTimelineEvents = null;
+    super.notifyListeners();
+  }
 
   List<TimelineEvent> getTimelineEvents(int daysToProject, {List<SavingPocket> virtualPockets = const [], List<RecurringPayment> virtualPayments = const []}) {
+    if (virtualPockets.isEmpty && virtualPayments.isEmpty) {
+      if (_cachedTimelineEvents != null && _cachedTimelineDays == daysToProject) {
+        return _cachedTimelineEvents!;
+      }
+    }
+
     final allPockets = [...pockets, ...virtualPockets];
     final rangeStart = DateTime.now().copyWith(
       hour: 0,
@@ -1344,7 +1394,8 @@ class AppState extends ChangeNotifier {
     };
     Map<String, _VirtualDeposit> consolidatedDeposits = {};
 
-    for (var occ in occurrences) {
+    for (int i = 0; i < occurrences.length; i++) {
+      var occ = occurrences[i];
       final payment = occ.payment;
       if (payment.pocketId != null) {
         final pId = payment.pocketId!;
@@ -1387,14 +1438,14 @@ class AppState extends ChangeNotifier {
             // Deficit found. We need a virtual deposit before or on `occ.date`.
             // Find most recent income event before `occ.date`, or today if none.
             DateTime depositDate = rangeStart;
-            for (var other in occurrences) {
+            // Optimization: search backwards from current index to find the most recent income
+            for (int j = i - 1; j >= 0; j--) {
+              var other = occurrences[j];
               if (other.payment.type == TransactionType.income &&
                   other.payment.currency == CurrencyType.usd &&
                   other.date.isBefore(occ.date)) {
-                if (other.date.isAfter(depositDate) ||
-                    other.date.isAtSameMomentAs(depositDate)) {
-                  depositDate = other.date;
-                }
+                depositDate = other.date;
+                break;
               }
             }
 
@@ -1403,17 +1454,15 @@ class AppState extends ChangeNotifier {
 
             if (consolidatedDeposits.containsKey(dateKey)) {
               final existing = consolidatedDeposits[dateKey]!;
-              String updatedTitle = existing.targetExpenseTitle;
-              if (!existing.targetExpenseTitle.contains(payment.name)) {
-                final parts = existing.targetExpenseTitle.split(", ");
-                if (parts.length >= 2) {
-                  if (!existing.targetExpenseTitle.contains("otros")) {
-                    updatedTitle = "${parts[0]}, ${parts[1]} y otros";
-                  }
-                } else {
-                  updatedTitle =
-                      "${existing.targetExpenseTitle}, ${payment.name}";
-                }
+              if (existing.reasons.containsKey(payment.name)) {
+                existing.reasons[payment.name]!.count++;
+              } else {
+                existing.reasons[payment.name] = _VirtualDepositReason(
+                  name: payment.name,
+                  amount: payment.amount,
+                  frequency: payment.frequency.value,
+                  currency: payment.currency,
+                );
               }
 
               double displayAmountChange = deficit;
@@ -1427,7 +1476,7 @@ class AppState extends ChangeNotifier {
                 amount: existing.amount + displayAmountChange,
                 currency: payment.currency,
                 date: depositDate,
-                targetExpenseTitle: updatedTitle,
+                reasons: existing.reasons,
               );
             } else {
               double displayAmount = deficit;
@@ -1441,7 +1490,14 @@ class AppState extends ChangeNotifier {
                 amount: displayAmount,
                 currency: payment.currency,
                 date: depositDate,
-                targetExpenseTitle: payment.name,
+                reasons: {
+                  payment.name: _VirtualDepositReason(
+                    name: payment.name,
+                    amount: payment.amount,
+                    frequency: payment.frequency.value,
+                    currency: payment.currency,
+                  )
+                },
               );
             }
 
@@ -1588,9 +1644,8 @@ class AppState extends ChangeNotifier {
                 "${payday.year}-${payday.month.toString().padLeft(2, '0')}-${payday.day.toString().padLeft(2, '0')}_${pocket.id}";
             if (consolidatedDeposits.containsKey(dateKey)) {
               final existing = consolidatedDeposits[dateKey]!;
-              String updatedTitle = existing.targetExpenseTitle;
-              if (!existing.targetExpenseTitle.contains("Meta de Ahorro")) {
-                updatedTitle = "${existing.targetExpenseTitle}, Meta de Ahorro";
+              if (!existing.reasons.containsKey("Meta de Ahorro")) {
+                existing.reasons["Meta de Ahorro"] = _VirtualDepositReason(name: "Meta de Ahorro");
               }
               consolidatedDeposits[dateKey] = _VirtualDeposit(
                 pocketId: pocket.id,
@@ -1598,7 +1653,7 @@ class AppState extends ChangeNotifier {
                 amount: existing.amount + amountPerPayday,
                 currency: CurrencyType.usd,
                 date: payday,
-                targetExpenseTitle: updatedTitle,
+                reasons: existing.reasons,
                 isLast: existing.isLast || isLastPayday,
               );
             } else {
@@ -1608,7 +1663,9 @@ class AppState extends ChangeNotifier {
                 amount: amountPerPayday,
                 currency: CurrencyType.usd,
                 date: payday,
-                targetExpenseTitle: "Meta de Ahorro",
+                reasons: {
+                  "Meta de Ahorro": _VirtualDepositReason(name: "Meta de Ahorro")
+                },
                 isLast: isLastPayday,
               );
             }
@@ -1619,9 +1676,8 @@ class AppState extends ChangeNotifier {
               "${rangeStart.year}-${rangeStart.month.toString().padLeft(2, '0')}-${rangeStart.day.toString().padLeft(2, '0')}_${pocket.id}";
           if (consolidatedDeposits.containsKey(dateKey)) {
             final existing = consolidatedDeposits[dateKey]!;
-            String updatedTitle = existing.targetExpenseTitle;
-            if (!existing.targetExpenseTitle.contains("Meta de Ahorro")) {
-              updatedTitle = "${existing.targetExpenseTitle}, Meta de Ahorro";
+            if (!existing.reasons.containsKey("Meta de Ahorro")) {
+              existing.reasons["Meta de Ahorro"] = _VirtualDepositReason(name: "Meta de Ahorro");
             }
             consolidatedDeposits[dateKey] = _VirtualDeposit(
               pocketId: pocket.id,
@@ -1629,7 +1685,7 @@ class AppState extends ChangeNotifier {
               amount: existing.amount + remaining,
               currency: CurrencyType.usd,
               date: rangeStart,
-              targetExpenseTitle: updatedTitle,
+              reasons: existing.reasons,
               isLast: true,
             );
           } else {
@@ -1639,7 +1695,9 @@ class AppState extends ChangeNotifier {
               amount: remaining,
               currency: CurrencyType.usd,
               date: rangeStart,
-              targetExpenseTitle: "Meta de Ahorro",
+              reasons: {
+                "Meta de Ahorro": _VirtualDepositReason(name: "Meta de Ahorro")
+              },
               isLast: true,
             );
           }
@@ -1691,9 +1749,8 @@ class AppState extends ChangeNotifier {
                   "${occ.date.year}-${occ.date.month.toString().padLeft(2, '0')}-${occ.date.day.toString().padLeft(2, '0')}_${pocket.id}";
               if (consolidatedDeposits.containsKey(dateKey)) {
                 final existing = consolidatedDeposits[dateKey]!;
-                String updatedTitle = existing.targetExpenseTitle;
-                if (!existing.targetExpenseTitle.contains(ruleReason)) {
-                  updatedTitle = "${existing.targetExpenseTitle}, $ruleReason";
+                if (!existing.reasons.containsKey(ruleReason)) {
+                  existing.reasons[ruleReason] = _VirtualDepositReason(name: ruleReason);
                 }
                 consolidatedDeposits[dateKey] = _VirtualDeposit(
                   pocketId: pocket.id,
@@ -1701,7 +1758,7 @@ class AppState extends ChangeNotifier {
                   amount: existing.amount + proposedSaving,
                   currency: CurrencyType.usd,
                   date: occ.date,
-                  targetExpenseTitle: updatedTitle,
+                  reasons: existing.reasons,
                 );
               } else {
                 consolidatedDeposits[dateKey] = _VirtualDeposit(
@@ -1710,7 +1767,9 @@ class AppState extends ChangeNotifier {
                   amount: proposedSaving,
                   currency: CurrencyType.usd,
                   date: occ.date,
-                  targetExpenseTitle: ruleReason,
+                  reasons: {
+                    ruleReason: _VirtualDepositReason(name: ruleReason)
+                  },
                 );
               }
               simulatedBalance += proposedSaving;
@@ -1727,19 +1786,8 @@ class AppState extends ChangeNotifier {
     };
 
     // Filter and sort manual incomes chronologically (oldest first)
-    final manualIncomes = transactions.where((t) {
-      if (t.type != TransactionType.income) return false;
-      if (t.currency != CurrencyType.usd) return false;
-
-      final accId = t.accountId;
-      if (accId == null) return false;
-      final accIndex = accounts.indexWhere((a) => a.id == accId);
-      if (accIndex == -1) return false;
-      if (accounts[accIndex].currency != CurrencyType.usd) return false;
-
-      if (t.id.contains("_rec") || t.id.contains("_partial")) return false;
-      return true;
-    }).toList()..sort((a, b) => a.date.compareTo(b.date));
+    // Auto-save suggestions for manual incomes are disabled. Auto-save only applies to recurring incomes.
+    final manualIncomes = <Transaction>[];
 
     for (var t in manualIncomes) {
       final tDateMidnight = t.date.copyWith(
@@ -1804,9 +1852,8 @@ class AppState extends ChangeNotifier {
               final dateKey = "${tDateMidnight.year}-${tDateMidnight.month.toString().padLeft(2, '0')}-${tDateMidnight.day.toString().padLeft(2, '0')}_${pocket.id}";
               if (consolidatedDeposits.containsKey(dateKey)) {
                 final existing = consolidatedDeposits[dateKey]!;
-                String updatedTitle = existing.targetExpenseTitle;
-                if (!existing.targetExpenseTitle.contains(ruleReason)) {
-                  updatedTitle = "${existing.targetExpenseTitle}, $ruleReason";
+                if (!existing.reasons.containsKey(ruleReason)) {
+                  existing.reasons[ruleReason] = _VirtualDepositReason(name: ruleReason);
                 }
                 
                 List<String> associatedTxs = existing.associatedTransactionIds?.toList() ?? [];
@@ -1820,7 +1867,7 @@ class AppState extends ChangeNotifier {
                   amount: existing.amount + proposedSaving,
                   currency: CurrencyType.usd,
                   date: tDateMidnight,
-                  targetExpenseTitle: updatedTitle,
+                  reasons: existing.reasons,
                   associatedTransactionIds: associatedTxs,
                 );
               } else {
@@ -1830,7 +1877,9 @@ class AppState extends ChangeNotifier {
                   amount: proposedSaving,
                   currency: CurrencyType.usd,
                   date: tDateMidnight,
-                  targetExpenseTitle: ruleReason,
+                  reasons: {
+                    ruleReason: _VirtualDepositReason(name: ruleReason)
+                  },
                   associatedTransactionIds: [t.id],
                 );
               }
@@ -1954,6 +2003,7 @@ class AppState extends ChangeNotifier {
             pocketName: pocketName,
             pocketId: dep.pocketId,
             accountName: dep.targetExpenseTitle, // Save target reasons here
+            suggestionReasons: dep.suggestionReasonsList,
             projectedBalanceUSD: totalUSD,
             projectedLiquidBalanceUSD: projectedLiquid,
             isSuggestion: true,
@@ -2609,10 +2659,96 @@ class AppState extends ChangeNotifier {
     }
 
     pending.sort((a, b) => a.occurrenceDate.compareTo(b.occurrenceDate));
+    pending.sort((a, b) => a.occurrenceDate.compareTo(b.occurrenceDate));
     _pendingPaymentsToday = pending;
   }
 
-  Future<void> confirmRecurringPayment({
+  Future<List<PendingOccurrence>> fetchPendingPaymentsForProfile(String profileId) async {
+    if (profileId == _activeDbName) {
+      return _pendingPaymentsToday;
+    }
+    
+    final data = await DatabaseHelper.instance.getPendingDataForProfile(profileId);
+    final List<RecurringPayment> recurring = data['recurring'];
+    final List<Map<String, dynamic>> confs = data['confirmations'];
+    final List<RecurringPaymentPartial> partials = data['partials'];
+    
+    final Set<String> confirmedKeys = {};
+    for (var c in confs) {
+      final pId = c['recurring_payment_id'] as String;
+      final dateStr = c['date'] as String;
+      confirmedKeys.add("${pId}_$dateStr");
+    }
+    
+    final today = DateTime.now().copyWith(
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
+
+    List<PendingOccurrence> pending = [];
+    for (var payment in recurring) {
+      DateTime current = payment.startDate.copyWith(
+        hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0,
+      );
+      int count = 0;
+
+      while (current.isBefore(today) || current.isAtSameMomentAs(today)) {
+        count++;
+        if (payment.totalInstallments != null && count > payment.totalInstallments!) break;
+
+        final dateStr = "${current.year}-${current.month.toString().padLeft(2, '0')}-${current.day.toString().padLeft(2, '0')}";
+        final key = "${payment.id}_$dateStr";
+
+        if (!confirmedKeys.contains(key)) {
+          double partialPaid = 0.0;
+          for (var p in partials) {
+            if (p.recurringPaymentId == payment.id && p.occurrenceDate == dateStr) {
+              partialPaid += p.amount;
+            }
+          }
+          pending.add(PendingOccurrence(
+            payment: payment,
+            occurrenceDate: current,
+            partialAmountPaid: partialPaid,
+          ));
+        }
+
+        switch (payment.frequency) {
+          case SubscriptionFrequency.weekly: current = current.add(const Duration(days: 7)); break;
+          case SubscriptionFrequency.biweekly: current = current.add(const Duration(days: 14)); break;
+          case SubscriptionFrequency.fifteenDays:
+            if (current.day == 15) {
+              current = DateTime(current.year, current.month + 1, 0, current.hour, current.minute, current.second);
+            } else if (current.day > 15) {
+              current = DateTime(current.year, current.month + 1, 15, current.hour, current.minute, current.second);
+            } else {
+              current = DateTime(current.year, current.month, 15, current.hour, current.minute, current.second);
+            }
+            break;
+          case SubscriptionFrequency.monthly: current = DateTime(current.year, current.month + 1, current.day); break;
+          case SubscriptionFrequency.threeMonths: current = DateTime(current.year, current.month + 3, current.day); break;
+          case SubscriptionFrequency.yearly: current = DateTime(current.year + 1, current.month, current.day); break;
+          case SubscriptionFrequency.custom: 
+            final days = payment.customDays ?? 30;
+            current = current.add(Duration(days: days > 0 ? days : 30));
+            break;
+          case SubscriptionFrequency.once: current = today.add(const Duration(days: 1)); break;
+        }
+      }
+    }
+
+    pending.sort((a, b) => a.occurrenceDate.compareTo(b.occurrenceDate));
+    return pending;
+  }
+
+  int getConfirmedCountForPayment(String paymentId) {
+    return _confirmedKeys.where((k) => k.startsWith("${paymentId}_")).length;
+  }
+
+  Future<bool> confirmRecurringPayment({
     required RecurringPayment payment,
     required double actualAmount,
     DateTime? occurrenceDate,
@@ -2682,6 +2818,14 @@ class AppState extends ChangeNotifier {
     // Update pending list
     await updatePendingPaymentsToday();
     notifyListeners();
+
+    if (payment.totalInstallments != null && payment.totalInstallments! > 0) {
+      int confirmedCount = getConfirmedCountForPayment(payment.id);
+      if (confirmedCount >= payment.totalInstallments!) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<void> registerPartialPayment({
@@ -3278,6 +3422,31 @@ class AppState extends ChangeNotifier {
   Future<Map<String, dynamic>> getBackupPreview(String folderPath) async {
     return await DatabaseHelper.instance.getBackupPreview(folderPath);
   }
+
+  // MARK: - Market Product History
+  List<Map<String, dynamic>> getHistoricalPricesForProduct(String productId, String storeId) {
+    final List<Map<String, dynamic>> history = [];
+    final items = marketItems.where((i) => i.productId == productId && i.storeId == storeId).toList();
+    // Sort items by date descending
+    items.sort((a, b) => b.date.compareTo(a.date));
+
+    for (var item in items) {
+      final trip = marketTrips.firstWhere(
+        (t) => t.id == item.tripId, 
+        orElse: () => MarketTrip(id: '', title: 'Sesión Desconocida', date: item.date)
+      );
+      
+      history.add({
+        'date': item.date,
+        'tripTitle': trip.title,
+        'priceUSD': item.priceUSD,
+        'priceVES': item.priceVES,
+        'exchangeRateUsed': item.exchangeRateUsed,
+      });
+    }
+    
+    return history;
+  }
 }
 
 class _OccurrenceRaw {
@@ -3297,13 +3466,29 @@ class _OccurrenceRaw {
   double get remainingAmount => payment.amount - partialAmountPaid;
 }
 
+class _VirtualDepositReason {
+  final String name;
+  final double? amount;
+  final String? frequency;
+  final CurrencyType? currency;
+  int count;
+
+  _VirtualDepositReason({
+    required this.name,
+    this.amount,
+    this.frequency,
+    this.currency,
+    this.count = 1,
+  });
+}
+
 class _VirtualDeposit {
   final String pocketId;
   final double amountUSD;
   final double amount;
   final CurrencyType currency;
   final DateTime date;
-  final String targetExpenseTitle;
+  final Map<String, _VirtualDepositReason> reasons;
   final bool isLast;
   final List<String>? associatedTransactionIds;
   _VirtualDeposit({
@@ -3312,10 +3497,54 @@ class _VirtualDeposit {
     required this.amount,
     required this.currency,
     required this.date,
-    required this.targetExpenseTitle,
+    required this.reasons,
     this.isLast = false,
     this.associatedTransactionIds,
   });
+
+  String get targetExpenseTitle {
+    if (reasons.isEmpty) return "";
+    List<String> lines = [];
+    for (var reason in reasons.values) {
+      if (reason.amount != null && reason.frequency != null && reason.currency != null) {
+        String currSymbol = reason.currency == CurrencyType.usd ? "\$" : (reason.currency == CurrencyType.eur ? "€" : "Bs.");
+        if (reason.count > 1) {
+          double total = reason.amount! * reason.count;
+          String formattedAmount = reason.amount! % 1 == 0 ? reason.amount!.toStringAsFixed(0) : reason.amount!.toStringAsFixed(2);
+          String formattedTotal = total % 1 == 0 ? total.toStringAsFixed(0) : total.toStringAsFixed(2);
+          lines.add("• ${reason.name} $currSymbol$formattedAmount x${reason.count} = $currSymbol$formattedTotal (${reason.frequency!.toLowerCase()})");
+        } else {
+          String formattedAmount = reason.amount! % 1 == 0 ? reason.amount!.toStringAsFixed(0) : reason.amount!.toStringAsFixed(2);
+          lines.add("• ${reason.name} $currSymbol$formattedAmount (${reason.frequency!.toLowerCase()})");
+        }
+      } else {
+        lines.add("• ${reason.name}");
+      }
+    }
+    return lines.join("\n");
+  }
+
+  List<SuggestionReason> get suggestionReasonsList {
+    if (reasons.isEmpty) return [];
+    List<SuggestionReason> list = [];
+    for (var reason in reasons.values) {
+      if (reason.amount != null && reason.frequency != null && reason.currency != null) {
+        String currSymbol = reason.currency == CurrencyType.usd ? "\$" : (reason.currency == CurrencyType.eur ? "€" : "Bs.");
+        if (reason.count > 1) {
+          double total = reason.amount! * reason.count;
+          String formattedAmount = reason.amount! % 1 == 0 ? reason.amount!.toStringAsFixed(0) : reason.amount!.toStringAsFixed(2);
+          String formattedTotal = total % 1 == 0 ? total.toStringAsFixed(0) : total.toStringAsFixed(2);
+          list.add(SuggestionReason("• ${reason.name}", "$currSymbol$formattedAmount x${reason.count} = $currSymbol$formattedTotal (${reason.frequency!.toLowerCase()})"));
+        } else {
+          String formattedAmount = reason.amount! % 1 == 0 ? reason.amount!.toStringAsFixed(0) : reason.amount!.toStringAsFixed(2);
+          list.add(SuggestionReason("• ${reason.name}", "$currSymbol$formattedAmount (${reason.frequency!.toLowerCase()})"));
+        }
+      } else {
+        list.add(SuggestionReason("• ${reason.name}", ""));
+      }
+    }
+    return list;
+  }
 }
 
 class _SimEvent {

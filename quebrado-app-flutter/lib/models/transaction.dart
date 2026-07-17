@@ -54,7 +54,7 @@ class Transaction {
       'amount': amount,
       'currency': currency.name,
       'destination_pocket_id': destinationPocketId,
-      'category_id': categoryId,
+      'category_id': (categoryId != null && categoryId!.isNotEmpty) ? categoryId : null,
       'account_id': accountId,
       'note': note,
       'type': type.name,

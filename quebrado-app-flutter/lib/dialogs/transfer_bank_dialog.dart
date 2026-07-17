@@ -548,7 +548,7 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
                             keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               labelText: "Monto en Bolívares (Bs.)",
-                              hintText: "0.00",
+                              hintText: "0.00 Bs.",
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {

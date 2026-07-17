@@ -28,6 +28,7 @@ class TransactionCategory {
   String colorHex;
   TransactionCategoryType type;
   int position;
+  String? parentId;
 
   TransactionCategory({
     required this.id,
@@ -36,6 +37,7 @@ class TransactionCategory {
     required this.colorHex,
     required this.type,
     this.position = 0,
+    this.parentId,
   });
 
   Map<String, dynamic> toMap() {
@@ -46,6 +48,7 @@ class TransactionCategory {
       'color_hex': colorHex,
       'type': type.name,
       'position': position,
+      'parent_id': parentId,
     };
   }
 
@@ -57,6 +60,7 @@ class TransactionCategory {
       colorHex: map['color_hex'] ?? '#8E8E93',
       type: TransactionCategoryType.fromString(map['type'] ?? 'income'),
       position: map['position'] ?? 0,
+      parentId: map['parent_id'],
     );
   }
 
