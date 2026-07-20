@@ -561,6 +561,15 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateMarketItem(MarketItem item) async {
+    final index = marketItems.indexWhere((i) => i.id == item.id);
+    if (index >= 0) {
+      marketItems[index] = item;
+      await DatabaseHelper.instance.updateMarketItem(item);
+      notifyListeners();
+    }
+  }
+
   // MARK: - Market Products
   Future<void> addMarketProduct(MarketProduct product) async {
     final index = marketProducts.indexWhere((p) => p.id == product.id);

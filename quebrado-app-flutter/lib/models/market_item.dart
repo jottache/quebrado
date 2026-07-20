@@ -11,6 +11,9 @@ class MarketItem {
   String tripId;
   String? productId;
   DateTime date;
+  double quantity;
+  String unit;
+  bool isPending;
 
   MarketItem({
     required this.id,
@@ -23,6 +26,9 @@ class MarketItem {
     required this.tripId,
     this.productId,
     required this.date,
+    this.quantity = 1.0,
+    this.unit = 'un',
+    this.isPending = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,6 +43,9 @@ class MarketItem {
       'trip_id': tripId,
       'product_id': productId,
       'date': date.toIso8601String(),
+      'quantity': quantity,
+      'unit': unit,
+      'is_pending': isPending ? 1 : 0,
     };
   }
 
@@ -52,6 +61,9 @@ class MarketItem {
       tripId: map['trip_id'] ?? '',
       productId: map['product_id'],
       date: map['date'] != null ? DateTime.parse(map['date']) : DateTime.now(),
+      quantity: (map['quantity'] as num?)?.toDouble() ?? 1.0,
+      unit: map['unit'] ?? 'un',
+      isPending: map['is_pending'] == 1,
     );
   }
 }

@@ -782,24 +782,6 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                                 color: AppColors.primary,
                               ),
                             ),
-                            if (list.isActive) ...[
-                              SizedBox(width: 8),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  "ACTIVA",
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                         SizedBox(height: 4),

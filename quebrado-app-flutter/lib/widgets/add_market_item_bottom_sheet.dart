@@ -14,12 +14,14 @@ class AddMarketItemBottomSheet extends StatefulWidget {
   final String tripId;
   final String? initialStoreId;
   final bool forceStore;
+  final MarketItem? pendingItem;
 
   const AddMarketItemBottomSheet({
     Key? key,
     required this.tripId,
     this.initialStoreId,
     this.forceStore = false,
+    this.pendingItem,
   }) : super(key: key);
 
   @override
@@ -31,9 +33,12 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
   final _priceUsdController = TextEditingController();
   final _priceVesController = TextEditingController();
   final _rateController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
   
   String? _selectedCategory;
   String? _selectedStoreId;
+  String _selectedUnit = 'un';
+  final List<String> _units = ['un', 'kg', 'g', 'L', 'ml', 'paquete'];
 
   final List<String> _categories = [
     'Proteínas',
@@ -54,6 +59,15 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
     
     final appState = Provider.of<AppState>(context, listen: false);
     _rateController.text = appState.bcvRate.toStringAsFixed(2).replaceAll('.', ',');
+    
+    if (widget.pendingItem != null) {
+      _nameController.text = widget.pendingItem!.name;
+      _selectedCategory = widget.pendingItem!.category;
+      _quantityController.text = widget.pendingItem!.quantity.toString().endsWith('.0') 
+          ? widget.pendingItem!.quantity.toInt().toString() 
+          : widget.pendingItem!.quantity.toStringAsFixed(2);
+      _selectedUnit = widget.pendingItem!.unit;
+    }
     
     _priceUsdController.addListener(_onUsdChanged);
     _priceVesController.addListener(_onVesChanged);
@@ -129,6 +143,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
     if (_nameController.text.trim().isEmpty ||
         _selectedCategory == null ||
         _selectedStoreId == null ||
+        _quantityController.text.isEmpty ||
         _priceUsdController.text.isEmpty ||
         _priceVesController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,6 +155,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
     final usd = double.tryParse(_priceUsdController.text.replaceAll(',', '.')) ?? 0.0;
     final ves = double.tryParse(_priceVesController.text.replaceAll(',', '.')) ?? 0.0;
     final rate = double.tryParse(_rateController.text.replaceAll(',', '.')) ?? 0.0;
+    final qty = double.tryParse(_quantityController.text.replaceAll(',', '.')) ?? 1.0;
 
     final String productName = _nameController.text.trim();
 
@@ -191,20 +207,35 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
       await appState.addMarketProduct(newProduct);
     }
 
-    final item = MarketItem(
-      id: Uuid().v4(),
-      name: productName,
-      category: _selectedCategory!,
-      priceUSD: usd,
-      priceVES: ves,
-      exchangeRateUsed: rate,
-      storeId: _selectedStoreId!,
-      tripId: widget.tripId,
-      productId: assignedProductId,
-      date: DateTime.now(),
-    );
-
-    appState.addMarketItem(item);
+    if (widget.pendingItem != null) {
+      widget.pendingItem!.name = productName;
+      widget.pendingItem!.category = _selectedCategory!;
+      widget.pendingItem!.priceUSD = usd;
+      widget.pendingItem!.priceVES = ves;
+      widget.pendingItem!.exchangeRateUsed = rate;
+      widget.pendingItem!.productId = assignedProductId;
+      widget.pendingItem!.quantity = qty;
+      widget.pendingItem!.unit = _selectedUnit;
+      widget.pendingItem!.isPending = false;
+      await appState.updateMarketItem(widget.pendingItem!);
+    } else {
+      final item = MarketItem(
+        id: Uuid().v4(),
+        name: productName,
+        category: _selectedCategory!,
+        priceUSD: usd,
+        priceVES: ves,
+        exchangeRateUsed: rate,
+        storeId: _selectedStoreId!,
+        tripId: widget.tripId,
+        productId: assignedProductId,
+        date: DateTime.now(),
+        quantity: qty,
+        unit: _selectedUnit,
+        isPending: false,
+      );
+      await appState.addMarketItem(item);
+    }
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -255,118 +286,144 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
               ),
               SizedBox(height: 24),
               
-              Text(
-                "Nombre del producto",
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
-              ),
-              SizedBox(height: 4),
-              Autocomplete<MarketProduct>(
-                displayStringForOption: (option) => option.name,
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  final storeProducts = appState.marketProducts.where((p) => p.storeIds.contains(_selectedStoreId)).toList();
-                  if (textEditingValue.text.isEmpty) {
-                    return storeProducts;
-                  }
-                  return storeProducts.where((p) => 
-                    p.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
-                  );
-                },
-                onSelected: (MarketProduct selection) {
-                  _nameController.text = selection.name;
-                  setState(() {
-                    _selectedCategory = selection.category;
-                    if (_selectedCategory != null && !_categories.contains(_selectedCategory)) {
-                      _categories.add(_selectedCategory!);
+              if (widget.pendingItem != null) ...[
+                Text(
+                  "Producto",
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  widget.pendingItem!.name,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                ),
+                SizedBox(height: 16),
+              ] else ...[
+                Text(
+                  "Nombre del producto",
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                ),
+                SizedBox(height: 4),
+                Autocomplete<MarketProduct>(
+                  displayStringForOption: (option) => option.name,
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    final storeProducts = appState.marketProducts.where((p) => p.storeIds.contains(_selectedStoreId)).toList();
+                    if (textEditingValue.text.isEmpty) {
+                      return storeProducts;
                     }
-                    if (selection.referencePriceUSD != null && selection.referencePriceUSD! > 0) {
-                      _priceUsdController.text = selection.referencePriceUSD!.toStringAsFixed(2).replaceAll('.', ',');
-                      _onUsdChanged();
-                    }
-                  });
-                },
-                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  // Sincronizar el _nameController con el controller del Autocomplete
-                  controller.addListener(() {
-                    _nameController.text = controller.text;
-                  });
-                  return TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      hintText: "Ej. Cartón de Huevos",
-                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      contentPadding: EdgeInsets.all(12),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    style: TextStyle(fontSize: 13, color: AppColors.cardText),
-                  );
-                },
-                optionsViewBuilder: (context, onSelected, options) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width - 32,
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: options.length,
-                          itemBuilder: (context, index) {
-                            final option = options.elementAt(index);
-                            return ListTile(
-                              title: Text(option.name, style: TextStyle(fontSize: 13)),
-                              subtitle: Text(option.category, style: TextStyle(fontSize: 11)),
-                              onTap: () => onSelected(option),
-                            );
-                          },
+                    return storeProducts.where((p) => 
+                      p.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+                    );
+                  },
+                  onSelected: (MarketProduct selection) {
+                    _nameController.text = selection.name;
+                    setState(() {
+                      _selectedCategory = selection.category;
+                      if (_selectedCategory != null && !_categories.contains(_selectedCategory)) {
+                        _categories.add(_selectedCategory!);
+                      }
+                      if (selection.referencePriceUSD != null && selection.referencePriceUSD! > 0) {
+                        _priceUsdController.text = selection.referencePriceUSD!.toStringAsFixed(2).replaceAll('.', ',');
+                        _onUsdChanged();
+                      }
+                    });
+                  },
+                  fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                    // Sincronizar el _nameController con el controller del Autocomplete
+                    controller.addListener(() {
+                      _nameController.text = controller.text;
+                    });
+                    return TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
+                        hintText: "Ej. Cartón de Huevos",
+                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
+                        contentPadding: EdgeInsets.all(12),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 16),
-              
-              Text(
-                "Categoría",
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
-              ),
-              SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                hint: Text("Seleccionar Categoría"),
-                isExpanded: true,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
+                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                    );
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: MediaQuery.of(context).size.width - 32,
+                          constraints: BoxConstraints(maxHeight: 200),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: options.length,
+                            itemBuilder: (context, index) {
+                              final option = options.elementAt(index);
+                              return ListTile(
+                                title: Text(option.name, style: TextStyle(fontSize: 13)),
+                                subtitle: Text(option.category, style: TextStyle(fontSize: 11)),
+                                onTap: () => onSelected(option),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                dropdownColor: Colors.white,
-                style: TextStyle(color: AppColors.cardText, fontSize: 13),
-                items: _categories.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat,
-                    child: Text(cat),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedCategory = val;
-                  });
-                },
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 16),
+              ],
+              
+              if (widget.pendingItem != null) ...[
+                Text(
+                  "Categoría",
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  widget.pendingItem!.category,
+                  style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                ),
+                SizedBox(height: 16),
+              ] else ...[
+                Text(
+                  "Categoría",
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                ),
+                SizedBox(height: 4),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  hint: Text("Seleccionar Categoría"),
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  dropdownColor: Colors.white,
+                  style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                  items: _categories.map((cat) {
+                    return DropdownMenuItem(
+                      value: cat,
+                      child: Text(cat),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedCategory = val;
+                    });
+                  },
+                ),
+                SizedBox(height: 16),
+              ],
               
               if (!widget.forceStore) ...[
                 Text(
@@ -415,6 +472,87 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                 ),
                 SizedBox(height: 16),
               ],
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Cantidad",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                        ),
+                        SizedBox(height: 4),
+                        TextField(
+                          controller: _quantityController,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [CommaTextInputFormatter()],
+                          decoration: InputDecoration(
+                            hintText: "1",
+                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: AppColors.primary, width: 2),
+                            ),
+                          ),
+                          style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Unidad",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                        ),
+                        SizedBox(height: 4),
+                        DropdownButtonFormField<String>(
+                          value: _selectedUnit,
+                          hint: Text("Unidad"),
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          dropdownColor: Colors.white,
+                          style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                          items: _units.map((u) {
+                            return DropdownMenuItem(
+                              value: u,
+                              child: Text(u),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _selectedUnit = val;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
               
               Row(
                 children: [

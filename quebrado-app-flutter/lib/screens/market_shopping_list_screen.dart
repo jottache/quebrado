@@ -7,6 +7,7 @@ import '../models/market_shopping_list.dart';
 import '../models/market_shopping_list_item.dart';
 import '../models/market_product.dart';
 import '../widgets/claymorphic_card.dart';
+import '../widgets/add_shopping_list_item_bottom_sheet.dart';
 
 class MarketShoppingListScreen extends StatefulWidget {
   final String listId;
@@ -75,16 +76,19 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
       return;
     }
 
-    final newItem = MarketShoppingListItem(
-      id: Uuid().v4(),
-      listId: widget.listId,
-      productId: product.id,
-      isChecked: false,
-    );
-
-    await appState.addMarketShoppingListItem(newItem);
     _searchController.clear();
     _searchFocusNode.unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddShoppingListItemBottomSheet(
+        product: product,
+        isNewProduct: false,
+        listId: widget.listId,
+      ),
+    );
   }
 
   void _addNewProductAndAddToList() async {
@@ -101,8 +105,19 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
       storeIds: [],
     );
 
-    await appState.addMarketProduct(newProduct);
-    _addItemToList(newProduct);
+    _searchController.clear();
+    _searchFocusNode.unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddShoppingListItemBottomSheet(
+        product: newProduct,
+        isNewProduct: true,
+        listId: widget.listId,
+      ),
+    );
   }
 
   @override
@@ -160,50 +175,6 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          if (!list.isActive)
-            TextButton.icon(
-              onPressed: () async {
-                final updated = MarketShoppingList(
-                  id: list.id,
-                  title: list.title,
-                  date: list.date,
-                  isActive: true,
-                );
-                await appState.updateMarketShoppingList(updated);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Lista activada para compras.')),
-                );
-              },
-              icon: Icon(Icons.check_circle_outline, color: AppColors.primary, size: 18),
-              label: Text(
-                "Activar",
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.primary),
-                  ),
-                  child: Text(
-                    "ACTIVA",
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
       ),
       body: Column(
         children: [
@@ -291,21 +262,6 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: Row(
                             children: [
-                              Checkbox(
-                                activeColor: AppColors.primary,
-                                value: row.item.isChecked,
-                                onChanged: (val) async {
-                                  if (val != null) {
-                                    final updated = MarketShoppingListItem(
-                                      id: row.item.id,
-                                      listId: row.item.listId,
-                                      productId: row.item.productId,
-                                      isChecked: val,
-                                    );
-                                    await appState.updateMarketShoppingListItem(updated);
-                                  }
-                                },
-                              ),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,10 +271,7 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: row.item.isChecked ? Colors.grey : Colors.black87,
-                                        decoration: row.item.isChecked
-                                            ? TextDecoration.lineThrough
-                                            : TextDecoration.none,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                     Text(
@@ -326,6 +279,15 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      "${row.item.quantity.toString().endsWith('.0') ? row.item.quantity.toInt() : row.item.quantity.toStringAsFixed(2)} ${row.product.unit}",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   ],

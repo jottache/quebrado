@@ -3,12 +3,14 @@ class MarketShoppingListItem {
   final String listId;
   final String productId;
   final bool isChecked;
+  final double quantity;
 
   MarketShoppingListItem({
     required this.id,
     required this.listId,
     required this.productId,
     this.isChecked = false,
+    this.quantity = 1.0,
   });
 
   Map<String, dynamic> toMap() {
@@ -17,6 +19,7 @@ class MarketShoppingListItem {
       'list_id': listId,
       'product_id': productId,
       'is_checked': isChecked ? 1 : 0,
+      'quantity': quantity,
     };
   }
 
@@ -26,6 +29,7 @@ class MarketShoppingListItem {
       listId: map['list_id'],
       productId: map['product_id'],
       isChecked: map['is_checked'] == 1,
+      quantity: map['quantity'] ?? 1.0,
     );
   }
 }

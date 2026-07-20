@@ -6,6 +6,8 @@ class MarketProduct {
   String category;
   List<String> storeIds; // IDs de los establecimientos donde se encuentra
   double? referencePriceUSD; // Opcional, último precio o precio de referencia
+  String unit;
+  double defaultQuantity;
 
   MarketProduct({
     required this.id,
@@ -13,6 +15,8 @@ class MarketProduct {
     required this.category,
     this.storeIds = const [],
     this.referencePriceUSD,
+    this.unit = 'un',
+    this.defaultQuantity = 1.0,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +26,8 @@ class MarketProduct {
       'category': category,
       'storeIds': jsonEncode(storeIds),
       'referencePriceUSD': referencePriceUSD,
+      'unit': unit,
+      'default_quantity': defaultQuantity,
     };
   }
 
@@ -32,6 +38,8 @@ class MarketProduct {
       category: map['category'],
       storeIds: map['storeIds'] != null ? List<String>.from(jsonDecode(map['storeIds'])) : [],
       referencePriceUSD: map['referencePriceUSD'],
+      unit: map['unit'] ?? 'un',
+      defaultQuantity: map['default_quantity'] ?? 1.0,
     );
   }
 }

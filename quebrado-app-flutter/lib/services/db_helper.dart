@@ -50,7 +50,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 21,
+      version: 24,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -399,6 +399,30 @@ class DatabaseHelper {
         // Handle migration gracefully
       }
     }
+    if (oldVersion < 22) {
+      try {
+        await db.execute('ALTER TABLE market_items ADD COLUMN quantity REAL DEFAULT 1.0');
+        await db.execute("ALTER TABLE market_items ADD COLUMN unit TEXT DEFAULT 'un'");
+        await db.execute('ALTER TABLE market_items ADD COLUMN is_pending INTEGER DEFAULT 0');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 23) {
+      try {
+        await db.execute('ALTER TABLE market_products ADD COLUMN unit TEXT DEFAULT "un"');
+        await db.execute('ALTER TABLE market_shopping_list_items ADD COLUMN quantity REAL DEFAULT 1.0');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
+    if (oldVersion < 24) {
+      try {
+        await db.execute('ALTER TABLE market_products ADD COLUMN default_quantity REAL DEFAULT 1.0');
+      } catch (e) {
+        // Handle migration gracefully
+      }
+    }
   }
 
   Future _onConfigure(Database db) async {
@@ -591,7 +615,9 @@ class DatabaseHelper {
         name $textType,
         category $textType,
         storeIds $textType,
-        referencePriceUSD REAL
+        referencePriceUSD REAL,
+        unit TEXT DEFAULT "un",
+        default_quantity REAL DEFAULT 1.0
       )
     ''');
 
@@ -619,6 +645,9 @@ class DatabaseHelper {
         trip_id TEXT NOT NULL,
         product_id TEXT,
         date $textType,
+        quantity REAL DEFAULT 1.0,
+        unit TEXT DEFAULT 'un',
+        is_pending INTEGER DEFAULT 0,
         FOREIGN KEY (store_id) REFERENCES market_stores (id) ON DELETE CASCADE,
         FOREIGN KEY (trip_id) REFERENCES market_trips (id) ON DELETE CASCADE
       )
@@ -641,6 +670,7 @@ class DatabaseHelper {
         list_id TEXT NOT NULL,
         product_id TEXT NOT NULL,
         is_checked INTEGER DEFAULT 0,
+        quantity REAL DEFAULT 1.0,
         FOREIGN KEY (list_id) REFERENCES market_shopping_lists (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES market_products (id) ON DELETE CASCADE
       )
@@ -1503,6 +1533,16 @@ class DatabaseHelper {
   Future<void> deleteMarketItem(String id) async {
     final db = await instance.database;
     await db.delete('market_items', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> updateMarketItem(MarketItem item) async {
+    final db = await instance.database;
+    await db.update(
+      'market_items',
+      item.toMap(),
+      where: 'id = ?',
+      whereArgs: [item.id],
+    );
   }
 
   // MARK: - Market Products CRUD

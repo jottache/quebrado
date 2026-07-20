@@ -25,11 +25,11 @@ class MarketTripScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final trip = appState.marketTrips.firstWhere(
-      (t) => t.id == tripId,
-      // fallback just in case
-      orElse: () => appState.marketTrips.first,
-    );
+    final tripMatches = appState.marketTrips.where((t) => t.id == tripId);
+    if (tripMatches.isEmpty) {
+      return const Scaffold(backgroundColor: AppColors.background);
+    }
+    final trip = tripMatches.first;
     final itemsInTrip = appState.marketItems.where((i) => i.tripId == tripId).toList();
     
     // Group by store
@@ -57,6 +57,14 @@ class MarketTripScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete_outline, color: Colors.red[300]),
+            onPressed: () {
+              _confirmDeleteTrip(context, appState, trip);
+            },
+          ),
+        ],
       ),
       body: ClaymorphicBackground(
         child: Column(
@@ -504,6 +512,78 @@ class MarketTripScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _confirmDeleteTrip(BuildContext context, AppState appState, MarketTrip trip) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "¿Eliminar Sesión?",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                "Se eliminarán todos los productos registrados en esta sesión. Esta acción no se puede deshacer.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text("Cancelar", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context); // Close bottom sheet
+                        // Delete all items in the trip
+                        final itemsInTrip = appState.marketItems.where((i) => i.tripId == trip.id).toList();
+                        for (var item in itemsInTrip) {
+                          await appState.deleteMarketItem(item.id);
+                        }
+                        // Delete the trip itself
+                        await appState.deleteMarketTrip(trip.id);
+                        Navigator.pop(context); // Go back to market screen
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[400],
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text("Eliminar", style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
