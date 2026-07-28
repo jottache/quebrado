@@ -675,9 +675,24 @@ class AppState extends ChangeNotifier {
   double get totalMarketSpentThisMonthUSD {
     final now = DateTime.now();
     double total = 0.0;
-    for (var item in marketItems) {
-      if (item.date.year == now.year && item.date.month == now.month) {
-        total += item.priceUSD;
+
+    for (var trip in marketTrips) {
+      if (trip.date.year == now.year && trip.date.month == now.month) {
+        final itemsInTrip = marketItems.where((i) => i.tripId == trip.id);
+        if (itemsInTrip.isNotEmpty) {
+          total += itemsInTrip.fold(0.0, (sum, i) => sum + i.priceUSD);
+        } else if (trip.transactionId != null) {
+          final txMatches = transactions.where((t) => t.id == trip.transactionId);
+          if (txMatches.isNotEmpty) {
+            final tx = txMatches.first;
+            if (tx.currency == CurrencyType.usd) {
+              total += tx.amount;
+            } else {
+              final rate = tx.exchangeRate > 0 ? tx.exchangeRate : _bcvRate;
+              total += rate > 0 ? tx.amount / rate : 0.0;
+            }
+          }
+        }
       }
     }
     return total;

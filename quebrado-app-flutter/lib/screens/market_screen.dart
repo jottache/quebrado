@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../widgets/claymorphic_card.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
+import '../models/currency_type.dart';
 import '../models/market_item.dart';
 import '../models/market_store.dart';
 import '../models/market_trip.dart';
@@ -270,6 +271,31 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
     );
   }
 
+  Map<String, double> _getTripTotals(AppState appState, MarketTrip trip) {
+    final itemsInTrip = appState.marketItems.where((i) => i.tripId == trip.id).toList();
+    double tripTotalUSD = 0.0;
+    double tripTotalVES = 0.0;
+
+    if (itemsInTrip.isNotEmpty) {
+      tripTotalUSD = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceUSD);
+      tripTotalVES = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceVES);
+    } else if (trip.transactionId != null) {
+      final txMatches = appState.transactions.where((t) => t.id == trip.transactionId);
+      if (txMatches.isNotEmpty) {
+        final tx = txMatches.first;
+        if (tx.currency == CurrencyType.usd) {
+          tripTotalUSD = tx.amount;
+          tripTotalVES = tx.amount * (tx.exchangeRate > 0 ? tx.exchangeRate : appState.bcvRate);
+        } else {
+          tripTotalVES = tx.amount;
+          final rate = tx.exchangeRate > 0 ? tx.exchangeRate : appState.bcvRate;
+          tripTotalUSD = rate > 0 ? tx.amount / rate : 0.0;
+        }
+      }
+    }
+    return {'usd': tripTotalUSD, 'ves': tripTotalVES};
+  }
+
   Widget _buildTripsTab(AppState appState, MarketTrip? activeTrip) {
     if (appState.marketTrips.isEmpty) {
       return _buildEmptyState(
@@ -296,9 +322,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
       double monthTotalUSD = 0.0;
       double monthTotalVES = 0.0;
       for (var trip in trips) {
-        final items = appState.marketItems.where((i) => i.tripId == trip.id);
-        monthTotalUSD += items.fold(0.0, (sum, i) => sum + i.priceUSD);
-        monthTotalVES += items.fold(0.0, (sum, i) => sum + i.priceVES);
+        final totals = _getTripTotals(appState, trip);
+        monthTotalUSD += totals['usd']!;
+        monthTotalVES += totals['ves']!;
       }
       
       listItems.add(_HeaderItem(monthYear, monthTotalUSD, monthTotalVES));
@@ -379,7 +405,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
           final trip = item.trip;
           final itemsInTrip = appState.marketItems.where((i) => i.tripId == trip.id).toList();
           final visitedStores = itemsInTrip.map((e) => e.storeId).toSet();
-          final tripTotalUSD = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceUSD);
+          final totals = _getTripTotals(appState, trip);
+          final tripTotalUSD = totals['usd']!;
+          final tripTotalVES = totals['ves']!;
           
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
@@ -440,7 +468,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                           ),
                           SizedBox(height: 4),
                           Text(
-                            "${visitedStores.length} lugares visitados",
+                            visitedStores.isNotEmpty
+                                ? "${visitedStores.length} lugares visitados"
+                                : (trip.transactionId != null ? "Finalizada (Ver Transacción)" : "0 lugares visitados"),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,

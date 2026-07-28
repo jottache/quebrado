@@ -41,8 +41,26 @@ class MarketTripScreen extends StatelessWidget {
       itemsByStore[item.storeId]!.add(item);
     }
     
-    final totalUSD = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceUSD);
-    final totalVES = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceVES);
+    double totalUSD = 0.0;
+    double totalVES = 0.0;
+
+    if (itemsInTrip.isNotEmpty) {
+      totalUSD = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceUSD);
+      totalVES = itemsInTrip.fold(0.0, (sum, i) => sum + i.priceVES);
+    } else if (trip.transactionId != null) {
+      final txMatches = appState.transactions.where((t) => t.id == trip.transactionId);
+      if (txMatches.isNotEmpty) {
+        final tx = txMatches.first;
+        if (tx.currency == CurrencyType.usd) {
+          totalUSD = tx.amount;
+          totalVES = tx.amount * (tx.exchangeRate > 0 ? tx.exchangeRate : appState.bcvRate);
+        } else {
+          totalVES = tx.amount;
+          final rate = tx.exchangeRate > 0 ? tx.exchangeRate : appState.bcvRate;
+          totalUSD = rate > 0 ? tx.amount / rate : 0.0;
+        }
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -128,10 +146,49 @@ class MarketTripScreen extends StatelessWidget {
             Expanded(
               child: itemsByStore.isEmpty
                   ? Center(
-                      child: Text(
-                        "No has registrado compras en ningún establecimiento.",
-                        style: TextStyle(color: Colors.grey),
-                        textAlign: TextAlign.center,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                trip.transactionId != null ? Icons.receipt_long : Icons.storefront_outlined,
+                                size: 40,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              trip.transactionId != null
+                                  ? "Sesión Registrada"
+                                  : "Sin Productos Registrados",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.cardText,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              trip.transactionId != null
+                                  ? "Esta sesión fue finalizada y guardada como un gasto de \$${totalUSD.toStringAsFixed(2)} (Bs ${totalVES.toStringAsFixed(2)}).\n\nLos ítems individuales no estaban desglosados en este respaldo, pero el monto total del gasto está guardado en tu cuenta."
+                                  : "No has registrado compras en ningún establecimiento.",
+                              style: TextStyle(
+                                color: AppColors.cardSubtitleText,
+                                fontSize: 13,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   : ListView.builder(
