@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import '../models/recurring_payment.dart';
-import '../models/transaction.dart';
+import '../quebrado/models/recurring_payment.dart';
+import '../quebrado/models/transaction.dart';
 
 class NotificationManager {
   static final NotificationManager shared = NotificationManager._internal();
@@ -12,6 +13,7 @@ class NotificationManager {
 
   /// Initializes the local notification plugin and configures settings for Android/iOS.
   Future<void> initialize() async {
+    if (kIsWeb) return;
     tz.initializeTimeZones();
 
     // Android Settings: uses standard launcher icon resource name
@@ -40,8 +42,9 @@ class NotificationManager {
 
   /// Explicitly requests permission for push alerts on iOS.
   Future<void> requestAuthorization() async {
+    if (kIsWeb) return;
     // Request for iOS
-    final bool? iosGranted = await _notificationsPlugin
+    await _notificationsPlugin
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(
           alert: true,
@@ -57,6 +60,7 @@ class NotificationManager {
 
   /// Schedules a notification for a subscription based on its billing cycle.
   Future<void> scheduleNotification(RecurringPayment subscription, double bcvRate) async {
+    if (kIsWeb) return;
     // Cancel existing to prevent duplicates
     await cancelNotification(subscription);
 
@@ -196,6 +200,7 @@ class NotificationManager {
 
   /// Cancels any scheduled notification for a subscription.
   Future<void> cancelNotification(RecurringPayment subscription) async {
+    if (kIsWeb) return;
     final int notificationId = subscription.id.hashCode & 0x7FFFFFFF;
     await _notificationsPlugin.cancel(notificationId);
     await _notificationsPlugin.cancel(notificationId + 2); // Cancel due day reminder too
@@ -203,6 +208,7 @@ class NotificationManager {
 
   /// Show immediate notification for today's due payment
   Future<void> showImmediateReminder(RecurringPayment payment) async {
+    if (kIsWeb) return;
     final String symbol = payment.currency.symbol;
     final String amountFormatted = "${payment.type == TransactionType.income ? '+' : '-'}$symbol${payment.amount.toStringAsFixed(2)}";
 

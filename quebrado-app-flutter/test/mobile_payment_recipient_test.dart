@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quebrado_app_flutter/viewmodels/app_state.dart';
-import 'package:quebrado_app_flutter/models/mobile_payment_recipient.dart';
+import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
+import 'package:quebrado_app_flutter/quebrado/models/mobile_payment_recipient.dart';
 
 void main() {
   test('AppState mobile payment recipient operations are correct', () async {

@@ -49,6 +49,8 @@ dependencies:
   share_plus: ^9.0.0
   path_provider: ^2.1.2
   local_auth: ^3.0.1
+  supabase_flutter: ^2.8.0
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,8 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/quebrado/
+    - .env
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -117,7 +121,7 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#EEEEEE"
-  image: "assets/images/quebrado.png"
+  image: "assets/images/quebrado/logo_quebrado.png"
   android_12:
     image: "assets/images/app_icon_foreground.png"
     color: "#EEEEEE"

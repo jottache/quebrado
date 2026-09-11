@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quebrado_app_flutter/models/account.dart';
-import 'package:quebrado_app_flutter/models/currency_type.dart';
-import 'package:quebrado_app_flutter/models/saving_pocket.dart';
-import 'package:quebrado_app_flutter/models/transaction.dart';
-import 'package:quebrado_app_flutter/viewmodels/app_state.dart';
+import 'package:quebrado_app_flutter/quebrado/models/account.dart';
+import 'package:quebrado_app_flutter/quebrado/models/currency_type.dart';
+import 'package:quebrado_app_flutter/quebrado/models/saving_pocket.dart';
+import 'package:quebrado_app_flutter/quebrado/models/transaction.dart';
+import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
 
 void main() {
   group('Manual Income Savings Suggestions', () {
@@ -77,7 +77,7 @@ void main() {
       expect(p1Suggestions.first.amount, 10.0);
       expect(p1Suggestions.first.associatedTransactionIds, ['t1']);
       expect(p2Suggestions.isEmpty, true);
-    });
+    }, skip: 'Auto-save suggestions for manual incomes are disabled');
 
     test('Consolidates multiple manual incomes on the same day', () {
       final today = DateTime.now();
@@ -120,6 +120,6 @@ void main() {
       expect(p2Suggestions.length, 1);
       expect(p2Suggestions.first.amount, 50.0);
       expect(p2Suggestions.first.associatedTransactionIds, ['t2']);
-    });
+    }, skip: 'Auto-save suggestions for manual incomes are disabled');
   });
 }

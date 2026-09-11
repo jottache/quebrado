@@ -15,3 +15,8 @@ quebrado-app-flutter/android/app/profile/
 quebrado-app-flutter/android/app/release/
 quebrado-app-flutter/android/build/
 quebrado-app-flutter/Quebrado.apk
+
+# Environment variables
+.env
+.env.*
+!.env.example

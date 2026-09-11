@@ -1,23 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'viewmodels/app_state.dart';
+import 'quebrado/quebrado.dart';
+import 'diario/diario.dart';
+import 'habitos/habitos.dart';
+import 'recordatorios/recordatorios.dart';
 import 'services/notification_manager.dart';
-import 'screens/main_screen.dart';
+import 'screens/app_launcher_screen.dart';
 import 'theme/colors.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/supabase_config.dart';
 
 void main() async {
   // Ensure Flutter engine is initialized before calling native platforms/services
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize notifications manager
+  // Load environment variables from .env file
   try {
-    await NotificationManager.shared.initialize();
+    await dotenv.load(fileName: ".env");
   } catch (e) {
-    debugPrint("Failed to initialize NotificationManager: $e");
+    debugPrint("Info: No se cargó archivo .env local: $e");
   }
 
-  runApp(MyApp());
+  // Initialize Supabase if configured
+  try {
+    if (SupabaseConfig.isConfigured) {
+      await Supabase.initialize(
+        url: SupabaseConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
+      );
+    }
+  } catch (e) {
+    debugPrint("Failed to initialize Supabase: $e");
+  }
+
+  // Initialize notifications manager on native platforms
+  if (!kIsWeb) {
+    try {
+      NotificationManager.shared.initialize();
+    } catch (e) {
+      debugPrint("Failed to initialize NotificationManager: $e");
+    }
+  }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -25,12 +54,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AppState>(
-      create: (_) => AppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+        ChangeNotifierProvider<DiarioState>(create: (_) => DiarioState()),
+        ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
+        ChangeNotifierProvider<RemindersState>(create: (_) => RemindersState()),
+      ],
       child: Consumer<AppState>(
         builder: (context, appState, child) {
           return MaterialApp(
-            title: 'Quebrado',
+            title: 'OrtizApp',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
@@ -57,7 +91,7 @@ class MyApp extends StatelessWidget {
                 ),
               ),
             ),
-            home: MainScreen(),
+            home: AppLauncherScreen(),
           );
         }
       ),

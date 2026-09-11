@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:quebrado_app_flutter/services/db_helper.dart';
+import 'package:quebrado_app_flutter/quebrado/services/db_helper.dart';
 
 void main() {
   group('DatabaseHelper Backup Management System Tests', () {

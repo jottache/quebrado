@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quebrado_app_flutter/viewmodels/app_state.dart';
-import 'package:quebrado_app_flutter/models/transaction.dart';
-import 'package:quebrado_app_flutter/models/account.dart';
-import 'package:quebrado_app_flutter/models/currency_type.dart';
+import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
+import 'package:quebrado_app_flutter/quebrado/models/transaction.dart';
+import 'package:quebrado_app_flutter/quebrado/models/account.dart';
+import 'package:quebrado_app_flutter/quebrado/models/currency_type.dart';
 
 void main() {
   test('AppState multi-currency transactions update account balance correctly', () async {
