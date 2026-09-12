@@ -65,19 +65,43 @@ class HabitosSupabaseService {
       _hasHabitsTable = true;
 
       if (habitsRaw.isEmpty) {
-        debugPrint('[Habitos] Base de datos vacía, inicializando semillas de bienvenida');
-        final seedData = _generateDefaultSeedData();
-        for (final s in seedData.stacks) {
+        debugPrint('[Habitos] Tablas relacionales vacías, verificando datos existentes en settings...');
+        HabitosBootstrapData? existingData;
+        try {
+          final res = await _client!.from('settings').select().eq('key', 'habitos_data').maybeSingle();
+          final jsonStr = res?['value'] as String?;
+          if (jsonStr != null && jsonStr.trim().isNotEmpty) {
+            final Map<String, dynamic> map = jsonDecode(jsonStr);
+            final hList = (map['habits'] as List? ?? [])
+                .map((m) => HabitModel.fromMap(m as Map<String, dynamic>))
+                .toList();
+            final sList = (map['stacks'] as List? ?? [])
+                .map((m) => HabitStackModel.fromMap(m as Map<String, dynamic>))
+                .toList();
+            final lList = (map['logs'] as List? ?? [])
+                .map((m) => HabitLogModel.fromMap(m as Map<String, dynamic>))
+                .toList();
+            if (hList.isNotEmpty) {
+              existingData = HabitosBootstrapData(habits: hList, stacks: sList, logs: lList);
+              debugPrint('[Habitos] Se encontraron ${hList.length} hábitos existentes en settings. Migrando a tablas relacionales...');
+            }
+          }
+        } catch (e) {
+          debugPrint('[Habitos] Error buscando datos en settings para migración: $e');
+        }
+
+        final dataToMigrate = existingData ?? _generateDefaultSeedData();
+        for (final s in dataToMigrate.stacks) {
           await saveHabitStack(s);
         }
-        for (final h in seedData.habits) {
+        for (final h in dataToMigrate.habits) {
           await saveHabit(h);
         }
-        for (final l in seedData.logs) {
+        for (final l in dataToMigrate.logs) {
           await saveHabitLog(l);
         }
-        _cachedData = seedData;
-        return seedData;
+        _cachedData = dataToMigrate;
+        return dataToMigrate;
       }
 
       final habits = habitsRaw.map((m) => HabitModel.fromMap(m as Map<String, dynamic>)).toList();
