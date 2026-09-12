@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/chat_session_model.dart';
 import '../models/chat_message_model.dart';
 import '../models/chat_artifact_model.dart';
+import '../models/agente_prompt_model.dart';
 
 class AgenteSupabaseService {
   SupabaseClient? get _client {
@@ -154,4 +155,52 @@ class AgenteSupabaseService {
       return [];
     }
   }
+
+  /// Obtiene los prompts personalizados ordenados
+  Future<List<AgentePromptModel>> getPrompts() async {
+    final client = _client;
+    if (client == null) return [];
+    try {
+      final res = await client
+          .from('chat_prompts')
+          .select()
+          .order('sort_order', ascending: true)
+          .order('created_at', ascending: true);
+
+      return (res as List).map((r) => AgentePromptModel.fromMap(r)).toList();
+    } catch (e) {
+      debugPrint('Error obteniendo prompts en Supabase (o tabla no existe aún): $e');
+      return [];
+    }
+  }
+
+  /// Guarda o actualiza un prompt personalizado
+  Future<AgentePromptModel> savePrompt(AgentePromptModel prompt) async {
+    final client = _client;
+    if (client == null) return prompt;
+    try {
+      final map = prompt.toMap();
+      if (currentUserId != null) map['user_id'] = currentUserId;
+
+      await client.from('chat_prompts').upsert(map);
+      return prompt;
+    } catch (e) {
+      debugPrint('Error guardando prompt en Supabase: $e');
+      return prompt;
+    }
+  }
+
+  /// Elimina un prompt personalizado
+  Future<bool> deletePrompt(String promptId) async {
+    final client = _client;
+    if (client == null) return true;
+    try {
+      await client.from('chat_prompts').delete().eq('id', promptId);
+      return true;
+    } catch (e) {
+      debugPrint('Error eliminando prompt en Supabase: $e');
+      return false;
+    }
+  }
 }
+

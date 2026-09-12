@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/agente_colors.dart';
+import '../viewmodels/agente_state.dart';
+import '../dialogs/prompt_editor_dialog.dart';
 import 'agente_chat_bottom_sheet.dart';
 
 class DockedLauncherChat extends StatelessWidget {
   const DockedLauncherChat({super.key});
 
-  static const List<String> _quickPrompts = [
-    '¿Cuáles son los próximos 3 cumpleaños?',
-    '¿Cuánto dinero tengo en total?',
-    '¿Qué pagos o tareas tengo hoy?',
-    '¿Cuál es la tasa oficial del BCV?',
-    '¿Cómo voy con mis hábitos hoy?',
-    'Calcular 50 USD a Bs',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final agenteState = Provider.of<AgenteState>(context);
+    final prompts = agenteState.quickPrompts;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -35,38 +32,103 @@ class DockedLauncherChat extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 1. Quick Prompts Horizontal Scroll
+              // 1. Quick Prompts Horizontal Scroll (Dinámico desde Agente Ortiz)
               SizedBox(
                 height: 34,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _quickPrompts.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final prompt = _quickPrompts[index];
-                    return ActionChip(
-                      label: Text(
-                        prompt,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
+                child: prompts.isEmpty
+                    ? ListView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          ActionChip(
+                            avatar: const Icon(Icons.add_rounded, size: 16, color: AgenteColors.primary),
+                            label: const Text(
+                              'Personalizar atajos de consulta',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AgenteColors.primary,
+                              ),
+                            ),
+                            backgroundColor: AgenteColors.primaryLight,
+                            side: BorderSide(color: AgenteColors.primary.withOpacity(0.3)),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                            visualDensity: VisualDensity.compact,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            onPressed: () async {
+                              final newPrompt = await PromptEditorDialog.show(context);
+                              if (newPrompt != null) {
+                                agenteState.saveQuickPrompt(newPrompt);
+                              }
+                            },
+                          ),
+                        ],
+                      )
+                    : ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: prompts.length + 1,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          if (index < prompts.length) {
+                            final prompt = prompts[index];
+                            final displayText = prompt.label != null && prompt.label!.isNotEmpty
+                                ? '${prompt.label!}: ${prompt.text}'
+                                : prompt.text;
+                            return ActionChip(
+                              avatar: prompt.label != null
+                                  ? const Icon(Icons.bolt_rounded, size: 14, color: AgenteColors.primary)
+                                  : null,
+                              label: Text(
+                                displayText,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              backgroundColor: const Color(0xFFF8FAFC),
+                              side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              visualDensity: VisualDensity.compact,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              onPressed: () {
+                                AgenteChatBottomSheet.show(context, initialPrompt: prompt.text);
+                              },
+                            );
+                          } else {
+                            // Chip rápido para agregar otro prompt
+                            return ActionChip(
+                              avatar: const Icon(Icons.add, size: 14, color: AgenteColors.primary),
+                              label: const Text(
+                                'Nuevo',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AgenteColors.primary,
+                                ),
+                              ),
+                              backgroundColor: AgenteColors.primaryLight,
+                              side: BorderSide(color: AgenteColors.primary.withOpacity(0.3)),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              visualDensity: VisualDensity.compact,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              onPressed: () async {
+                                final newPrompt = await PromptEditorDialog.show(context);
+                                if (newPrompt != null) {
+                                  agenteState.saveQuickPrompt(newPrompt);
+                                }
+                              },
+                            );
+                          }
+                        },
                       ),
-                      backgroundColor: const Color(0xFFF8FAFC),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                      visualDensity: VisualDensity.compact,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      onPressed: () {
-                        AgenteChatBottomSheet.show(context, initialPrompt: prompt);
-                      },
-                    );
-                  },
-                ),
               ),
               const SizedBox(height: 10),
 

@@ -1,18 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_session_model.dart';
 import '../models/chat_message_model.dart';
 import '../models/chat_artifact_model.dart';
+import '../models/agente_prompt_model.dart';
 import '../services/gemini_service.dart';
 import '../services/suite_rag_service.dart';
 import '../services/agente_supabase_service.dart';
 import '../../quebrado/viewmodels/app_state.dart';
+import '../../quebrado/services/db_helper.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 
 class AgenteState extends ChangeNotifier {
-  final AgenteSupabaseService _supabaseService = AgenteSupabaseService();
+  final AgenteSupabaseService _supabaseService;
   GeminiService? _geminiService;
   SuiteRagService? _ragService;
 
@@ -20,13 +23,20 @@ class AgenteState extends ChangeNotifier {
   ChatSessionModel? _currentSession;
   List<ChatMessageModel> _messages = [];
   List<ChatArtifactModel> _allArtifacts = [];
+  List<AgentePromptModel> _quickPrompts = [];
 
   bool _isGenerating = false;
   String _statusMessage = '';
   bool _isLauncherChatExpanded = false;
+  bool _isInitialized = false;
 
-  AgenteState() {
-    _init();
+  AgenteState({bool autoInit = true, AgenteSupabaseService? supabaseService})
+      : _supabaseService = supabaseService ?? AgenteSupabaseService() {
+    if (autoInit) {
+      _init();
+    } else {
+      _isInitialized = true;
+    }
   }
 
   // Getters
@@ -34,9 +44,11 @@ class AgenteState extends ChangeNotifier {
   ChatSessionModel? get currentSession => _currentSession;
   List<ChatMessageModel> get messages => _messages;
   List<ChatArtifactModel> get allArtifacts => _allArtifacts;
+  List<AgentePromptModel> get quickPrompts => List.unmodifiable(_quickPrompts);
   bool get isGenerating => _isGenerating;
   String get statusMessage => _statusMessage;
   bool get isLauncherChatExpanded => _isLauncherChatExpanded;
+  bool get isInitialized => _isInitialized;
 
   void setLauncherChatExpanded(bool expanded) {
     if (_isLauncherChatExpanded != expanded) {
@@ -48,11 +60,14 @@ class AgenteState extends ChangeNotifier {
   void _init() async {
     await loadSessions();
     await loadAllArtifacts();
+    await loadQuickPrompts();
     if (_sessions.isNotEmpty) {
       await selectSession(_sessions.first.id);
     } else {
       await startNewSession();
     }
+    _isInitialized = true;
+    notifyListeners();
   }
 
   /// Actualiza las dependencias vivas de la suite para el motor RAG
@@ -79,6 +94,106 @@ class AgenteState extends ChangeNotifier {
   Future<void> loadAllArtifacts() async {
     _allArtifacts = await _supabaseService.getAllArtifacts();
     notifyListeners();
+  }
+
+  Future<void> loadQuickPrompts() async {
+    List<AgentePromptModel> loaded = [];
+
+    // 1. Intentar cargar desde Supabase
+    try {
+      final remote = await _supabaseService.getPrompts();
+      if (remote.isNotEmpty) {
+        loaded = remote;
+      }
+    } catch (_) {}
+
+    // 2. Si no hay remotos o falla, cargar desde SQLite
+    if (loaded.isEmpty) {
+      try {
+        final localJson = await DatabaseHelper.instance
+            .getSetting('agente_custom_prompts')
+            .timeout(const Duration(milliseconds: 300));
+        if (localJson != null && localJson.isNotEmpty) {
+          final decoded = jsonDecode(localJson) as List;
+          loaded = decoded.map((m) => AgentePromptModel.fromMap(Map<String, dynamic>.from(m))).toList();
+        }
+      } catch (_) {}
+    }
+
+    _quickPrompts = loaded;
+    _sortPrompts();
+    notifyListeners();
+  }
+
+  void _sortPrompts() {
+    _quickPrompts.sort((a, b) {
+      final orderComp = a.sortOrder.compareTo(b.sortOrder);
+      if (orderComp != 0) return orderComp;
+      return a.createdAt.compareTo(b.createdAt);
+    });
+  }
+
+  Future<void> _persistPromptsLocally() async {
+    try {
+      final listMap = _quickPrompts.map((p) => p.toMap()).toList();
+      await DatabaseHelper.instance
+          .setSetting('agente_custom_prompts', jsonEncode(listMap))
+          .timeout(const Duration(milliseconds: 300));
+    } catch (_) {}
+  }
+
+  void setQuickPrompts(List<AgentePromptModel> prompts) {
+    _quickPrompts = List.from(prompts);
+    _sortPrompts();
+    notifyListeners();
+  }
+
+  Future<void> saveQuickPrompt(AgentePromptModel prompt, {bool persist = true}) async {
+    final idx = _quickPrompts.indexWhere((p) => p.id == prompt.id);
+    if (idx != -1) {
+      _quickPrompts[idx] = prompt.copyWith(updatedAt: DateTime.now());
+    } else {
+      final newSortOrder = _quickPrompts.isNotEmpty
+          ? (_quickPrompts.map((p) => p.sortOrder).reduce((a, b) => a > b ? a : b) + 1)
+          : 0;
+      _quickPrompts.add(prompt.copyWith(sortOrder: newSortOrder));
+    }
+    _sortPrompts();
+    notifyListeners();
+
+    if (persist) {
+      await _persistPromptsLocally();
+      await _supabaseService.savePrompt(prompt);
+    }
+  }
+
+  Future<void> deleteQuickPrompt(String promptId, {bool persist = true}) async {
+    _quickPrompts.removeWhere((p) => p.id == promptId);
+    notifyListeners();
+
+    if (persist) {
+      await _persistPromptsLocally();
+      await _supabaseService.deletePrompt(promptId);
+    }
+  }
+
+  Future<void> reorderQuickPrompts(int oldIndex, int newIndex, {bool persist = true}) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = _quickPrompts.removeAt(oldIndex);
+    _quickPrompts.insert(newIndex, item);
+    for (int i = 0; i < _quickPrompts.length; i++) {
+      _quickPrompts[i] = _quickPrompts[i].copyWith(sortOrder: i);
+    }
+    notifyListeners();
+
+    if (persist) {
+      await _persistPromptsLocally();
+      for (final p in _quickPrompts) {
+        await _supabaseService.savePrompt(p);
+      }
+    }
   }
 
   Future<void> selectSession(String sessionId) async {

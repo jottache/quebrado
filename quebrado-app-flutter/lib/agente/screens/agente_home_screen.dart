@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../viewmodels/agente_state.dart';
 import '../theme/agente_colors.dart';
 import '../dialogs/agente_settings_dialog.dart';
+import '../dialogs/prompt_editor_dialog.dart';
 import '../models/chat_artifact_model.dart';
+import '../models/agente_prompt_model.dart';
 import '../widgets/artifact_card_view.dart';
 import '../widgets/agente_chat_bottom_sheet.dart';
 import 'chat_conversation_screen.dart';
@@ -23,7 +25,10 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -39,6 +44,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     final artifacts = _filterType == null
         ? agenteState.allArtifacts
         : agenteState.allArtifacts.where((a) => a.type == _filterType).toList();
+    final prompts = agenteState.quickPrompts;
 
     return Scaffold(
       backgroundColor: AgenteColors.background,
@@ -69,7 +75,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                   ),
                 ),
                 Text(
-                  'CHATS & ARTEFACTOS',
+                  'CHATS, ARTEFACTOS & ATAJOS',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AgenteColors.primary),
                 ),
               ],
@@ -99,11 +105,15 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
           tabs: [
             Tab(
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              text: 'Conversaciones (${sessions.length})',
+              text: 'Charlas (${sessions.length})',
             ),
             Tab(
               icon: const Icon(Icons.inventory_2_outlined, size: 18),
               text: 'Artefactos (${agenteState.allArtifacts.length})',
+            ),
+            Tab(
+              icon: const Icon(Icons.bolt_rounded, size: 18),
+              text: 'Prompts (${prompts.length})',
             ),
           ],
         ),
@@ -116,20 +126,36 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
 
           // TAB 2: Artefactos Guardados
           _buildArtifactsTab(context, artifacts),
+
+          // TAB 3: Prompts Rápidos del Launcher
+          _buildPromptsTab(context, agenteState),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AgenteColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_comment_rounded, size: 20),
-        label: const Text('Nueva Charla', style: TextStyle(fontWeight: FontWeight.bold)),
-        onPressed: () async {
-          await agenteState.startNewSession();
-          if (context.mounted) {
-            AgenteChatBottomSheet.show(context, autoFocus: true);
-          }
-        },
-      ),
+      floatingActionButton: _tabController.index == 2
+          ? FloatingActionButton.extended(
+              backgroundColor: AgenteColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: const Text('Nuevo Prompt', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                final newPrompt = await PromptEditorDialog.show(context);
+                if (newPrompt != null) {
+                  agenteState.saveQuickPrompt(newPrompt);
+                }
+              },
+            )
+          : FloatingActionButton.extended(
+              backgroundColor: AgenteColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add_comment_rounded, size: 20),
+              label: const Text('Nueva Charla', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                await agenteState.startNewSession();
+                if (context.mounted) {
+                  AgenteChatBottomSheet.show(context, autoFocus: true);
+                }
+              },
+            ),
     );
   }
 
@@ -321,5 +347,240 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     if (diff.inMinutes < 60) return 'hace ${diff.inMinutes}m';
     if (diff.inHours < 24) return 'hace ${diff.inHours}h';
     return '${dt.day}/${dt.month}';
+  }
+
+  Widget _buildPromptsTab(BuildContext context, AgenteState agenteState) {
+    final prompts = agenteState.quickPrompts;
+
+    if (prompts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: AgenteColors.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.bolt_rounded, size: 36, color: AgenteColors.primary),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Sin Prompts Rápidos',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Los prompts que crees aquí aparecerán directamente en la barra flotante del launcher para consultar con un solo toque.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Crear Primer Prompt', style: TextStyle(fontWeight: FontWeight.w800)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AgenteColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () async {
+                  final newPrompt = await PromptEditorDialog.show(context);
+                  if (newPrompt != null) {
+                    agenteState.saveQuickPrompt(newPrompt);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Banner explicativo
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AgenteColors.primaryLight,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AgenteColors.primary.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 18, color: AgenteColors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Estos ${prompts.length} prompts se muestran en la barra inferior del launcher para consultas instantáneas.',
+                  style: const TextStyle(fontSize: 12, color: AgenteColors.primaryDark, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Lista de prompts reordenables
+        Expanded(
+          child: ReorderableListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+            itemCount: prompts.length,
+            onReorder: (oldIndex, newIndex) {
+              agenteState.reorderQuickPrompts(oldIndex, newIndex);
+            },
+            itemBuilder: (context, index) {
+              final prompt = prompts[index];
+              return Container(
+                key: ValueKey(prompt.id),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+                  leading: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '#${index + 1}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    prompt.text,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  subtitle: prompt.label != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AgenteColors.primaryLight,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                prompt.label!,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AgenteColors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Botón Probar
+                      IconButton(
+                        icon: const Icon(Icons.play_arrow_rounded, color: AgenteColors.primary, size: 22),
+                        tooltip: 'Probar en chat',
+                        onPressed: () {
+                          AgenteChatBottomSheet.show(context, initialPrompt: prompt.text);
+                        },
+                      ),
+                      // Menú de opciones (Editar / Borrar)
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert_rounded, size: 18, color: Colors.grey),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            final edited = await PromptEditorDialog.show(context, prompt: prompt);
+                            if (edited != null) {
+                              agenteState.saveQuickPrompt(edited);
+                            }
+                          } else if (value == 'delete') {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                title: const Text('¿Eliminar prompt?', style: TextStyle(fontWeight: FontWeight.w900)),
+                                content: Text('Se eliminará "${prompt.text}" de los accesos rápidos del launcher.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(true),
+                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              agenteState.deleteQuickPrompt(prompt.id);
+                            }
+                          }
+                        },
+                        itemBuilder: (ctx) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined, size: 16),
+                                SizedBox(width: 8),
+                                Text('Editar'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Eliminar', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Icon(Icons.drag_indicator_rounded, color: Colors.black26, size: 20),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
