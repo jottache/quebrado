@@ -186,6 +186,104 @@ $bdaysStr
     ];
   }
 
+  /// Especificación directa en formato JSON para la API REST de Gemini (soporte thoughtSignature y role user)
+  List<Map<String, dynamic>> getToolsJson() {
+    return [
+      {
+        'functionDeclarations': [
+          {
+            'name': 'searchContacts',
+            'description': 'Busca en la libreta de contactos y diario personal por nombre, apodo, notas, placas de autos o relaciones.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'query': {
+                  'type': 'STRING',
+                  'description': 'Texto a buscar (ej: "Juan", "médico", "placa AB123", "primo").',
+                },
+              },
+              'required': ['query'],
+            },
+          },
+          {
+            'name': 'getUpcomingBirthdays',
+            'description': 'Obtiene la lista de los próximos cumpleaños ordenados por cercanía con los días restantes y la edad a cumplir.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'limit': {
+                  'type': 'INTEGER',
+                  'description': 'Cantidad máxima de cumpleaños a obtener (por defecto 5).',
+                },
+              },
+            },
+          },
+          {
+            'name': 'getFinancialOverview',
+            'description': 'Obtiene un resumen completo de las finanzas: cuentas bancarias, balances en USD y Bs, tasa BCV y pagos pendientes.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {},
+            },
+          },
+          {
+            'name': 'calculateCurrencyExchange',
+            'description': 'Calcula la conversión exacta entre USD, Bolívares (VES/Bs) y Euros según la tasa oficial BCV del sistema.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'amount': {'type': 'NUMBER', 'description': 'Monto a convertir.'},
+                'fromCurrency': {'type': 'STRING', 'description': 'Moneda origen: usd, bs, o eur.'},
+                'toCurrency': {'type': 'STRING', 'description': 'Moneda destino: usd, bs, o eur.'},
+              },
+              'required': ['amount', 'fromCurrency', 'toCurrency'],
+            },
+          },
+          {
+            'name': 'getHabitsStatus',
+            'description': 'Consulta el estado de los hábitos personales de hoy, el porcentaje de cumplimiento y la mejor racha activa.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {},
+            },
+          },
+          {
+            'name': 'getReminders',
+            'description': 'Consulta los recordatorios y tareas pendientes, vencidas o programadas para hoy.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'filter': {
+                  'type': 'STRING',
+                  'description': 'Filtro: "all", "overdue", "today", o "upcoming".',
+                },
+              },
+            },
+          },
+          {
+            'name': 'createReminder',
+            'description': 'Crea un nuevo recordatorio o tarea en el sistema de Recordatorios.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Título de la tarea o recordatorio.'},
+                'priority': {
+                  'type': 'STRING',
+                  'description': 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.',
+                },
+                'recurrence': {
+                  'type': 'STRING',
+                  'description': 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.',
+                },
+              },
+              'required': ['title'],
+            },
+          },
+        ],
+      },
+    ];
+  }
+
   /// Ejecución local de herramientas y generación automática de Artefactos estructurados
   Future<ToolExecutionResult> executeFunctionCall(
     String functionName,

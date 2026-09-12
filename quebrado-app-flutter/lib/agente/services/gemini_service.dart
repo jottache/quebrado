@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 import 'gemini_config.dart';
 import 'suite_rag_service.dart';
 import '../models/chat_message_model.dart';
@@ -23,16 +24,14 @@ class GeminiStreamResponse {
 
 class GeminiService {
   final SuiteRagService ragService;
+  final http.Client _client;
 
-  GeminiService({required this.ragService});
+  GeminiService({required this.ragService, http.Client? client})
+      : _client = client ?? http.Client();
 
-  GenerativeModel _createModel() {
+  String _buildSystemInstruction() {
     final liveSnapshot = ragService.generateLiveContextSnapshot();
-
-    return GenerativeModel(
-      model: GeminiConfig.selectedModel,
-      apiKey: GeminiConfig.apiKey,
-      systemInstruction: Content.system('''
+    return '''
 Eres el Asistente Personal Inteligente y Mayordomo Digital de José Ortiz (Jottache) dentro de su suite personal OrtizApp.
 Tienes acceso total en tiempo real a los datos y módulos de la suite:
 1. Finanzas (Quebrado): cuentas bancarias, balances en USD y Bs., pagos recurrentes, deudas y tasas oficiales (Dólar BCV y Euro).
@@ -47,17 +46,18 @@ Directrices de Respuesta:
 - Cuando te pregunten sobre personas, placas de autos, cumpleaños o tareas, invoca siempre las herramientas correspondientes para obtener datos reales actualizados.
 - Cuando te pidan cálculos financieros o conversiones de moneda, usa la tasa oficial actual del BCV y muestra el cálculo de forma clara y ordenada.
 - Emplea formato Markdown elegante (negritas, viñetas y tablas) para que la información sea fácil de leer de un vistazo.
-'''),
-      tools: ragService.getDeclaredTools(),
-    );
+''';
   }
 
-  /// Envía un mensaje con soporte para streaming y ejecución de Function Calling
+  /// Envía un mensaje con soporte para ejecución de Function Calling sin error de 'role function'
   Stream<GeminiStreamResponse> sendMessageStream({
     required String prompt,
     required List<ChatMessageModel> previousMessages,
     required String sessionId,
   }) async* {
+    final apiKey = GeminiConfig.apiKey;
+    final modelName = GeminiConfig.selectedModel;
+
     if (!GeminiConfig.isConfigured) {
       yield GeminiStreamResponse(
         textChunk: '⚠️ No se ha configurado la API Key de Gemini. Por favor, ingrésala en la configuración de la app o en el archivo .env.',
@@ -67,79 +67,140 @@ Directrices de Respuesta:
       return;
     }
 
-    final model = _createModel();
+    final contents = <Map<String, dynamic>>[];
 
-    // 1. Convertir historial previo a Content de Gemini
-    final history = <Content>[];
+    // 1. Historial previo
     for (final msg in previousMessages.take(15)) {
       if (msg.isUser) {
-        history.add(Content.text(msg.content));
+        contents.add({
+          'role': 'user',
+          'parts': [{'text': msg.content}],
+        });
       } else if (msg.isModel && msg.content.isNotEmpty) {
-        history.add(Content.model([TextPart(msg.content)]));
+        contents.add({
+          'role': 'model',
+          'parts': [{'text': msg.content}],
+        });
       }
     }
 
-    // Agregar el mensaje actual del usuario
-    final currentContent = Content.text(prompt);
-    final conversation = [...history, currentContent];
+    // 2. Mensaje actual
+    contents.add({
+      'role': 'user',
+      'parts': [{'text': prompt}],
+    });
+
+    final toolsJson = ragService.getToolsJson();
+    final systemInstruction = _buildSystemInstruction();
 
     final collectedArtifacts = <ChatArtifactModel>[];
     final executedTools = <Map<String, dynamic>>[];
     String accumulatedText = '';
 
+    final endpoint = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent?key=$apiKey',
+    );
+
     try {
-      // 2. Primera llamada (puede devolver texto o llamadas a funciones)
-      var response = await model.generateContent(conversation);
+      bool continueLoop = true;
+      int turns = 0;
 
-      // Si Gemini decide llamar a una o varias funciones (Tool Calling)
-      while (response.functionCalls.isNotEmpty) {
-        final functionCall = response.functionCalls.first;
-        final fnName = functionCall.name;
-        final fnArgs = functionCall.args;
+      while (continueLoop && turns < 5) {
+        turns++;
 
-        executedTools.add({
-          'name': fnName,
-          'args': fnArgs,
-        });
+        final requestBody = {
+          'contents': contents,
+          'tools': toolsJson,
+          'systemInstruction': {
+            'parts': [{'text': systemInstruction}],
+          },
+        };
 
-        // Notificar que se está ejecutando la herramienta
-        yield GeminiStreamResponse(
-          textChunk: '',
-          fullText: accumulatedText.isNotEmpty ? accumulatedText : '🔍 Consultando ${fnName}...',
-          artifacts: collectedArtifacts,
-          toolCalls: executedTools,
+        final response = await _client.post(
+          endpoint,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(requestBody),
         );
 
-        // Ejecutar en el motor RAG de la suite
-        final toolResult = await ragService.executeFunctionCall(
-          fnName,
-          fnArgs,
-          sessionId: sessionId,
-        );
-
-        if (toolResult.generatedArtifact != null) {
-          collectedArtifacts.add(toolResult.generatedArtifact!);
+        if (response.statusCode != 200) {
+          String errMsg = 'Error ${response.statusCode} de Gemini';
+          try {
+            final errJson = jsonDecode(response.body);
+            errMsg = errJson['error']?['message'] ?? errMsg;
+          } catch (_) {}
+          throw Exception(errMsg);
         }
 
-        // Devolver la respuesta de la función a Gemini
-        final functionResponse = Content.functionResponse(
-          fnName,
-          toolResult.resultData,
-        );
+        final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+        final candidates = responseJson['candidates'] as List?;
+        if (candidates == null || candidates.isEmpty) {
+          throw Exception('La API de Gemini no devolvió candidatos de respuesta.');
+        }
 
-        // Continuar el diálogo con la respuesta de la herramienta
-        conversation.add(Content.model([FunctionCall(fnName, fnArgs)]));
-        conversation.add(functionResponse);
+        final candidate = candidates[0] as Map<String, dynamic>;
+        final content = candidate['content'] as Map<String, dynamic>?;
+        final parts = (content?['parts'] as List?) ?? [];
 
-        response = await model.generateContent(conversation);
+        // Verificar si contiene functionCall(s)
+        final functionCallParts = parts.where((p) => p is Map && p.containsKey('functionCall')).toList();
+
+        if (functionCallParts.isNotEmpty) {
+          // Conservar la respuesta íntegra del modelo (incluye thoughtSignature, id, args)
+          contents.add(content!);
+
+          for (final fcp in functionCallParts) {
+            final fnCall = fcp['functionCall'] as Map<String, dynamic>;
+            final fnName = fnCall['name']?.toString() ?? '';
+            final fnArgs = (fnCall['args'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+
+            executedTools.add({
+              'name': fnName,
+              'args': fnArgs,
+            });
+
+            yield GeminiStreamResponse(
+              textChunk: '',
+              fullText: accumulatedText.isNotEmpty ? accumulatedText : '🔍 Consultando ${fnName}...',
+              artifacts: collectedArtifacts,
+              toolCalls: executedTools,
+            );
+
+            // Ejecutar en el motor RAG de la suite
+            final toolResult = await ragService.executeFunctionCall(
+              fnName,
+              fnArgs,
+              sessionId: sessionId,
+            );
+
+            if (toolResult.generatedArtifact != null) {
+              collectedArtifacts.add(toolResult.generatedArtifact!);
+            }
+
+            // Enviar la respuesta de la función con role 'user' compatible con Gemini 1.5, 2.x y 3.x
+            contents.add({
+              'role': 'user',
+              'parts': [
+                {
+                  'functionResponse': {
+                    'name': fnName,
+                    'response': toolResult.resultData,
+                  }
+                }
+              ],
+            });
+          }
+
+          continue;
+        }
+
+        // Si no hay function calls, extraemos el texto generado
+        final textParts = parts.where((p) => p is Map && p.containsKey('text')).map((p) => p['text'].toString()).join('\n');
+        accumulatedText = textParts.isNotEmpty ? textParts : 'He procesado tu consulta.';
+        continueLoop = false;
       }
 
-      // 3. Emitir el texto final resultante
-      final finalText = response.text ?? 'He procesado tu consulta.';
-      accumulatedText = finalText;
-
       yield GeminiStreamResponse(
-        textChunk: finalText,
+        textChunk: accumulatedText,
         fullText: accumulatedText,
         artifacts: collectedArtifacts,
         toolCalls: executedTools,
