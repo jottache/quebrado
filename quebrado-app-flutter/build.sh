@@ -4,10 +4,23 @@ set -e
 # Permitir que git opere como superusuario en entornos de compilación de CI/Vercel
 git config --global --add safe.directory "*" || true
 
-echo "==> Verificando instalación de Flutter SDK..."
-if [ ! -d "$HOME/flutter" ]; then
-  echo "==> Clonando Flutter stable..."
-  git clone --depth 1 -b stable https://github.com/flutter/flutter.git $HOME/flutter
+FLUTTER_VERSION="3.38.3"
+echo "==> Verificando instalación de Flutter SDK ($FLUTTER_VERSION)..."
+NEED_CLONE=false
+if [ ! -d "$HOME/flutter" ] || [ ! -f "$HOME/flutter/bin/flutter" ]; then
+  NEED_CLONE=true
+else
+  CURRENT_VERSION=$("$HOME/flutter/bin/flutter" --version 2>/dev/null | head -n 1 || echo "")
+  if [[ "$CURRENT_VERSION" != *"$FLUTTER_VERSION"* ]]; then
+    echo "==> Versión instalada ($CURRENT_VERSION) no coincide con $FLUTTER_VERSION. Reinstalando..."
+    rm -rf "$HOME/flutter"
+    NEED_CLONE=true
+  fi
+fi
+
+if [ "$NEED_CLONE" = true ]; then
+  echo "==> Clonando Flutter $FLUTTER_VERSION..."
+  git clone --depth 1 -b $FLUTTER_VERSION https://github.com/flutter/flutter.git "$HOME/flutter"
 fi
 
 export PATH="$HOME/flutter/bin:$PATH"
