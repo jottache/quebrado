@@ -139,12 +139,20 @@ class _AgenteSettingsDialogState extends State<AgenteSettingsDialog> {
                 ),
               ),
               const SizedBox(height: 8),
+              if (_selectedModel != 'gemini-1.5-flash' && _selectedModel != 'gemini-1.5-pro') ...[
+                _buildModelOption(
+                  title: 'Modelo Activo: $_selectedModel',
+                  subtitle: 'Configurado en .env',
+                  value: _selectedModel,
+                ),
+                const SizedBox(height: 8),
+              ],
               Row(
                 children: [
                   Expanded(
                     child: _buildModelOption(
                       title: 'Gemini 1.5 Flash',
-                      subtitle: 'Ultra rápido (<1s) & Ligero',
+                      subtitle: 'Ultra rápido & Ligero',
                       value: 'gemini-1.5-flash',
                     ),
                   ),

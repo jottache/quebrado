@@ -21,6 +21,9 @@ if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
   if [ -n "$GEMINI_API_KEY" ]; then
     echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> .env
   fi
+  if [ -n "$GEMINI_MODEL" ]; then
+    echo "GEMINI_MODEL=$GEMINI_MODEL" >> .env
+  fi
 elif [ -f ".env.example" ] && [ ! -f ".env" ]; then
   cp .env.example .env
 fi
@@ -32,6 +35,7 @@ echo "==> Compilando Flutter Web Release..."
 flutter build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-  --dart-define=GEMINI_API_KEY="$GEMINI_API_KEY"
+  --dart-define=GEMINI_API_KEY="$GEMINI_API_KEY" \
+  --dart-define=GEMINI_MODEL="$GEMINI_MODEL"
 
 echo "==> Build web finalizado con éxito en quebrado-app-flutter/build/web."

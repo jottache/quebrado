@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrado_app_flutter/agente/models/chat_artifact_model.dart';
 import 'package:quebrado_app_flutter/agente/models/chat_message_model.dart';
 import 'package:quebrado_app_flutter/agente/models/chat_session_model.dart';
+import 'package:quebrado_app_flutter/agente/services/gemini_config.dart';
 
 void main() {
   group('Agente Ortiz Models Tests', () {
@@ -83,5 +84,14 @@ void main() {
       expect(tools, contains('getUpcomingBirthdays'));
       expect(tools, contains('searchContacts'));
     });
+
+    test('GeminiConfig handles model selection and fallback', () {
+      GeminiConfig.setModel('gemini-3.6-flash');
+      expect(GeminiConfig.selectedModel, equals('gemini-3.6-flash'));
+
+      GeminiConfig.setModel('gemini-1.5-pro');
+      expect(GeminiConfig.selectedModel, equals('gemini-1.5-pro'));
+    });
   });
 }
+
