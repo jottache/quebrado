@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../quebrado/viewmodels/app_state.dart';
@@ -184,7 +185,7 @@ class AppLauncherScreen extends StatelessWidget {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => const MainScreen(),
           ),
         );
@@ -394,7 +395,7 @@ class AppLauncherScreen extends StatelessWidget {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => const DiarioHomeScreen(),
           ),
         );
@@ -532,7 +533,7 @@ class AppLauncherScreen extends StatelessWidget {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => const HabitosHomeScreen(),
           ),
         );
@@ -668,7 +669,7 @@ class AppLauncherScreen extends StatelessWidget {
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => const RemindersHomeScreen(),
           ),
         );

@@ -90,6 +90,15 @@ class MyApp extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+                },
+              ),
             ),
             home: AppLauncherScreen(),
           );
