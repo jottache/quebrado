@@ -7,15 +7,7 @@
 -- 4. Registros diarios (habit_logs) con índice único por hábito y fecha
 -- ==============================================================================
 
--- 1. PROFILES (Seguridad de usuario)
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id uuid REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  full_name TEXT,
-  timezone TEXT DEFAULT 'UTC',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 2. HABIT STACKS / RUTINAS
+-- 1. HABIT STACKS / RUTINAS
 CREATE TABLE IF NOT EXISTS public.habit_stacks (
   id TEXT PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -26,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.habit_stacks (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. HABITS (HÁBITOS POSITIVOS Y NEGATIVOS)
+-- 2. HABITS (HÁBITOS POSITIVOS Y NEGATIVOS)
 CREATE TABLE IF NOT EXISTS public.habits (
   id TEXT PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -48,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.habits (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. HABIT LOGS (REGISTROS DIARIOS)
+-- 3. HABIT LOGS (REGISTROS DIARIOS)
 CREATE TABLE IF NOT EXISTS public.habit_logs (
   id TEXT PRIMARY KEY,
   habit_id TEXT NOT NULL REFERENCES public.habits(id) ON DELETE CASCADE,
@@ -63,7 +55,7 @@ CREATE TABLE IF NOT EXISTS public.habit_logs (
 );
 
 -- ==============================================================================
--- 5. ÍNDICES DE ALTO RENDIMIENTO
+-- 4. ÍNDICES DE ALTO RENDIMIENTO
 -- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_habits_user ON public.habits(user_id);
 CREATE INDEX IF NOT EXISTS idx_habits_archived ON public.habits(archived);
@@ -78,9 +70,8 @@ CREATE INDEX IF NOT EXISTS idx_habit_logs_completed ON public.habit_logs(complet
 CREATE INDEX IF NOT EXISTS idx_habit_stacks_user ON public.habit_stacks(user_id);
 
 -- ==============================================================================
--- 6. POLÍTICAS DE SEGURIDAD (ROW LEVEL SECURITY)
+-- 5. POLÍTICAS DE SEGURIDAD (ROW LEVEL SECURITY)
 -- ==============================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_stacks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_logs ENABLE ROW LEVEL SECURITY;
@@ -96,7 +87,3 @@ CREATE POLICY "Permitir acceso a habits" ON public.habits
 DROP POLICY IF EXISTS "Permitir acceso a habit_logs" ON public.habit_logs;
 CREATE POLICY "Permitir acceso a habit_logs" ON public.habit_logs
   FOR ALL USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
-
-DROP POLICY IF EXISTS "Permitir acceso a profiles" ON public.profiles;
-CREATE POLICY "Permitir acceso a profiles" ON public.profiles
-  FOR ALL USING (auth.uid() = id OR id IS NULL OR auth.uid() IS NULL);
