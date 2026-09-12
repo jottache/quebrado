@@ -34,6 +34,7 @@ class HabitosState extends ChangeNotifier {
   String get activeFilter => _activeFilter;
   String? get selectedStackId => _selectedStackId;
 
+  List<HabitModel> get habits => _habits;
   List<HabitModel> get allHabits => _habits.where((h) => !h.archived).toList();
   List<HabitStackModel> get stacks => _stacks;
 
@@ -263,8 +264,14 @@ class HabitosState extends ChangeNotifier {
 
     final dateKey = selectedDateKey;
     final habit = _habits.firstWhere((h) => h.id == habitId);
-    final existingLog = getLog(habitId, dateKey);
 
+    // Si es un contador infinito, presionar el check suma 1 toque
+    if (habit.type == HabitType.counter) {
+      await incrementCounter(habitId, delta: 1.0, dateStr: dateKey);
+      return;
+    }
+
+    final existingLog = getLog(habitId, dateKey);
     final newCompleted = !(existingLog?.completed ?? false);
     final double newValue = newCompleted ? habit.targetValue : 0.0;
 
@@ -285,16 +292,25 @@ class HabitosState extends ChangeNotifier {
     await _service.saveHabitLog(updatedLog);
   }
 
-  Future<void> updateHabitValue(String habitId, double delta) async {
+  Future<void> incrementCounter(String habitId, {double delta = 1.0, String? dateStr}) async {
+    await updateHabitValue(habitId, delta, dateStr);
+  }
+
+  Future<void> updateHabitValue(String habitId, double delta, [String? targetDateKey]) async {
     HapticFeedback.selectionClick();
 
-    final dateKey = selectedDateKey;
+    final dateKey = targetDateKey ?? selectedDateKey;
     final habit = _habits.firstWhere((h) => h.id == habitId);
     final existingLog = getLog(habitId, dateKey);
 
     final currentValue = existingLog?.value ?? 0.0;
-    final newValue = (currentValue + delta).clamp(0.0, habit.targetValue * 2);
-    final newCompleted = newValue >= habit.targetValue;
+    final double newValue;
+    if (habit.type == HabitType.counter) {
+      newValue = (currentValue + delta) < 0 ? 0.0 : (currentValue + delta);
+    } else {
+      newValue = (currentValue + delta).clamp(0.0, habit.targetValue * 2);
+    }
+    final newCompleted = habit.type == HabitType.counter ? (newValue > 0) : (newValue >= habit.targetValue);
 
     final updatedLog = (existingLog ?? HabitLogModel(
       id: _uuid.v4(),
@@ -335,6 +351,25 @@ class HabitosState extends ChangeNotifier {
     await _service.saveHabitLog(updatedLog);
   }
 
+  /// Retorna la lista de hábitos asociados a un contacto específico de Diario
+  List<HabitModel> getHabitsForContact(String contactId) {
+    return _habits.where((h) => !h.archived && h.contactId == contactId).toList();
+  }
+
+  /// Asocia o desvincula un hábito con un contacto de Diario
+  Future<void> linkHabitToContact(String habitId, String? contactId) async {
+    final idx = _habits.indexWhere((h) => h.id == habitId);
+    if (idx == -1) return;
+    final updated = _habits[idx].copyWith(
+      contactId: contactId,
+      clearContactId: contactId == null || contactId.isEmpty,
+      updatedAt: DateTime.now(),
+    );
+    _habits[idx] = updated;
+    notifyListeners();
+    await _service.saveHabit(updated);
+  }
+
   Future<void> addHabit({
     required String title,
     String? description,
@@ -345,6 +380,7 @@ class HabitosState extends ChangeNotifier {
     double targetValue = 1.0,
     String? unit,
     String? stackGroupId,
+    String? contactId,
   }) async {
     final habit = HabitModel(
       id: _uuid.v4(),
@@ -357,6 +393,7 @@ class HabitosState extends ChangeNotifier {
       targetValue: targetValue,
       unit: unit?.trim(),
       stackGroupId: stackGroupId,
+      contactId: contactId,
       position: _habits.length + 1,
     );
 

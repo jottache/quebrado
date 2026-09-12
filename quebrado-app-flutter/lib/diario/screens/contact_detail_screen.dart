@@ -11,6 +11,11 @@ import '../dialogs/contact_editor_dialog.dart';
 import '../dialogs/category_editor_dialog.dart';
 import 'entry_editor_dialog.dart';
 import '../widgets/diario_image_helper.dart';
+import '../../habitos/viewmodels/habitos_state.dart';
+import '../../habitos/models/habit_model.dart';
+import '../../habitos/dialogs/habit_terminal_editor_dialog.dart';
+import '../../habitos/dialogs/habit_detail_cli_dialog.dart';
+import '../../habitos/theme/habitos_terminal_theme.dart';
 
 class ContactDetailScreen extends StatefulWidget {
   final String contactId;
@@ -182,7 +187,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             child: _buildContactHeaderCard(context, contact, state),
           ),
 
-          // 2. Root Categories Selector (Horizontal Bar)
+          // 2. Linked Habits Section
+          SliverToBoxAdapter(
+            child: _buildLinkedHabitsSection(context, contact),
+          ),
+
+          // 3. Root Categories Selector (Horizontal Bar)
           SliverToBoxAdapter(
             child: _buildRootCategoriesBar(rootCategories, state),
           ),
@@ -274,36 +284,60 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
         children: [
           Row(
             children: [
-              // Minimalist Avatar
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: DiarioColors.primaryLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: DiarioColors.primary.withOpacity(0.20),
-                    width: 1.5,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
-                    ? ClipOval(
-                        child: DiarioImageHelper.buildImageWidget(
-                          contact.avatarUrl!,
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Text(
-                        contact.initials,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: DiarioColors.primary,
+              // Interactive Avatar
+              GestureDetector(
+                onTap: () => _updateAvatarDirectly(contact, state),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: DiarioColors.primaryLight,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: DiarioColors.primary.withOpacity(0.25),
+                          width: 1.5,
                         ),
                       ),
+                      alignment: Alignment.center,
+                      child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
+                          ? ClipOval(
+                              child: DiarioImageHelper.buildImageWidget(
+                                contact.avatarUrl!,
+                                width: 58,
+                                height: 58,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Text(
+                              contact.initials,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: DiarioColors.primary,
+                              ),
+                            ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: DiarioColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 11,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 14),
               // Name & Nickname
@@ -926,6 +960,348 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _updateAvatarDirectly(DiarioContact contact, DiarioState state) async {
+    final result = await DiarioImageHelper.pickAvatarWithSourceModal(
+      context,
+      hasExistingAvatar: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty,
+    );
+    if (result == null) return;
+
+    if (result.isEmpty) {
+      await state.updateContact(contact.copyWith(avatarUrl: null, clearAvatar: true));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil eliminada')),
+        );
+      }
+    } else {
+      await state.updateContact(contact.copyWith(avatarUrl: result));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada con éxito')),
+        );
+      }
+    }
+  }
+
+  Widget _buildLinkedHabitsSection(BuildContext context, DiarioContact contact) {
+    final habitosState = Provider.of<HabitosState>(context);
+    final linkedHabits = habitosState.getHabitsForContact(contact.id);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: DiarioColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            offset: const Offset(0, 3),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: HabitosColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.track_changes_rounded, size: 16, color: HabitosColors.primary),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Hábitos Vinculados',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: HabitosColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${linkedHabits.length}',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _showLinkHabitBottomSheet(context, contact, habitosState),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: HabitosColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: HabitosColors.primary.withOpacity(0.2)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded, size: 14, color: HabitosColors.primary),
+                      SizedBox(width: 4),
+                      Text(
+                        'Vincular',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (linkedHabits.isEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: DiarioColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'No tienes hábitos vinculados a este contacto aún.',
+                style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 12),
+            ...linkedHabits.map((habit) {
+              final isCompleted = habitosState.isCompleted(habit.id);
+              final val = habitosState.getValue(habit.id);
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: DiarioColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: DiarioColors.cardBorder),
+                ),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => HabitDetailCliDialog(habit: habit),
+                        );
+                      },
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: habit.isNegative ? HabitosColors.amberLight : HabitosColors.primaryLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          habit.isNegative ? Icons.shield_outlined : Icons.check_circle_outline_rounded,
+                          size: 16,
+                          color: habit.isNegative ? HabitosColors.amber : HabitosColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => HabitDetailCliDialog(habit: habit),
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              habit.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: DiarioColors.textPrimary),
+                            ),
+                            Text(
+                              habit.type == HabitType.counter
+                                  ? '${val.toInt()} ${habit.unit ?? "veces"} hoy'
+                                  : (habit.type == HabitType.quantitative
+                                      ? '${val.toInt()} / ${habit.targetValue.toInt()} ${habit.unit ?? ""}'
+                                      : (isCompleted ? 'Completado hoy' : 'Pendiente hoy')),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: (isCompleted || val > 0) ? HabitosColors.primary : DiarioColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (habit.type == HabitType.counter) ...[
+                      if (val > 0)
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline_rounded, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                          color: DiarioColors.textMuted,
+                          onPressed: () => habitosState.updateHabitValue(habit.id, -1),
+                        ),
+                      ElevatedButton(
+                        onPressed: () => habitosState.incrementCounter(habit.id),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HabitosColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          minimumSize: const Size(36, 28),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text('+1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                      ),
+                    ] else ...[
+                      IconButton(
+                        icon: Icon(
+                          isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                          color: isCompleted ? HabitosColors.primary : DiarioColors.textMuted,
+                          size: 22,
+                        ),
+                        onPressed: () => habitosState.toggleHabitCompletion(habit.id),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showLinkHabitBottomSheet(BuildContext context, DiarioContact contact, HabitosState habitosState) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        final availableHabits = habitosState.allHabits.where((h) => h.contactId != contact.id).toList();
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Hábitos para ${contact.name}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: DiarioColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Elige cómo vincular hábitos con este contacto',
+                  style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: HabitosColors.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add_task_rounded, color: HabitosColors.primary, size: 20),
+                  ),
+                  title: const Text('Crear Nuevo Hábito', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  subtitle: const Text('Configura un hábito nuevo asignado a este contacto', style: TextStyle(fontSize: 11)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: DiarioColors.textMuted),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  tileColor: DiarioColors.background,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    showDialog(
+                      context: context,
+                      builder: (_) => HabitTerminalEditorDialog(initialContactId: contact.id),
+                    );
+                  },
+                ),
+                if (availableHabits.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'O VINCULAR HÁBITO EXISTENTE',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary, letterSpacing: 0.5),
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: availableHabits.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      itemBuilder: (c, idx) {
+                        final h = availableHabits[idx];
+                        return ListTile(
+                          dense: true,
+                          title: Text(h.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                          subtitle: Text(h.type.label, style: const TextStyle(fontSize: 10)),
+                          trailing: const Text(
+                            '+ Vincular',
+                            style: TextStyle(color: HabitosColors.primary, fontWeight: FontWeight.w800, fontSize: 12),
+                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          tileColor: DiarioColors.background,
+                          onTap: () async {
+                            Navigator.of(ctx).pop();
+                            await habitosState.linkHabitToContact(h.id, contact.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Hábito "${h.title}" vinculado a ${contact.name}')),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

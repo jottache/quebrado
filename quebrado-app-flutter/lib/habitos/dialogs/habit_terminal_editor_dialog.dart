@@ -3,11 +3,16 @@ import 'package:provider/provider.dart';
 import '../models/habit_model.dart';
 import '../viewmodels/habitos_state.dart';
 import '../theme/habitos_terminal_theme.dart';
+import '../../diario/viewmodels/diario_state.dart';
+import '../../diario/models/diario_contact.dart';
+import '../../diario/theme/diario_colors.dart';
+import '../../diario/widgets/diario_image_helper.dart';
 
 class HabitTerminalEditorDialog extends StatefulWidget {
   final HabitModel? habit;
+  final String? initialContactId;
 
-  const HabitTerminalEditorDialog({super.key, this.habit});
+  const HabitTerminalEditorDialog({super.key, this.habit, this.initialContactId});
 
   @override
   State<HabitTerminalEditorDialog> createState() => _HabitTerminalEditorDialogState();
@@ -23,6 +28,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
   late HabitType _selectedType;
   late bool _isNegative;
   String? _selectedStackId;
+  String? _selectedContactId;
 
   @override
   void initState() {
@@ -40,6 +46,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
     _selectedType = h?.type ?? HabitType.binary;
     _isNegative = h?.isNegative ?? false;
     _selectedStackId = h?.stackGroupId;
+    _selectedContactId = h?.contactId ?? widget.initialContactId;
   }
 
   @override
@@ -62,6 +69,11 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
       targetVal = targetVal * 60;
     }
 
+    final contactId = _selectedContactId;
+    final unit = (_selectedType == HabitType.quantitative || _selectedType == HabitType.counter)
+        ? (_unitController.text.trim().isNotEmpty ? _unitController.text.trim() : 'veces')
+        : (_selectedType == HabitType.timer ? 'min' : null);
+
     if (widget.habit == null) {
       state.addHabit(
         title: _titleController.text.trim(),
@@ -69,12 +81,12 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         type: _selectedType,
         isNegative: _isNegative,
         targetValue: targetVal,
-        unit: _selectedType == HabitType.quantitative ? _unitController.text.trim() : (_selectedType == HabitType.timer ? 'min' : null),
+        unit: unit,
         stackGroupId: _selectedStackId,
+        contactId: contactId,
       );
     } else {
       final desc = _descController.text.trim();
-      final unit = _selectedType == HabitType.quantitative ? _unitController.text.trim() : (_selectedType == HabitType.timer ? 'min' : null);
 
       state.updateHabit(
         widget.habit!.copyWith(
@@ -88,6 +100,8 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
           clearUnit: unit == null || unit.isEmpty,
           stackGroupId: _selectedStackId,
           clearStackGroupId: _selectedStackId == null,
+          contactId: contactId,
+          clearContactId: contactId == null,
         ),
       );
     }
@@ -98,6 +112,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<HabitosState>(context);
+    final diarioState = Provider.of<DiarioState>(context);
     final isEditing = widget.habit != null;
 
     return Dialog(
@@ -105,7 +120,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 660),
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -190,7 +205,9 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                               onTap: () {
                                 setState(() {
                                   _isNegative = true;
-                                  _selectedType = HabitType.negative;
+                                  if (_selectedType != HabitType.counter) {
+                                    _selectedType = HabitType.negative;
+                                  }
                                 });
                               },
                             ),
@@ -208,7 +225,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _titleController,
-                        decoration: _inputDecoration(hint: 'Ej. Leer 20 páginas, Meditar...'),
+                        decoration: _inputDecoration(hint: 'Ej. Decir groserías, Leer 20 páginas...'),
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa el nombre del hábito' : null,
                       ),
@@ -228,84 +245,127 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                         style: const TextStyle(fontSize: 13),
                       ),
 
-                      // Tipo de Registro (solo si es hábito positivo)
-                      if (!_isNegative) ...[
-                        const SizedBox(height: 18),
-                        const Text(
-                          'MÉTODO DE SEGUIMIENTO',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
-                        ),
-                        const SizedBox(height: 8),
+                      // Método de seguimiento
+                      const SizedBox(height: 18),
+                      const Text(
+                        'MÉTODO DE SEGUIMIENTO',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      if (!_isNegative)
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
                             _typeChip(HabitType.binary, 'Sí / No (Check)'),
-                            _typeChip(HabitType.quantitative, 'Numérico (Contador)'),
+                            _typeChip(HabitType.counter, 'Contador Infinito (+)'),
+                            _typeChip(HabitType.quantitative, 'Meta Numérica'),
                             _typeChip(HabitType.timer, 'Temporizador'),
+                          ],
+                        )
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _typeChip(HabitType.negative, 'Días Limpios (Evitar)'),
+                            _typeChip(HabitType.counter, 'Contador Infinito (Sumar ocurrencias)'),
                           ],
                         ),
 
-                        if (_selectedType == HabitType.quantitative) ...[
-                          const SizedBox(height: 16),
-                          Row(
+                      if (_selectedType == HabitType.counter) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'UNIDAD O ETIQUETA (OPCIONAL)',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _unitController,
+                          decoration: _inputDecoration(hint: 'veces, groserías, cafés, vasos...'),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+
+                      if (_selectedType == HabitType.quantitative) ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'META DIARIA',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _targetController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: _inputDecoration(hint: '2000'),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'UNIDAD',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _unitController,
+                                    decoration: _inputDecoration(hint: 'ml, págs, flexiones...'),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+
+                      if (_selectedType == HabitType.timer) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'TIEMPO OBJETIVO (MINUTOS)',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _targetController,
+                          keyboardType: TextInputType.number,
+                          decoration: _inputDecoration(hint: '25'),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+
+                      // Vincular contacto del diario (opcional)
+                      if (diarioState.contacts.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        const Text(
+                          'VINCULAR CONTACTO DEL DIARIO (OPCIONAL)',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
                             children: [
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'META DIARIA',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    TextFormField(
-                                      controller: _targetController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: _inputDecoration(hint: '2000'),
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                flex: 3,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'UNIDAD',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    TextFormField(
-                                      controller: _unitController,
-                                      decoration: _inputDecoration(hint: 'ml, págs, flexiones...'),
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              _contactChip(null, 'Ninguno / Personal', null),
+                              ...diarioState.contacts.map((c) => _contactChip(c.id, c.name, c.avatarUrl)),
                             ],
                           ),
-                        ],
-
-                        if (_selectedType == HabitType.timer) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            'TIEMPO OBJETIVO (MINUTOS)',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _targetController,
-                            keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(hint: '25'),
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                          ),
-                        ],
+                        ),
                       ],
 
                       // Rutina / Stack
@@ -466,6 +526,73 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
+        ),
+      ),
+    );
+  }
+
+  Widget _contactChip(String? contactId, String name, String? avatarUrl) {
+    final isSelected = _selectedContactId == contactId;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        onTap: () {
+          setState(() => _selectedContactId = contactId);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected ? HabitosColors.primaryLight : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (contactId != null) ...[
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(
+                    color: HabitosColors.primaryLight,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? ClipOval(
+                          child: DiarioImageHelper.buildImageWidget(
+                            avatarUrl,
+                            width: 22,
+                            height: 22,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: HabitosColors.primary,
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                name,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? HabitosColors.primary : HabitosColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

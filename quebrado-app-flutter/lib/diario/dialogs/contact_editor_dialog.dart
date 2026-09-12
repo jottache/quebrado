@@ -57,9 +57,15 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
   }
 
   Future<void> _pickAvatar() async {
-    final path = await DiarioImageHelper.pickImageWithSourceModal(context);
-    if (path != null) {
-      setState(() => _avatarUrl = path);
+    final result = await DiarioImageHelper.pickAvatarWithSourceModal(
+      context,
+      hasExistingAvatar: _avatarUrl != null && _avatarUrl!.isNotEmpty,
+    );
+    if (result == null) return;
+    if (result.isEmpty) {
+      setState(() => _avatarUrl = null);
+    } else {
+      setState(() => _avatarUrl = result);
     }
   }
 

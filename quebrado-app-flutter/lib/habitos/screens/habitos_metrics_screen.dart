@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/habitos_state.dart';
+import '../models/habit_model.dart';
 import '../theme/habitos_terminal_theme.dart';
 import '../dialogs/habit_detail_cli_dialog.dart';
 
@@ -38,7 +39,7 @@ class HabitosMetricsScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
         children: [
           // 1. GitHub-Style Activity Heatmap
-          _buildHeatmapCard(heatmapData),
+          _buildHeatmapCard(context, state, heatmapData),
           const SizedBox(height: 16),
 
           // 2. Resilience Score (30-Day Anti-Fragile Consistency)
@@ -57,7 +58,7 @@ class HabitosMetricsScreen extends StatelessWidget {
   }
 
   /// Tarjeta con el Mapa de Actividad de 12 semanas estilo GitHub
-  Widget _buildHeatmapCard(Map<String, double> heatmapData) {
+  Widget _buildHeatmapCard(BuildContext context, HabitosState state, Map<String, double> heatmapData) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -68,7 +69,7 @@ class HabitosMetricsScreen extends StatelessWidget {
           BoxShadow(
             color: HabitosColors.primary.withOpacity(0.03),
             offset: const Offset(0, 4),
-            blurRadius: 14,
+            blurRadius: 12,
           ),
         ],
       ),
@@ -78,10 +79,10 @@ class HabitosMetricsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'HISTORIAL DE ACTIVIDAD',
                     style: TextStyle(
                       fontSize: 11,
@@ -90,9 +91,9 @@ class HabitosMetricsScreen extends StatelessWidget {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Últimas 12 Semanas',
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Consistencia en el Tiempo',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
@@ -100,17 +101,26 @@ class HabitosMetricsScreen extends StatelessWidget {
                       letterSpacing: -0.3,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Toca un cuadro para ver el conteo del día',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: HabitosColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: HabitosColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.calendar_month_rounded, size: 14, color: HabitosColors.primary),
+                    Icon(Icons.calendar_view_week_rounded, size: 14, color: HabitosColors.primary),
                     SizedBox(width: 4),
                     Text(
                       '84 Días',
@@ -122,7 +132,7 @@ class HabitosMetricsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildHeatmapGrid(heatmapData),
+          _buildHeatmapGrid(context, state, heatmapData),
           const SizedBox(height: 14),
           // Leyenda de intensidades
           Row(
@@ -145,8 +155,8 @@ class HabitosMetricsScreen extends StatelessWidget {
 
   Widget _legendBox(Color color) {
     return Container(
-      width: 13,
-      height: 13,
+      width: 12,
+      height: 12,
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         color: color,
@@ -156,7 +166,7 @@ class HabitosMetricsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeatmapGrid(Map<String, double> data) {
+  Widget _buildHeatmapGrid(BuildContext context, HabitosState state, Map<String, double> data) {
     final dates = data.keys.toList();
 
     return SingleChildScrollView(
@@ -180,8 +190,9 @@ class HabitosMetricsScreen extends StatelessWidget {
                 cellColor = const Color(0xFFCBE3DC);
               }
 
-              return Tooltip(
-                message: "$dateKey: ${(rate * 100).toInt()}% completado",
+              return InkWell(
+                onTap: () => _showHeatmapDayPopover(context, state, dateKey, rate),
+                borderRadius: BorderRadius.circular(3.5),
                 child: Container(
                   width: 17,
                   height: 17,
@@ -199,6 +210,144 @@ class HabitosMetricsScreen extends StatelessWidget {
             }).toList(),
           );
         }),
+      ),
+    );
+  }
+
+  void _showHeatmapDayPopover(
+    BuildContext context,
+    HabitosState state,
+    String dateKey,
+    double rate,
+  ) {
+    final parsedDate = DateTime.tryParse(dateKey) ?? DateTime.now();
+    final months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    final formattedDate = '${parsedDate.day} de ${months[parsedDate.month - 1]}, ${parsedDate.year}';
+    final habits = state.allHabits;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        title: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: HabitosColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.insights_rounded, color: HabitosColors.primary, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    formattedDate,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: HabitosColors.textPrimary),
+                  ),
+                  Text(
+                    '${(rate * 100).toInt()}% cumplimiento global',
+                    style: const TextStyle(fontSize: 12, color: HabitosColors.primary, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Divider(height: 16, color: HabitosColors.cardBorder),
+              const Text(
+                'DESGLOSE DE HÁBITOS ESTE DÍA',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary, letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: habits.length,
+                  separatorBuilder: (_, __) => const Divider(height: 8, color: HabitosColors.cardBorder),
+                  itemBuilder: (c, idx) {
+                    final h = habits[idx];
+                    final isComp = state.isCompleted(h.id, dateKey);
+                    final val = state.getValue(h.id, dateKey);
+
+                    String metricText;
+                    if (h.type == HabitType.counter) {
+                      metricText = '${val.toInt()} ${h.unit ?? "veces"}';
+                    } else if (h.type == HabitType.quantitative) {
+                      metricText = '${val.toInt()}/${h.targetValue.toInt()} ${h.unit ?? ""}';
+                    } else if (h.type == HabitType.timer) {
+                      metricText = '${(val / 60).round()} min';
+                    } else if (h.isNegative) {
+                      metricText = isComp ? 'Invicto' : 'Recaída';
+                    } else {
+                      metricText = isComp ? 'Completado' : 'No realizado';
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isComp || val > 0 ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                            size: 16,
+                            color: isComp || val > 0 ? HabitosColors.primary : HabitosColors.textMuted,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              h.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: HabitosColors.textPrimary),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isComp || val > 0 ? HabitosColors.primaryLight : HabitosColors.background,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              metricText,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: isComp || val > 0 ? HabitosColors.primary : HabitosColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cerrar', style: TextStyle(color: HabitosColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

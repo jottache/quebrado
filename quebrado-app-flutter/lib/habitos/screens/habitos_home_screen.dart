@@ -8,6 +8,7 @@ import '../theme/habitos_terminal_theme.dart';
 import '../dialogs/habit_terminal_editor_dialog.dart';
 import '../dialogs/habit_detail_cli_dialog.dart';
 import 'habitos_metrics_screen.dart';
+import '../../diario/viewmodels/diario_state.dart';
 
 class HabitosHomeScreen extends StatefulWidget {
   const HabitosHomeScreen({super.key});
@@ -443,6 +444,10 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     final currentVal = state.getValue(habit.id);
     final streak = state.calculateCurrentStreak(habit.id);
     final cleanDays = habit.isNegative ? state.calculateCleanDays(habit.id) : null;
+    final diarioState = Provider.of<DiarioState>(context, listen: false);
+    final linkedContact = habit.contactId != null
+        ? diarioState.contacts.where((c) => c.id == habit.contactId).firstOrNull
+        : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -470,8 +475,38 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. Selector de completado (Checkbox redondo para buenos hábitos o Escudo para malos)
-                if (!habit.isNegative)
+                // 1. Selector de completado (Checkbox redondo para buenos hábitos, +1 para contador infinito, o Escudo para malos)
+                if (habit.type == HabitType.counter)
+                  InkWell(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      state.incrementCounter(habit.id);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: isDone ? HabitosColors.primary : HabitosColors.primaryLight,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDone ? HabitosColors.primary : HabitosColors.primary.withOpacity(0.35),
+                          width: 1.5,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '+1',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: isDone ? Colors.white : HabitosColors.primary,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (!habit.isNegative)
                   InkWell(
                     onTap: () {
                       HapticFeedback.lightImpact();
@@ -527,7 +562,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: HabitosColors.textPrimary,
-                            decoration: (isDone && !habit.isNegative) ? TextDecoration.lineThrough : null,
+                            decoration: (isDone && !habit.isNegative && habit.type != HabitType.counter) ? TextDecoration.lineThrough : null,
                             decorationColor: HabitosColors.textMuted,
                           ),
                         ),
@@ -539,6 +574,28 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary),
+                            ),
+                          ),
+                        if (linkedContact != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: HabitosColors.primaryLight,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.person_outline_rounded, size: 12, color: HabitosColors.primary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    linkedContact.name,
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: HabitosColors.primary),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                       ],
@@ -594,6 +651,53 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                 ),
               ],
             ),
+
+            // Controles de Contador Infinito
+            if (habit.type == HabitType.counter) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: HabitosColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: HabitosColors.cardBorder, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'REGISTRO DE HOY',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        ),
+                        Text(
+                          '${currentVal.toInt()} ${habit.unit ?? "veces"}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: HabitosColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    if (currentVal > 0) ...[
+                      _circleCountBtn(
+                        label: '-1',
+                        onTap: () => state.updateHabitValue(habit.id, -1),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    _circleCountBtn(
+                      label: '+1',
+                      isPrimary: true,
+                      onTap: () => state.incrementCounter(habit.id),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Controles de Hábito Cuantitativo
             if (habit.type == HabitType.quantitative) ...[

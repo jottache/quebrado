@@ -10,6 +10,189 @@ import '../theme/diario_colors.dart';
 class DiarioImageHelper {
   static final ImagePicker _picker = ImagePicker();
 
+  /// Abre un modal para seleccionar Cámara, Galería o Quitar Foto para el Avatar del contacto.
+  static Future<String?> pickAvatarWithSourceModal(BuildContext context, {bool hasExistingAvatar = false}) async {
+    final String? action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Foto del Contacto',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: DiarioColors.textPrimary,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Selecciona una foto para identificar a tu contacto',
+                style: TextStyle(fontSize: 13, color: DiarioColors.textSecondary),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionCard(
+                      context: ctx,
+                      icon: Icons.photo_library_rounded,
+                      title: 'Galería',
+                      subtitle: 'Elegir de fotos',
+                      actionValue: 'gallery',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context: ctx,
+                      icon: Icons.camera_alt_rounded,
+                      title: 'Cámara',
+                      subtitle: 'Tomar foto',
+                      actionValue: 'camera',
+                    ),
+                  ),
+                ],
+              ),
+              if (hasExistingAvatar) ...[
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () => Navigator.of(ctx).pop('remove'),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.red.withOpacity(0.2)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'Eliminar Foto de Perfil',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == null) return null;
+    if (action == 'remove') return ''; // Indicador de eliminación
+
+    final source = action == 'camera' ? ImageSource.camera : ImageSource.gallery;
+    return pickAvatar(source);
+  }
+
+  static Widget _buildActionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String actionValue,
+  }) {
+    return InkWell(
+      onTap: () => Navigator.of(context).pop(actionValue),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        decoration: BoxDecoration(
+          color: DiarioColors.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DiarioColors.cardBorder, width: 1.2),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: const BoxDecoration(
+                color: DiarioColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: DiarioColors.primary, size: 24),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: DiarioColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Selector optimizado para fotos de perfil / avatar (512x512, compresión adecuada)
+  static Future<String?> pickAvatar(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+
+      if (file == null) return null;
+
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        final ext = p.extension(file.name).replaceAll('.', '').toLowerCase();
+        final mime = (ext == 'png' || ext == 'webp' || ext == 'gif') ? ext : 'jpeg';
+        return 'data:image/$mime;base64,${base64Encode(bytes)}';
+      }
+
+      return await saveImagePermanently(file.path);
+    } catch (e) {
+      debugPrint('Error seleccionando avatar: $e');
+      return null;
+    }
+  }
+
   /// Abre un modal para seleccionar Cámara o Galería y retorna la ruta permanente guardada.
   static Future<String?> pickImageWithSourceModal(BuildContext context) async {
     final ImageSource? source = await showModalBottomSheet<ImageSource>(

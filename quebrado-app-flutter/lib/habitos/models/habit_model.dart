@@ -5,6 +5,7 @@ enum HabitType {
   quantitative, // Meta numérica (ej. 2000 ml agua, 20 páginas)
   timer,        // Temporizador (ej. 15 min ejercicio)
   negative,     // Mal hábito a evitar / romper (ej. cero fumar, cero azúcar)
+  counter,      // Contador infinito / libre (ej. veces que digo groserías, vasos de café)
 }
 
 extension HabitTypeExtension on HabitType {
@@ -18,6 +19,8 @@ extension HabitTypeExtension on HabitType {
         return 'timer';
       case HabitType.negative:
         return 'negative';
+      case HabitType.counter:
+        return 'counter';
     }
   }
 
@@ -31,6 +34,8 @@ extension HabitTypeExtension on HabitType {
         return 'TEMPORIZADOR [CRONO]';
       case HabitType.negative:
         return 'MAL HABITO [EVITAR]';
+      case HabitType.counter:
+        return 'CONTADOR INFINITO';
     }
   }
 
@@ -42,6 +47,8 @@ extension HabitTypeExtension on HabitType {
         return HabitType.timer;
       case 'negative':
         return HabitType.negative;
+      case 'counter':
+        return HabitType.counter;
       case 'binary':
       default:
         return HabitType.binary;
@@ -105,6 +112,7 @@ class HabitModel {
   final HabitFrequencyType frequencyType;
   final Map<String, dynamic> frequencyPayload;
   final String? stackGroupId;
+  final String? contactId;
   final bool archived;
   final int position;
   final DateTime createdAt;
@@ -124,6 +132,7 @@ class HabitModel {
     this.frequencyType = HabitFrequencyType.daily,
     Map<String, dynamic>? frequencyPayload,
     this.stackGroupId,
+    this.contactId,
     this.archived = false,
     this.position = 0,
     DateTime? createdAt,
@@ -150,6 +159,11 @@ class HabitModel {
         return Icons.code_rounded;
       case 'code_off':
         return Icons.no_food_outlined;
+      case 'counter':
+      case 'plus_one':
+        return Icons.exposure_plus_1_rounded;
+      case 'chat_bubble':
+        return Icons.chat_bubble_outline_rounded;
       case 'terminal':
       default:
         return Icons.terminal_rounded;
@@ -173,6 +187,8 @@ class HabitModel {
     Map<String, dynamic>? frequencyPayload,
     String? stackGroupId,
     bool clearStackGroupId = false,
+    String? contactId,
+    bool clearContactId = false,
     bool? archived,
     int? position,
     DateTime? createdAt,
@@ -192,6 +208,7 @@ class HabitModel {
       frequencyType: frequencyType ?? this.frequencyType,
       frequencyPayload: frequencyPayload ?? this.frequencyPayload,
       stackGroupId: clearStackGroupId ? null : (stackGroupId ?? this.stackGroupId),
+      contactId: clearContactId ? null : (contactId ?? this.contactId),
       archived: archived ?? this.archived,
       position: position ?? this.position,
       createdAt: createdAt ?? this.createdAt,
@@ -214,6 +231,7 @@ class HabitModel {
       'frequency_type': frequencyType.rawValue,
       'frequency_payload': frequencyPayload,
       'stack_group_id': stackGroupId,
+      'contact_id': contactId,
       'archived': archived,
       'position': position,
       'created_at': createdAt.toIso8601String(),
@@ -236,6 +254,7 @@ class HabitModel {
       frequencyType: HabitFrequencyTypeExtension.fromString(map['frequency_type']?.toString()),
       frequencyPayload: (map['frequency_payload'] is Map) ? Map<String, dynamic>.from(map['frequency_payload']) : const {},
       stackGroupId: map['stack_group_id']?.toString(),
+      contactId: map['contact_id']?.toString(),
       archived: map['archived'] == true,
       position: (map['position'] is num) ? (map['position'] as num).toInt() : 0,
       createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now() : DateTime.now(),

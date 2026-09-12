@@ -4,6 +4,8 @@ import '../models/habit_model.dart';
 import '../viewmodels/habitos_state.dart';
 import '../theme/habitos_terminal_theme.dart';
 import 'habit_terminal_editor_dialog.dart';
+import '../../diario/viewmodels/diario_state.dart';
+import '../../diario/models/diario_contact.dart';
 
 class HabitDetailCliDialog extends StatelessWidget {
   final HabitModel habit;
@@ -13,6 +15,11 @@ class HabitDetailCliDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<HabitosState>(context);
+    final diarioState = Provider.of<DiarioState>(context, listen: false);
+    final linkedContact = habit.contactId != null
+        ? diarioState.contacts.where((c) => c.id == habit.contactId).firstOrNull
+        : null;
+
     final streak = state.calculateCurrentStreak(habit.id);
     final resilience = state.calculateResilienceScore(habit.id);
     final cleanDays = habit.isNegative ? state.calculateCleanDays(habit.id) : null;
@@ -97,6 +104,14 @@ class HabitDetailCliDialog extends StatelessWidget {
                         children: [
                           _metricRow('Tipo de hábito', habit.type.label),
                           const Divider(height: 16, color: HabitosColors.cardBorder),
+                          if (linkedContact != null) ...[
+                            _metricRow('Contacto vinculado', linkedContact.name, isHighlight: true),
+                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                          ],
+                          if (habit.type == HabitType.counter) ...[
+                            _metricRow('Total hoy', '${state.getValue(habit.id).toInt()} ${habit.unit ?? "veces"}', isHighlight: true),
+                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                          ],
                           if (habit.isNegative) ...[
                             _metricRow('Días libre de recaída', '$cleanDays días invicto', isHighlight: true),
                             const Divider(height: 16, color: HabitosColors.cardBorder),
@@ -125,9 +140,9 @@ class HabitDetailCliDialog extends StatelessWidget {
                         Icon(Icons.calendar_month_outlined, size: 16, color: HabitosColors.textSecondary),
                         SizedBox(width: 6),
                         Text(
-                          'Actividad de los últimos 30 días',
+                          'Actividad de los últimos 30 días (Toca un día para ver detalle)',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: HabitosColors.textPrimary,
                           ),
@@ -246,14 +261,16 @@ class HabitDetailCliDialog extends StatelessWidget {
         final date = now.subtract(Duration(days: 29 - i));
         final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
         final isCompleted = state.isCompleted(habit.id, dateStr);
+        final val = state.getValue(habit.id, dateStr);
 
         Color boxColor = const Color(0xFFF3F4F6); // Gris suave no completado
-        if (isCompleted) {
+        if (isCompleted || val > 0) {
           boxColor = HabitosColors.primary;
         }
 
-        return Tooltip(
-          message: "$dateStr: ${isCompleted ? 'Completado' : 'No completado'}",
+        return InkWell(
+          onTap: () => _showDayMetricPopover(context, state, date, dateStr, val, isCompleted),
+          borderRadius: BorderRadius.circular(8),
           child: Container(
             width: 28,
             height: 28,
@@ -262,7 +279,7 @@ class HabitDetailCliDialog extends StatelessWidget {
               color: boxColor,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isCompleted ? HabitosColors.primary : HabitosColors.cardBorder,
+                color: (isCompleted || val > 0) ? HabitosColors.primary : HabitosColors.cardBorder,
                 width: 1,
               ),
             ),
@@ -271,12 +288,149 @@ class HabitDetailCliDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                color: isCompleted ? Colors.white : HabitosColors.textSecondary,
+                color: (isCompleted || val > 0) ? Colors.white : HabitosColors.textSecondary,
               ),
             ),
           ),
         );
       }),
+    );
+  }
+
+  void _showDayMetricPopover(
+    BuildContext context,
+    HabitosState state,
+    DateTime date,
+    String dateStr,
+    double value,
+    bool isCompleted,
+  ) {
+    final months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    final formattedDate = '${date.day} de ${months[date.month - 1]}, ${date.year}';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: HabitosColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.event_note_rounded, color: HabitosColors.primary, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    formattedDate,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: HabitosColors.textPrimary),
+                  ),
+                  Text(
+                    habit.title,
+                    style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Divider(height: 16, color: HabitosColors.cardBorder),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: HabitosColors.background,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: HabitosColors.cardBorder),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'VECES MARCADO',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${value.toInt()} ${habit.unit ?? "veces"}',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: HabitosColors.primary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isCompleted || value > 0 ? '✓ Día con actividad registrada' : 'Sin actividad este día',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isCompleted || value > 0 ? HabitosColors.primary : HabitosColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (habit.type == HabitType.counter) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.remove, size: 16),
+                    label: const Text('-1'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: HabitosColors.textPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () {
+                      state.updateHabitValue(habit.id, -1, dateStr);
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('+1 Toque'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HabitosColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () {
+                      state.updateHabitValue(habit.id, 1, dateStr);
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cerrar', style: TextStyle(color: HabitosColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 }
