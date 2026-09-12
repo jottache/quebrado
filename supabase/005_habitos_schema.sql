@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.habits (
   frequency_type TEXT NOT NULL DEFAULT 'daily', -- 'daily', 'weekly_target', 'custom_days'
   frequency_payload JSONB DEFAULT '{}'::jsonb,
   stack_group_id TEXT REFERENCES public.habit_stacks(id) ON DELETE SET NULL,
+  contact_id TEXT, -- Vinculación con diario_contacts(id)
   archived BOOLEAN DEFAULT FALSE,
   position INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS public.habit_logs (
 CREATE INDEX IF NOT EXISTS idx_habits_user ON public.habits(user_id);
 CREATE INDEX IF NOT EXISTS idx_habits_archived ON public.habits(archived);
 CREATE INDEX IF NOT EXISTS idx_habits_stack ON public.habits(stack_group_id);
+CREATE INDEX IF NOT EXISTS idx_habits_contact_id ON public.habits(contact_id);
 
 CREATE INDEX IF NOT EXISTS idx_habit_logs_habit ON public.habit_logs(habit_id);
 CREATE INDEX IF NOT EXISTS idx_habit_logs_date ON public.habit_logs(log_date);
