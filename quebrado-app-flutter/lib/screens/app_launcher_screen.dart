@@ -10,9 +10,44 @@ import '../agente/agente.dart';
 import '../theme/colors.dart';
 import '../quebrado/screens/main_screen.dart';
 import '../quebrado/screens/settings_screen.dart';
+import '../quebrado/services/db_helper.dart';
+import 'launcher_action_hub_view.dart';
 
-class AppLauncherScreen extends StatelessWidget {
+class AppLauncherScreen extends StatefulWidget {
   const AppLauncherScreen({super.key});
+
+  @override
+  State<AppLauncherScreen> createState() => _AppLauncherScreenState();
+}
+
+class _AppLauncherScreenState extends State<AppLauncherScreen> {
+  bool _isActionHubView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadViewPreference();
+  }
+
+  Future<void> _loadViewPreference() async {
+    try {
+      final saved = await DatabaseHelper.instance.getSetting('launcher_is_action_hub_view');
+      if (saved != null && mounted) {
+        setState(() {
+          _isActionHubView = saved == 'true';
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleView(bool actionHub) async {
+    setState(() {
+      _isActionHubView = actionHub;
+    });
+    try {
+      await DatabaseHelper.instance.setSetting('launcher_is_action_hub_view', actionHub ? 'true' : 'false');
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,170 +84,273 @@ class AppLauncherScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            // Vista de la suite completa
+            // Vista con scroll del dashboard
             Expanded(
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   // Top Header Sliver
-            SliverToBoxAdapter(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top Bar: Date & Settings
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 800),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Bar: Date & Settings
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        dateString.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.grey[500],
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      const Text(
+                                        "OrtizApp",
+                                        style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.black87,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  // Global Settings Button
+                                  IconButton(
+                                    icon: const Icon(Icons.settings_outlined),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black87,
+                                      padding: const EdgeInsets.all(10),
+                                    ),
+                                    tooltip: "Ajustes",
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SettingsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Section Title & View Switcher Toggle
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    children: [
+                                      AnimatedContainer(
+                                        duration: const Duration(milliseconds: 250),
+                                        width: 4,
+                                        height: 18,
+                                        decoration: BoxDecoration(
+                                          color: _isActionHubView
+                                              ? const Color(0xFF6366F1)
+                                              : AppColors.primary,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _isActionHubView ? "Accesos Rápidos" : "Suite de Apps",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  _buildViewSwitcherPill(),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Contenido Principal según el modo seleccionado
+                  if (!_isActionHubView)
+                    // Modo 1: Suite Applications Grid (2 columns layout)
+                    SliverToBoxAdapter(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 800),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                            child: Column(
                               children: [
-                                Text(
-                                  dateString.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.grey[500],
-                                    letterSpacing: 0.8,
+                                // Row 1: Quebrado & Diario Jottache
+                                IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: _buildQuebradoHubCard(context, appState),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildDiarioHubCard(context, diarioState),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  "OrtizApp",
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black87,
-                                    letterSpacing: -0.5,
+                                const SizedBox(height: 16),
+                                // Row 2: Hábitos & Recordatorios
+                                IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: _buildHabitosHubCard(context, habitosState),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildRemindersHubCard(context, remindersState),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Row 3: Agente Ortiz (Chats & Artefactos)
+                                IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: _buildAgenteHubCard(context, agenteState),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            // Global Settings Button
-                            IconButton(
-                              icon: const Icon(Icons.settings_outlined),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black87,
-                                padding: const EdgeInsets.all(10),
-                              ),
-                              tooltip: "Ajustes",
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SettingsScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                          ),
                         ),
-
-                        const SizedBox(height: 24),
-
-                        // Section Title
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              "Suite de Aplicaciones",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
+                    )
+                  else
+                    // Modo 2: Hub Operacional con Funciones y Accesos Rápidos
+                    SliverToBoxAdapter(
+                      child: LauncherActionHubView(
+                        appState: appState,
+                        diarioState: diarioState,
+                        habitosState: habitosState,
+                        remindersState: remindersState,
+                      ),
                     ),
-                  ),
-                ),
+                ],
               ),
             ),
 
-            // Suite Applications Grid (2 columns layout)
-            SliverToBoxAdapter(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-                    child: Column(
-                      children: [
-                        // Row 1: Quebrado & Diario Jottache
-                        IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _buildQuebradoHubCard(context, appState),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDiarioHubCard(context, diarioState),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Row 2: Hábitos & Recordatorios
-                        IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _buildHabitosHubCard(context, habitosState),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildRemindersHubCard(context, remindersState),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Row 3: Agente Ortiz (Chats & Artefactos)
-                        IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _buildAgenteHubCard(context, agenteState),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            // Dock inferior para lanzar el modal de chat (presente en ambas vistas)
+            const DockedLauncherChat(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Segmented Switcher Pill: [ ▦ Suite | ⚡ Acciones ]
+  Widget _buildViewSwitcherPill() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildSwitcherOption(
+            label: "Suite",
+            icon: Icons.grid_view_rounded,
+            isSelected: !_isActionHubView,
+            activeColor: AppColors.primary,
+            onTap: () => _toggleView(false),
+          ),
+          _buildSwitcherOption(
+            label: "Acciones",
+            icon: Icons.bolt_rounded,
+            isSelected: _isActionHubView,
+            activeColor: const Color(0xFF6366F1),
+            onTap: () => _toggleView(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitcherOption({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  )
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: isSelected ? activeColor : Colors.grey[600],
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.black87 : Colors.grey[600],
               ),
             ),
           ],
         ),
       ),
-
-      // Dock inferior para lanzar el modal de chat
-      const DockedLauncherChat(),
-    ],
-  ),
-),
     );
-  }  /// The redesigned Quebrado Card
+  }
+
+  /// The redesigned Quebrado Card
   Widget _buildQuebradoHubCard(BuildContext context, AppState appState) {
     final pendingCount = appState.pendingPaymentsToday.length;
 
