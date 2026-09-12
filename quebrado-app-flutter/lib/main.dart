@@ -92,7 +92,7 @@ class MyApp extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              pageTransitionsTheme: const PageTransitionsTheme(
+              pageTransitionsTheme: PageTransitionsTheme(
                 builders: {
                   TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                   TargetPlatform.android: CupertinoPageTransitionsBuilder(),
