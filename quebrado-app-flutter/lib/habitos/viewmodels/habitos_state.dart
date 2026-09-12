@@ -14,6 +14,7 @@ class HabitosState extends ChangeNotifier {
   DateTime _selectedDate = DateTime.now();
   String _activeFilter = 'all'; // 'all', 'good', 'bad', 'stacks'
   String? _selectedStackId;
+  String? _selectedContactId;
 
   List<HabitModel> _habits = [];
   List<HabitStackModel> _stacks = [];
@@ -33,6 +34,7 @@ class HabitosState extends ChangeNotifier {
 
   String get activeFilter => _activeFilter;
   String? get selectedStackId => _selectedStackId;
+  String? get selectedContactId => _selectedContactId;
 
   List<HabitModel> get habits => _habits;
   List<HabitModel> get allHabits => _habits.where((h) => !h.archived).toList();
@@ -47,6 +49,14 @@ class HabitosState extends ChangeNotifier {
       list = list.where((h) => h.isNegative).toList();
     } else if (_activeFilter == 'stacks' && _selectedStackId != null) {
       list = list.where((h) => h.stackGroupId == _selectedStackId).toList();
+    }
+
+    if (_selectedContactId != null) {
+      if (_selectedContactId == '__none__') {
+        list = list.where((h) => h.contactId == null || h.contactId!.isEmpty).toList();
+      } else {
+        list = list.where((h) => h.contactId == _selectedContactId).toList();
+      }
     }
 
     return list;
@@ -88,6 +98,15 @@ class HabitosState extends ChangeNotifier {
   void setFilter(String filter, {String? stackId}) {
     _activeFilter = filter;
     _selectedStackId = stackId;
+    notifyListeners();
+  }
+
+  void setContactFilter(String? contactId) {
+    if (_selectedContactId == contactId) {
+      _selectedContactId = null;
+    } else {
+      _selectedContactId = contactId;
+    }
     notifyListeners();
   }
 

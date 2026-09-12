@@ -138,5 +138,36 @@ void main() {
       expect(finalCarlosHabits.length, equals(1));
       expect(finalCarlosHabits.first.id, equals('h_contact_3'));
     });
+
+    test('setContactFilter filters filteredHabits correctly and toggles off', () async {
+      final state = HabitosState();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final habit1 = HabitModel(id: 'h_1', title: 'H1', contactId: 'c_1');
+      final habit2 = HabitModel(id: 'h_2', title: 'H2', contactId: 'c_2');
+      final habit3 = HabitModel(id: 'h_3', title: 'H3', contactId: null);
+
+      state.habits.addAll([habit1, habit2, habit3]);
+
+      // Filter by c_1
+      state.setContactFilter('c_1');
+      expect(state.selectedContactId, equals('c_1'));
+      expect(state.filteredHabits.any((h) => h.id == 'h_1'), isTrue);
+      expect(state.filteredHabits.any((h) => h.id == 'h_2'), isFalse);
+      expect(state.filteredHabits.any((h) => h.id == 'h_3'), isFalse);
+
+      // Filter by unlinked (__none__)
+      state.setContactFilter('__none__');
+      expect(state.selectedContactId, equals('__none__'));
+      expect(state.filteredHabits.any((h) => h.id == 'h_3'), isTrue);
+      expect(state.filteredHabits.any((h) => h.id == 'h_1'), isFalse);
+
+      // Toggle off
+      state.setContactFilter('__none__');
+      expect(state.selectedContactId, isNull);
+      expect(state.filteredHabits.any((h) => h.id == 'h_1'), isTrue);
+      expect(state.filteredHabits.any((h) => h.id == 'h_2'), isTrue);
+      expect(state.filteredHabits.any((h) => h.id == 'h_3'), isTrue);
+    });
   });
 }

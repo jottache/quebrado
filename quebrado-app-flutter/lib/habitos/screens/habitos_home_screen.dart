@@ -9,6 +9,7 @@ import '../dialogs/habit_terminal_editor_dialog.dart';
 import '../dialogs/habit_detail_cli_dialog.dart';
 import 'habitos_metrics_screen.dart';
 import '../../diario/viewmodels/diario_state.dart';
+import '../../diario/widgets/diario_image_helper.dart';
 
 class HabitosHomeScreen extends StatefulWidget {
   const HabitosHomeScreen({super.key});
@@ -146,7 +147,11 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
                 // 3. Filter Chips
                 _buildFilterRow(state),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+
+                // 3.1 Contact Filter Chips
+                _buildContactFilterRow(context, state),
+                const SizedBox(height: 14),
 
                 // 4. Habits List
                 if (state.filteredHabits.isEmpty)
@@ -433,6 +438,195 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected ? Colors.white : HabitosColors.textSecondary,
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Filtro horizontal por Contacto Asociado del Diario
+  Widget _buildContactFilterRow(BuildContext context, HabitosState state) {
+    final diarioState = Provider.of<DiarioState>(context);
+    final contacts = diarioState.contacts;
+    if (contacts.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Row(
+            children: [
+              const Icon(Icons.person_pin_circle_outlined, size: 13, color: HabitosColors.textSecondary),
+              const SizedBox(width: 4),
+              const Text(
+                'CONTACTO ASOCIADO',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: HabitosColors.textSecondary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              if (state.selectedContactId != null) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () => state.setContactFilter(null),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: HabitosColors.primaryLight,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Quitar filtro',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: HabitosColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 2),
+                        Icon(Icons.close_rounded, size: 11, color: HabitosColors.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _contactFilterChip(
+                state: state,
+                contactId: null,
+                label: 'Todos',
+                icon: Icons.people_alt_outlined,
+              ),
+              ...contacts.map((c) {
+                final habitsCount = state.allHabits.where((h) => h.contactId == c.id).length;
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: _contactFilterChip(
+                    state: state,
+                    contactId: c.id,
+                    label: c.name,
+                    avatarUrl: c.avatarUrl,
+                    count: habitsCount > 0 ? habitsCount : null,
+                  ),
+                );
+              }),
+              const SizedBox(width: 8),
+              _contactFilterChip(
+                state: state,
+                contactId: '__none__',
+                label: 'Sin vincular',
+                icon: Icons.person_off_outlined,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _contactFilterChip({
+    required HabitosState state,
+    required String? contactId,
+    required String label,
+    String? avatarUrl,
+    IconData? icon,
+    int? count,
+  }) {
+    final isSelected = state.selectedContactId == contactId;
+
+    return InkWell(
+      onTap: () => state.setContactFilter(contactId),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? HabitosColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
+            width: 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: HabitosColors.primary.withOpacity(0.15),
+                    offset: const Offset(0, 2),
+                    blurRadius: 5,
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (avatarUrl != null && avatarUrl.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: DiarioImageHelper.buildImageWidget(avatarUrl, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ] else if (icon != null) ...[
+              Icon(icon, size: 14, color: isSelected ? Colors.white : HabitosColors.textSecondary),
+              const SizedBox(width: 5),
+            ] else ...[
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: isSelected ? Colors.white.withOpacity(0.3) : HabitosColors.primaryLight,
+                child: Text(
+                  label.isNotEmpty ? label[0].toUpperCase() : '?',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : HabitosColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.white : HabitosColors.textSecondary,
+              ),
+            ),
+            if (count != null) ...[
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white.withOpacity(0.25) : HabitosColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w900,
+                    color: isSelected ? Colors.white : HabitosColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
