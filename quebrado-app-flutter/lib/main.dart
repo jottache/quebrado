@@ -5,6 +5,7 @@ import 'quebrado/quebrado.dart';
 import 'diario/diario.dart';
 import 'habitos/habitos.dart';
 import 'recordatorios/recordatorios.dart';
+import 'agente/agente.dart';
 import 'services/notification_manager.dart';
 import 'screens/app_launcher_screen.dart';
 import 'theme/colors.dart';
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<DiarioState>(create: (_) => DiarioState()),
         ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
         ChangeNotifierProvider<RemindersState>(create: (_) => RemindersState()),
+        ChangeNotifierProvider<AgenteState>(create: (_) => AgenteState()),
       ],
       child: Consumer<AppState>(
         builder: (context, appState, child) {

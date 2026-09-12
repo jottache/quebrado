@@ -6,6 +6,7 @@ import '../quebrado/viewmodels/app_state.dart';
 import '../diario/diario.dart';
 import '../habitos/habitos.dart';
 import '../recordatorios/recordatorios.dart';
+import '../agente/agente.dart';
 import '../theme/colors.dart';
 import '../quebrado/screens/main_screen.dart';
 import '../quebrado/screens/settings_screen.dart';
@@ -19,6 +20,16 @@ class AppLauncherScreen extends StatelessWidget {
     final diarioState = Provider.of<DiarioState>(context);
     final habitosState = Provider.of<HabitosState>(context);
     final remindersState = Provider.of<RemindersState>(context);
+    final agenteState = Provider.of<AgenteState>(context);
+
+    // Conectar dependencias vivas al motor RAG del Agente
+    agenteState.updateDependencies(
+      appState: appState,
+      diarioState: diarioState,
+      habitosState: habitosState,
+      remindersState: remindersState,
+    );
+
     final now = DateTime.now();
 
     // Days & Months in Spanish
@@ -35,9 +46,15 @@ class AppLauncherScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
+        bottom: false,
+        child: Column(
+          children: [
+            // Vista superior colapsable de la suite
+            Expanded(
+              child: AnimatedCrossFade(
+                firstChild: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
             // Top Header Sliver
             SliverToBoxAdapter(
               child: Center(
@@ -168,11 +185,40 @@ class AppLauncherScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        // Row 3: Agente Ortiz (Chats & Artefactos)
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: _buildAgenteHubCard(context, agenteState),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
+            ),
+          ],
+        ),
+                secondChild: const SizedBox.shrink(),
+                crossFadeState: agenteState.isLauncherChatExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 250),
+              ),
+            ),
+
+            // Chat dockeado al inferior de la pantalla
+            DockedLauncherChat(
+              isSuiteVisible: !agenteState.isLauncherChatExpanded,
+              onToggleSuite: () {
+                agenteState.setLauncherChatExpanded(!agenteState.isLauncherChatExpanded);
+              },
             ),
           ],
         ),
@@ -792,6 +838,142 @@ class AppLauncherScreen extends StatelessWidget {
                       value: "$overdueCount",
                       icon: Icons.warning_amber_rounded,
                       accentColor: overdueCount > 0 ? RemindersColors.overdue : Colors.grey[500]!,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The Minimalist Agente Ortiz Card (Matches OrtizApp suite styling)
+  Widget _buildAgenteHubCard(BuildContext context, AgenteState agenteState) {
+    final sessionsCount = agenteState.sessions.length;
+    final artifactsCount = agenteState.allArtifacts.length;
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const AgenteHomeScreen(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      splashColor: AgenteColors.primary.withOpacity(0.08),
+      highlightColor: AgenteColors.primary.withOpacity(0.04),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AgenteColors.primary.withOpacity(0.20),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AgenteColors.primary.withOpacity(0.06),
+              offset: const Offset(0, 8),
+              blurRadius: 20.0,
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              offset: const Offset(0, 2),
+              blurRadius: 6.0,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12.0, 14.0, 12.0, 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. Header (40px height)
+              Container(
+                height: 40,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 2.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AgenteColors.primaryLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AgenteColors.primary.withOpacity(0.20),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome_rounded,
+                        color: AgenteColors.primary,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Agente Ortiz",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                              letterSpacing: -0.3,
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            "CHATS & ARTEFACTOS",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AgenteColors.primary,
+                              letterSpacing: 0.6,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // 2. Summary Box
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!, width: 1),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildRateRow(
+                      label: "CHARLAS",
+                      value: "$sessionsCount",
+                      icon: Icons.chat_bubble_outline_rounded,
+                      accentColor: AgenteColors.primary,
+                    ),
+                    Divider(height: 12, thickness: 1, color: Colors.grey[200]),
+                    _buildRateRow(
+                      label: "ARTEFACTOS",
+                      value: "$artifactsCount",
+                      icon: Icons.inventory_2_outlined,
+                      accentColor: AgenteColors.primary,
                     ),
                   ],
                 ),

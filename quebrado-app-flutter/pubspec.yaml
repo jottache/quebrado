@@ -51,6 +51,8 @@ dependencies:
   local_auth: ^3.0.1
   supabase_flutter: ^2.8.0
   flutter_dotenv: ^5.2.1
+  google_generative_ai: ^0.4.7
+  flutter_markdown_plus: ^1.0.12
 
 dev_dependencies:
   flutter_test:
