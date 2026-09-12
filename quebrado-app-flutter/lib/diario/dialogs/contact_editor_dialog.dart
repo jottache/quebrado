@@ -83,49 +83,80 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
     }
   }
 
-  void _save() {
+  bool _isSaving = false;
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isSaving) return;
 
-    final state = Provider.of<DiarioState>(context, listen: false);
-    if (widget.contact == null) {
-      state.addContact(
-        name: _nameController.text,
-        nickname: _nicknameController.text.isNotEmpty ? _nicknameController.text : null,
-        relationship: _relationshipController.text.isNotEmpty ? _relationshipController.text : null,
-        avatarUrl: _avatarUrl,
-        avatarColor: _selectedColor,
-        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        birthdate: _selectedBirthdate,
-        isFavorite: _isFavorite,
-      );
-    } else {
-      final nickname = _nicknameController.text.trim();
-      final rel = _relationshipController.text.trim();
-      final phone = _phoneController.text.trim();
-      final notes = _notesController.text.trim();
+    setState(() => _isSaving = true);
 
-      state.updateContact(
-        widget.contact!.copyWith(
+    try {
+      final state = Provider.of<DiarioState>(context, listen: false);
+      if (widget.contact == null) {
+        await state.addContact(
           name: _nameController.text.trim(),
-          nickname: nickname.isNotEmpty ? nickname : null,
-          clearNickname: nickname.isEmpty,
-          relationship: rel.isNotEmpty ? rel : null,
-          clearRelationship: rel.isEmpty,
+          nickname: _nicknameController.text.trim().isNotEmpty ? _nicknameController.text.trim() : null,
+          relationship: _relationshipController.text.trim().isNotEmpty ? _relationshipController.text.trim() : null,
           avatarUrl: _avatarUrl,
-          clearAvatar: _avatarUrl == null,
           avatarColor: _selectedColor,
-          phone: phone.isNotEmpty ? phone : null,
-          clearPhone: phone.isEmpty,
-          notes: notes.isNotEmpty ? notes : null,
-          clearNotes: notes.isEmpty,
+          phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+          notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
           birthdate: _selectedBirthdate,
-          clearBirthdate: _selectedBirthdate == null,
           isFavorite: _isFavorite,
-        ),
-      );
+        );
+      } else {
+        final nickname = _nicknameController.text.trim();
+        final rel = _relationshipController.text.trim();
+        final phone = _phoneController.text.trim();
+        final notes = _notesController.text.trim();
+
+        await state.updateContact(
+          widget.contact!.copyWith(
+            name: _nameController.text.trim(),
+            nickname: nickname.isNotEmpty ? nickname : null,
+            clearNickname: nickname.isEmpty,
+            relationship: rel.isNotEmpty ? rel : null,
+            clearRelationship: rel.isEmpty,
+            avatarUrl: _avatarUrl,
+            clearAvatar: _avatarUrl == null,
+            avatarColor: _selectedColor,
+            phone: phone.isNotEmpty ? phone : null,
+            clearPhone: phone.isEmpty,
+            notes: notes.isNotEmpty ? notes : null,
+            clearNotes: notes.isEmpty,
+            birthdate: _selectedBirthdate,
+            clearBirthdate: _selectedBirthdate == null,
+            isFavorite: _isFavorite,
+          ),
+        );
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.contact == null
+                  ? 'Contacto creado con éxito'
+                  : 'Contacto actualizado correctamente',
+            ),
+            backgroundColor: DiarioColors.primary,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar contacto: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
-    Navigator.of(context).pop();
   }
 
   @override
@@ -364,6 +395,13 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
                                   decoration: InputDecoration(
                                     labelText: 'Cumpleaños',
                                     prefixIcon: const Icon(Icons.cake_outlined, size: 20),
+                                    suffixIcon: _selectedBirthdate != null
+                                        ? IconButton(
+                                            icon: const Icon(Icons.close_rounded, size: 16),
+                                            tooltip: 'Borrar fecha',
+                                            onPressed: () => setState(() => _selectedBirthdate = null),
+                                          )
+                                        : null,
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                                     filled: true,
                                     fillColor: DiarioColors.background,
@@ -425,14 +463,24 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
                     child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.check_rounded, size: 18),
-                    label: Text(isEditing ? 'Guardar Cambios' : 'Crear Contacto'),
+                    onPressed: _isSaving ? null : _save,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.check_rounded, size: 18),
+                    label: Text(
+                      _isSaving
+                          ? 'Guardando...'
+                          : (isEditing ? 'Guardar Cambios' : 'Crear Contacto'),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: DiarioColors.primary,
                       foregroundColor: Colors.white,

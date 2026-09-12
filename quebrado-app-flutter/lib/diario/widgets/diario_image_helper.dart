@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -143,6 +145,13 @@ class DiarioImageHelper {
 
       if (file == null) return null;
 
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        final ext = p.extension(file.name).replaceAll('.', '').toLowerCase();
+        final mime = (ext == 'png' || ext == 'webp' || ext == 'gif') ? ext : 'jpeg';
+        return 'data:image/$mime;base64,${base64Encode(bytes)}';
+      }
+
       return await saveImagePermanently(file.path);
     } catch (e) {
       debugPrint('Error seleccionando imagen: $e');
@@ -152,6 +161,7 @@ class DiarioImageHelper {
 
   /// Guarda una copia permanente de la imagen en documents/diario_images
   static Future<String> saveImagePermanently(String tempPath) async {
+    if (kIsWeb) return tempPath;
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final imagesDir = Directory(p.join(appDir.path, 'diario_images'));
@@ -181,7 +191,22 @@ class DiarioImageHelper {
   }) {
     Widget imageWidget;
 
-    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+    if (pathOrUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = pathOrUrl.indexOf(',');
+        final base64Str = commaIdx != -1 ? pathOrUrl.substring(commaIdx + 1) : pathOrUrl;
+        final bytes = base64Decode(base64Str);
+        imageWidget = Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => _placeholderWidget(width, height),
+        );
+      } catch (_) {
+        imageWidget = _placeholderWidget(width, height);
+      }
+    } else if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('blob:')) {
       imageWidget = Image.network(
         pathOrUrl,
         width: width,
@@ -204,7 +229,7 @@ class DiarioImageHelper {
           );
         },
       );
-    } else {
+    } else if (!kIsWeb) {
       final file = File(pathOrUrl);
       if (file.existsSync()) {
         imageWidget = Image.file(
@@ -217,6 +242,8 @@ class DiarioImageHelper {
       } else {
         imageWidget = _placeholderWidget(width, height);
       }
+    } else {
+      imageWidget = _placeholderWidget(width, height);
     }
 
     if (borderRadius != null) {

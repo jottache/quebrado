@@ -118,12 +118,15 @@ class DiarioState extends ChangeNotifier {
 
   Future<void> updateContact(DiarioContact contact) async {
     final index = _contacts.indexWhere((c) => c.id == contact.id);
+    final updated = contact.copyWith(updatedAt: DateTime.now());
     if (index != -1) {
-      _contacts[index] = contact.copyWith(updatedAt: DateTime.now());
-      _contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      notifyListeners();
-      await _service.saveContact(_contacts[index]);
+      _contacts[index] = updated;
+    } else {
+      _contacts.add(updated);
     }
+    _contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    notifyListeners();
+    await _service.saveContact(updated);
   }
 
   Future<void> deleteContact(String contactId) async {
@@ -202,9 +205,11 @@ class DiarioState extends ChangeNotifier {
     final index = _categories.indexWhere((c) => c.id == category.id);
     if (index != -1) {
       _categories[index] = category;
-      notifyListeners();
-      await _service.saveCategory(category);
+    } else {
+      _categories.add(category);
     }
+    notifyListeners();
+    await _service.saveCategory(category);
   }
 
   Future<void> deleteCategory(String categoryId) async {
@@ -255,11 +260,14 @@ class DiarioState extends ChangeNotifier {
 
   Future<void> updateTemplate(DiarioTemplate template) async {
     final index = _templates.indexWhere((t) => t.id == template.id);
+    final updated = template.copyWith(updatedAt: DateTime.now());
     if (index != -1) {
-      _templates[index] = template.copyWith(updatedAt: DateTime.now());
-      notifyListeners();
-      await _service.saveTemplate(_templates[index]);
+      _templates[index] = updated;
+    } else {
+      _templates.add(updated);
     }
+    notifyListeners();
+    await _service.saveTemplate(updated);
   }
 
   Future<void> deleteTemplate(String templateId) async {
@@ -323,11 +331,14 @@ class DiarioState extends ChangeNotifier {
 
   Future<void> updateEntry(DiarioEntry entry) async {
     final index = _entries.indexWhere((e) => e.id == entry.id);
+    final updated = entry.copyWith(updatedAt: DateTime.now());
     if (index != -1) {
-      _entries[index] = entry.copyWith(updatedAt: DateTime.now());
-      notifyListeners();
-      await _service.saveEntry(_entries[index]);
+      _entries[index] = updated;
+    } else {
+      _entries.insert(0, updated);
     }
+    notifyListeners();
+    await _service.saveEntry(updated);
   }
 
   Future<void> deleteEntry(String entryId) async {

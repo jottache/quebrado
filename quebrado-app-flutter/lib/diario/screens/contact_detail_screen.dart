@@ -330,25 +330,57 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                    const SizedBox(height: 4),
-                    // Relationship Pill
-                    if (contact.relationship != null && contact.relationship!.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: DiarioColors.surfaceHover,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        if (contact.relationship != null && contact.relationship!.isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: DiarioColors.surfaceHover,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: Text(
+                              contact.relationship!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        InkWell(
+                          onTap: () => _openContactEditor(contact),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Text(
-                          contact.relationship!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey[700],
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: DiarioColors.primaryLight,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: DiarioColors.primary.withOpacity(0.25)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_outlined, size: 12, color: DiarioColors.primary),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Editar',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: DiarioColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
+                    ),
                   ],
                 ),
               ),

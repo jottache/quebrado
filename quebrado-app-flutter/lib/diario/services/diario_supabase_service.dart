@@ -50,7 +50,7 @@ class DiarioSupabaseService {
       if (user != null) {
         map['user_id'] = user.id;
       }
-      await client!.from('diario_contacts').upsert(map);
+      await client!.from('diario_contacts').upsert(map, onConflict: 'id');
     } catch (e) {
       debugPrint('Error guardando contacto en Supabase: $e');
     }
@@ -96,7 +96,7 @@ class DiarioSupabaseService {
       if (user != null) {
         map['user_id'] = user.id;
       }
-      await client!.from('diario_categories').upsert(map);
+      await client!.from('diario_categories').upsert(map, onConflict: 'id');
     } catch (e) {
       debugPrint('Error guardando categoría en Supabase: $e');
     }
@@ -142,7 +142,7 @@ class DiarioSupabaseService {
       if (user != null) {
         map['user_id'] = user.id;
       }
-      await client!.from('diario_templates').upsert(map);
+      await client!.from('diario_templates').upsert(map, onConflict: 'id');
     } catch (e) {
       debugPrint('Error guardando plantilla en Supabase: $e');
     }
@@ -188,7 +188,7 @@ class DiarioSupabaseService {
       if (user != null) {
         map['user_id'] = user.id;
       }
-      await client!.from('diario_entries').upsert(map);
+      await client!.from('diario_entries').upsert(map, onConflict: 'id');
     } catch (e) {
       debugPrint('Error guardando entrada en Supabase: $e');
     }

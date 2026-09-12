@@ -485,6 +485,16 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
                 ),
               ),
 
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18, color: DiarioColors.textMuted),
+                tooltip: 'Editar contacto',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ContactEditorDialog(contact: contact),
+                  );
+                },
+              ),
               Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey[400]),
             ],
           ),
