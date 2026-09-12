@@ -23,10 +23,54 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   String? _timerHabitId;
   int _timerSecondsRemaining = 0;
 
+  late final ScrollController _dateScrollController;
+  late final DateTime _startDate;
+  static const int _daysPast = 45;
+  static const int _daysFuture = 15;
+  static const double _dateItemWidth = 54.0;
+  static const double _dateItemMargin = 3.0;
+  static const double _dateTotalWidth = _dateItemWidth + (_dateItemMargin * 2);
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: _daysPast));
+    _dateScrollController = ScrollController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToDate(DateTime(now.year, now.month, now.day), animate: false);
+    });
+  }
+
   @override
   void dispose() {
+    _dateScrollController.dispose();
     _activeTimer?.cancel();
     super.dispose();
+  }
+
+  void _scrollToDate(DateTime date, {bool animate = true}) {
+    if (!_dateScrollController.hasClients) return;
+
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final dayIndex = targetDate.difference(_startDate).inDays;
+    if (dayIndex < 0 || dayIndex >= (_daysPast + _daysFuture + 1)) return;
+
+    final viewportWidth = _dateScrollController.position.viewportDimension;
+    final targetOffset = (dayIndex * _dateTotalWidth) - (viewportWidth / 2) + (_dateTotalWidth / 2);
+    final maxScroll = _dateScrollController.position.maxScrollExtent;
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
+
+    if (animate) {
+      _dateScrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeInOutCubic,
+      );
+    } else {
+      _dateScrollController.jumpTo(clampedOffset);
+    }
   }
 
   void _startTimer(HabitModel habit, HabitosState state) {
@@ -267,17 +311,16 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     );
   }
 
-  /// Selector de fecha horizontal ergonómico y rápido
+  /// Selector de fecha horizontal con scroll fluido y animación
   Widget _buildDateNavigator(HabitosState state) {
     final selected = state.selectedDate;
     final now = DateTime.now();
-    // Genera 7 días centrados en el día seleccionado
-    final days = List.generate(7, (i) => selected.subtract(Duration(days: 3 - i)));
-
     final weekDays = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+    final totalDays = _daysPast + _daysFuture + 1;
+    final allDays = List.generate(totalDays, (i) => _startDate.add(Duration(days: i)));
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -289,40 +332,62 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             icon: const Icon(Icons.chevron_left_rounded, size: 22),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: state.previousDay,
+            onPressed: () {
+              final prevDate = state.selectedDate.subtract(const Duration(days: 1));
+              state.previousDay();
+              _scrollToDate(prevDate, animate: true);
+            },
             tooltip: 'Día anterior',
           ),
           Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: days.map((d) {
+            child: SizedBox(
+              height: 52,
+              child: ListView.builder(
+                controller: _dateScrollController,
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: allDays.length,
+                itemBuilder: (context, index) {
+                  final d = allDays[index];
                   final isSelected = d.year == selected.year && d.month == selected.month && d.day == selected.day;
                   final isToday = d.year == now.year && d.month == now.month && d.day == now.day;
                   final weekdayStr = weekDays[d.weekday - 1];
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: _dateItemMargin),
                     child: InkWell(
-                      onTap: () => state.selectDate(d),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      onTap: () {
+                        state.selectDate(d);
+                        _scrollToDate(d, animate: true);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: _dateItemWidth,
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? HabitosColors.primary
                               : (isToday ? HabitosColors.primaryLight : Colors.transparent),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
                                 ? HabitosColors.primary
-                                : (isToday ? HabitosColors.primary.withOpacity(0.3) : Colors.transparent),
-                            width: 1,
+                                : (isToday ? HabitosColors.primary.withOpacity(0.35) : Colors.transparent),
+                            width: 1.2,
                           ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: HabitosColors.primary.withOpacity(0.25),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               weekdayStr,
@@ -350,7 +415,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       ),
                     ),
                   );
-                }).toList(),
+                },
               ),
             ),
           ),
@@ -358,13 +423,20 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             icon: const Icon(Icons.chevron_right_rounded, size: 22),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: state.nextDay,
+            onPressed: () {
+              final nextDate = state.selectedDate.add(const Duration(days: 1));
+              state.nextDay();
+              _scrollToDate(nextDate, animate: true);
+            },
             tooltip: 'Día siguiente',
           ),
           if (!state.isViewingToday) ...[
             const SizedBox(width: 4),
             TextButton(
-              onPressed: state.selectToday,
+              onPressed: () {
+                state.selectToday();
+                _scrollToDate(DateTime.now(), animate: true);
+              },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 backgroundColor: HabitosColors.primaryLight,
