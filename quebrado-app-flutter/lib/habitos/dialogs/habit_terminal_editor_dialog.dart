@@ -73,15 +73,21 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         stackGroupId: _selectedStackId,
       );
     } else {
+      final desc = _descController.text.trim();
+      final unit = _selectedType == HabitType.quantitative ? _unitController.text.trim() : (_selectedType == HabitType.timer ? 'min' : null);
+
       state.updateHabit(
         widget.habit!.copyWith(
           title: _titleController.text.trim(),
-          description: _descController.text.trim().isNotEmpty ? _descController.text.trim() : null,
+          description: desc.isNotEmpty ? desc : null,
+          clearDescription: desc.isEmpty,
           type: _selectedType,
           isNegative: _isNegative,
           targetValue: targetVal,
-          unit: _selectedType == HabitType.quantitative ? _unitController.text.trim() : (_selectedType == HabitType.timer ? 'min' : null),
+          unit: unit,
+          clearUnit: unit == null || unit.isEmpty,
           stackGroupId: _selectedStackId,
+          clearStackGroupId: _selectedStackId == null,
         ),
       );
     }

@@ -100,17 +100,27 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
         isFavorite: _isFavorite,
       );
     } else {
+      final nickname = _nicknameController.text.trim();
+      final rel = _relationshipController.text.trim();
+      final phone = _phoneController.text.trim();
+      final notes = _notesController.text.trim();
+
       state.updateContact(
         widget.contact!.copyWith(
           name: _nameController.text.trim(),
-          nickname: _nicknameController.text.trim().isNotEmpty ? _nicknameController.text.trim() : null,
-          relationship: _relationshipController.text.trim().isNotEmpty ? _relationshipController.text.trim() : null,
+          nickname: nickname.isNotEmpty ? nickname : null,
+          clearNickname: nickname.isEmpty,
+          relationship: rel.isNotEmpty ? rel : null,
+          clearRelationship: rel.isEmpty,
           avatarUrl: _avatarUrl,
           clearAvatar: _avatarUrl == null,
           avatarColor: _selectedColor,
-          phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
-          notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+          phone: phone.isNotEmpty ? phone : null,
+          clearPhone: phone.isEmpty,
+          notes: notes.isNotEmpty ? notes : null,
+          clearNotes: notes.isEmpty,
           birthdate: _selectedBirthdate,
+          clearBirthdate: _selectedBirthdate == null,
           isFavorite: _isFavorite,
         ),
       );

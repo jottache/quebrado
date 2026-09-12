@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/habit_model.dart';
@@ -19,6 +20,8 @@ class HabitosBootstrapData {
 
 class HabitosSupabaseService {
   final SupabaseClient? _client;
+  bool _hasHabitsTable = true;
+  HabitosBootstrapData? _cachedData;
 
   HabitosSupabaseService({SupabaseClient? client})
       : _client = client ?? (SupabaseConfig.isConfigured ? Supabase.instance.client : null);
@@ -31,7 +34,8 @@ class HabitosSupabaseService {
   Future<HabitosBootstrapData> bootstrapData() async {
     if (!isRemoteAvailable) {
       debugPrint('[Habitos] Supabase no configurado, utilizando semillas CLI en memoria');
-      return _generateDefaultSeedData();
+      _cachedData = _generateDefaultSeedData();
+      return _cachedData!;
     }
 
     try {
@@ -58,6 +62,8 @@ class HabitosSupabaseService {
       final stacksRaw = results[1] as List<dynamic>;
       final logsRaw = results[2] as List<dynamic>;
 
+      _hasHabitsTable = true;
+
       if (habitsRaw.isEmpty) {
         debugPrint('[Habitos] Base de datos vacía, inicializando semillas de bienvenida');
         final seedData = _generateDefaultSeedData();
@@ -70,6 +76,7 @@ class HabitosSupabaseService {
         for (final l in seedData.logs) {
           await saveHabitLog(l);
         }
+        _cachedData = seedData;
         return seedData;
       }
 
@@ -77,62 +84,185 @@ class HabitosSupabaseService {
       final stacks = stacksRaw.map((m) => HabitStackModel.fromMap(m as Map<String, dynamic>)).toList();
       final logs = logsRaw.map((m) => HabitLogModel.fromMap(m as Map<String, dynamic>)).toList();
 
-      return HabitosBootstrapData(habits: habits, stacks: stacks, logs: logs);
+      _cachedData = HabitosBootstrapData(habits: habits, stacks: stacks, logs: logs);
+      return _cachedData!;
     } catch (e) {
-      debugPrint('[Habitos] Error cargando desde Supabase: $e. Usando datos locales.');
-      return _generateDefaultSeedData();
+      _hasHabitsTable = false;
+      debugPrint('[Habitos] Tablas habits no disponibles ($e). Utilizando persistencia en settings...');
+      return await _loadFromSettingsFallback();
+    }
+  }
+
+  Future<HabitosBootstrapData> _loadFromSettingsFallback() async {
+    try {
+      if (_client != null) {
+        final res = await _client!.from('settings').select().eq('key', 'habitos_data').maybeSingle();
+        final jsonStr = res?['value'] as String?;
+        if (jsonStr != null && jsonStr.trim().isNotEmpty) {
+          final Map<String, dynamic> map = jsonDecode(jsonStr);
+          final habits = (map['habits'] as List? ?? [])
+              .map((m) => HabitModel.fromMap(m as Map<String, dynamic>))
+              .toList();
+          final stacks = (map['stacks'] as List? ?? [])
+              .map((m) => HabitStackModel.fromMap(m as Map<String, dynamic>))
+              .toList();
+          final logs = (map['logs'] as List? ?? [])
+              .map((m) => HabitLogModel.fromMap(m as Map<String, dynamic>))
+              .toList();
+
+          _cachedData = HabitosBootstrapData(habits: habits, stacks: stacks, logs: logs);
+          return _cachedData!;
+        }
+      }
+    } catch (e) {
+      debugPrint('[Habitos] Error cargando settings habitos_data: $e');
+    }
+
+    final seedData = _generateDefaultSeedData();
+    _cachedData = seedData;
+    await _persistToSettings();
+    return seedData;
+  }
+
+  Future<void> _persistToSettings() async {
+    if (_client == null || _cachedData == null) return;
+    try {
+      final payload = {
+        'habits': _cachedData!.habits.map((h) => h.toMap()).toList(),
+        'stacks': _cachedData!.stacks.map((s) => s.toMap()).toList(),
+        'logs': _cachedData!.logs.map((l) => l.toMap()).toList(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      };
+      await _client!.from('settings').upsert({
+        'key': 'habitos_data',
+        'value': jsonEncode(payload),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[Habitos] Error guardando en settings habitos_data: $e');
     }
   }
 
   Future<void> saveHabit(HabitModel habit) async {
-    if (!isRemoteAvailable) return;
-    try {
-      final map = habit.toMap();
-      if (currentUserId != null) map['user_id'] = currentUserId;
-      await _client!.from('habits').upsert(map);
-    } catch (e) {
-      debugPrint('[Habitos] Error guardando habit: $e');
+    if (_cachedData != null) {
+      final idx = _cachedData!.habits.indexWhere((h) => h.id == habit.id);
+      if (idx != -1) {
+        _cachedData!.habits[idx] = habit;
+      } else {
+        _cachedData!.habits.add(habit);
+      }
     }
+
+    if (!isRemoteAvailable) return;
+
+    if (_hasHabitsTable) {
+      try {
+        final map = habit.toMap();
+        if (currentUserId != null) map['user_id'] = currentUserId;
+        await _client!.from('habits').upsert(map);
+        return;
+      } catch (e) {
+        debugPrint('[Habitos] Error guardando habit en tabla habits: $e');
+        _hasHabitsTable = false;
+      }
+    }
+
+    await _persistToSettings();
   }
 
   Future<void> deleteHabit(String habitId) async {
-    if (!isRemoteAvailable) return;
-    try {
-      await _client!.from('habits').delete().eq('id', habitId);
-    } catch (e) {
-      debugPrint('[Habitos] Error eliminando habit: $e');
+    if (_cachedData != null) {
+      _cachedData!.habits.removeWhere((h) => h.id == habitId);
+      _cachedData!.logs.removeWhere((l) => l.habitId == habitId);
     }
+
+    if (!isRemoteAvailable) return;
+
+    if (_hasHabitsTable) {
+      try {
+        await _client!.from('habits').delete().eq('id', habitId);
+        return;
+      } catch (e) {
+        debugPrint('[Habitos] Error eliminando habit de tabla habits: $e');
+        _hasHabitsTable = false;
+      }
+    }
+
+    await _persistToSettings();
   }
 
   Future<void> saveHabitLog(HabitLogModel log) async {
-    if (!isRemoteAvailable) return;
-    try {
-      final map = log.toMap();
-      if (currentUserId != null) map['user_id'] = currentUserId;
-      await _client!.from('habit_logs').upsert(map, onConflict: 'habit_id,log_date');
-    } catch (e) {
-      debugPrint('[Habitos] Error guardando habit_log: $e');
+    if (_cachedData != null) {
+      final idx = _cachedData!.logs.indexWhere((l) => l.habitId == log.habitId && l.logDate == log.logDate);
+      if (idx != -1) {
+        _cachedData!.logs[idx] = log;
+      } else {
+        _cachedData!.logs.add(log);
+      }
     }
+
+    if (!isRemoteAvailable) return;
+
+    if (_hasHabitsTable) {
+      try {
+        final map = log.toMap();
+        if (currentUserId != null) map['user_id'] = currentUserId;
+        await _client!.from('habit_logs').upsert(map, onConflict: 'habit_id,log_date');
+        return;
+      } catch (e) {
+        debugPrint('[Habitos] Error guardando habit_log en tabla habit_logs: $e');
+        _hasHabitsTable = false;
+      }
+    }
+
+    await _persistToSettings();
   }
 
   Future<void> saveHabitStack(HabitStackModel stack) async {
-    if (!isRemoteAvailable) return;
-    try {
-      final map = stack.toMap();
-      if (currentUserId != null) map['user_id'] = currentUserId;
-      await _client!.from('habit_stacks').upsert(map);
-    } catch (e) {
-      debugPrint('[Habitos] Error guardando habit_stack: $e');
+    if (_cachedData != null) {
+      final idx = _cachedData!.stacks.indexWhere((s) => s.id == stack.id);
+      if (idx != -1) {
+        _cachedData!.stacks[idx] = stack;
+      } else {
+        _cachedData!.stacks.add(stack);
+      }
     }
+
+    if (!isRemoteAvailable) return;
+
+    if (_hasHabitsTable) {
+      try {
+        final map = stack.toMap();
+        if (currentUserId != null) map['user_id'] = currentUserId;
+        await _client!.from('habit_stacks').upsert(map);
+        return;
+      } catch (e) {
+        debugPrint('[Habitos] Error guardando habit_stack en tabla habit_stacks: $e');
+        _hasHabitsTable = false;
+      }
+    }
+
+    await _persistToSettings();
   }
 
   Future<void> deleteHabitStack(String stackId) async {
-    if (!isRemoteAvailable) return;
-    try {
-      await _client!.from('habit_stacks').delete().eq('id', stackId);
-    } catch (e) {
-      debugPrint('[Habitos] Error eliminando habit_stack: $e');
+    if (_cachedData != null) {
+      _cachedData!.stacks.removeWhere((s) => s.id == stackId);
     }
+
+    if (!isRemoteAvailable) return;
+
+    if (_hasHabitsTable) {
+      try {
+        await _client!.from('habit_stacks').delete().eq('id', stackId);
+        return;
+      } catch (e) {
+        debugPrint('[Habitos] Error eliminando habit_stack de tabla habit_stacks: $e');
+        _hasHabitsTable = false;
+      }
+    }
+
+    await _persistToSettings();
   }
 
   // ===========================================================================

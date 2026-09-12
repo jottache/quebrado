@@ -107,6 +107,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 
     final reminder = ReminderModel(
       id: widget.reminder?.id ?? const Uuid().v4(),
+      userId: widget.reminder?.userId,
       title: _titleController.text.trim(),
       notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
       priority: _priority,

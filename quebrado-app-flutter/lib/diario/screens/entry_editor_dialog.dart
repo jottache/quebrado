@@ -100,12 +100,15 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
         isPinned: _isPinned,
       );
     } else {
+      final text = _textController.text.trim();
       state.updateEntry(
         widget.entry!.copyWith(
           templateId: _selectedTemplateId,
+          clearTemplate: _selectedTemplateId == null || _selectedTemplateId!.isEmpty,
           entryType: hasTemplate ? 'template_instance' : 'simple_text',
           title: _titleController.text.trim(),
-          contentText: _textController.text.trim().isNotEmpty ? _textController.text.trim() : null,
+          contentText: text.isNotEmpty ? text : null,
+          clearContentText: text.isEmpty,
           photoUrl: _photoUrl,
           clearPhoto: _photoUrl == null || _photoUrl!.isEmpty,
           contentData: _formData,
