@@ -6,6 +6,7 @@ import '../theme/agente_colors.dart';
 import '../dialogs/agente_settings_dialog.dart';
 import '../models/chat_artifact_model.dart';
 import '../widgets/artifact_card_view.dart';
+import '../widgets/agente_chat_bottom_sheet.dart';
 import 'chat_conversation_screen.dart';
 
 class AgenteHomeScreen extends StatefulWidget {
@@ -124,12 +125,8 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         label: const Text('Nueva Charla', style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () async {
           await agenteState.startNewSession();
-          if (mounted) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => const ChatConversationScreen(),
-              ),
-            );
+          if (context.mounted) {
+            AgenteChatBottomSheet.show(context, autoFocus: true);
           }
         },
       ),
@@ -232,11 +229,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
             onTap: () async {
               await agenteState.selectSession(session.id);
               if (context.mounted) {
-                Navigator.of(context).push(
-                  CupertinoPageRoute(
-                    builder: (context) => const ChatConversationScreen(),
-                  ),
-                );
+                AgenteChatBottomSheet.show(context, autoFocus: false);
               }
             },
           ),

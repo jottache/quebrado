@@ -9,3 +9,4 @@ export 'viewmodels/agente_state.dart';
 export 'screens/agente_home_screen.dart';
 export 'screens/chat_conversation_screen.dart';
 export 'widgets/docked_launcher_chat.dart';
+export 'widgets/agente_chat_bottom_sheet.dart';

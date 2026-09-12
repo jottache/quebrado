@@ -49,13 +49,12 @@ class AppLauncherScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            // Vista superior colapsable de la suite
+            // Vista de la suite completa
             Expanded(
-              child: AnimatedCrossFade(
-                firstChild: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-            // Top Header Sliver
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  // Top Header Sliver
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
@@ -205,24 +204,13 @@ class AppLauncherScreen extends StatelessWidget {
             ),
           ],
         ),
-                secondChild: const SizedBox.shrink(),
-                crossFadeState: agenteState.isLauncherChatExpanded
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 250),
-              ),
-            ),
-
-            // Chat dockeado al inferior de la pantalla
-            DockedLauncherChat(
-              isSuiteVisible: !agenteState.isLauncherChatExpanded,
-              onToggleSuite: () {
-                agenteState.setLauncherChatExpanded(!agenteState.isLauncherChatExpanded);
-              },
-            ),
-          ],
-        ),
       ),
+
+      // Dock inferior para lanzar el modal de chat
+      const DockedLauncherChat(),
+    ],
+  ),
+),
     );
   }  /// The redesigned Quebrado Card
   Widget _buildQuebradoHubCard(BuildContext context, AppState appState) {
