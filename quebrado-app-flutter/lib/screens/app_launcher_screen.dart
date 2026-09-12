@@ -9,6 +9,7 @@ import '../recordatorios/recordatorios.dart';
 import '../agente/agente.dart';
 import '../theme/colors.dart';
 import '../quebrado/screens/main_screen.dart';
+import '../quebrado/dialogs/calculator_dialog.dart';
 import '../quebrado/services/db_helper.dart';
 import 'launcher_action_hub_view.dart';
 
@@ -98,28 +99,52 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Top Bar: Date & App Title
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              // Top Bar: Date & Calculator
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    dateString.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.grey[500],
-                                      letterSpacing: 0.8,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        dateString.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.grey[500],
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      const Text(
+                                        "OrtizApp",
+                                        style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.black87,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                  const Text(
-                                    "OrtizApp",
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.black87,
-                                      letterSpacing: -0.5,
+                                  // Calculator Button
+                                  IconButton(
+                                    icon: const Icon(Icons.calculate_outlined),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black87,
+                                      padding: const EdgeInsets.all(10),
                                     ),
+                                    tooltip: "Calculadora de divisas",
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (context) =>
+                                            const CalculatorBottomSheet(),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
