@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Permitir que git opere como superusuario en entornos de compilación de CI/Vercel
+git config --global --add safe.directory "*" || true
+
 echo "==> Verificando instalación de Flutter SDK..."
 if [ ! -d "$HOME/flutter" ]; then
   echo "==> Clonando Flutter stable..."
@@ -9,10 +12,13 @@ fi
 
 export PATH="$HOME/flutter/bin:$PATH"
 
-flutter config --no-analytics
+flutter config --no-analytics || true
+flutter precache --web || true
 
-echo "==> Entrando en directorio quebrado-app-flutter..."
-cd quebrado-app-flutter
+if [ -d "quebrado-app-flutter" ]; then
+  echo "==> Entrando en directorio quebrado-app-flutter..."
+  cd quebrado-app-flutter
+fi
 
 echo "==> Preparando variables de entorno..."
 if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
@@ -38,4 +44,10 @@ flutter build web --release \
   --dart-define=GEMINI_API_KEY="$GEMINI_API_KEY" \
   --dart-define=GEMINI_MODEL="$GEMINI_MODEL"
 
-echo "==> Build web finalizado con éxito en quebrado-app-flutter/build/web."
+# Asegurar compatibilidad de outputDirectory para Vercel
+if [ -d "build/web" ]; then
+  mkdir -p ../quebrado-app-flutter/build/web 2>/dev/null || true
+  cp -r build/web/* ../quebrado-app-flutter/build/web/ 2>/dev/null || true
+fi
+
+echo "==> Build web finalizado con éxito."

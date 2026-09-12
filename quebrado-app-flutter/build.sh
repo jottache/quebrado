@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Permitir que git opere como superusuario en entornos de compilación de CI/Vercel
+git config --global --add safe.directory "*" || true
+
 echo "==> Verificando instalación de Flutter SDK..."
 if [ ! -d "$HOME/flutter" ]; then
   echo "==> Clonando Flutter stable..."
@@ -9,7 +12,8 @@ fi
 
 export PATH="$HOME/flutter/bin:$PATH"
 
-flutter config --no-analytics
+flutter config --no-analytics || true
+flutter precache --web || true
 
 echo "==> Preparando variables de entorno..."
 if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
