@@ -168,71 +168,115 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.contact != null;
+    final media = MediaQuery.of(context);
+    final screenHeight = media.size.height;
+    final screenWidth = media.size.width;
+    final isMobile = screenWidth < 600;
+    final keyboardHeight = media.viewInsets.bottom;
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 680),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.person_add_alt_1_rounded, color: DiarioColors.primary, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isEditing ? 'Editar Contacto' : 'Nuevo Contacto',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: DiarioColors.textPrimary,
+    final modalHeight = isMobile ? (screenHeight * 0.90) : 680.0;
+    final modalWidth = isMobile ? (screenWidth * 0.94) : 500.0;
+
+    return MediaQuery.removeViewInsets(
+      removeBottom: true,
+      context: context,
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? (screenWidth * 0.03) : 20,
+          vertical: isMobile ? (screenHeight * 0.05) : 24,
+        ),
+        child: SizedBox(
+          width: modalWidth,
+          height: isMobile ? modalHeight : null,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 500,
+              maxHeight: modalHeight,
+            ),
+            child: Column(
+              mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header (Fijado en la parte superior)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 12, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: DiarioColors.primaryLight,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.person_add_alt_1_rounded, color: DiarioColors.primary, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isEditing ? 'Editar Contacto' : 'Nuevo Contacto',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: DiarioColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              isEditing ? 'Actualiza los datos de la persona' : 'Registra una persona en Diario Jottache',
+                              style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isMobile)
+                        TextButton(
+                          onPressed: _isSaving ? null : _save,
+                          style: TextButton.styleFrom(
+                            foregroundColor: DiarioColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                          child: const Text(
+                            'Guardar',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                           ),
                         ),
-                        Text(
-                          isEditing ? 'Actualiza los datos de la persona' : 'Registra una persona en Diario Jottache',
-                          style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 22),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1, thickness: 1, color: DiarioColors.cardBorder),
+
+                // Form fields (Scroll interno resiliente)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    behavior: HitTestBehavior.opaque,
+                    child: Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          18,
+                          16,
+                          18,
+                          isMobile ? (keyboardHeight + 32) : 24,
                         ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-
-              // Form fields
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Avatar Photo Picker
-                        Center(
-                          child: Stack(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Avatar Photo Picker
+                            Center(
+                              child: Stack(
                             children: [
                               GestureDetector(
                                 onTap: _pickAvatar,
@@ -456,51 +500,53 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
                           activeColor: DiarioColors.primary,
                           onChanged: (val) => setState(() => _isFavorite = val),
                         ),
+
+                        const SizedBox(height: 20),
+
+                        // Actions
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                              child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              onPressed: _isSaving ? null : _save,
+                              icon: _isSaving
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Icon(Icons.check_rounded, size: 18),
+                              label: Text(
+                                _isSaving
+                                    ? 'Guardando...'
+                                    : (isEditing ? 'Guardar Cambios' : 'Crear Contacto'),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: DiarioColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 0,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-
-              const SizedBox(height: 14),
-
-              // Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                    child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _isSaving ? null : _save,
-                    icon: _isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.check_rounded, size: 18),
-                    label: Text(
-                      _isSaving
-                          ? 'Guardando...'
-                          : (isEditing ? 'Guardar Cambios' : 'Crear Contacto'),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: DiarioColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

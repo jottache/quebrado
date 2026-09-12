@@ -157,227 +157,279 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
       } catch (_) {}
     }
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 550, maxHeight: 720),
-        child: Padding(
-          padding: const EdgeInsets.all(22.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      activeTemplate != null ? activeTemplate.iconData : Icons.post_add_rounded,
-                      color: DiarioColors.primary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isEditing ? 'Editar Registro' : 'Nuevo Registro',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: DiarioColors.textPrimary,
+    final media = MediaQuery.of(context);
+    final screenHeight = media.size.height;
+    final screenWidth = media.size.width;
+    final isMobile = screenWidth < 600;
+    final keyboardHeight = media.viewInsets.bottom;
+
+    final modalHeight = isMobile ? (screenHeight * 0.90) : 720.0;
+    final modalWidth = isMobile ? (screenWidth * 0.94) : 550.0;
+
+    return MediaQuery.removeViewInsets(
+      removeBottom: true,
+      context: context,
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? (screenWidth * 0.03) : 16,
+          vertical: isMobile ? (screenHeight * 0.05) : 20,
+        ),
+        child: SizedBox(
+          width: modalWidth,
+          height: isMobile ? modalHeight : null,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 550,
+              maxHeight: modalHeight,
+            ),
+            child: Column(
+              mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header (Fijado en la parte superior)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 12, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: DiarioColors.primaryLight,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          activeTemplate != null ? activeTemplate.iconData : Icons.post_add_rounded,
+                          color: DiarioColors.primary,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isEditing ? 'Editar Registro' : 'Nuevo Registro',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: DiarioColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              activeTemplate != null
+                                  ? 'Modelo: ${activeTemplate.name}'
+                                  : 'Registro libre o usando un modelo predefinido',
+                              style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isMobile)
+                        TextButton(
+                          onPressed: _save,
+                          style: TextButton.styleFrom(
+                            foregroundColor: DiarioColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                          child: const Text(
+                            'Guardar',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                           ),
                         ),
-                        Text(
-                          activeTemplate != null
-                              ? 'Modelo: ${activeTemplate.name}'
-                              : 'Registro libre o usando un modelo predefinido',
-                          style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 22),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1, thickness: 1, color: DiarioColors.cardBorder),
+
+                // Form Scrollable Area (Scroll interno resiliente ante teclado)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    behavior: HitTestBehavior.opaque,
+                    child: Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          18,
+                          16,
+                          18,
+                          isMobile ? (keyboardHeight + 32) : 20,
                         ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Form Scrollable Area
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Model Selector Dropdown
-                        InputDecorator(
-                          decoration: InputDecoration(
-                            labelText: 'Seleccionar Modelo / Plantilla Reutilizable',
-                            prefixIcon: const Icon(Icons.extension_outlined, size: 20),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                            filled: true,
-                            fillColor: DiarioColors.background,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String?>(
-                              isExpanded: true,
-                              value: _selectedTemplateId,
-                              hint: const Text('Nota simple / Elemento libre (Sin modelo)', style: TextStyle(fontSize: 13)),
-                              items: [
-                                const DropdownMenuItem<String?>(
-                                  value: null,
-                                  child: Text('Nota simple / Elemento libre (Sin modelo)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Model Selector Dropdown
+                            InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Seleccionar Modelo / Plantilla Reutilizable',
+                                prefixIcon: const Icon(Icons.extension_outlined, size: 20),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                filled: true,
+                                fillColor: DiarioColors.background,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String?>(
+                                  isExpanded: true,
+                                  value: _selectedTemplateId,
+                                  hint: const Text('Nota simple / Elemento libre (Sin modelo)', style: TextStyle(fontSize: 13)),
+                                  items: [
+                                    const DropdownMenuItem<String?>(
+                                      value: null,
+                                      child: Text('Nota simple / Elemento libre (Sin modelo)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                    ),
+                                    ...templates.map((tpl) {
+                                      return DropdownMenuItem<String?>(
+                                        value: tpl.id,
+                                        child: Row(
+                                          children: [
+                                            Icon(tpl.iconData, size: 18, color: tpl.color),
+                                            const SizedBox(width: 8),
+                                            Text(tpl.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                  onChanged: (val) => _onTemplateSelected(val, templates),
                                 ),
-                                ...templates.map((tpl) {
-                                  return DropdownMenuItem<String?>(
-                                    value: tpl.id,
-                                    child: Row(
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            // Title Field
+                            TextFormField(
+                              controller: _titleController,
+                              decoration: InputDecoration(
+                                labelText: 'Título o Resumen del Registro *',
+                                hintText: activeTemplate != null
+                                    ? 'Ej: Toyota Corolla, Pasta con crema, etc.'
+                                    : 'Ej: Comida favorita, Regalo de cumple...',
+                                prefixIcon: const Icon(Icons.title_rounded, size: 20),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                filled: true,
+                                fillColor: DiarioColors.background,
+                              ),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'El título es obligatorio' : null,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Dynamic Fields based on active template
+                            if (activeTemplate != null && activeTemplate.fields.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: activeTemplate.color.withOpacity(0.04),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: activeTemplate.color.withOpacity(0.20)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
                                       children: [
-                                        Icon(tpl.iconData, size: 18, color: tpl.color),
-                                        const SizedBox(width: 8),
-                                        Text(tpl.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                        Icon(activeTemplate.iconData, size: 16, color: activeTemplate.color),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'CAMPOS DEL MODELO (${activeTemplate.name.toUpperCase()})',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: activeTemplate.color,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                  );
-                                }),
-                              ],
-                              onChanged: (val) => _onTemplateSelected(val, templates),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Title Field
-                        TextFormField(
-                          controller: _titleController,
-                          decoration: InputDecoration(
-                            labelText: 'Título o Resumen del Registro *',
-                            hintText: activeTemplate != null
-                                ? 'Ej: Toyota Corolla, Pasta con crema, etc.'
-                                : 'Ej: Comida favorita, Regalo de cumple...',
-                            prefixIcon: const Icon(Icons.title_rounded, size: 20),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                            filled: true,
-                            fillColor: DiarioColors.background,
-                          ),
-                          validator: (val) => val == null || val.trim().isEmpty ? 'El título es obligatorio' : null,
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Dynamic Fields based on active template
-                        if (activeTemplate != null && activeTemplate.fields.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: activeTemplate.color.withOpacity(0.04),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: activeTemplate.color.withOpacity(0.20)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(activeTemplate.iconData, size: 16, color: activeTemplate.color),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Campos del Modelo: ${activeTemplate.name}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        color: activeTemplate.color,
-                                      ),
-                                    ),
+                                    const SizedBox(height: 12),
+                                    ...activeTemplate.fields.map((f) => _buildDynamicField(f)),
                                   ],
                                 ),
-                                const SizedBox(height: 12),
-                                ...activeTemplate.fields.map((field) => _buildDynamicField(field)),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            // Content / Notes Textarea
+                            TextFormField(
+                              controller: _textController,
+                              maxLines: 4,
+                              decoration: InputDecoration(
+                                labelText: activeTemplate != null ? 'Notas Adicionales / Observaciones' : 'Detalle o Contenido de la Nota',
+                                hintText: 'Escribe cualquier detalle relevante...',
+                                alignLabelWithHint: true,
+                                prefixIcon: const Padding(
+                                  padding: EdgeInsets.only(bottom: 50.0),
+                                  child: Icon(Icons.notes_rounded, size: 20),
+                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                filled: true,
+                                fillColor: DiarioColors.background,
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Section: Foto Adjunta (Cámara / Galería)
+                            _buildPhotoAttachmentSection(),
+
+                            const SizedBox(height: 10),
+
+                            // Pin to Top Switch
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Fijar al inicio de la sección', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                              subtitle: const Text('Aparecerá destacado en la parte superior', style: TextStyle(fontSize: 11)),
+                              value: _isPinned,
+                              activeColor: DiarioColors.primary,
+                              onChanged: (val) => setState(() => _isPinned = val),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Botones de acción inferiores
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  onPressed: _save,
+                                  icon: const Icon(Icons.save_rounded, size: 18),
+                                  label: Text(isEditing ? 'Guardar Cambios' : 'Registrar Entrada'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: DiarioColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    elevation: 0,
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
-
-                        // Additional Notes Field
-                        TextFormField(
-                          controller: _textController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            labelText: 'Notas Adicionales o Descripción',
-                            hintText: 'Detalles, observaciones, comentarios...',
-                            prefixIcon: const Icon(Icons.notes_rounded, size: 20),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                            filled: true,
-                            fillColor: DiarioColors.background,
-                          ),
+                          ],
                         ),
-
-                        const SizedBox(height: 16),
-
-                        // Section: Foto Adjunta (Cámara / Galería)
-                        _buildPhotoAttachmentSection(),
-
-                        const SizedBox(height: 10),
-
-                        // Pin to Top Switch
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('Fijar al inicio de la sección', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          subtitle: const Text('Aparecerá destacado en la parte superior', style: TextStyle(fontSize: 11)),
-                          value: _isPinned,
-                          activeColor: DiarioColors.primary,
-                          onChanged: (val) => setState(() => _isPinned = val),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.save_rounded, size: 18),
-                    label: Text(isEditing ? 'Guardar Cambios' : 'Registrar Entrada'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: DiarioColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
