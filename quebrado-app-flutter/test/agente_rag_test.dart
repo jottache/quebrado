@@ -8,6 +8,8 @@ import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
 import 'package:quebrado_app_flutter/diario/diario.dart';
 import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 import 'package:quebrado_app_flutter/recordatorios/viewmodels/reminders_state.dart';
+import 'package:quebrado_app_flutter/habitos/models/habit_model.dart';
+import 'package:quebrado_app_flutter/recordatorios/models/reminder_model.dart';
 import 'package:quebrado_app_flutter/quebrado/models/account.dart';
 import 'package:quebrado_app_flutter/quebrado/models/recurring_payment.dart';
 
@@ -75,8 +77,9 @@ void main() {
   });
 
   group('SuiteRagService Declarations and Execution', () {
-    test('Declared tools include all 9 super-app capabilities', () {
+    test('Declared tools include all 10 super-app capabilities', () {
       final tools = [
+        'searchSuiteData',
         'searchContacts',
         'getContactDetails',
         'searchDiarioEntries',
@@ -88,7 +91,8 @@ void main() {
         'createReminder',
       ];
 
-      expect(tools.length, equals(9));
+      expect(tools.length, equals(10));
+      expect(tools, contains('searchSuiteData'));
       expect(tools, contains('calculateCurrencyExchange'));
       expect(tools, contains('getUpcomingBirthdays'));
       expect(tools, contains('searchContacts'));
@@ -104,7 +108,7 @@ void main() {
       expect(GeminiConfig.selectedModel, equals('gemini-1.5-pro'));
     });
 
-    test('SuiteRagService returns 9 tools in getDeclaredTools and getToolsJson', () {
+    test('SuiteRagService returns 10 tools in getDeclaredTools and getToolsJson', () {
       final rag = SuiteRagService(
         appState: _MockAppState(),
         diarioState: _MockDiarioState(),
@@ -115,7 +119,8 @@ void main() {
       final declared = rag.getDeclaredTools();
       expect(declared.length, equals(1));
       final funcs = declared.first.functionDeclarations!.map((f) => f.name).toList();
-      expect(funcs.length, equals(9));
+      expect(funcs.length, equals(10));
+      expect(funcs, contains('searchSuiteData'));
       expect(funcs, contains('searchContacts'));
       expect(funcs, contains('getContactDetails'));
       expect(funcs, contains('searchDiarioEntries'));
@@ -124,10 +129,55 @@ void main() {
       final jsonFuncs = (jsonTools.first['functionDeclarations'] as List)
           .map((f) => f['name'])
           .toList();
-      expect(jsonFuncs.length, equals(9));
+      expect(jsonFuncs.length, equals(10));
+      expect(jsonFuncs, contains('searchSuiteData'));
       expect(jsonFuncs, contains('searchContacts'));
       expect(jsonFuncs, contains('getContactDetails'));
       expect(jsonFuncs, contains('searchDiarioEntries'));
+    });
+
+    test('searchSuiteData and getReminders find reminders by query with formatted date and daysRemaining', () async {
+      final targetDate = DateTime.now().add(const Duration(days: 53));
+      final reminder = ReminderModel(
+        id: 'rem-zelda',
+        title: 'Salida de Zelda OOT',
+        dueAt: targetDate,
+        priority: ReminderPriority.p3Medium,
+        tags: ['videojuegos', 'nintendo'],
+      );
+
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(mockReminders: [reminder]),
+      );
+
+      // 1. Test searchSuiteData with query 'zelda'
+      final suiteRes = await rag.executeFunctionCall(
+        'searchSuiteData',
+        {'query': 'zelda'},
+        sessionId: 'test-session',
+      );
+
+      expect(suiteRes.resultData['totalMatches'], equals(1));
+      final reminders = suiteRes.resultData['reminders'] as List;
+      expect(reminders.length, equals(1));
+      expect(reminders.first['title'], equals('Salida de Zelda OOT'));
+      expect(reminders.first['daysRemaining'], equals(53));
+      expect(reminders.first['formattedDueDate'], isNotNull);
+
+      // 2. Test getReminders with query 'zelda'
+      final remindersRes = await rag.executeFunctionCall(
+        'getReminders',
+        {'query': 'zelda'},
+        sessionId: 'test-session',
+      );
+
+      expect(remindersRes.resultData['count'], equals(1));
+      final rList = remindersRes.resultData['reminders'] as List;
+      expect(rList.first['title'], equals('Salida de Zelda OOT'));
+      expect(rList.first['daysRemaining'], equals(53));
     });
 
     test('searchContacts and getContactDetails include records with plate and car details', () async {
@@ -276,13 +326,21 @@ class _MockHabitosState extends Fake implements HabitosState {
   double get todayCompletionRate => 0.8;
   @override
   int get bestCurrentStreak => 5;
+  @override
+  List<HabitModel> get allHabits => [];
 }
 
 class _MockRemindersState extends Fake implements RemindersState {
+  final List<ReminderModel> mockReminders;
+
+  _MockRemindersState({this.mockReminders = const []});
+
   @override
   int get overdueCount => 0;
   @override
   int get todayCount => 0;
+  @override
+  List<ReminderModel> get allReminders => mockReminders;
 }
 
 

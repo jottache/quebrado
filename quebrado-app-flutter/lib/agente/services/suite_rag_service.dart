@@ -94,6 +94,20 @@ $bdaysStr
       Tool(
         functionDeclarations: [
           FunctionDeclaration(
+            'searchSuiteData',
+            'Busca de forma global y simultánea en TODA la base de datos de la suite (Recordatorios, Notas y Contactos de Diario, Cuentas y Pagos de Finanzas, y Hábitos) por palabra clave o término. Úsala siempre primero cuando la pregunta sea abierta o no sepas exactamente en qué módulo está la información.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'query': Schema(
+                  SchemaType.string,
+                  description: 'Término a buscar en toda la base de datos (ej: "Zelda", "reunión", "pago", "placa", "auto", "médico").',
+                ),
+              },
+              requiredProperties: ['query'],
+            ),
+          ),
+          FunctionDeclaration(
             'searchContacts',
             'Busca en la libreta de contactos y sus registros (vehículos, placas, tallas, notas, apodos, relaciones).',
             Schema(
@@ -179,13 +193,17 @@ $bdaysStr
           ),
           FunctionDeclaration(
             'getReminders',
-            'Consulta los recordatorios y tareas pendientes, vencidas o programadas para hoy.',
+            'Consulta los recordatorios y tareas pendientes, vencidas, programadas o por búsqueda textual de título, notas o tags.',
             Schema(
               SchemaType.object,
               properties: {
+                'query': Schema(
+                  SchemaType.string,
+                  description: 'Término opcional para buscar en títulos, notas o tags (ej: "Zelda", "reunión", "médico", "compra").',
+                ),
                 'filter': Schema(
                   SchemaType.string,
-                  description: 'Filtro: "all", "overdue", "today", o "upcoming".',
+                  description: 'Filtro opcional: "all", "overdue", "today", o "upcoming".',
                 ),
               },
             ),
@@ -219,6 +237,20 @@ $bdaysStr
     return [
       {
         'functionDeclarations': [
+          {
+            'name': 'searchSuiteData',
+            'description': 'Busca de forma global y simultánea en TODA la base de datos de la suite (Recordatorios, Notas y Contactos de Diario, Cuentas y Pagos de Finanzas, y Hábitos) por palabra clave o término. Úsala siempre primero cuando la pregunta sea abierta o no sepas exactamente en qué módulo está la información.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'query': {
+                  'type': 'STRING',
+                  'description': 'Término a buscar en toda la base de datos (ej: "Zelda", "reunión", "pago", "placa", "auto", "médico").',
+                },
+              },
+              'required': ['query'],
+            },
+          },
           {
             'name': 'searchContacts',
             'description': 'Busca en la libreta de contactos y sus registros (vehículos, placas, tallas, notas, apodos, relaciones).',
@@ -305,13 +337,17 @@ $bdaysStr
           },
           {
             'name': 'getReminders',
-            'description': 'Consulta los recordatorios y tareas pendientes, vencidas o programadas para hoy.',
+            'description': 'Consulta los recordatorios y tareas pendientes, vencidas, programadas o por búsqueda textual de título, notas o tags.',
             'parameters': {
               'type': 'OBJECT',
               'properties': {
+                'query': {
+                  'type': 'STRING',
+                  'description': 'Término opcional para buscar en títulos, notas o tags (ej: "Zelda", "reunión", "médico", "compra").',
+                },
                 'filter': {
                   'type': 'STRING',
-                  'description': 'Filtro: "all", "overdue", "today", o "upcoming".',
+                  'description': 'Filtro opcional: "all", "overdue", "today", o "upcoming".',
                 },
               },
             },
@@ -388,6 +424,132 @@ $bdaysStr
     required String sessionId,
   }) async {
     switch (functionName) {
+      case 'searchSuiteData':
+        final q = (arguments['query']?.toString() ?? '').toLowerCase().trim();
+        final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+        final now = DateTime.now();
+        final todayDate = DateTime(now.year, now.month, now.day);
+        final weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        final months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+        // 1. Recordatorios
+        final remindersMatches = remindersState.allReminders.where((r) {
+          final inTitle = r.title.toLowerCase().contains(q);
+          final inNotes = (r.notes ?? '').toLowerCase().contains(q);
+          final inTags = r.tags.any((t) => t.toLowerCase().contains(q));
+          final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+              r.title.toLowerCase().contains(t) ||
+              (r.notes ?? '').toLowerCase().contains(t) ||
+              r.tags.any((tag) => tag.toLowerCase().contains(t)));
+          return inTitle || inNotes || inTags || tokenMatch;
+        }).map((r) {
+          int? daysRemaining;
+          String? formattedDate;
+          if (r.dueAt != null) {
+            final due = r.dueAt!.toLocal();
+            final dueDate = DateTime(due.year, due.month, due.day);
+            daysRemaining = dueDate.difference(todayDate).inDays;
+            formattedDate = '${weekDays[due.weekday - 1]} ${due.day} de ${months[due.month - 1]} de ${due.year}';
+          }
+          return {
+            'id': r.id,
+            'title': r.title,
+            'priority': r.priority.label,
+            'status': r.status.label,
+            'dueAt': r.dueAt?.toIso8601String(),
+            'formattedDueDate': formattedDate,
+            'formattedDueTime': r.formattedDueTime,
+            'daysRemaining': daysRemaining,
+            'notes': r.notes ?? '',
+            'tags': r.tags,
+          };
+        }).toList();
+
+        // 2. Diario (Contactos y Entradas)
+        final contactMatches = diarioState.contacts.where((c) {
+          final inName = c.name.toLowerCase().contains(q);
+          final inNick = (c.nickname ?? '').toLowerCase().contains(q);
+          final inNotes = (c.notes ?? '').toLowerCase().contains(q);
+          final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+              c.name.toLowerCase().contains(t) ||
+              (c.nickname ?? '').toLowerCase().contains(t));
+          return inName || inNick || inNotes || tokenMatch;
+        }).map((c) => _serializeContactWithRecords(c)).toList();
+
+        final entryMatches = diarioState.entries.where((e) {
+          final inTitle = e.title.toLowerCase().contains(q);
+          final inText = (e.contentText ?? '').toLowerCase().contains(q);
+          final inData = e.contentData.values.any((v) => v.toString().toLowerCase().contains(q));
+          final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+              e.title.toLowerCase().contains(t) ||
+              (e.contentText ?? '').toLowerCase().contains(t) ||
+              e.contentData.values.any((v) => v.toString().toLowerCase().contains(t)));
+          return inTitle || inText || inData || tokenMatch;
+        }).map((e) {
+          final contact = diarioState.getContactById(e.contactId);
+          final categoryName = diarioState.categories
+              .firstWhere(
+                (c) => c.id == e.categoryId,
+                orElse: () => DiarioCategory(id: '', contactId: '', name: 'General', icon: ''),
+              )
+              .name;
+          return {
+            'contactName': contact?.name ?? 'Desconocido',
+            'contactNickname': contact?.nickname ?? '',
+            'entryTitle': e.title,
+            'category': categoryName,
+            'details': e.contentData,
+            'notes': e.contentText ?? '',
+          };
+        }).toList();
+
+        // 3. Finanzas (Cuentas y Pagos Pendientes)
+        final accountMatches = appState.accounts.where((a) {
+          final inName = a.name.toLowerCase().contains(q);
+          final inCurr = a.currency.name.toLowerCase().contains(q);
+          return inName || inCurr;
+        }).map((a) => {
+          'name': a.name,
+          'currency': a.currency.name.toUpperCase(),
+          'balance': a.balance,
+        }).toList();
+
+        final pendingPaymentMatches = appState.pendingPaymentsToday.where((p) {
+          final inName = p.payment.name.toLowerCase().contains(q);
+          return inName;
+        }).map((p) => {
+          'name': p.payment.name,
+          'amount': p.payment.amount,
+          'currency': p.payment.currency.name.toUpperCase(),
+          'dueDate': p.occurrenceDate.toIso8601String(),
+        }).toList();
+
+        // 4. Hábitos
+        final habitMatches = habitosState.allHabits.where((h) {
+          final inTitle = h.title.toLowerCase().contains(q);
+          final tokenMatch = tokens.isNotEmpty && tokens.any((t) => h.title.toLowerCase().contains(t));
+          return inTitle || tokenMatch;
+        }).map((h) => {
+          'title': h.title,
+          'isNegative': h.isNegative,
+          'streak': habitosState.calculateCurrentStreak(h.id),
+        }).toList();
+
+        final totalMatches = remindersMatches.length + contactMatches.length + entryMatches.length + accountMatches.length + pendingPaymentMatches.length + habitMatches.length;
+
+        return ToolExecutionResult(
+          resultData: {
+            'query': q,
+            'totalMatches': totalMatches,
+            'reminders': remindersMatches,
+            'diarioContacts': contactMatches,
+            'diarioEntries': entryMatches,
+            'finanzasAccounts': accountMatches,
+            'finanzasPendingPayments': pendingPaymentMatches,
+            'habits': habitMatches,
+          },
+        );
+
       case 'searchContacts':
         final q = (arguments['query']?.toString() ?? '').toLowerCase().trim();
         final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
@@ -658,6 +820,9 @@ $bdaysStr
 
       case 'getReminders':
         final filter = arguments['filter']?.toString().toLowerCase() ?? 'all';
+        final query = arguments['query']?.toString().toLowerCase().trim() ?? '';
+        final tokens = query.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+
         List<ReminderModel> list;
         if (filter == 'overdue') {
           list = remindersState.overdueReminders;
@@ -669,15 +834,48 @@ $bdaysStr
           list = remindersState.allReminders.where((r) => !r.isCompleted && !r.isArchived).toList();
         }
 
-        final remindersData = list.map((r) => {
-          'id': r.id,
-          'title': r.title,
-          'priority': r.priority.label,
-          'dueAt': r.dueAt?.toIso8601String(),
-          'formattedDueTime': r.formattedDueTime,
-          'isRecurring': r.isRecurring,
-          'recurrence': r.recurrence.shortLabel,
-          'tags': r.tags,
+        if (query.isNotEmpty) {
+          list = list.where((r) {
+            final inTitle = r.title.toLowerCase().contains(query);
+            final inNotes = (r.notes ?? '').toLowerCase().contains(query);
+            final inTags = r.tags.any((t) => t.toLowerCase().contains(query));
+            final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+                r.title.toLowerCase().contains(t) ||
+                (r.notes ?? '').toLowerCase().contains(t) ||
+                r.tags.any((tag) => tag.toLowerCase().contains(t)));
+            return inTitle || inNotes || inTags || tokenMatch;
+          }).toList();
+        }
+
+        final now = DateTime.now();
+        final todayDate = DateTime(now.year, now.month, now.day);
+        final weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        final months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+        final remindersData = list.map((r) {
+          int? daysRemaining;
+          String? formattedDate;
+          if (r.dueAt != null) {
+            final due = r.dueAt!.toLocal();
+            final dueDate = DateTime(due.year, due.month, due.day);
+            daysRemaining = dueDate.difference(todayDate).inDays;
+            formattedDate = '${weekDays[due.weekday - 1]} ${due.day} de ${months[due.month - 1]} de ${due.year}';
+          }
+
+          return {
+            'id': r.id,
+            'title': r.title,
+            'priority': r.priority.label,
+            'status': r.status.label,
+            'dueAt': r.dueAt?.toIso8601String(),
+            'formattedDueDate': formattedDate,
+            'formattedDueTime': r.formattedDueTime,
+            'daysRemaining': daysRemaining,
+            'isRecurring': r.isRecurring,
+            'recurrence': r.recurrence.shortLabel,
+            'tags': r.tags,
+            'notes': r.notes ?? '',
+          };
         }).toList();
 
         return ToolExecutionResult(
