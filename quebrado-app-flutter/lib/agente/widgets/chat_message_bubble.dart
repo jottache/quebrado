@@ -23,38 +23,50 @@ class ChatMessageBubble extends StatelessWidget {
           if (!isUser && message.toolCalls.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 6.0),
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: message.toolCalls.map((t) {
-                  final name = t['name']?.toString() ?? 'Herramienta';
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AgenteColors.toolExec.withOpacity(0.10),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AgenteColors.toolExec.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.flash_on_rounded, size: 12, color: AgenteColors.toolExec),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Tool: $name',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AgenteColors.toolExec,
+              child: Builder(
+                builder: (context) {
+                  final toolCounts = <String, int>{};
+                  for (final t in message.toolCalls) {
+                    final name = t['name']?.toString() ?? 'Herramienta';
+                    toolCounts[name] = (toolCounts[name] ?? 0) + 1;
+                  }
+
+                  return Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: toolCounts.entries.map((entry) {
+                      final name = entry.key;
+                      final count = entry.value;
+                      final badgeText = count > 1 ? 'Tool: $name ($count)' : 'Tool: $name';
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AgenteColors.toolExec.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AgenteColors.toolExec.withOpacity(0.3),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.flash_on_rounded, size: 12, color: AgenteColors.toolExec),
+                            const SizedBox(width: 4),
+                            Text(
+                              badgeText,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AgenteColors.toolExec,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ),
             ),
 

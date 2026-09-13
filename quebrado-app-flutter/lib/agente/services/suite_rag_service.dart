@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../quebrado/viewmodels/app_state.dart';
-import '../../diario/viewmodels/diario_state.dart';
+import '../../diario/diario.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../recordatorios/models/reminder_model.dart';
@@ -95,13 +95,41 @@ $bdaysStr
         functionDeclarations: [
           FunctionDeclaration(
             'searchContacts',
-            'Busca en la libreta de contactos y diario personal por nombre, apodo, notas, placas de autos o relaciones.',
+            'Busca en la libreta de contactos y sus registros (vehículos, placas, tallas, notas, apodos, relaciones).',
             Schema(
               SchemaType.object,
               properties: {
                 'query': Schema(
                   SchemaType.string,
-                  description: 'Texto a buscar (ej: "Juan", "médico", "placa AB123", "primo").',
+                  description: 'Término a buscar (ej: "Juan", "Yaku", "placa 210RD", "automóvil", "hunday", "médico").',
+                ),
+              },
+              requiredProperties: ['query'],
+            ),
+          ),
+          FunctionDeclaration(
+            'getContactDetails',
+            'Obtiene todos los datos y registros detallados de un contacto (automóviles, placas, tallas de ropa, cuentas bancarias, notas, etc.) por su nombre, apodo o ID.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'nameOrQuery': Schema(
+                  SchemaType.string,
+                  description: 'Nombre, apodo o ID del contacto (ej: "Yaku", "Judenys Borges", "Carlos").',
+                ),
+              },
+              requiredProperties: ['nameOrQuery'],
+            ),
+          ),
+          FunctionDeclaration(
+            'searchDiarioEntries',
+            'Busca directamente en todas las notas, registros y campos específicos del diario (útil para encontrar placas de autos, marcas, modelos, tallas, regalos o cualquier detalle).',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'query': Schema(
+                  SchemaType.string,
+                  description: 'Texto a buscar en registros (ej: "placa", "210RD", "hunday", "stylus", "talla", "banco").',
                 ),
               },
               requiredProperties: ['query'],
@@ -193,13 +221,41 @@ $bdaysStr
         'functionDeclarations': [
           {
             'name': 'searchContacts',
-            'description': 'Busca en la libreta de contactos y diario personal por nombre, apodo, notas, placas de autos o relaciones.',
+            'description': 'Busca en la libreta de contactos y sus registros (vehículos, placas, tallas, notas, apodos, relaciones).',
             'parameters': {
               'type': 'OBJECT',
               'properties': {
                 'query': {
                   'type': 'STRING',
-                  'description': 'Texto a buscar (ej: "Juan", "médico", "placa AB123", "primo").',
+                  'description': 'Término a buscar (ej: "Juan", "Yaku", "placa 210RD", "automóvil", "hunday", "médico").',
+                },
+              },
+              'required': ['query'],
+            },
+          },
+          {
+            'name': 'getContactDetails',
+            'description': 'Obtiene todos los datos y registros detallados de un contacto (automóviles, placas, tallas de ropa, cuentas bancarias, notas, etc.) por su nombre, apodo o ID.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'nameOrQuery': {
+                  'type': 'STRING',
+                  'description': 'Nombre, apodo o ID del contacto (ej: "Yaku", "Judenys Borges", "Carlos").',
+                },
+              },
+              'required': ['nameOrQuery'],
+            },
+          },
+          {
+            'name': 'searchDiarioEntries',
+            'description': 'Busca directamente en todas las notas, registros y campos específicos del diario (útil para encontrar placas de autos, marcas, modelos, tallas, regalos o cualquier detalle).',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'query': {
+                  'type': 'STRING',
+                  'description': 'Texto a buscar en registros (ej: "placa", "210RD", "hunday", "stylus", "talla", "banco").',
                 },
               },
               'required': ['query'],
@@ -284,6 +340,47 @@ $bdaysStr
     ];
   }
 
+  Map<String, dynamic> _serializeContactWithRecords(DiarioContact c) {
+    final entries = diarioState.getEntriesForContact(c.id);
+    final recordsData = entries.map((e) {
+      final categoryName = diarioState.categories
+          .firstWhere(
+            (cat) => cat.id == e.categoryId,
+            orElse: () => DiarioCategory(id: '', contactId: '', name: 'General', icon: ''),
+          )
+          .name;
+
+      final fieldsList = <String>[];
+      e.contentData.forEach((key, val) {
+        if (val != null && val.toString().trim().isNotEmpty) {
+          fieldsList.add('$key: $val');
+        }
+      });
+
+      return {
+        'title': e.title,
+        'category': categoryName,
+        'details': e.contentData,
+        if (fieldsList.isNotEmpty) 'summary': fieldsList.join(', '),
+        if (e.contentText != null && e.contentText!.trim().isNotEmpty)
+          'notes': e.contentText,
+      };
+    }).toList();
+
+    return {
+      'id': c.id,
+      'name': c.name,
+      'nickname': c.nickname ?? '',
+      'relationship': c.relationship ?? '',
+      'phone': c.phone ?? 'No registrado',
+      'birthdate': c.birthdate != null
+          ? '${c.birthdate!.day}/${c.birthdate!.month}/${c.birthdate!.year}'
+          : 'No registrado',
+      'notes': c.notes ?? '',
+      'records': recordsData,
+    };
+  }
+
   /// Ejecución local de herramientas y generación automática de Artefactos estructurados
   Future<ToolExecutionResult> executeFunctionCall(
     String functionName,
@@ -293,26 +390,41 @@ $bdaysStr
     switch (functionName) {
       case 'searchContacts':
         final q = (arguments['query']?.toString() ?? '').toLowerCase().trim();
+        final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+
         final results = diarioState.contacts.where((c) {
           final inName = c.name.toLowerCase().contains(q);
           final inNickname = (c.nickname ?? '').toLowerCase().contains(q);
           final inPhone = (c.phone ?? '').toLowerCase().contains(q);
           final inNotes = (c.notes ?? '').toLowerCase().contains(q);
           final inRel = (c.relationship ?? '').toLowerCase().contains(q);
-          return inName || inNickname || inPhone || inNotes || inRel;
+
+          final tokenNameMatch = tokens.isNotEmpty && tokens.any((t) =>
+              c.name.toLowerCase().contains(t) ||
+              (c.nickname ?? '').toLowerCase().contains(t));
+
+          final entries = diarioState.getEntriesForContact(c.id);
+          final inEntries = entries.any((e) {
+            final inTitle = e.title.toLowerCase().contains(q);
+            final inText = (e.contentText ?? '').toLowerCase().contains(q);
+            final inData = e.contentData.values.any((v) =>
+                v.toString().toLowerCase().contains(q));
+            final tokenInEntry = tokens.isNotEmpty && tokens.any((t) =>
+                e.title.toLowerCase().contains(t) ||
+                (e.contentText ?? '').toLowerCase().contains(t) ||
+                e.contentData.values.any((v) => v.toString().toLowerCase().contains(t)));
+            return inTitle || inText || inData || (tokenNameMatch && tokenInEntry);
+          });
+
+          return inName || inNickname || inPhone || inNotes || inRel || tokenNameMatch || inEntries;
         }).toList();
 
-        final contactsData = results.map((c) => {
-          'name': c.name,
-          'nickname': c.nickname ?? '',
-          'relationship': c.relationship ?? '',
-          'phone': c.phone ?? 'No registrado',
-          'birthdate': c.birthdate != null ? '${c.birthdate!.day}/${c.birthdate!.month}/${c.birthdate!.year}' : 'No registrado',
-          'notes': c.notes ?? '',
-        }).toList();
+        final contactsData = results.map((c) => _serializeContactWithRecords(c)).toList();
 
+        // Solo generar un artefacto visual de tarjeta si el usuario lo solicitó explícitamente
         ChatArtifactModel? artifact;
-        if (results.isNotEmpty) {
+        final wantsCard = q.contains('ficha') || q.contains('tarjeta') || q.contains('perfil') || (q.contains('contacto') && !q.contains('placa') && !q.contains('carro') && !q.contains('auto'));
+        if (results.isNotEmpty && wantsCard) {
           final first = results.first;
           artifact = ChatArtifactModel(
             sessionId: sessionId,
@@ -326,6 +438,99 @@ $bdaysStr
         return ToolExecutionResult(
           resultData: {'found': results.length, 'contacts': contactsData},
           generatedArtifact: artifact,
+        );
+
+      case 'getContactDetails':
+        final q = (arguments['nameOrQuery']?.toString() ?? '').toLowerCase().trim();
+        final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+
+        DiarioContact? contact;
+        try {
+          contact = diarioState.contacts.firstWhere((c) {
+            final matchDirect = c.id.toLowerCase() == q ||
+                c.name.toLowerCase() == q ||
+                (c.nickname ?? '').toLowerCase() == q;
+            final matchContains = c.name.toLowerCase().contains(q) ||
+                (c.nickname ?? '').toLowerCase().contains(q);
+            final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+                c.name.toLowerCase().contains(t) ||
+                (c.nickname ?? '').toLowerCase().contains(t));
+            return matchDirect || matchContains || tokenMatch;
+          });
+        } catch (_) {
+          contact = null;
+        }
+
+        if (contact == null) {
+          return ToolExecutionResult(
+            resultData: {
+              'found': false,
+              'message': 'No se encontró ningún contacto con el nombre o apodo "$q".',
+            },
+          );
+        }
+
+        final contactData = _serializeContactWithRecords(contact);
+        return ToolExecutionResult(
+          resultData: {
+            'found': true,
+            'contact': contactData,
+          },
+        );
+
+      case 'searchDiarioEntries':
+        final q = (arguments['query']?.toString() ?? '').toLowerCase().trim();
+        final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+
+        final matches = <Map<String, dynamic>>[];
+        for (final e in diarioState.entries) {
+          final inTitle = e.title.toLowerCase().contains(q);
+          final inText = (e.contentText ?? '').toLowerCase().contains(q);
+          final inData = e.contentData.values.any((v) =>
+              v.toString().toLowerCase().contains(q));
+          final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+              e.title.toLowerCase().contains(t) ||
+              (e.contentText ?? '').toLowerCase().contains(t) ||
+              e.contentData.values.any((v) => v.toString().toLowerCase().contains(t)));
+
+          final contact = diarioState.getContactById(e.contactId);
+          final contactMatch = contact != null && tokens.isNotEmpty && tokens.any((t) =>
+              contact.name.toLowerCase().contains(t) ||
+              (contact.nickname ?? '').toLowerCase().contains(t));
+
+          if (inTitle || inText || inData || tokenMatch || contactMatch) {
+            final categoryName = diarioState.categories
+                .firstWhere(
+                  (c) => c.id == e.categoryId,
+                  orElse: () => DiarioCategory(id: '', contactId: '', name: 'General', icon: ''),
+                )
+                .name;
+
+            final fieldsList = <String>[];
+            e.contentData.forEach((key, val) {
+              if (val != null && val.toString().trim().isNotEmpty) {
+                fieldsList.add('$key: $val');
+              }
+            });
+
+            matches.add({
+              'contactName': contact?.name ?? 'Desconocido',
+              'contactNickname': contact?.nickname ?? '',
+              'entryTitle': e.title,
+              'category': categoryName,
+              'details': e.contentData,
+              if (fieldsList.isNotEmpty) 'summary': fieldsList.join(', '),
+              if (e.contentText != null && e.contentText!.trim().isNotEmpty)
+                'notes': e.contentText,
+            });
+          }
+        }
+
+        return ToolExecutionResult(
+          resultData: {
+            'found': matches.length,
+            'entries': matches,
+          },
         );
 
       case 'getUpcomingBirthdays':

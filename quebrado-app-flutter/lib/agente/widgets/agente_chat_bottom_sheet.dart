@@ -42,15 +42,6 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  final List<String> _quickPrompts = [
-    '¿Cuáles son los próximos 3 cumpleaños?',
-    '¿Cuánto dinero tengo en total?',
-    '¿Qué pagos o tareas tengo hoy?',
-    '¿Cuál es la tasa oficial del BCV?',
-    '¿Cómo voy con mis hábitos hoy?',
-    'Calcular 50 USD a Bs',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -233,27 +224,27 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                     ),
             ),
 
-            // 4. Quick Prompts Bar (si no está escribiendo o en mensaje inicial)
-            if (messages.isEmpty)
+            // 4. Quick Prompts Bar (si no está escribiendo o en mensaje inicial y hay prompts)
+            if (messages.isEmpty && agenteState.quickPrompts.isNotEmpty)
               Container(
                 height: 44,
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _quickPrompts.length,
+                  itemCount: agenteState.quickPrompts.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
-                    final prompt = _quickPrompts[index];
+                    final prompt = agenteState.quickPrompts[index];
                     return ActionChip(
                       label: Text(
-                        prompt,
+                        prompt.displayName,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
                       ),
                       backgroundColor: const Color(0xFFF8FAFC),
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      onPressed: () => _submitPrompt(agenteState, prompt),
+                      onPressed: () => _submitPrompt(agenteState, prompt.text),
                     );
                   },
                 ),
@@ -371,17 +362,17 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _quickPrompts.map((prompt) {
+            children: agenteState.quickPrompts.map((prompt) {
               return ActionChip(
                 label: Text(
-                  prompt,
+                  prompt.displayName,
                   style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.black87),
                 ),
                 backgroundColor: const Color(0xFFF8FAFC),
                 side: const BorderSide(color: Color(0xFFE2E8F0)),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onPressed: () => _submitPrompt(agenteState, prompt),
+                onPressed: () => _submitPrompt(agenteState, prompt.text),
               );
             }).toList(),
           ),

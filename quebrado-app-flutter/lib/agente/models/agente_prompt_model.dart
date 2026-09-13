@@ -8,6 +8,8 @@ class AgentePromptModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  String get displayName => (label != null && label!.trim().isNotEmpty) ? label! : text;
+
   AgentePromptModel({
     required this.id,
     required this.text,
