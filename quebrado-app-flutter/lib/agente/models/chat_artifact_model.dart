@@ -7,6 +7,7 @@ enum ArtifactType {
   reminderList,
   habitReport,
   table,
+  actionProposal,
   note;
 
   String get code {
@@ -23,6 +24,8 @@ enum ArtifactType {
         return 'habit_report';
       case ArtifactType.table:
         return 'table';
+      case ArtifactType.actionProposal:
+        return 'action_proposal';
       case ArtifactType.note:
         return 'note';
     }
@@ -42,6 +45,8 @@ enum ArtifactType {
         return 'Reporte de Hábitos';
       case ArtifactType.table:
         return 'Tabla Comparativa';
+      case ArtifactType.actionProposal:
+        return 'Propuesta de Acción';
       case ArtifactType.note:
         return 'Nota / Resumen';
     }
@@ -66,6 +71,10 @@ enum ArtifactType {
         return ArtifactType.habitReport;
       case 'table':
         return ArtifactType.table;
+      case 'action_proposal':
+      case 'proposal':
+      case 'action':
+        return ArtifactType.actionProposal;
       case 'note':
       default:
         return ArtifactType.note;
@@ -97,6 +106,30 @@ class ChatArtifactModel {
   })  : id = id ?? const Uuid().v4(),
         metadata = metadata ?? {},
         createdAt = createdAt ?? DateTime.now();
+
+  ChatArtifactModel copyWith({
+    String? id,
+    String? sessionId,
+    String? messageId,
+    String? userId,
+    ArtifactType? type,
+    String? title,
+    String? content,
+    Map<String, dynamic>? metadata,
+    DateTime? createdAt,
+  }) {
+    return ChatArtifactModel(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      messageId: messageId ?? this.messageId,
+      userId: userId ?? this.userId,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      metadata: metadata ?? Map<String, dynamic>.from(this.metadata),
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {

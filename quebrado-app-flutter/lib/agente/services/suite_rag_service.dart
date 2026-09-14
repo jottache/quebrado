@@ -227,6 +227,65 @@ $bdaysStr
               requiredProperties: ['title'],
             ),
           ),
+          FunctionDeclaration(
+            'proposeCreateContact',
+            'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'name': Schema(SchemaType.string, description: 'Nombre completo o de pila del contacto.'),
+                'nickname': Schema(SchemaType.string, description: 'Apodo o sobrenombre opcional.'),
+                'relationship': Schema(SchemaType.string, description: 'Vínculo o relación (ej: "Hermano", "Amigo", "Compañero", "Madre").'),
+                'phone': Schema(SchemaType.string, description: 'Número de teléfono o WhatsApp.'),
+                'age': Schema(SchemaType.integer, description: 'Edad en años si el usuario la menciona (ej: 38).'),
+                'birthdate': Schema(SchemaType.string, description: 'Fecha de nacimiento en formato YYYY-MM-DD si se conoce.'),
+                'notes': Schema(SchemaType.string, description: 'Notas o detalles adicionales.'),
+              },
+              requiredProperties: ['name'],
+            ),
+          ),
+          FunctionDeclaration(
+            'proposeCreateReminder',
+            'Propone la creación de un nuevo recordatorio o tarea en Recordatorios mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala cuando el usuario pida crear o agendar una tarea o recordatorio.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'title': Schema(SchemaType.string, description: 'Título o concepto de la tarea/recordatorio.'),
+                'priority': Schema(SchemaType.string, description: 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.'),
+                'recurrence': Schema(SchemaType.string, description: 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.'),
+                'dueAt': Schema(SchemaType.string, description: 'Fecha y hora estimada (formato ISO 8601 ej: "2026-09-15T10:00:00").'),
+                'notes': Schema(SchemaType.string, description: 'Notas o comentarios adicionales.'),
+              },
+              requiredProperties: ['title'],
+            ),
+          ),
+          FunctionDeclaration(
+            'proposeCreateHabit',
+            'Propone la creación de un nuevo hábito o rutina personal en Hábitos mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'title': Schema(SchemaType.string, description: 'Nombre del hábito (ej: "Meditar 10 min", "No comer azúcar").'),
+                'isNegative': Schema(SchemaType.boolean, description: 'true si es un mal hábito a evitar/romper, false si es positivo para construir.'),
+              },
+              requiredProperties: ['title'],
+            ),
+          ),
+          FunctionDeclaration(
+            'proposeCreateTransaction',
+            'Propone registrar un nuevo movimiento financiero (gasto o ingreso) en Finanzas Quebrado mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'title': Schema(SchemaType.string, description: 'Descripción o concepto del movimiento (ej: "Almuerzo", "Cobro freelance").'),
+                'amount': Schema(SchemaType.number, description: 'Monto del movimiento financiero.'),
+                'type': Schema(SchemaType.string, description: 'Tipo de transacción: "expense" (gasto) o "income" (ingreso).'),
+                'currency': Schema(SchemaType.string, description: 'Moneda: "usd" o "ves".'),
+                'accountName': Schema(SchemaType.string, description: 'Nombre de la cuenta si se especificó (ej: "Banesco", "Zelle", "Efectivo").'),
+              },
+              requiredProperties: ['title', 'amount'],
+            ),
+          ),
         ],
       ),
     ];
@@ -369,6 +428,65 @@ $bdaysStr
                 },
               },
               'required': ['title'],
+            },
+          },
+          {
+            'name': 'proposeCreateContact',
+            'description': 'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'name': {'type': 'STRING', 'description': 'Nombre completo o de pila del contacto.'},
+                'nickname': {'type': 'STRING', 'description': 'Apodo o sobrenombre opcional.'},
+                'relationship': {'type': 'STRING', 'description': 'Vínculo o relación (ej: "Hermano", "Amigo", "Compañero", "Madre").'},
+                'phone': {'type': 'STRING', 'description': 'Número de teléfono o WhatsApp.'},
+                'age': {'type': 'INTEGER', 'description': 'Edad en años si el usuario la menciona (ej: 38).'},
+                'birthdate': {'type': 'STRING', 'description': 'Fecha de nacimiento en formato YYYY-MM-DD si se conoce.'},
+                'notes': {'type': 'STRING', 'description': 'Notas o detalles adicionales.'},
+              },
+              'required': ['name'],
+            },
+          },
+          {
+            'name': 'proposeCreateReminder',
+            'description': 'Propone la creación de un nuevo recordatorio o tarea en Recordatorios mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala cuando el usuario pida crear o agendar una tarea o recordatorio.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Título o concepto de la tarea/recordatorio.'},
+                'priority': {'type': 'STRING', 'description': 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.'},
+                'recurrence': {'type': 'STRING', 'description': 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.'},
+                'dueAt': {'type': 'STRING', 'description': 'Fecha y hora estimada (formato ISO 8601 ej: "2026-09-15T10:00:00").'},
+                'notes': {'type': 'STRING', 'description': 'Notas o comentarios adicionales.'},
+              },
+              'required': ['title'],
+            },
+          },
+          {
+            'name': 'proposeCreateHabit',
+            'description': 'Propone la creación de un nuevo hábito o rutina personal en Hábitos mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Nombre del hábito (ej: "Meditar 10 min", "No comer azúcar").'},
+                'isNegative': {'type': 'BOOLEAN', 'description': 'true si es un mal hábito a evitar/romper, false si es positivo para construir.'},
+              },
+              'required': ['title'],
+            },
+          },
+          {
+            'name': 'proposeCreateTransaction',
+            'description': 'Propone registrar un nuevo movimiento financiero (gasto o ingreso) en Finanzas Quebrado mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Descripción o concepto del movimiento (ej: "Almuerzo", "Cobro freelance").'},
+                'amount': {'type': 'NUMBER', 'description': 'Monto del movimiento financiero.'},
+                'type': {'type': 'STRING', 'description': 'Tipo de transacción: "expense" (gasto) o "income" (ingreso).'},
+                'currency': {'type': 'STRING', 'description': 'Moneda: "usd" o "ves".'},
+                'accountName': {'type': 'STRING', 'description': 'Nombre de la cuenta si se especificó (ej: "Banesco", "Zelle", "Efectivo").'},
+              },
+              'required': ['title', 'amount'],
             },
           },
         ],
@@ -909,6 +1027,189 @@ $bdaysStr
               'dueAt': newReminder.formattedDueTime,
             },
           },
+        );
+
+      case 'proposeCreateContact':
+        final name = (arguments['name']?.toString() ?? '').trim();
+        final nickname = arguments['nickname']?.toString().trim();
+        final relationship = arguments['relationship']?.toString().trim();
+        final phone = arguments['phone']?.toString().trim();
+        final notes = arguments['notes']?.toString().trim();
+        final age = arguments['age'] is num
+            ? (arguments['age'] as num).toInt()
+            : int.tryParse(arguments['age']?.toString() ?? '');
+        String? birthdate = arguments['birthdate']?.toString().trim();
+
+        if ((birthdate == null || birthdate.isEmpty) && age != null && age > 0) {
+          final now = DateTime.now();
+          birthdate = '${now.year - age}-01-01';
+        }
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Nombre', 'value': name.isNotEmpty ? name : 'Sin especificar'},
+          if (nickname != null && nickname.isNotEmpty) {'label': 'Apodo', 'value': nickname},
+          if (relationship != null && relationship.isNotEmpty) {'label': 'Relación', 'value': relationship},
+          if (phone != null && phone.isNotEmpty) {'label': 'Teléfono', 'value': phone},
+          if (age != null && age > 0) {'label': 'Edad aprox.', 'value': '$age años'},
+          if (birthdate != null && birthdate.isNotEmpty) {'label': 'Cumpleaños', 'value': birthdate},
+          if (notes != null && notes.isNotEmpty) {'label': 'Notas', 'value': notes},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: 'Nuevo Contacto: ${name.isNotEmpty ? name : "Sin nombre"}',
+          content: 'Por favor confirma si los datos son correctos para registrar este contacto en tu Diario Jottache.',
+          metadata: {
+            'action': 'create_contact',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'name': name,
+              if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
+              if (relationship != null && relationship.isNotEmpty) 'relationship': relationship,
+              if (phone != null && phone.isNotEmpty) 'phone': phone,
+              if (birthdate != null && birthdate.isNotEmpty) 'birthdate': birthdate,
+              if (notes != null && notes.isNotEmpty) 'notes': notes,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'create_contact',
+            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para crear el contacto "$name". Pide al usuario que confirme mediante el botón.',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
+        );
+
+      case 'proposeCreateReminder':
+        final title = (arguments['title']?.toString() ?? 'Nuevo recordatorio').trim();
+        final priority = arguments['priority']?.toString().trim();
+        final recurrence = arguments['recurrence']?.toString().trim();
+        final dueAt = arguments['dueAt']?.toString().trim();
+        final notes = arguments['notes']?.toString().trim();
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Título', 'value': title},
+          if (priority != null && priority.isNotEmpty) {'label': 'Prioridad', 'value': priority},
+          if (dueAt != null && dueAt.isNotEmpty) {'label': 'Fecha/Hora', 'value': dueAt},
+          if (recurrence != null && recurrence.isNotEmpty) {'label': 'Recurrencia', 'value': recurrence},
+          if (notes != null && notes.isNotEmpty) {'label': 'Notas', 'value': notes},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: 'Nuevo Recordatorio: $title',
+          content: 'Por favor confirma si deseas programar este recordatorio en el sistema.',
+          metadata: {
+            'action': 'create_reminder',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'title': title,
+              if (priority != null && priority.isNotEmpty) 'priority': priority,
+              if (recurrence != null && recurrence.isNotEmpty) 'recurrence': recurrence,
+              if (dueAt != null && dueAt.isNotEmpty) 'dueAt': dueAt,
+              if (notes != null && notes.isNotEmpty) 'notes': notes,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'create_reminder',
+            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para crear el recordatorio "$title".',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
+        );
+
+      case 'proposeCreateHabit':
+        final title = (arguments['title']?.toString() ?? 'Nuevo hábito').trim();
+        final isNegative = arguments['isNegative'] == true || arguments['isNegative']?.toString().toLowerCase() == 'true';
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Hábito', 'value': title},
+          {'label': 'Tipo', 'value': isNegative ? 'Evitar / Romper mal hábito' : 'Construir hábito positivo'},
+          {'label': 'Frecuencia', 'value': 'Diario'},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: 'Nuevo Hábito: $title',
+          content: 'Por favor confirma si deseas registrar este hábito en tu seguimiento de Hábitos.',
+          metadata: {
+            'action': 'create_habit',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'title': title,
+              'isNegative': isNegative,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'create_habit',
+            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para el hábito "$title".',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
+        );
+
+      case 'proposeCreateTransaction':
+        final title = (arguments['title']?.toString() ?? 'Transacción').trim();
+        final amount = (arguments['amount'] as num?)?.toDouble() ?? 0.0;
+        final type = arguments['type']?.toString().toLowerCase() == 'income' ? 'income' : 'expense';
+        final currency = arguments['currency']?.toString().toLowerCase() ?? 'usd';
+        final accountName = arguments['accountName']?.toString().trim();
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Concepto', 'value': title},
+          {'label': 'Tipo', 'value': type == 'income' ? 'Ingreso (+)' : 'Gasto (-)'},
+          {'label': 'Monto', 'value': '${amount.toStringAsFixed(2)} ${currency.toUpperCase()}'},
+          if (accountName != null && accountName.isNotEmpty) {'label': 'Cuenta', 'value': accountName},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: '${type == "income" ? "Ingreso" : "Gasto"}: $title',
+          content: 'Por favor confirma si deseas registrar este movimiento financiero en Finanzas Quebrado.',
+          metadata: {
+            'action': 'create_transaction',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'amount': amount,
+              'type': type,
+              'currency': currency,
+              'description': title,
+              if (accountName != null && accountName.isNotEmpty) 'accountName': accountName,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'create_transaction',
+            'message': 'Se ha generado una tarjeta interactiva en el chat para registrar el movimiento de ${amount.toStringAsFixed(2)} ${currency.toUpperCase()}.',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
         );
 
       default:

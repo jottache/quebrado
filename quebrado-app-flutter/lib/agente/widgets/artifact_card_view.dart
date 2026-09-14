@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/chat_artifact_model.dart';
 import '../theme/agente_colors.dart';
+import 'action_proposal_card_view.dart';
 
 class ArtifactCardView extends StatelessWidget {
   final ChatArtifactModel artifact;
@@ -9,6 +10,8 @@ class ArtifactCardView extends StatelessWidget {
 
   IconData _getIcon() {
     switch (artifact.type) {
+      case ArtifactType.actionProposal:
+        return Icons.pending_actions_rounded;
       case ArtifactType.financialSummary:
         return Icons.account_balance_wallet_outlined;
       case ArtifactType.calculation:
@@ -28,6 +31,8 @@ class ArtifactCardView extends StatelessWidget {
 
   Color _getColor() {
     switch (artifact.type) {
+      case ArtifactType.actionProposal:
+        return const Color(0xFF6366F1);
       case ArtifactType.financialSummary:
         return const Color(0xFF10B981);
       case ArtifactType.calculation:
@@ -46,6 +51,9 @@ class ArtifactCardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (artifact.type == ArtifactType.actionProposal) {
+      return ActionProposalCardView(artifact: artifact);
+    }
     final color = _getColor();
 
     return Container(

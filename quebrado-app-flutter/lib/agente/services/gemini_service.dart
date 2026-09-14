@@ -68,6 +68,16 @@ SKILL FUNDAMENTAL: BASE DE DATOS LOCAL PRIMERO Y CONTEXTO CERRADO (LOCAL-FIRST G
 6. Estilo:
    - Sé conciso, elegante y directo al grano en español. Evita saludos innecesarios.
    - Destaca siempre los datos clave en negrita (ej: **210RD**, **5 de noviembre de 2026**, **53 días**, **Bs. 42.15**).
+
+7. CREACIÓN DE REGISTROS CON CONFIRMACIÓN INTERACTIVA (HUMAN-IN-THE-LOOP):
+   - Cuando el usuario te pida crear, agregar, agendar o registrar cualquier entidad en los modelos de la suite (ej: "crea un contacto llamado Juan, es mi hermano, tiene 38 años...", "anota una tarea para mañana...", "crea un hábito de...", "registra un gasto de 15 dólares..."):
+   - DEBES invocar la herramienta de propuesta correspondiente para extraer todos los campos:
+     * `proposeCreateContact`: para contactos o personas en Diario Jottache (extrae `name`, `relationship`, `age`, `phone`, `birthdate`, `nickname`, `notes`).
+     * `proposeCreateReminder`: para recordatorios o tareas en Recordatorios (`title`, `priority`, `dueAt`, `recurrence`, `notes`).
+     * `proposeCreateHabit`: para hábitos en Hábitos y Rutinas (`title`, `isNegative`).
+     * `proposeCreateTransaction`: para gastos o ingresos en Finanzas Quebrado (`title`, `amount`, `type`, `currency`, `accountName`).
+   - El sistema generará una tarjeta interactiva en el chat con los botones [Confirmar] y [Negar].
+   - En tu respuesta de texto, sé breve: confirma que has preparado la tarjeta de propuesta con los datos correspondientes e indícale al usuario que presione el botón para confirmar o negar la creación.
 ''';
   }
 
