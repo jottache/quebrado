@@ -15,6 +15,8 @@ import 'market_screen.dart';
 import '../dialogs/add_action_selection_sheet.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
 
+import '../../widgets/responsive_breakpoints.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -84,6 +86,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final selectedIndex = appState.currentTabIndex;
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return ShowCaseWidget(
       enableAutoScroll: true,
@@ -96,57 +99,69 @@ class _MainScreenState extends State<MainScreen> {
               children: _screens,
             ),
           ),
-          extendBody: true,
-          floatingActionButton: Showcase(
-            key: appState.fabKey,
-            title: "Acciones Rápidas",
-            description: "Desde aquí puedes registrar rápidamente ingresos, gastos, cambios de divisas y revisar pagos pendientes.",
-            child: FloatingActionButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => AddActionSelectionBottomSheet(),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              elevation: 6.0,
-              shape: CircleBorder(),
-              child: Icon(Icons.add, color: Colors.white, size: 28),
-            ),
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: CustomPaint(
-            foregroundPainter: _NotchedBorderPainter(
-              color: Colors.grey[300]!,
-              strokeWidth: 1.0,
-            ),
-            child: BottomAppBar(
-              color: Colors.white,
-              elevation: 12,
-              notchMargin: 8.0,
-              clipBehavior: Clip.antiAlias,
-              shape: AutomaticNotchedShape(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          extendBody: !isDesktop,
+          floatingActionButton: isDesktop
+              ? null
+              : Showcase(
+                  key: appState.fabKey,
+                  title: "Acciones Rápidas",
+                  description: "Desde aquí puedes registrar rápidamente ingresos, gastos, cambios de divisas y revisar pagos pendientes.",
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => AddActionSelectionBottomSheet(),
+                      );
+                    },
+                    backgroundColor: AppColors.primary,
+                    elevation: 6.0,
+                    shape: CircleBorder(),
+                    child: Icon(Icons.add, color: Colors.white, size: 28),
+                  ),
                 ),
-                CircleBorder(),
-              ),
-              padding: EdgeInsets.zero,
-              height: 76,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(context, appState, 0, Icons.grid_view_rounded, "Dashboard"),
-                  _buildNavItem(context, appState, 1, Icons.inventory_2_rounded, "Bolsillos"),
-                  SizedBox(width: 48), // Spacer for the floating action button notch
-                  _buildNavItem(context, appState, 2, Icons.receipt_long_rounded, "Historial"),
-                  _buildNavItem(context, appState, 3, Icons.shopping_cart_outlined, "Mercado"),
-                ],
-              ),
-            ),
-          ),
+          floatingActionButtonLocation:
+              isDesktop ? null : FloatingActionButtonLocation.centerDocked,
+          bottomNavigationBar: isDesktop
+              ? null
+              : CustomPaint(
+                  foregroundPainter: _NotchedBorderPainter(
+                    color: Colors.grey[300]!,
+                    strokeWidth: 1.0,
+                  ),
+                  child: BottomAppBar(
+                    color: Colors.white,
+                    elevation: 12,
+                    notchMargin: 8.0,
+                    clipBehavior: Clip.antiAlias,
+                    shape: AutomaticNotchedShape(
+                      RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      CircleBorder(),
+                    ),
+                    padding: EdgeInsets.zero,
+                    height: 76,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(context, appState, 0,
+                            Icons.grid_view_rounded, "Dashboard"),
+                        _buildNavItem(context, appState, 1,
+                            Icons.inventory_2_rounded, "Bolsillos"),
+                        SizedBox(
+                            width:
+                                48), // Spacer for the floating action button notch
+                        _buildNavItem(context, appState, 2,
+                            Icons.receipt_long_rounded, "Historial"),
+                        _buildNavItem(context, appState, 3,
+                            Icons.shopping_cart_outlined, "Mercado"),
+                      ],
+                    ),
+                  ),
+                ),
         );
       },
     );

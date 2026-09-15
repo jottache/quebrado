@@ -345,6 +345,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Divider(height: 1, color: Colors.black.withOpacity(0.08)),
                   SwitchListTile(
                     activeThumbColor: AppColors.primary,
+                    title: const Text(
+                      "Confirmación con PIN",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      "Solicita tu código PIN de 4 dígitos al registrar transacciones (ideal para Web y Desktop).",
+                      style: TextStyle(fontSize: 11),
+                    ),
+                    value: appState.usePinSecurity,
+                    onChanged: (bool value) async {
+                      if (value) {
+                        final pin = await appState.getSecurityPin();
+                        if (pin == '1234') {
+                          if (context.mounted) {
+                            _showChangePinBottomSheet(context, appState);
+                          }
+                        }
+                      }
+                      await appState.setUsePinSecurity(value);
+                    },
+                  ),
+                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  SwitchListTile(
+                    activeThumbColor: AppColors.primary,
                     title: Text(
                       "Botón Deslizable",
                       style: TextStyle(

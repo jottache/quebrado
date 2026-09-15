@@ -29,6 +29,9 @@ import '../services/backup_service.dart';
 import '../services/supabase_service.dart';
 import '../services/supabase_config.dart';
 import '../dialogs/super_app_hub_sheet.dart';
+import '../services/biometric_service.dart';
+import '../dialogs/pin_verification_dialog.dart';
+import '../dialogs/pin_setup_bottom_sheet.dart';
 
 class AppState extends ChangeNotifier {
   // Global Key for the central Floating Action Button showcased in tutorials
@@ -45,14 +48,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // MARK: - Persistent State Fields
-  double _bcvRate = 42.15;
+  // MARK: - Core Financial State
+  double _bcvRate = 36.50;
   double _parallelRate = 45.00;
   double _euroRate = 45.00;
   CurrencyType _selectedCurrency = CurrencyType.usd;
   int _currentTabIndex = 0;
   int _historyFilterIndex = 0;
   bool _useBiometrics = false;
+  bool _usePinSecurity = false;
   bool _useSlideToConfirm = false;
 
   List<SavingPocket> pockets = [];
@@ -110,6 +114,7 @@ class AppState extends ChangeNotifier {
   double get euroRate => _euroRate;
   CurrencyType get selectedCurrency => _selectedCurrency;
   bool get useBiometrics => _useBiometrics;
+  bool get usePinSecurity => _usePinSecurity;
   bool get useSlideToConfirm => _useSlideToConfirm;
 
   double get totalBalanceUSD {
@@ -282,6 +287,9 @@ class AppState extends ChangeNotifier {
         final biometricsVal = await DatabaseHelper.instance.getSetting('useBiometrics');
         if (biometricsVal != null) _useBiometrics = biometricsVal == 'true';
 
+        final pinSecurityVal = await DatabaseHelper.instance.getSetting('usePinSecurity');
+        if (pinSecurityVal != null) _usePinSecurity = pinSecurityVal == 'true';
+
         final slideVal = await DatabaseHelper.instance.getSetting('useSlideToConfirm');
         if (slideVal != null) _useSlideToConfirm = slideVal == 'true';
 
@@ -414,6 +422,58 @@ class AppState extends ChangeNotifier {
       await SupabaseService.instance.saveSetting('useSlideToConfirm', _useSlideToConfirm.toString());
     }
     notifyListeners();
+  }
+
+  Future<void> setUsePinSecurity(bool value) async {
+    _usePinSecurity = value;
+    if (!kIsWeb) {
+      await DatabaseHelper.instance.setSetting('usePinSecurity', _usePinSecurity.toString());
+    }
+    if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
+      await SupabaseService.instance.saveSetting('usePinSecurity', _usePinSecurity.toString());
+    }
+    notifyListeners();
+  }
+
+  Future<String> getSecurityPin() async {
+    final metadata = await loadBackupMetadata();
+    return (metadata['security_pin'] as String?)?.isNotEmpty == true
+        ? metadata['security_pin']!
+        : '1234';
+  }
+
+  Future<bool> verifySecurityAuth(
+    BuildContext context, {
+    String reason = "Confirma tu identidad para registrar esta transacción",
+  }) async {
+    // 1. Biometrics if enabled and supported on native mobile platform
+    if (_useBiometrics && !kIsWeb) {
+      try {
+        final canAuth = await BiometricService.canAuthenticate();
+        if (canAuth) {
+          final authenticated = await BiometricService.authenticate(reason: reason);
+          if (authenticated) return true;
+          if (!_usePinSecurity) return false;
+        }
+      } catch (_) {}
+    }
+
+    // 2. PIN verification if enabled (or if biometrics enabled on Web/Desktop)
+    if (_usePinSecurity || (_useBiometrics && kIsWeb)) {
+      final pin = await getSecurityPin();
+      if (!context.mounted) return false;
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => PinVerificationDialog(
+          correctPin: pin,
+          title: "Confirmar Transacción",
+          subtitle: reason,
+        ),
+      );
+      return result == true;
+    }
+
+    return true;
   }
 
   // MARK: - Exchange Rate Fetch Updates

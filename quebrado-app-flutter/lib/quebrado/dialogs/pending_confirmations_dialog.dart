@@ -231,15 +231,16 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
     if (selected.isEmpty) return;
 
-    if (appState.useBiometrics) {
-      final authenticated = await BiometricService.authenticate(
+    if (appState.useBiometrics || appState.usePinSecurity) {
+      final authenticated = await appState.verifySecurityAuth(
+        context,
         reason: "Confirma tu identidad para registrar los cobros seleccionados",
       );
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Autenticación biométrica fallida o cancelada."),
+            const SnackBar(
+              content: Text("Autenticación de seguridad requerida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
           );

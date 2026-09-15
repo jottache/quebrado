@@ -24,7 +24,9 @@ import '../widgets/dashboard_charts_card.dart';
 import 'rates_history_screen.dart';
 import '../../screens/app_launcher_screen.dart';
 import '../dialogs/super_app_hub_sheet.dart';
+import '../dialogs/book_selector_dialog.dart';
 import '../../widgets/responsive_sheet_helper.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -137,26 +139,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.apps_rounded),
-          iconSize: 26,
-          tooltip: "Mis Aplicaciones",
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => AppLauncherScreen()),
-              );
-            }
-          },
-        ),
+        leading: isDesktop
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Center(
+                  child: ActionChip(
+                    avatar: const Icon(Icons.menu_book_rounded,
+                        size: 16, color: Color(0xFF1F6F5F)),
+                    label: Text(
+                      appState.activeProfileName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F6F5F),
+                      ),
+                    ),
+                    backgroundColor: const Color(0xFF1F6F5F).withOpacity(0.08),
+                    side: BorderSide(
+                        color: const Color(0xFF1F6F5F).withOpacity(0.3)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    onPressed: () {
+                      showResponsiveSheet(
+                        context: context,
+                        builder: (context) => const BookSelectorBottomSheet(),
+                      );
+                    },
+                  ),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(Icons.apps_rounded),
+                iconSize: 26,
+                tooltip: "Mis Aplicaciones",
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                          builder: (context) => const AppLauncherScreen()),
+                    );
+                  }
+                },
+              ),
+        leadingWidth: isDesktop ? 190 : null,
         title: Image.asset(
           'assets/images/quebrado/logo_quebrado.png',
           height: 50,
@@ -167,13 +201,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.notifications_none_rounded),
+                icon: const Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
                   showResponsiveSheet(
                     context: context,
                     builder: (context) =>
-                        PendingConfirmationsBottomSheet(),
+                        const PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -182,19 +216,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: EdgeInsets.all(2),
-                    decoration: BoxDecoration(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -234,25 +268,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 6),
           IconButton(
-            icon: Icon(Icons.calculate_outlined),
+            icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
             tooltip: "Calculadora de divisas",
             onPressed: () {
               showResponsiveSheet(
                 context: context,
-                builder: (context) => CalculatorBottomSheet(),
+                builder: (context) => const CalculatorBottomSheet(),
               );
             },
           ),
           const SizedBox(width: 10),
           IconButton(
-            icon: Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined),
             iconSize: 24,
             tooltip: "Ajustes",
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
+              if (isDesktop) {
+                showResponsiveSheet(
+                  context: context,
+                  builder: (context) => const SettingsScreen(),
+                );
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen()),
+                );
+              }
             },
           ),
           const SizedBox(width: 16),
@@ -264,597 +306,651 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1100),
+            constraints: BoxConstraints(maxWidth: isDesktop ? 1300 : 1100),
             child: SingleChildScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
+              padding: EdgeInsets.only(
+                left: isDesktop ? 24.0 : 16.0,
+                right: isDesktop ? 24.0 : 16.0,
                 top: 16.0,
-                bottom: 140.0,
+                bottom: isDesktop ? 40.0 : 140.0,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Future transactions warning card
-                  Builder(
-                    builder: (context) {
-                      final now = DateTime.now();
-                      final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
-                      final futureTxs = appState.transactions.where((t) => t.date.isAfter(todayEnd)).toList();
-                  if (futureTxs.isEmpty) return SizedBox.shrink();
-
-                  final count = futureTxs.length;
-                  double expensesUSD = 0.0;
-                  for (var t in futureTxs) {
-                    if (t.type == TransactionType.expense) {
-                      expensesUSD += t.currency == CurrencyType.usd
-                          ? t.amount
-                          : t.amount / (t.exchangeRate > 0 ? t.exchangeRate : 1.0);
-                    }
-                  }
-
-                  if (expensesUSD <= 0) return SizedBox.shrink();
-
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 16.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        appState.setHistoryFilterIndex(4); // "Futuras" filter
-                        appState.setTabIndex(2);           // "Historial" tab
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.25), width: 1),
-                        ),
-                        child: Row(
+              child: isDesktop
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildFutureTransactionsCard(appState),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.info_outline_rounded,
-                              color: AppColors.primary,
-                              size: 18,
-                            ),
-                            SizedBox(width: 10),
+                            // Columna Izquierda: Balance, Tasas, Cuentas
                             Expanded(
+                              flex: 5,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "Pagos a futuro detectados",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Tienes $count ${count == 1 ? 'pago programado' : 'pagos programados'} por un total de ${formatUSD(expensesUSD)}. Ya se descontaron de tu saldo actual.",
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      color: AppColors.primary.withOpacity(0.85),
-                                      height: 1.3,
-                                    ),
-                                  ),
+                                  _buildBalanceSection(appState),
+                                  const SizedBox(height: 24),
+                                  _buildRatesSection(appState),
+                                  const SizedBox(height: 24),
+                                  _buildAccountsSection(appState),
                                 ],
                               ),
                             ),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.primary,
-                              size: 20,
+                            const SizedBox(width: 24),
+                            // Columna Derecha: Gráfica, Timeline / Proyecciones
+                            Expanded(
+                              flex: 5,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildChartsSection(appState),
+                                  const SizedBox(height: 24),
+                                  _buildTimelineSection(appState, context),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
+                        if (appState.rateFetchError != null) ...[
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              "Error de Conexión: ${appState.rateFetchError}",
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.expense,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildFutureTransactionsCard(appState),
+                        _buildBalanceSection(appState),
+                        const SizedBox(height: 24),
+                        _buildRatesSection(appState),
+                        const SizedBox(height: 24),
+                        _buildAccountsSection(appState),
+                        const SizedBox(height: 24),
+                        _buildChartsSection(appState),
+                        const SizedBox(height: 24),
+                        _buildTimelineSection(appState, context),
+                        if (appState.rateFetchError != null) ...[
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              "Error de Conexión: ${appState.rateFetchError}",
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.expense,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  );
-                },
-              ),
-              // 1. MAIN BALANCE CARD
-              Showcase(
-                key: _patrimonioKey,
-                title: "Balance general",
-                description: "Muestra el balance total unificado o el saldo de una cuenta específica. Puedes pulsar sobre la tarjeta para alternar entre Dólares y Bolívares oficiales, y deslizar (slide) hacia la izquierda o derecha para ver el detalle de cada una de tus cuentas.",
-                child: _BouncyBalanceCard(balanceActionsKey: _balanceActionsKey),
-              ),
-              SizedBox(height: 24),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-              // 2. MOTOR DE TASAS
-              Showcase(
-                key: _tasaKey,
-                title: "Tasas Oficiales",
-                description: "Consulta el precio del dólar oficial BCV, paralelo y euro. Se actualizan automáticamente si hay conexión a internet.",
+  Widget _buildFutureTransactionsCard(AppState appState) {
+    final now = DateTime.now();
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    final futureTxs =
+        appState.transactions.where((t) => t.date.isAfter(todayEnd)).toList();
+    if (futureTxs.isEmpty) return const SizedBox.shrink();
+
+    final count = futureTxs.length;
+    double expensesUSD = 0.0;
+    for (var t in futureTxs) {
+      if (t.type == TransactionType.expense) {
+        expensesUSD += t.currency == CurrencyType.usd
+            ? t.amount
+            : t.amount / (t.exchangeRate > 0 ? t.exchangeRate : 1.0);
+      }
+    }
+
+    if (expensesUSD <= 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: GestureDetector(
+        onTap: () {
+          appState.setHistoryFilterIndex(4); // "Futuras" filter
+          appState.setTabIndex(2); // "Historial" tab
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: AppColors.primary.withOpacity(0.25), width: 1),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              "Tasas Oficiales",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.cardText,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.show_chart_rounded, color: AppColors.primary),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => RatesHistoryScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 10),
-                            IconButton(
-                              icon: appState.isFetchingRates
-                                  ? SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                          AppColors.primary,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      appState.hasInternet
-                                          ? Icons.refresh_rounded
-                                          : Icons.wifi_off_rounded,
-                                      color: appState.hasInternet
-                                          ? null
-                                          : Colors.grey,
-                                      size: 20,
-                                    ),
-                              tooltip: appState.hasInternet
-                                  ? 'Actualizar tasas'
-                                  : 'Reintentar conexión',
-                              onPressed: appState.isFetchingRates
-                                  ? null
-                                  : () => appState.refreshRates(),
-                            ),
-                          ],
-                        ),
-                      ],
+                    Text(
+                      "Transacciones Programadas",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    SizedBox(height: 8),
-                    ResponsiveHorizontalScroll(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _RateCard(
-                              title: "Oficial BCV",
-                              rate: appState.bcvRate,
-                              date: appState.rateHistory.isNotEmpty
-                                  ? appState.rateHistory.first.date
-                                  : null,
-                              badge: Text(
-                                "\$",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 22,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            _RateCard(
-                              title: "Euro Oficial",
-                              rate: appState.euroRate,
-                              date: appState.euroRateHistory.isNotEmpty
-                                  ? appState.euroRateHistory.first.date
-                                  : null,
-                              badge: Text(
-                                "€",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 22,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            _RateCard(
-                              title: "Paralelo",
-                              rate: appState.parallelRate,
-                              date: appState.rateHistory.isNotEmpty
-                                  ? appState.rateHistory.first.date
-                                  : null,
-                              badge: Text(
-                                "\$",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 22,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "Tienes $count ${count == 1 ? 'pago programado' : 'pagos programados'} por un total de ${formatUSD(expensesUSD)}. Ya se descontaron de tu saldo actual.",
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: AppColors.primary.withOpacity(0.85),
+                        height: 1.3,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 24),
-
-              // 1.5. MIS CUENTAS
-              Showcase(
-                key: _cuentasKey,
-                title: "Mis Cuentas",
-                description: "Tus cuentas físicas de dinero (efectivo, bancos). Pulsa '+' para agregar una nueva cuenta, o presiona alguna tarjeta para editarla.",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              "Mis Cuentas",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.cardText,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.add_circle_outline_rounded,
-                            color: AppColors.primary,
-                          ),
-                          onPressed: () {
-                            showResponsiveSheet(
-                              context: context,
-                              builder: (context) => AddAccountBottomSheet(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    ResponsiveHorizontalScroll(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        child: Row(
-                          children: appState.accounts.map((acc) {
-                            final color = parseHexColor(acc.colorHex);
-                            final isUsd = acc.currency == CurrencyType.usd;
-                            return Padding(
-                              padding: EdgeInsets.only(right: 12.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  showResponsiveSheet(
-                                    context: context,
-                                    builder: (context) =>
-                                        AddAccountBottomSheet(editingAccount: acc),
-                                  );
-                                },
-                                child: ClaymorphicCard(
-                                  cornerRadius: 18,
-                                  padding: EdgeInsets.all(12.0),
-                                  child: SizedBox(
-                                    width: 140,
-                                    height: 110,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Container(
-                                              width: 32,
-                                              height: 32,
-                                              decoration: BoxDecoration(
-                                                color: color.withOpacity(0.15),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Icon(
-                                              getIconData(acc.icon),
-                                              color: color,
-                                              size: 16,
-                                            ),
-                                          ),
-                                          Text(
-                                            isUsd ? "\$" : "Bs.",
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w900,
-                                              color: color,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Spacer(),
-                                      Text(
-                                        acc.name,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.cardText,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        isUsd
-                                            ? formatUSD(acc.balance)
-                                            : formatBs(acc.balance),
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.primary,
+                size: 20,
               ),
-            ),
-            const SizedBox(height: 24),
-
-              // ANALYTICS CHARTS SECTION
-              DashboardChartsCard(),
-              SizedBox(height: 24),
-
-              // PROJECTION SECTION
-              Builder(
-                builder: (context) {
-                  final events = appState.getTimelineEvents(365);
-                  if (events.isEmpty) return SizedBox.shrink();
-
-                  final Map<DateTime, List<TimelineEvent>> grouped = {};
-                  for (var ev in events) {
-                    final day = DateTime(ev.date.year, ev.date.month, ev.date.day);
-                    grouped.putIfAbsent(day, () => []).add(ev);
-                  }
-
-                  final sortedDays = grouped.keys.toList()..sort();
-
-                  final now = DateTime.now();
-                  final today = DateTime(now.year, now.month, now.day);
-                  List<DateTime> daysToShow = [];
-
-                  if (grouped.containsKey(today)) {
-                    daysToShow.add(today);
-                    // Find the next day with events
-                    final nextDay = sortedDays.firstWhere(
-                      (d) => d.isAfter(today),
-                      orElse: () => today,
-                    );
-                    if (nextDay != today) {
-                      daysToShow.add(nextDay);
-                    }
-                  } else {
-                    // Find the first day after today
-                    final nextDay = sortedDays.firstWhere(
-                      (d) => d.isAfter(today),
-                      orElse: () => today,
-                    );
-                    if (nextDay != today) {
-                      daysToShow.add(nextDay);
-                    }
-                  }
-
-                  if (daysToShow.isEmpty) return SizedBox.shrink();
-
-                  final List<dynamic> dashboardItems = [];
-                  for (var day in daysToShow) {
-                    dashboardItems.add(_getDateHeader(day));
-                    dashboardItems.addAll(grouped[day]!);
-                  }
-
-                  int firstEventIndex = -1;
-                  int lastEventIndex = -1;
-                  for (int i = 0; i < dashboardItems.length; i++) {
-                    if (dashboardItems[i] is TimelineEvent) {
-                      if (firstEventIndex == -1) firstEventIndex = i;
-                      lastEventIndex = i;
-                    }
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                "Proyecciones Recientes",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.cardText,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              appState.setTabIndex(1);
-                              appState.initialPocketsSubTab = 2;
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size(50, 30),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              "Ver más",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Column(
-                        children: List.generate(dashboardItems.length, (index) {
-                          final item = dashboardItems[index];
-                          if (item is String) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                top: 16.0,
-                                bottom: 8.0,
-                                left: 4.0,
-                                right: 4.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        item,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w900,
-                                          color: AppColors.primary,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.more_horiz_rounded,
-                                      color: AppColors.primary,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      final dayEvents = events
-                                          .where((e) => _getDateHeader(e.date) == item)
-                                          .toList();
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (context) => DayActionsBottomSheet(
-                                          headerText: item,
-                                          dayEvents: dayEvents,
-                                        ),
-                                      );
-                                    },
-                                    constraints: BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            final event = item as TimelineEvent;
-                            return TimelineEventRow(
-                              event: event,
-                              isFirst: index == firstEventIndex,
-                              isLast: index == lastEventIndex,
-                            );
-                          }
-                        }),
-                      ),
-                      SizedBox(height: 24),
-                    ],
-                  );
-                },
-              ),
-              SizedBox(height: 16),
-              if (appState.rateFetchError != null) ...[
-                SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    "Error de Conexión: ${appState.rateFetchError}",
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.expense,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
+
+  Widget _buildBalanceSection(AppState appState) {
+    return Showcase(
+      key: _patrimonioKey,
+      title: "Balance general",
+      description:
+          "Muestra el balance total unificado o el saldo de una cuenta específica. Puedes pulsar sobre la tarjeta para alternar entre Dólares y Bolívares oficiales, y deslizar hacia la izquierda o derecha para ver el detalle de cada una de tus cuentas.",
+      child: _BouncyBalanceCard(balanceActionsKey: _balanceActionsKey),
+    );
+  }
+
+  Widget _buildRatesSection(AppState appState) {
+    return Showcase(
+      key: _tasaKey,
+      title: "Tasas Oficiales",
+      description:
+          "Consulta el precio del dólar oficial BCV, paralelo y euro. Se actualizan automáticamente si hay conexión a internet.",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Tasas Oficiales",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.cardText,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.show_chart_rounded,
+                        color: AppColors.primary),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RatesHistoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: appState.isFetchingRates
+                        ? SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            appState.hasInternet
+                                ? Icons.refresh_rounded
+                                : Icons.wifi_off_rounded,
+                            color: appState.hasInternet ? null : Colors.grey,
+                            size: 20,
+                          ),
+                    tooltip: appState.hasInternet
+                        ? 'Actualizar tasas'
+                        : 'Reintentar conexión',
+                    onPressed: appState.isFetchingRates
+                        ? null
+                        : () => appState.refreshRates(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ResponsiveHorizontalScroll(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildExchangeCard(
+                    title: "Oficial BCV",
+                    rate: appState.bcvRate,
+                    date: appState.rateHistory.isNotEmpty ? appState.rateHistory.first.date : null,
+                    currencySymbol: "\$",
+                    isPositiveChange: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildExchangeCard(
+                    title: "Euro Oficial",
+                    rate: appState.euroRate,
+                    date: appState.euroRateHistory.isNotEmpty ? appState.euroRateHistory.first.date : null,
+                    currencySymbol: "€",
+                    isPositiveChange: true,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildExchangeCard(
+                    title: "Paralelo",
+                    rate: appState.parallelRate,
+                    date: null,
+                    currencySymbol: "\$",
+                    isPositiveChange: false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExchangeCard({
+    required String title,
+    required double rate,
+    DateTime? date,
+    required String currencySymbol,
+    required bool isPositiveChange,
+  }) {
+    return _RateCard(
+      title: title,
+      rate: rate,
+      date: date,
+      badge: Text(
+        currencySymbol,
+        style: TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w900,
+          fontSize: 22,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountsSection(AppState appState) {
+    return Showcase(
+      key: _cuentasKey,
+      title: "Cuentas y bancos",
+      description:
+          "Lista de cuentas bancarias y billeteras digitales. Puedes pulsar sobre una cuenta para editar su saldo, icono o color.",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Mis Cuentas",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.cardText,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: Icon(Icons.add_circle_outline_rounded,
+                    color: AppColors.primary),
+                tooltip: "Agregar cuenta",
+                onPressed: () {
+                  showResponsiveSheet(
+                    context: context,
+                    builder: (context) => const AddAccountBottomSheet(),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ResponsiveHorizontalScroll(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: appState.accounts.map((acc) {
+                  final color = parseHexColor(acc.colorHex);
+                  final isUsd = acc.currency == CurrencyType.usd;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        showResponsiveSheet(
+                          context: context,
+                          builder: (context) =>
+                              AddAccountBottomSheet(editingAccount: acc),
+                        );
+                      },
+                      child: ClaymorphicCard(
+                        cornerRadius: 18,
+                        padding: const EdgeInsets.all(12.0),
+                        child: SizedBox(
+                          width: 140,
+                          height: 110,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: color.withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      getIconData(acc.icon),
+                                      color: color,
+                                      size: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    isUsd ? "\$" : "Bs.",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      color: color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Text(
+                                acc.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.cardText,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isUsd
+                                    ? formatUSD(acc.balance)
+                                    : formatBs(acc.balance),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                  color: color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartsSection(AppState appState) {
+    return const DashboardChartsCard();
+  }
+
+  Widget _buildTimelineSection(AppState appState, BuildContext context) {
+    final events = appState.getTimelineEvents(365);
+    if (events.isEmpty) return const SizedBox.shrink();
+
+    final Map<DateTime, List<TimelineEvent>> grouped = {};
+    for (var ev in events) {
+      final day = DateTime(ev.date.year, ev.date.month, ev.date.day);
+      grouped.putIfAbsent(day, () => []).add(ev);
+    }
+
+    final sortedDays = grouped.keys.toList()..sort();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    List<DateTime> daysToShow = [];
+
+    if (grouped.containsKey(today)) {
+      daysToShow.add(today);
+      final nextDay = sortedDays.firstWhere(
+        (d) => d.isAfter(today),
+        orElse: () => today,
+      );
+      if (nextDay != today) {
+        daysToShow.add(nextDay);
+      }
+    } else {
+      final nextDay = sortedDays.firstWhere(
+        (d) => d.isAfter(today),
+        orElse: () => today,
+      );
+      if (nextDay != today) {
+        daysToShow.add(nextDay);
+      }
+    }
+
+    if (daysToShow.isEmpty) return const SizedBox.shrink();
+
+    final List<dynamic> dashboardItems = [];
+    for (var day in daysToShow) {
+      dashboardItems.add(_getDateHeader(day));
+      dashboardItems.addAll(grouped[day]!);
+    }
+
+    int firstEventIndex = -1;
+    int lastEventIndex = -1;
+    for (int i = 0; i < dashboardItems.length; i++) {
+      if (dashboardItems[i] is TimelineEvent) {
+        if (firstEventIndex == -1) firstEventIndex = i;
+        lastEventIndex = i;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  "Proyecciones Recientes",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.cardText,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () {
+                appState.setTabIndex(1);
+                appState.initialPocketsSubTab = 2;
+              },
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(50, 30),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                "Ver más",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Column(
+          children: List.generate(dashboardItems.length, (index) {
+            final item = dashboardItems[index];
+            if (item is String) {
+              return Padding(
+                padding: const EdgeInsets.only(
+                  top: 16.0,
+                  bottom: 8.0,
+                  left: 4.0,
+                  right: 4.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          item,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.more_horiz_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        final dayEvents = events
+                            .where((e) => _getDateHeader(e.date) == item)
+                            .toList();
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => DayActionsBottomSheet(
+                            headerText: item,
+                            dayEvents: dayEvents,
+                          ),
+                        );
+                      },
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              final event = item as TimelineEvent;
+              return TimelineEventRow(
+                event: event,
+                isFirst: index == firstEventIndex,
+                isLast: index == lastEventIndex,
+              );
+            }
+          }),
+        ),
+      ],
+    );
+  }
 }
 
 class _BouncyBalanceCard extends StatefulWidget {

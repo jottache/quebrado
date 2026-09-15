@@ -99,6 +99,8 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
   }
 
   Widget _buildDesktopSidebar(BuildContext context, double width) {
+    final appState = Provider.of<AppState>(context);
+
     return Container(
       color: Colors.white,
       child: SafeArea(
@@ -179,7 +181,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 children: [
                   _buildNavItem(
-                     module: SuiteModule.commandCenter,
+                    module: SuiteModule.commandCenter,
                     icon: Icons.dashboard_customize_rounded,
                     label: "Command Center",
                     shortcut: "⌘1",
@@ -193,6 +195,50 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     shortcut: "⌘2",
                     color: const Color(0xFF1F6F5F),
                   ),
+                  if (_currentModule == SuiteModule.quebrado) ...[
+                    const SizedBox(height: 2),
+                    _buildSubNavItem(
+                      label: "Dashboard",
+                      icon: Icons.grid_view_rounded,
+                      tabIndex: 0,
+                      currentTabIndex: appState.currentTabIndex,
+                      onTap: () {
+                        _selectModule(SuiteModule.quebrado);
+                        appState.setTabIndex(0);
+                      },
+                    ),
+                    _buildSubNavItem(
+                      label: "Bolsillos",
+                      icon: Icons.inventory_2_rounded,
+                      tabIndex: 1,
+                      currentTabIndex: appState.currentTabIndex,
+                      onTap: () {
+                        _selectModule(SuiteModule.quebrado);
+                        appState.setTabIndex(1);
+                      },
+                    ),
+                    _buildSubNavItem(
+                      label: "Historial",
+                      icon: Icons.receipt_long_rounded,
+                      tabIndex: 2,
+                      currentTabIndex: appState.currentTabIndex,
+                      onTap: () {
+                        _selectModule(SuiteModule.quebrado);
+                        appState.setTabIndex(2);
+                      },
+                    ),
+                    _buildSubNavItem(
+                      label: "Mercado",
+                      icon: Icons.shopping_cart_outlined,
+                      tabIndex: 3,
+                      currentTabIndex: appState.currentTabIndex,
+                      onTap: () {
+                        _selectModule(SuiteModule.quebrado);
+                        appState.setTabIndex(3);
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   const SizedBox(height: 4),
                   _buildNavItem(
                     module: SuiteModule.recordatorios,
@@ -230,6 +276,56 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
             ),
             const SizedBox(height: 12),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubNavItem({
+    required String label,
+    required IconData icon,
+    required int tabIndex,
+    required int currentTabIndex,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = tabIndex == currentTabIndex;
+    const activeColor = Color(0xFF1F6F5F);
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 14, top: 2, bottom: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected ? activeColor.withOpacity(0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: isSelected
+                  ? Border.all(color: activeColor.withOpacity(0.35), width: 1.0)
+                  : Border.all(color: Colors.transparent, width: 1.0),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: isSelected ? activeColor : Colors.grey[600],
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                    color: isSelected ? activeColor : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -362,49 +458,51 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF1F6F5F),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      if (_currentModule == SuiteModule.commandCenter) ...[
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF1F6F5F),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () {
+                            showResponsiveSheet(
+                              context: context,
+                              builder: (_) => const AddTransactionBottomSheet(
+                                initialType: TransactionType.expense,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.add_rounded, size: 17),
+                          label: const Text(
+                            "Nuevo Gasto",
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        onPressed: () {
-                          showResponsiveSheet(
-                            context: context,
-                            builder: (_) => const AddTransactionBottomSheet(
-                              initialType: TransactionType.expense,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.add_rounded, size: 17),
-                        label: const Text(
-                          "Nuevo Gasto",
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                        const SizedBox(width: 10),
 
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: RemindersColors.primary,
-                          side: const BorderSide(color: RemindersColors.primary, width: 1.2),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: RemindersColors.primary,
+                            side: const BorderSide(color: RemindersColors.primary, width: 1.2),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => const ReminderEditorDialog(),
+                            );
+                          },
+                          icon: const Icon(Icons.alarm_add_rounded, size: 17),
+                          label: const Text(
+                            "Recordatorio",
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => const ReminderEditorDialog(),
-                          );
-                        },
-                        icon: const Icon(Icons.alarm_add_rounded, size: 17),
-                        label: const Text(
-                          "Recordatorio",
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                        const SizedBox(width: 10),
+                      ],
 
                       IconButton(
                         icon: const Icon(Icons.calculate_outlined),

@@ -721,19 +721,15 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
     });
 
     try {
-      if (widget.appState.useBiometrics) {
-        bool authenticated = await BiometricService.authenticate();
-        if (!authenticated) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Autenticación fallida', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red),
-            );
-          }
-          setState(() {
-            _loading = false;
-          });
-          return;
-        }
+      final authenticated = await widget.appState.verifySecurityAuth(
+        context,
+        reason: 'Confirma tu identidad para registrar esta compra',
+      );
+      if (!authenticated) {
+        setState(() {
+          _loading = false;
+        });
+        return;
       }
 
       // Determine amount and currency based on selected account

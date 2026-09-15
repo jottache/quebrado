@@ -107,8 +107,11 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
   Future<void> _handleTransfer() async {
     if (!_formKey.currentState!.validate()) return;
     
-    if (widget.appState.useBiometrics) {
-      final authenticated = await BiometricService.authenticate();
+    if (widget.appState.useBiometrics || widget.appState.usePinSecurity) {
+      final authenticated = await widget.appState.verifySecurityAuth(
+        context,
+        reason: "Confirma tu identidad para transferir entre contabilidades",
+      );
       if (!authenticated) return;
     }
     

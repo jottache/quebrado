@@ -715,23 +715,14 @@ class TimelineEventRow extends StatelessWidget {
                         }
                       }
 
-                      if (appState.useBiometrics) {
-                        final authenticated = await BiometricService.authenticate(
-                          reason: isIncome
-                              ? "Confirma tu identidad para marcar este cobro como recibido"
-                              : "Confirma tu identidad para marcar esta deuda como pagada",
-                        );
-                        if (!authenticated) {
-                          if (btnCtx.mounted) {
-                            ScaffoldMessenger.of(btnCtx).showSnackBar(
-                              SnackBar(
-                                content: Text("Autenticación biométrica fallida o cancelada."),
-                                backgroundColor: AppColors.expense,
-                              ),
-                            );
-                          }
-                          return;
-                        }
+                      final authenticated = await appState.verifySecurityAuth(
+                        btnCtx,
+                        reason: isIncome
+                            ? "Confirma tu identidad para marcar este cobro como recibido"
+                            : "Confirma tu identidad para marcar esta deuda como pagada",
+                      );
+                      if (!authenticated) {
+                        return;
                       }
 
                       final accId = payment.accountId ?? (payment.currency == CurrencyType.usd ? 'default_usd' : 'default_ves');

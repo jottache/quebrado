@@ -151,15 +151,16 @@ class _TransferBankBottomSheetState extends State<TransferBankBottomSheet> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    if (widget.appState.useBiometrics) {
-      final authenticated = await BiometricService.authenticate(
+    if (widget.appState.useBiometrics || widget.appState.usePinSecurity) {
+      final authenticated = await widget.appState.verifySecurityAuth(
+        context,
         reason: "Confirma tu identidad para registrar esta transferencia",
       );
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Autenticación biométrica fallida o cancelada."),
+            const SnackBar(
+              content: Text("Autenticación de seguridad requerida o cancelada."),
               backgroundColor: AppColors.expense,
             ),
           );
