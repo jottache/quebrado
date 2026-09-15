@@ -421,7 +421,7 @@ void main() {
 
       final summary = art.metadata['summary'] as List;
       expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
-      expect(summary.any((s) => s['label'] == 'Categoría' && s['value'] == 'salud'), isTrue);
+      expect(summary.any((s) => s['label'] == 'Modelo' && s['value'] == 'Nota simple (Sin modelo)'), isTrue);
     });
   });
 }

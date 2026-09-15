@@ -236,7 +236,8 @@ $bdaysStr
                 'title': Schema(SchemaType.string, description: 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'),
                 'contentText': Schema(SchemaType.string, description: 'Texto detallado o relato completo de la nota o entrada.'),
                 'contactName': Schema(SchemaType.string, description: 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'),
-                'category': Schema(SchemaType.string, description: 'Categoría sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
+                'templateName': Schema(SchemaType.string, description: 'Modelo o plantilla reutilizable opcional si aplica (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es una nota libre o relato general, dejar vacío o "Nota simple".'),
+                'category': Schema(SchemaType.string, description: 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
               },
               requiredProperties: ['title', 'contentText'],
             ),
@@ -453,7 +454,8 @@ $bdaysStr
                 'title': {'type': 'STRING', 'description': 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'},
                 'contentText': {'type': 'STRING', 'description': 'Texto detallado o relato completo de la nota o entrada.'},
                 'contactName': {'type': 'STRING', 'description': 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'},
-                'category': {'type': 'STRING', 'description': 'Categoría sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
+                'templateName': {'type': 'STRING', 'description': 'Modelo o plantilla reutilizable opcional (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es libre, dejar vacío o "Nota simple".'},
+                'category': {'type': 'STRING', 'description': 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
               },
               'required': ['title', 'contentText'],
             },
@@ -1067,6 +1069,8 @@ $bdaysStr
         final contentText = (arguments['contentText']?.toString() ?? '').trim();
         final contactName = arguments['contactName']?.toString().trim();
         final category = arguments['category']?.toString().trim() ?? 'salud';
+        final templateName = arguments['templateName']?.toString().trim() ??
+            arguments['model']?.toString().trim();
 
         DiarioContact? targetContact;
         if (contactName != null && contactName.isNotEmpty) {
@@ -1077,10 +1081,17 @@ $bdaysStr
             ? targetContact.name
             : (contactName != null && contactName.isNotEmpty ? contactName : 'General');
 
+        final templateDisplay = (templateName != null &&
+                templateName.isNotEmpty &&
+                templateName.toLowerCase() != 'nota simple' &&
+                !templateName.toLowerCase().contains('sin modelo'))
+            ? templateName
+            : 'Nota simple (Sin modelo)';
+
         final summaryList = <Map<String, String>>[
           {'label': 'Título', 'value': title},
           {'label': 'Contacto', 'value': contactDisplay},
-          if (category.isNotEmpty) {'label': 'Categoría', 'value': category},
+          {'label': 'Modelo', 'value': templateDisplay},
           {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
         ];
 
@@ -1100,6 +1111,7 @@ $bdaysStr
               if (contactName != null && contactName.isNotEmpty) 'contactName': contactName,
               if (targetContact != null) 'contactId': targetContact.id,
               'category': category,
+              'templateName': templateDisplay,
             },
           },
         );

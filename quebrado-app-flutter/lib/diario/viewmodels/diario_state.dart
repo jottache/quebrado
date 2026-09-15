@@ -59,6 +59,15 @@ class DiarioState extends ChangeNotifier {
       _categories = results[1] as List<DiarioCategory>;
       _templates = results[2] as List<DiarioTemplate>;
       _entries = results[3] as List<DiarioEntry>;
+
+      // Sanear entradas libres sin modelo que hayan quedado asociadas por error a subcategoría de tallas
+      for (int i = 0; i < _entries.length; i++) {
+        final entry = _entries[i];
+        if (entry.templateId == null && entry.categoryId == 'cat_salud_tallas') {
+          _entries[i] = entry.copyWith(categoryId: 'cat_salud');
+          _service.saveEntry(_entries[i]);
+        }
+      }
     } catch (e) {
       _errorMessage = 'Error al cargar Diario Jottache: $e';
       debugPrint(_errorMessage);

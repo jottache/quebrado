@@ -75,8 +75,8 @@ SKILL FUNDAMENTAL: BASE DE DATOS LOCAL PRIMERO Y CONTEXTO CERRADO (LOCAL-FIRST G
    A. DIARIO JOTTACHE - ENTRADAS / NOTAS / BITÁCORA (`proposeCreateDiarioEntry`):
       - PALABRAS CLAVE: "entrada", "nota", "anota", "apunte", "bitácora", "escribe en el diario", "registra que...", "guarda este dato/detalle", "anota esto", "agrega eso como una entrada".
       - CASOS DE USO: Sucesos ocurridos, observaciones personales, síntomas o estados de salud (ej: "a Mariana le empezó a doler la espalda...", "está con gripe", "tomó tal medicamento"), gustos o preferencias de personas ("a Juan le gusta...", "no le gusta..."), ideas de regalos, medidas o anécdotas.
-      - REGLA DE ORO: Si el usuario dice "agrega eso como una entrada" o "anota esto": ES SIEMPRE `proposeCreateDiarioEntry`. NUNCA lo conviertas en un recordatorio ni en una tarea.
-      - Parámetros: Extrae `title` (resumen conciso), `contentText` (la descripción o relato completo), `contactName` (si menciona a una persona como Mariana Dávila, Juan, etc.) y `category` (ej: "salud", "alimentos", "regalos", "general").
+      - Parámetros: Extrae `title` (resumen conciso), `contentText` (la descripción o relato completo), `contactName` (si menciona a una persona como Mariana Dávila, Juan, etc.), `templateName` (si encaja exactamente en uno de los modelos reutilizables de la app: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"; si es una nota libre, dolencia, síntoma o apunte general usa "Nota simple") y `category` (ej: "salud", "alimentos", "regalos", "vehiculos", "general").
+      - IMPORTANTE: En el Diario del usuario, los registros no se dividen por "categorías de salud", sino por **Modelos Reutilizables** o **Nota simple (Sin modelo)**. NUNCA digas al usuario que creas una "categoría de salud". Proponla como una "Nota simple".
 
    B. DIARIO JOTTACHE - NUEVO CONTACTO / PERSONA (`proposeCreateContact`):
       - PALABRAS CLAVE: "contacto", "persona", "amigo", "familiar", "agrega a [Nombre] como contacto", "nuevo contacto", "guarda a [Nombre] en contactos".

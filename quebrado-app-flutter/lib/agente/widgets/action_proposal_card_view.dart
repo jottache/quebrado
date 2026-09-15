@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../models/chat_artifact_model.dart';
 import '../theme/agente_colors.dart';
 import '../../diario/viewmodels/diario_state.dart';
+import '../../diario/models/diario_template.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../recordatorios/models/reminder_model.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
@@ -113,30 +114,67 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             }
           }
 
-          // 2. Resolver categoría entre las disponibles para este contacto
+          // 2. Resolver plantilla/modelo opcional si fue indicado
+          final templateName = (data['templateName'] ??
+                  data['model'] ??
+                  data['template'] ??
+                  '')
+              .toString()
+              .trim();
+
+          DiarioTemplate? matchedTemplate;
+          if (templateName.isNotEmpty &&
+              templateName.toLowerCase() != 'nota simple' &&
+              !templateName.toLowerCase().contains('sin modelo')) {
+            final lower = templateName.toLowerCase();
+            try {
+              matchedTemplate = diarioState.templates.firstWhere((t) =>
+                  t.name.toLowerCase() == lower ||
+                  t.name.toLowerCase().contains(lower) ||
+                  lower.contains(t.name.toLowerCase()));
+            } catch (_) {}
+          }
+
+          // 3. Resolver categoría raíz (preferir siempre categorías principales para evitar subcategorías como tallas)
+          final rootCats = diarioState.getRootCategories(contactId);
           final availableCats = diarioState.categories
               .where((c) => c.contactId == null || c.contactId == contactId)
               .toList();
 
-          String categoryId = 'cat_salud';
-          final matchCat = availableCats.where((c) =>
-              c.id.toLowerCase() == categoryKey ||
-              c.id.toLowerCase().contains(categoryKey) ||
-              c.name.toLowerCase().contains(categoryKey));
-          if (matchCat.isNotEmpty) {
-            categoryId = matchCat.first.id;
-          } else {
-            final rootCats = diarioState.getRootCategories(contactId);
-            if (rootCats.isNotEmpty) {
-              categoryId = rootCats.first.id;
-            } else if (availableCats.isNotEmpty) {
-              categoryId = availableCats.first.id;
+          String categoryId = rootCats.isNotEmpty ? rootCats.first.id : 'cat_salud';
+
+          if (categoryKey.isNotEmpty && categoryKey != 'general') {
+            // Prioridad 1: Coincidencia exacta en raíces
+            final exactRoot = rootCats.where((c) =>
+                c.id.toLowerCase() == categoryKey ||
+                c.id.toLowerCase() == 'cat_$categoryKey' ||
+                c.name.toLowerCase() == categoryKey);
+            if (exactRoot.isNotEmpty) {
+              categoryId = exactRoot.first.id;
+            } else {
+              // Prioridad 2: Raíz que contenga la clave (ej: "salud" -> "cat_salud")
+              final partialRoot = rootCats.where((c) =>
+                  c.id.toLowerCase().contains(categoryKey) ||
+                  c.name.toLowerCase().contains(categoryKey));
+              if (partialRoot.isNotEmpty) {
+                categoryId = partialRoot.first.id;
+              } else {
+                // Prioridad 3: Cualquier categoría disponible que coincida exactamente
+                final exactAny = availableCats.where((c) =>
+                    c.id.toLowerCase() == categoryKey ||
+                    c.name.toLowerCase() == categoryKey);
+                if (exactAny.isNotEmpty) {
+                  categoryId = exactAny.first.id;
+                }
+              }
             }
           }
 
           await diarioState.addEntry(
             contactId: contactId,
             categoryId: categoryId,
+            templateId: matchedTemplate?.id,
+            entryType: matchedTemplate != null ? 'template_instance' : 'simple_text',
             title: title,
             contentText: contentText,
           );

@@ -710,20 +710,27 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       ],
                     ),
                   )
-                else if (category != null)
+                else
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: category.color.withOpacity(0.12),
+                      color: DiarioColors.primaryLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      category.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: category.color,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.edit_note_rounded, size: 13, color: DiarioColors.primary),
+                        SizedBox(width: 4),
+                        Text(
+                          'Nota simple',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: DiarioColors.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
