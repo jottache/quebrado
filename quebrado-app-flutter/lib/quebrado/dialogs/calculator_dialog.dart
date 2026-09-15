@@ -6,6 +6,7 @@ import '../viewmodels/app_state.dart';
 import '../models/currency_type.dart';
 import '../widgets/claymorphic_card.dart';
 import 'transfer_bank_dialog.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 class CalculatorBottomSheet extends StatefulWidget {
   const CalculatorBottomSheet({super.key});
@@ -265,42 +266,51 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
+        borderRadius: isDesktop
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
+        left: 20.0,
+        right: 20.0,
+        top: isDesktop ? 24.0 : 20.0,
         bottom: MediaQuery.of(context).padding.bottom + 16.0,
       ),
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+            if (!isDesktop) ...[
+              // Top drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   "Calculadora de Divisas",
                   style: TextStyle(
                     fontSize: 20,
@@ -309,12 +319,12 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // 1. Conversion List (Top)
             Text(

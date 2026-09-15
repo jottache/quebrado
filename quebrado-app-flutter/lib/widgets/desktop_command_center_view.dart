@@ -20,6 +20,7 @@ import '../habitos/theme/habitos_terminal_theme.dart';
 import '../habitos/screens/habitos_home_screen.dart';
 import '../recordatorios/recordatorios.dart';
 import 'responsive_breakpoints.dart';
+import 'responsive_sheet_helper.dart';
 
 class DesktopCommandCenterView extends StatelessWidget {
   const DesktopCommandCenterView({super.key});
@@ -239,10 +240,8 @@ class DesktopCommandCenterView extends StatelessWidget {
         icon: const Icon(Icons.add_rounded, size: 20),
         tooltip: "Registrar Gasto/Ingreso",
         onPressed: () {
-          showModalBottomSheet(
+          showResponsiveSheet(
             context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
             builder: (_) => const AddTransactionBottomSheet(),
           );
         },
@@ -624,31 +623,34 @@ class DesktopCommandCenterView extends StatelessWidget {
               style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.6),
             ),
             const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: bdays.map((c) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: DiarioColors.primary.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildAvatarCircle(c, radius: 12),
-                        const SizedBox(width: 6),
-                        Text(
-                          c.name,
-                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+            ResponsiveHorizontalScroll(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: bdays.map((c) {
+                    return Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: DiarioColors.primaryLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: DiarioColors.primary.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildAvatarCircle(c, radius: 12),
+                          const SizedBox(width: 6),
+                          Text(
+                            c.name,
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
             const SizedBox(height: 14),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'responsive_breakpoints.dart';
+import 'responsive_sheet_helper.dart';
 import '../quebrado/viewmodels/app_state.dart';
 import '../quebrado/theme/colors.dart';
 import '../diario/diario.dart';
@@ -379,154 +380,168 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
     final remindersState = Provider.of<RemindersState>(context);
 
     final bcv = appState.bcvRate > 0 ? appState.bcvRate.toStringAsFixed(2) : "--";
-    final par = appState.parallelRate > 0 ? appState.parallelRate.toStringAsFixed(2) : "--";
+    final eur = appState.euroRate > 0 ? appState.euroRate.toStringAsFixed(2) : "--";
 
     return Container(
       height: 64,
+      width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
-            // Módulo actual y breadcrumb
-            Text(
-              _getModuleTitle(_currentModule),
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-                color: Colors.black87,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            // Ticker de Tasas BCV / Paralelo
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F9FA),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.trending_up_rounded, size: 16, color: Color(0xFF10B981)),
-                  const SizedBox(width: 6),
-                  Text(
-                    "BCV: Bs. $bcv",
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
+                  // Módulo actual y ticker de tasas
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _getModuleTitle(_currentModule),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Ticker de Tasas BCV / Euro Oficial
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7F9FA),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.trending_up_rounded, size: 16, color: Color(0xFF10B981)),
+                            const SizedBox(width: 8),
+                            Text(
+                              "BCV: Bs. $bcv",
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              "Euro Oficial: Bs. $eur",
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.grey[750]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    "Paralelo: Bs. $par",
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+
+                  const SizedBox(width: 20),
+
+                  // Botones de acción directa a la derecha
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F6F5F),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          showResponsiveSheet(
+                            context: context,
+                            builder: (_) => const AddTransactionBottomSheet(
+                              initialType: TransactionType.expense,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.add_rounded, size: 17),
+                        label: const Text(
+                          "Nuevo Gasto",
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: RemindersColors.primary,
+                          side: const BorderSide(color: RemindersColors.primary, width: 1.2),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => const ReminderEditorDialog(),
+                          );
+                        },
+                        icon: const Icon(Icons.alarm_add_rounded, size: 17),
+                        label: const Text(
+                          "Recordatorio",
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      IconButton(
+                        icon: const Icon(Icons.calculate_outlined),
+                        tooltip: "Calculadora de divisas",
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFFF3F4F6),
+                          foregroundColor: Colors.black87,
+                        ),
+                        onPressed: () {
+                          showResponsiveSheet(
+                            context: context,
+                            builder: (context) => const CalculatorBottomSheet(),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 10),
+
+                      IconButton(
+                        icon: const Icon(Icons.sync_rounded),
+                        tooltip: "Sincronizar todos los datos",
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFFF3F4F6),
+                          foregroundColor: const Color(0xFF1F6F5F),
+                        ),
+                        onPressed: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Sincronizando suite completa..."),
+                              duration: Duration(milliseconds: 900),
+                            ),
+                          );
+                          await Future.wait([
+                            appState.loadData(forceReload: true),
+                            appState.refreshRates(),
+                            diarioState.loadAll(),
+                            habitosState.loadHabits(),
+                            remindersState.reload(),
+                          ]);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Suite sincronizada correctamente"),
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-
-            // Botones de acción directa
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1F6F5F),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => const AddTransactionBottomSheet(
-                    initialType: TransactionType.expense,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: const Text(
-                "Nuevo Gasto",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: RemindersColors.primary,
-                side: const BorderSide(color: RemindersColors.primary, width: 1.2),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => const ReminderEditorDialog(),
-                );
-              },
-              icon: const Icon(Icons.alarm_add_rounded, size: 16),
-              label: const Text(
-                "Recordatorio",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            IconButton(
-              icon: const Icon(Icons.calculate_outlined),
-              tooltip: "Calculadora de divisas",
-              style: IconButton.styleFrom(
-                backgroundColor: const Color(0xFFF3F4F6),
-                foregroundColor: Colors.black87,
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const CalculatorBottomSheet(),
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-
-            IconButton(
-              icon: const Icon(Icons.sync_rounded),
-              tooltip: "Sincronizar todos los datos",
-              style: IconButton.styleFrom(
-                backgroundColor: const Color(0xFFF3F4F6),
-                foregroundColor: const Color(0xFF1F6F5F),
-              ),
-              onPressed: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Sincronizando suite completa..."),
-                    duration: Duration(milliseconds: 900),
-                  ),
-                );
-                await Future.wait([
-                  appState.loadData(forceReload: true),
-                  appState.refreshRates(),
-                  diarioState.loadAll(),
-                  habitosState.loadHabits(),
-                  remindersState.reload(),
-                ]);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Suite sincronizada correctamente"),
-                      backgroundColor: Color(0xFF10B981),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

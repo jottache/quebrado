@@ -24,6 +24,7 @@ import '../widgets/dashboard_charts_card.dart';
 import 'rates_history_screen.dart';
 import '../../screens/app_launcher_screen.dart';
 import '../dialogs/super_app_hub_sheet.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -169,10 +170,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
-                  showModalBottomSheet(
+                  showResponsiveSheet(
                     context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
                     builder: (context) =>
                         PendingConfirmationsBottomSheet(),
                   );
@@ -239,10 +238,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             iconSize: 26,
             tooltip: "Calculadora de divisas",
             onPressed: () {
-              showModalBottomSheet(
+              showResponsiveSheet(
                 context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
                 builder: (context) => CalculatorBottomSheet(),
               );
             },
@@ -448,59 +445,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: BouncingScrollPhysics(),
-                      child: Row(
-                        children: [
-                          _RateCard(
-                            title: "Oficial BCV",
-                            rate: appState.bcvRate,
-                            date: appState.rateHistory.isNotEmpty
-                                ? appState.rateHistory.first.date
-                                : null,
-                            badge: Text(
-                              "\$",
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
+                    ResponsiveHorizontalScroll(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _RateCard(
+                              title: "Oficial BCV",
+                              rate: appState.bcvRate,
+                              date: appState.rateHistory.isNotEmpty
+                                  ? appState.rateHistory.first.date
+                                  : null,
+                              badge: Text(
+                                "\$",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 12),
-                          _RateCard(
-                            title: "Euro Oficial",
-                            rate: appState.euroRate,
-                            date: appState.euroRateHistory.isNotEmpty
-                                ? appState.euroRateHistory.first.date
-                                : null,
-                            badge: Text(
-                              "€",
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
+                            SizedBox(width: 12),
+                            _RateCard(
+                              title: "Euro Oficial",
+                              rate: appState.euroRate,
+                              date: appState.euroRateHistory.isNotEmpty
+                                  ? appState.euroRateHistory.first.date
+                                  : null,
+                              badge: Text(
+                                "€",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 12),
-                          _RateCard(
-                            title: "Paralelo",
-                            rate: appState.parallelRate,
-                            date: appState.rateHistory.isNotEmpty
-                                ? appState.rateHistory.first.date
-                                : null,
-                            badge: Text(
-                              "\$",
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
+                            SizedBox(width: 12),
+                            _RateCard(
+                              title: "Paralelo",
+                              rate: appState.parallelRate,
+                              date: appState.rateHistory.isNotEmpty
+                                  ? appState.rateHistory.first.date
+                                  : null,
+                              badge: Text(
+                                "\$",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -547,10 +546,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: AppColors.primary,
                           ),
                           onPressed: () {
-                            showModalBottomSheet(
+                            showResponsiveSheet(
                               context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
                               builder: (context) => AddAccountBottomSheet(),
                             );
                           },
@@ -558,46 +555,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: BouncingScrollPhysics(),
-                      child: Row(
-                        children: appState.accounts.map((acc) {
-                          final color = parseHexColor(acc.colorHex);
-                          final isUsd = acc.currency == CurrencyType.usd;
-                          return Padding(
-                            padding: EdgeInsets.only(right: 12.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) =>
-                                      AddAccountBottomSheet(editingAccount: acc),
-                                );
-                              },
-                              child: ClaymorphicCard(
-                                cornerRadius: 18,
-                                padding: EdgeInsets.all(12.0),
-                                child: SizedBox(
-                                  width: 140,
-                                  height: 110,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                            width: 32,
-                                            height: 32,
-                                            decoration: BoxDecoration(
-                                              color: color.withOpacity(0.15),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
+                    ResponsiveHorizontalScroll(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: BouncingScrollPhysics(),
+                        child: Row(
+                          children: appState.accounts.map((acc) {
+                            final color = parseHexColor(acc.colorHex);
+                            final isUsd = acc.currency == CurrencyType.usd;
+                            return Padding(
+                              padding: EdgeInsets.only(right: 12.0),
+                              child: GestureDetector(
+                                onTap: () {
+                                  showResponsiveSheet(
+                                    context: context,
+                                    builder: (context) =>
+                                        AddAccountBottomSheet(editingAccount: acc),
+                                  );
+                                },
+                                child: ClaymorphicCard(
+                                  cornerRadius: 18,
+                                  padding: EdgeInsets.all(12.0),
+                                  child: SizedBox(
+                                    width: 140,
+                                    height: 110,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              width: 32,
+                                              height: 32,
+                                              decoration: BoxDecoration(
+                                                color: color.withOpacity(0.15),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
                                               getIconData(acc.icon),
                                               color: color,
                                               size: 16,
@@ -644,10 +640,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         }).toList(),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              SizedBox(height: 24),
+            ),
+            const SizedBox(height: 24),
 
               // ANALYTICS CHARTS SECTION
               DashboardChartsCard(),

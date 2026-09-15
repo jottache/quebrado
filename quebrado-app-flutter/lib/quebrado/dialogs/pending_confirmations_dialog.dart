@@ -10,6 +10,7 @@ import '../theme/colors.dart';
 import '../widgets/helpers.dart';
 import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 class PendingConfirmationsBottomSheet extends StatefulWidget {
   final PendingOccurrence? filterOccurrence;
@@ -510,35 +511,44 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     final size = MediaQuery.of(context).size;
     final showTabs = widget.filterOccurrence == null && _tabController != null && appState.profiles.isNotEmpty;
     final _states = _profileStates[_currentViewedDb] ?? [];
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Container(
+      height: isDesktop ? size.height : null,
       constraints: BoxConstraints(
-        maxHeight: size.height * 0.9,
+        maxHeight: isDesktop ? size.height : size.height * 0.9,
       ),
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
+        borderRadius: isDesktop
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
       ),
-      padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 8),
+      padding: EdgeInsets.only(left: 20, right: 20, top: isDesktop ? 24 : 20, bottom: 8),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+            if (!isDesktop) ...[
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
             Row(
               children: [
                 Container(

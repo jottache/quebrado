@@ -13,6 +13,7 @@ import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
 import '../models/saving_pocket.dart';
 import 'cross_profile_transfer_dialog.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 enum RateSource { bcv, paralelo, euro }
 
@@ -523,37 +524,46 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     );
     final isAccVES = selectedAcc.currency == CurrencyType.bsBCV;
 
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
+        borderRadius: isDesktop
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
+        left: 20.0,
+        right: 20.0,
+        top: isDesktop ? 24.0 : 20.0,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
       ),
       child: FractionallySizedBox(
-        heightFactor: 0.85,
+        heightFactor: isDesktop ? 1.0 : 0.85,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+            if (!isDesktop) ...[
+              // Top drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
 
             // Header
             Row(

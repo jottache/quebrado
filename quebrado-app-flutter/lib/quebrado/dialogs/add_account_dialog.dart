@@ -6,6 +6,7 @@ import '../models/currency_type.dart';
 import '../theme/colors.dart';
 import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 class AddAccountBottomSheet extends StatefulWidget {
   final Account? editingAccount;
@@ -97,38 +98,46 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
     final isDefaultAccount = widget.editingAccount != null &&
         (widget.editingAccount!.id == 'default_usd' || widget.editingAccount!.id == 'default_ves');
     final canDelete = widget.editingAccount != null && appState.accounts.length > 1 && !isDefaultAccount;
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
+        borderRadius: isDesktop
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
+        left: 20.0,
+        right: 20.0,
+        top: isDesktop ? 24.0 : 20.0,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
       ),
       child: FractionallySizedBox(
-        heightFactor: 0.85,
+        heightFactor: isDesktop ? 1.0 : 0.85,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+            if (!isDesktop) ...[
+              // Top drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
 
             // Header
             Row(
@@ -136,35 +145,35 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
               children: [
                 Text(
                   widget.editingAccount == null ? "Nueva Cuenta" : "Editar Cuenta",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Scrollable content
             Expanded(
               child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Information Section
                     ClaymorphicCard(
                       cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "DETALLES DE LA CUENTA",
                             style: TextStyle(
                               fontSize: 10,
@@ -173,7 +182,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
