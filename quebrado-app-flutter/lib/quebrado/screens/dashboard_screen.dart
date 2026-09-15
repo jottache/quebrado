@@ -265,24 +265,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onRefresh: () async {
           await appState.refreshRates();
         },
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          physics: AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.only(
-            left: 16.0,
-            right: 16.0,
-            top: 16.0,
-            bottom: 140.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Future transactions warning card
-              Builder(
-                builder: (context) {
-                  final now = DateTime.now();
-                  final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
-                  final futureTxs = appState.transactions.where((t) => t.date.isAfter(todayEnd)).toList();
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1100),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: 140.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Future transactions warning card
+                  Builder(
+                    builder: (context) {
+                      final now = DateTime.now();
+                      final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+                      final futureTxs = appState.transactions.where((t) => t.date.isAfter(todayEnd)).toList();
                   if (futureTxs.isEmpty) return SizedBox.shrink();
 
                   final count = futureTxs.length;
@@ -851,8 +854,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }
 
 class _BouncyBalanceCard extends StatefulWidget {

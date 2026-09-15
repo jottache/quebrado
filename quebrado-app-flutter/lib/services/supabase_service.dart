@@ -760,9 +760,7 @@ class SupabaseService {
           'name': 'Personal',
           'is_active': true,
         });
-        if (backupData is Map) {
-          databases['quebrado.db'] = Map<String, dynamic>.from(backupData);
-        }
+        databases['quebrado.db'] = Map<String, dynamic>.from(backupData);
       }
 
       if (profilesToSave.isEmpty) {

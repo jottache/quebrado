@@ -8,6 +8,7 @@ import 'recordatorios/recordatorios.dart';
 import 'agente/agente.dart';
 import 'services/notification_manager.dart';
 import 'screens/app_launcher_screen.dart';
+import 'widgets/responsive_suite_scaffold.dart';
 import 'theme/colors.dart';
 
 import 'package:flutter/foundation.dart';
@@ -102,7 +103,9 @@ class MyApp extends StatelessWidget {
                 },
               ),
             ),
-            home: AppLauncherScreen(),
+            home: const ResponsiveSuiteScaffold(
+              mobileBody: AppLauncherScreen(),
+            ),
           );
         }
       ),

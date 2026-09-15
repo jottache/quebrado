@@ -178,31 +178,36 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: HabitosColors.primary),
             )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-              children: [
-                // 1. Progress Banner Card
-                _buildProgressCard(state),
-                const SizedBox(height: 14),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                  children: [
+                    // 1. Progress Banner Card
+                    _buildProgressCard(state),
+                    const SizedBox(height: 14),
 
-                // 2. Date Navigation Bar
-                _buildDateNavigator(state),
-                const SizedBox(height: 14),
+                    // 2. Date Navigation Bar
+                    _buildDateNavigator(state),
+                    const SizedBox(height: 14),
 
-                // 3. Filter Chips
-                _buildFilterRow(state),
-                const SizedBox(height: 12),
+                    // 3. Filter Chips
+                    _buildFilterRow(state),
+                    const SizedBox(height: 12),
 
-                // 3.1 Contact Filter Chips
-                _buildContactFilterRow(context, state),
-                const SizedBox(height: 14),
+                    // 3.1 Contact Filter Chips
+                    _buildContactFilterRow(context, state),
+                    const SizedBox(height: 14),
 
-                // 4. Habits List
-                if (state.filteredHabits.isEmpty)
-                  _buildEmptyState(context)
-                else
-                  ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
-              ],
+                    // 4. Habits List
+                    if (state.filteredHabits.isEmpty)
+                      _buildEmptyState(context)
+                    else
+                      ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                  ],
+                ),
+              ),
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

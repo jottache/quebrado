@@ -132,8 +132,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
       body: RefreshIndicator(
         onRefresh: () => state.loadAll(),
         color: DiarioColors.primary,
-        child: CustomScrollView(
-          slivers: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1100),
+            child: CustomScrollView(
+              slivers: [
             // 1. Upcoming Birthdays Strip (if any)
             if (upcomingBirthdays.isNotEmpty)
               SliverToBoxAdapter(
@@ -272,7 +275,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+    ),
+  ),
+  floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddContactDialog,
         backgroundColor: DiarioColors.primary,
         foregroundColor: Colors.white,

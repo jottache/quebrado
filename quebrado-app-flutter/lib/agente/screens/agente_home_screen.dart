@@ -118,18 +118,23 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // TAB 1: Conversaciones
-          _buildSessionsTab(context, agenteState),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              // TAB 1: Conversaciones
+              _buildSessionsTab(context, agenteState),
 
-          // TAB 2: Artefactos Guardados
-          _buildArtifactsTab(context, artifacts),
+              // TAB 2: Artefactos Guardados
+              _buildArtifactsTab(context, artifacts),
 
-          // TAB 3: Prompts Rápidos del Launcher
-          _buildPromptsTab(context, agenteState),
-        ],
+              // TAB 3: Prompts Rápidos del Launcher
+              _buildPromptsTab(context, agenteState),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: _tabController.index == 2
           ? FloatingActionButton.extended(
