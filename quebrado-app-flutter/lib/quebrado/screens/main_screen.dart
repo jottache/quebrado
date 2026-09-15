@@ -16,6 +16,7 @@ import '../dialogs/add_action_selection_sheet.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
 
 import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -72,10 +73,8 @@ class _MainScreenState extends State<MainScreen> {
 
       // 5. Show confirmations dialog
       if (appState.pendingPaymentsToday.isNotEmpty) {
-        showModalBottomSheet(
+        showResponsiveSheet(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
           builder: (context) => PendingConfirmationsBottomSheet(),
         );
       }
@@ -108,10 +107,8 @@ class _MainScreenState extends State<MainScreen> {
                   description: "Desde aquí puedes registrar rápidamente ingresos, gastos, cambios de divisas y revisar pagos pendientes.",
                   child: FloatingActionButton(
                     onPressed: () {
-                      showModalBottomSheet(
+                      showResponsiveSheet(
                         context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
                         builder: (context) => AddActionSelectionBottomSheet(),
                       );
                     },

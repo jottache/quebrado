@@ -52,7 +52,7 @@ class DatabaseHelper {
 
   Future<void> _ensureFactoryInitialized() async {
     if (kIsWeb) {
-      databaseFactory = databaseFactoryFfiWeb;
+      databaseFactory = databaseFactoryFfiWebNoWebWorker;
     } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS || Platform.environment.containsKey('FLUTTER_TEST')) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
