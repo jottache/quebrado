@@ -5,6 +5,7 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../dialogs/contact_editor_dialog.dart';
 import 'contact_detail_screen.dart';
+import 'entry_editor_dialog.dart';
 import 'template_manager_screen.dart';
 import 'diario_search_screen.dart';
 import '../widgets/diario_image_helper.dart';
@@ -28,6 +29,20 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
     showDialog(
       context: context,
       builder: (context) => const ContactEditorDialog(),
+    );
+  }
+
+  void _openQuickAddEntry(DiarioContact contact) {
+    final state = Provider.of<DiarioState>(context, listen: false);
+    final rootCategories = state.getRootCategories(contact.id);
+    final defaultCatId = rootCategories.firstOrNull?.id ?? 'cat_alimentos';
+
+    showDialog(
+      context: context,
+      builder: (context) => EntryEditorDialog(
+        contactId: contact.id,
+        categoryId: defaultCatId,
+      ),
     );
   }
 
@@ -387,36 +402,52 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              // Minimalist Avatar in Primary Tone
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: DiarioColors.primaryLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: DiarioColors.primary.withOpacity(0.20),
-                    width: 1.2,
+              // Minimalist Avatar in Primary Tone (Tap to zoom if photo exists)
+              GestureDetector(
+                onTap: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
+                    ? () {
+                        DiarioImageHelper.openFullScreenImage(
+                          context,
+                          contact.avatarUrl!,
+                          title: contact.name,
+                        );
+                      }
+                    : null,
+                child: MouseRegion(
+                  cursor: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
+                      ? SystemMouseCursors.click
+                      : SystemMouseCursors.basic,
+                  child: Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: DiarioColors.primaryLight,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: DiarioColors.primary.withOpacity(0.20),
+                        width: 1.2,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
+                        ? ClipOval(
+                            child: DiarioImageHelper.buildImageWidget(
+                              contact.avatarUrl!,
+                              width: 46,
+                              height: 46,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Text(
+                            contact.initials,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: DiarioColors.primary,
+                            ),
+                          ),
                   ),
                 ),
-                alignment: Alignment.center,
-                child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
-                    ? ClipOval(
-                        child: DiarioImageHelper.buildImageWidget(
-                          contact.avatarUrl!,
-                          width: 46,
-                          height: 46,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Text(
-                        contact.initials,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: DiarioColors.primary,
-                        ),
-                      ),
               ),
 
               const SizedBox(width: 14),
@@ -486,14 +517,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen> {
               ),
 
               IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 18, color: DiarioColors.textMuted),
-                tooltip: 'Editar contacto',
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ContactEditorDialog(contact: contact),
-                  );
-                },
+                icon: const Icon(Icons.note_add_outlined, size: 19, color: DiarioColors.primary),
+                tooltip: 'Agregar nota rápida',
+                onPressed: () => _openQuickAddEntry(contact),
               ),
               Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey[400]),
             ],

@@ -279,59 +279,74 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           Row(
             children: [
               // Interactive Avatar
-              GestureDetector(
-                onTap: () => _updateAvatarDirectly(contact, state),
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        color: DiarioColors.primaryLight,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: DiarioColors.primary.withOpacity(0.25),
-                          width: 1.5,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
-                          ? ClipOval(
-                              child: DiarioImageHelper.buildImageWidget(
-                                contact.avatarUrl!,
-                                width: 58,
-                                height: 58,
-                                fit: BoxFit.cover,
-                              ),
+              Stack(
+                children: [
+                  GestureDetector(
+                    onTap: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
+                        ? () => DiarioImageHelper.openFullScreenImage(
+                              context,
+                              contact.avatarUrl!,
+                              title: contact.name,
                             )
-                          : Text(
-                              contact.initials,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                                color: DiarioColors.primary,
-                              ),
-                            ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
+                        : () => _updateAvatarDirectly(contact, state),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
-                          color: DiarioColors.primary,
+                          color: DiarioColors.primaryLight,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
+                          border: Border.all(
+                            color: DiarioColors.primary.withOpacity(0.25),
+                            width: 1.5,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.camera_alt_rounded,
-                          size: 11,
-                          color: Colors.white,
+                        alignment: Alignment.center,
+                        child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
+                            ? ClipOval(
+                                child: DiarioImageHelper.buildImageWidget(
+                                  contact.avatarUrl!,
+                                  width: 58,
+                                  height: 58,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Text(
+                                contact.initials,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: DiarioColors.primary,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      onTap: () => _updateAvatarDirectly(contact, state),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: DiarioColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt_rounded,
+                            size: 11,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               const SizedBox(width: 14),
               // Name & Nickname

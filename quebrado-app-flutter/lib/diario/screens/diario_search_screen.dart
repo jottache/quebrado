@@ -166,31 +166,45 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
             ),
           );
         },
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: DiarioColors.primaryLight,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: DiarioColors.primary.withOpacity(0.20),
-              width: 1.2,
+        leading: GestureDetector(
+          onTap: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
+              ? () => DiarioImageHelper.openFullScreenImage(
+                    context,
+                    contact.avatarUrl!,
+                    title: contact.name,
+                  )
+              : null,
+          child: MouseRegion(
+            cursor: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: DiarioColors.primaryLight,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: DiarioColors.primary.withOpacity(0.20),
+                  width: 1.2,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
+                  ? ClipOval(
+                      child: DiarioImageHelper.buildImageWidget(
+                        contact.avatarUrl!,
+                        width: 42,
+                        height: 42,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Text(
+                      contact.initials,
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: DiarioColors.primary),
+                    ),
             ),
           ),
-          alignment: Alignment.center,
-          child: contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty
-              ? ClipOval(
-                  child: DiarioImageHelper.buildImageWidget(
-                    contact.avatarUrl!,
-                    width: 42,
-                    height: 42,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              : Text(
-                  contact.initials,
-                  style: TextStyle(fontWeight: FontWeight.w900, color: DiarioColors.primary),
-                ),
         ),
         title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         subtitle: Text(
