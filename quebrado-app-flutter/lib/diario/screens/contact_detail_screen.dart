@@ -736,6 +736,33 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
                 const Spacer(),
 
+                // Fecha del registro
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: DiarioColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: DiarioColors.cardBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_rounded, size: 10, color: DiarioColors.textMuted),
+                      const SizedBox(width: 4),
+                      Text(
+                        entry.formattedDate,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: DiarioColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 6),
+
                 // Pin indicator
                 if (entry.isPinned)
                   IconButton(
@@ -745,7 +772,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     onPressed: () => state.togglePinEntry(entry.id),
                   ),
 
-                const SizedBox(width: 8),
+                if (entry.isPinned) const SizedBox(width: 6),
 
                 // Popup menu
                 PopupMenuButton<String>(

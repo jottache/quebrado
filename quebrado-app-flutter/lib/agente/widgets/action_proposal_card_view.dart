@@ -170,6 +170,11 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             }
           }
 
+          DateTime? customCreatedAt;
+          if (data['date'] != null) {
+            customCreatedAt = DateTime.tryParse(data['date'].toString());
+          }
+
           await diarioState.addEntry(
             contactId: contactId,
             categoryId: categoryId,
@@ -177,6 +182,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             entryType: matchedTemplate != null ? 'template_instance' : 'simple_text',
             title: title,
             contentText: contentText,
+            createdAt: customCreatedAt,
           );
           break;
 

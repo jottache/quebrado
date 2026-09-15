@@ -28,6 +28,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
   late TextEditingController _titleController;
   late TextEditingController _textController;
   late bool _isPinned;
+  late DateTime _selectedDate;
   String? _photoUrl;
 
   String? _selectedTemplateId;
@@ -41,6 +42,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     _titleController = TextEditingController(text: e?.title ?? '');
     _textController = TextEditingController(text: e?.contentText ?? '');
     _isPinned = e?.isPinned ?? false;
+    _selectedDate = e?.createdAt ?? DateTime.now();
     _selectedTemplateId = e?.templateId;
     _photoUrl = e?.photoUrl;
 
@@ -76,6 +78,35 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     });
   }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      helpText: 'Fecha del Registro',
+      confirmText: 'Seleccionar',
+      cancelText: 'Cancelar',
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  String _formatSelectedDate(DateTime date) {
+    final now = DateTime.now();
+    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+    final isYesterday = date.year == now.year && date.month == now.month && date.day == now.day - 1;
+    final months = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    final dateStr = '${date.day} de ${months[date.month - 1]} de ${date.year}';
+    if (isToday) return 'Hoy ($dateStr)';
+    if (isYesterday) return 'Ayer ($dateStr)';
+    return dateStr;
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -98,6 +129,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
         photoUrl: _photoUrl,
         contentData: _formData,
         isPinned: _isPinned,
+        createdAt: _selectedDate,
       );
     } else {
       final text = _textController.text.trim();
@@ -113,6 +145,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
           clearPhoto: _photoUrl == null || _photoUrl!.isEmpty,
           contentData: _formData,
           isPinned: _isPinned,
+          createdAt: _selectedDate,
         ),
       );
     }
@@ -303,6 +336,33 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                                     }),
                                   ],
                                   onChanged: (val) => _onTemplateSelected(val, templates),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            // Date Selector Field
+                            InkWell(
+                              onTap: _pickDate,
+                              borderRadius: BorderRadius.circular(14),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Fecha del Registro',
+                                  prefixIcon: const Icon(Icons.calendar_today_rounded, size: 20, color: DiarioColors.primary),
+                                  suffixIcon: const Icon(Icons.edit_calendar_rounded, size: 18, color: DiarioColors.textSecondary),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                  filled: true,
+                                  fillColor: DiarioColors.background,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                ),
+                                child: Text(
+                                  _formatSelectedDate(_selectedDate),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: DiarioColors.textPrimary,
+                                  ),
                                 ),
                               ),
                             ),

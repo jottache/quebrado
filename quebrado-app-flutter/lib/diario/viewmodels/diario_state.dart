@@ -307,7 +307,12 @@ class DiarioState extends ChangeNotifier {
 
   List<DiarioEntry> getEntriesForContact(String contactId) {
     return _entries.where((e) => e.contactId == contactId).toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      ..sort((a, b) {
+        if (a.isPinned != b.isPinned) {
+          return a.isPinned ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
   }
 
   Future<void> addEntry({
@@ -320,6 +325,7 @@ class DiarioState extends ChangeNotifier {
     String? photoUrl,
     Map<String, dynamic>? contentData,
     bool isPinned = false,
+    DateTime? createdAt,
   }) async {
     final newEntry = DiarioEntry(
       id: _uuid.v4(),
@@ -332,6 +338,7 @@ class DiarioState extends ChangeNotifier {
       photoUrl: photoUrl,
       contentData: contentData ?? {},
       isPinned: isPinned,
+      createdAt: createdAt ?? DateTime.now(),
     );
 
     _entries.insert(0, newEntry);

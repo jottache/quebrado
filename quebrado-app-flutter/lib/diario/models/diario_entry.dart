@@ -32,6 +32,39 @@ class DiarioEntry {
   bool get isTemplateInstance => entryType == 'template_instance' && templateId != null;
   bool get hasPhoto => photoUrl != null && photoUrl!.trim().isNotEmpty;
 
+  String get formattedDate {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final entryDay = DateTime(createdAt.year, createdAt.month, createdAt.day);
+    final difference = today.difference(entryDay).inDays;
+
+    final months = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+    final monthStr = months[createdAt.month - 1];
+
+    if (difference == 0) {
+      return 'Hoy';
+    } else if (difference == 1) {
+      return 'Ayer';
+    } else if (difference == -1) {
+      return 'Mañana';
+    } else if (createdAt.year == now.year) {
+      return '${createdAt.day} $monthStr';
+    } else {
+      return '${createdAt.day} $monthStr ${createdAt.year}';
+    }
+  }
+
+  String get formattedFullDate {
+    final months = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    return '${createdAt.day} de ${months[createdAt.month - 1]} de ${createdAt.year}';
+  }
+
   DiarioEntry copyWith({
     String? id,
     String? contactId,

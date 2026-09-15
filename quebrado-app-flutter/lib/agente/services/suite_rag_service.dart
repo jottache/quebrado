@@ -237,6 +237,7 @@ $bdaysStr
                 'contentText': Schema(SchemaType.string, description: 'Texto detallado o relato completo de la nota o entrada.'),
                 'contactName': Schema(SchemaType.string, description: 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'),
                 'templateName': Schema(SchemaType.string, description: 'Modelo o plantilla reutilizable opcional si aplica (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es una nota libre o relato general, dejar vacío o "Nota simple".'),
+                'date': Schema(SchemaType.string, description: 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'),
                 'category': Schema(SchemaType.string, description: 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
               },
               requiredProperties: ['title', 'contentText'],
@@ -455,6 +456,7 @@ $bdaysStr
                 'contentText': {'type': 'STRING', 'description': 'Texto detallado o relato completo de la nota o entrada.'},
                 'contactName': {'type': 'STRING', 'description': 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'},
                 'templateName': {'type': 'STRING', 'description': 'Modelo o plantilla reutilizable opcional (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es libre, dejar vacío o "Nota simple".'},
+                'date': {'type': 'STRING', 'description': 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'},
                 'category': {'type': 'STRING', 'description': 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
               },
               'required': ['title', 'contentText'],
@@ -1072,6 +1074,18 @@ $bdaysStr
         final templateName = arguments['templateName']?.toString().trim() ??
             arguments['model']?.toString().trim();
 
+        final dateStr = arguments['date']?.toString().trim();
+        DateTime entryDate = DateTime.now();
+        if (dateStr != null && dateStr.isNotEmpty) {
+          final parsed = DateTime.tryParse(dateStr);
+          if (parsed != null) entryDate = parsed;
+        }
+
+        final now = DateTime.now();
+        final isToday = entryDate.year == now.year && entryDate.month == now.month && entryDate.day == now.day;
+        final months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        final formattedDateStr = isToday ? 'Hoy' : '${entryDate.day} ${months[entryDate.month - 1]} ${entryDate.year}';
+
         DiarioContact? targetContact;
         if (contactName != null && contactName.isNotEmpty) {
           targetContact = _findContact(contactName);
@@ -1091,6 +1105,7 @@ $bdaysStr
         final summaryList = <Map<String, String>>[
           {'label': 'Título', 'value': title},
           {'label': 'Contacto', 'value': contactDisplay},
+          {'label': 'Fecha', 'value': formattedDateStr},
           {'label': 'Modelo', 'value': templateDisplay},
           {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
         ];
@@ -1110,6 +1125,7 @@ $bdaysStr
               'contentText': contentText,
               if (contactName != null && contactName.isNotEmpty) 'contactName': contactName,
               if (targetContact != null) 'contactId': targetContact.id,
+              'date': entryDate.toIso8601String(),
               'category': category,
               'templateName': templateDisplay,
             },
