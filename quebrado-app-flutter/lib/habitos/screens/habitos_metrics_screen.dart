@@ -10,11 +10,6 @@ class HabitosMetricsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<HabitosState>(context);
-    final heatmapData = state.getHeatmapData(daysBack: 84); // 12 semanas
-    final weekdayRates = state.getDayOfWeekSuccessRates();
-    final allHabits = state.allHabits;
-
     return Scaffold(
       backgroundColor: HabitosColors.background,
       appBar: AppBar(
@@ -35,25 +30,44 @@ class HabitosMetricsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-        children: [
-          // 1. GitHub-Style Activity Heatmap
-          _buildHeatmapCard(context, state, heatmapData),
-          const SizedBox(height: 16),
+      body: const HabitosMetricsView(),
+    );
+  }
+}
 
-          // 2. Resilience Score (30-Day Anti-Fragile Consistency)
-          _buildResilienceCard(state, allHabits),
-          const SizedBox(height: 16),
+class HabitosMetricsView extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
 
-          // 3. Weekday Consistency
-          _buildWeekdayCard(weekdayRates),
-          const SizedBox(height: 16),
+  const HabitosMetricsView({
+    super.key,
+    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 40),
+  });
 
-          // 4. Habits Ranking
-          _buildHabitsSummaryCard(context, state, allHabits),
-        ],
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final state = Provider.of<HabitosState>(context);
+    final heatmapData = state.getHeatmapData(daysBack: 84); // 12 semanas
+    final weekdayRates = state.getDayOfWeekSuccessRates();
+    final allHabits = state.allHabits;
+
+    return ListView(
+      padding: padding,
+      children: [
+        // 1. GitHub-Style Activity Heatmap
+        _buildHeatmapCard(context, state, heatmapData),
+        const SizedBox(height: 16),
+
+        // 2. Resilience Score (30-Day Anti-Fragile Consistency)
+        _buildResilienceCard(state, allHabits),
+        const SizedBox(height: 16),
+
+        // 3. Weekday Consistency
+        _buildWeekdayCard(weekdayRates),
+        const SizedBox(height: 16),
+
+        // 4. Habits Ranking
+        _buildHabitsSummaryCard(context, state, allHabits),
+      ],
     );
   }
 

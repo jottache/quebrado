@@ -126,6 +126,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<HabitosState>(context);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Scaffold(
       backgroundColor: HabitosColors.background,
@@ -133,10 +134,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: HabitosColors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: isDesktop
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: HabitosColors.textPrimary),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
         title: Row(
           children: [
             Container(
@@ -169,53 +172,94 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.insights_rounded, color: HabitosColors.textPrimary),
-            tooltip: 'Métricas & Consistencia',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const HabitosMetricsScreen()),
-              );
-            },
-          ),
-          const SizedBox(width: 6),
+          if (!isDesktop) ...[
+            IconButton(
+              icon: const Icon(Icons.insights_rounded, color: HabitosColors.textPrimary),
+              tooltip: 'Métricas & Consistencia',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const HabitosMetricsScreen()),
+                );
+              },
+            ),
+            const SizedBox(width: 6),
+          ],
         ],
       ),
       body: state.isLoading
           ? const Center(
               child: CircularProgressIndicator(color: HabitosColors.primary),
             )
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1100),
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+          : isDesktop
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Progress Banner Card
-                    _buildProgressCard(state),
-                    const SizedBox(height: 14),
-
-                    // 2. Date Navigation Bar
-                    _buildDateNavigator(state),
-                    const SizedBox(height: 14),
-
-                    // 3. Filter Chips
-                    _buildFilterRow(state),
-                    const SizedBox(height: 12),
-
-                    // 3.1 Contact Filter Chips
-                    _buildContactFilterRow(context, state),
-                    const SizedBox(height: 14),
-
-                    // 4. Habits List
-                    if (state.filteredHabits.isEmpty)
-                      _buildEmptyState(context)
-                    else
-                      ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                    // Columna 1: Hábitos del día, filtros y navegación
+                    Expanded(
+                      flex: 6,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                        children: [
+                          _buildProgressCard(state),
+                          const SizedBox(height: 14),
+                          _buildDateNavigator(state),
+                          const SizedBox(height: 14),
+                          _buildFilterRow(state),
+                          const SizedBox(height: 12),
+                          _buildContactFilterRow(context, state),
+                          const SizedBox(height: 14),
+                          if (state.filteredHabits.isEmpty)
+                            _buildEmptyState(context)
+                          else
+                            ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                        ],
+                      ),
+                    ),
+                    // Línea divisoria vertical
+                    Container(
+                      width: 1,
+                      color: HabitosColors.cardBorder.withOpacity(0.7),
+                    ),
+                    // Columna 2: Métricas y Progreso en tiempo real
+                    const Expanded(
+                      flex: 5,
+                      child: HabitosMetricsView(
+                        padding: EdgeInsets.fromLTRB(16, 16, 16, 88),
+                      ),
+                    ),
                   ],
+                )
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                      children: [
+                        // 1. Progress Banner Card
+                        _buildProgressCard(state),
+                        const SizedBox(height: 14),
+
+                        // 2. Date Navigation Bar
+                        _buildDateNavigator(state),
+                        const SizedBox(height: 14),
+
+                        // 3. Filter Chips
+                        _buildFilterRow(state),
+                        const SizedBox(height: 12),
+
+                        // 3.1 Contact Filter Chips
+                        _buildContactFilterRow(context, state),
+                        const SizedBox(height: 14),
+
+                        // 4. Habits List
+                        if (state.filteredHabits.isEmpty)
+                          _buildEmptyState(context)
+                        else
+                          ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           showDialog(
