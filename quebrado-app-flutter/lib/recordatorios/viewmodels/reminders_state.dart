@@ -13,6 +13,7 @@ class RemindersState extends ChangeNotifier {
   String _searchQuery = '';
   String? _selectedTagFilter;
   ReminderPriority? _selectedPriorityFilter;
+  Future<void>? _initFuture;
 
   RemindersState({RemindersSupabaseService? service})
       : _service = service ?? RemindersSupabaseService() {
@@ -61,6 +62,12 @@ class RemindersState extends ChangeNotifier {
     }).toList();
   }
 
+  // Recordatorios Fijados (Pinned Banner)
+  List<ReminderModel> get pinnedReminders {
+    return _filteredList.where((r) => r.isPinned && !r.isCompleted && !r.isArchived).toList()
+      ..sort((a, b) => (a.dueAt ?? a.createdAt).compareTo(b.dueAt ?? b.createdAt));
+  }
+
   // Secciones Inteligentes
   List<ReminderModel> get overdueReminders {
     return _filteredList.where((r) => r.isOverdue).toList()
@@ -92,8 +99,19 @@ class RemindersState extends ChangeNotifier {
       ..sort((a, b) => (b.completedAt ?? b.updatedAt).compareTo(a.completedAt ?? a.updatedAt));
   }
 
-  /// Inicializar y suscribirse a cambios en tiempo real
-  Future<void> init() async {
+  /// Inicializar de manera segura e idempotente
+  Future<void> init() {
+    _initFuture ??= _loadReminders();
+    return _initFuture!;
+  }
+
+  /// Recargar datos frescos desde el servicio
+  Future<void> reload() async {
+    _initFuture = _loadReminders();
+    await _initFuture;
+  }
+
+  Future<void> _loadReminders() async {
     _isLoading = true;
     notifyListeners();
 
@@ -240,6 +258,21 @@ class RemindersState extends ChangeNotifier {
 
     final updated = _reminders[index].copyWith(
       isNagging: !_reminders[index].isNagging,
+      updatedAt: DateTime.now(),
+    );
+    _reminders[index] = updated;
+    notifyListeners();
+
+    await _service.saveReminder(updated);
+  }
+
+  /// Alternar recordatorio fijado (pin)
+  Future<void> togglePin(String id) async {
+    final index = _reminders.indexWhere((r) => r.id == id);
+    if (index == -1) return;
+
+    final updated = _reminders[index].copyWith(
+      isPinned: !_reminders[index].isPinned,
       updatedAt: DateTime.now(),
     );
     _reminders[index] = updated;

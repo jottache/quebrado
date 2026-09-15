@@ -20,6 +20,11 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
   final FocusNode _quickInputFocus = FocusNode();
   String _activeTab = 'Todos'; // Todos, Vencidos, Hoy, Próximos, Pospuestos, Completados
 
+  final Map<String, GlobalKey> _reminderCardKeys = {};
+  String? _highlightedReminderId;
+  late final PageController _pinnedPageController = PageController();
+  int _pinnedPageIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -32,7 +37,37 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
   void dispose() {
     _quickInputController.dispose();
     _quickInputFocus.dispose();
+    _pinnedPageController.dispose();
     super.dispose();
+  }
+
+  void _scrollToReminder(ReminderModel reminder) async {
+    if (_activeTab != 'Todos') {
+      setState(() {
+        _activeTab = 'Todos';
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    final key = _reminderCardKeys[reminder.id];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.15,
+      );
+
+      setState(() {
+        _highlightedReminderId = reminder.id;
+      });
+      await Future.delayed(const Duration(milliseconds: 1600));
+      if (mounted) {
+        setState(() {
+          _highlightedReminderId = null;
+        });
+      }
+    }
   }
 
   void _openCommandPalette() {
@@ -133,10 +168,18 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                     constraints: const BoxConstraints(maxWidth: 860),
                     child: CustomScrollView(
                       slivers: [
+                        // Recordatorios Fijados (Pinned Banner estilo WhatsApp/Telegram)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 14, 20, 2),
+                            child: _buildPinnedRemindersBanner(state),
+                          ),
+                        ),
+
                         // 1. Barra de Captura Ultrarrápida con NLP
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                             child: _buildQuickCaptureBar(state, quickNlp),
                           ),
                         ),
@@ -206,6 +249,211 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             tooltip: 'Crear Recordatorio',
             child: const Icon(Icons.add_task_rounded),
           ),
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // WIDGET: BANNER DE RECORDATORIOS FIJADOS (ESTILO WHATSAPP/TELEGRAM)
+  // ===========================================================================
+  Widget _buildPinnedRemindersBanner(RemindersState state) {
+    final pinned = state.pinnedReminders;
+    if (pinned.isEmpty) return const SizedBox.shrink();
+
+    final currentIndex = _pinnedPageIndex.clamp(0, pinned.length - 1);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: RemindersColors.primary.withOpacity(0.35), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: RemindersColors.primary.withOpacity(0.06),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 78,
+              child: PageView.builder(
+                controller: _pinnedPageController,
+                itemCount: pinned.length,
+                onPageChanged: (idx) {
+                  setState(() => _pinnedPageIndex = idx);
+                },
+                itemBuilder: (context, index) {
+                  final reminder = pinned[index];
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _scrollToReminder(reminder),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        child: Row(
+                          children: [
+                            // Vertical accent line
+                            Container(
+                              width: 3.5,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: reminder.priority.color,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // Pin icon circle
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: RemindersColors.primary.withOpacity(0.10),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.push_pin_rounded,
+                                size: 15,
+                                color: RemindersColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Content: Title & Days/Hours remaining
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'RECORDATORIO FIJADO',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: RemindersColors.primary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      if (pinned.length > 1) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: RemindersColors.primaryLight,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            '${index + 1}/${pinned.length}',
+                                            style: const TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w800,
+                                              color: RemindersColors.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    reminder.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: RemindersColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.alarm_rounded,
+                                        size: 11,
+                                        color: reminder.isOverdue
+                                            ? RemindersColors.overdue
+                                            : RemindersColors.textSecondary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          reminder.timeRemainingFormatted,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: reminder.isOverdue
+                                                ? RemindersColors.overdue
+                                                : RemindersColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Unpin Action Button
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 16, color: RemindersColors.textMuted),
+                              tooltip: 'Desfijar recordatorio',
+                              onPressed: () => state.togglePin(reminder.id),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Horizontal Swipe & Page Dots indicator if multiple pinned
+            if (pinned.length > 1)
+              Container(
+                height: 20,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: RemindersColors.background,
+                  border: Border(top: BorderSide(color: RemindersColors.cardBorder.withOpacity(0.5))),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Desliza horizontalmente para ver más (${currentIndex + 1} de ${pinned.length})',
+                      style: const TextStyle(fontSize: 10, color: RemindersColors.textMuted, fontWeight: FontWeight.w600),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(pinned.length, (dotIdx) {
+                        final isSel = dotIdx == currentIndex;
+                        return Container(
+                          width: isSel ? 12 : 5,
+                          height: 5,
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: isSel ? RemindersColors.primary : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -506,23 +754,31 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
   // ===========================================================================
   Widget _buildReminderCard(ReminderModel reminder) {
     final state = Provider.of<RemindersState>(context, listen: false);
+    final cardKey = _reminderCardKeys.putIfAbsent(reminder.id, () => GlobalKey());
+    final isHighlighted = _highlightedReminderId == reminder.id;
 
-    return Container(
+    return AnimatedContainer(
+      key: cardKey,
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isHighlighted ? RemindersColors.primary.withOpacity(0.06) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: reminder.isOverdue
-              ? RemindersColors.overdue.withOpacity(0.4)
-              : RemindersColors.cardBorder,
-          width: reminder.isOverdue ? 1.5 : 1.0,
+          color: isHighlighted
+              ? RemindersColors.primary
+              : (reminder.isOverdue
+                  ? RemindersColors.overdue.withOpacity(0.4)
+                  : RemindersColors.cardBorder),
+          width: isHighlighted ? 2.0 : (reminder.isOverdue ? 1.5 : 1.0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: isHighlighted
+                ? RemindersColors.primary.withOpacity(0.20)
+                : Colors.black.withOpacity(0.02),
             offset: const Offset(0, 2),
-            blurRadius: 6,
+            blurRadius: isHighlighted ? 12 : 6,
           ),
         ],
       ),
@@ -565,9 +821,34 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Título y Priority Badge
+                      // Título, Pinned Badge y Priority Badge
                       Row(
                         children: [
+                          if (reminder.isPinned) ...[
+                            Container(
+                              margin: const EdgeInsets.only(right: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: RemindersColors.primary.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.push_pin_rounded, size: 10, color: RemindersColors.primary),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'Fijado',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: RemindersColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           Expanded(
                             child: Text(
                               reminder.title,
@@ -753,10 +1034,25 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       onSelected: (action) {
                         if (action == 'edit') _openEditorDialog(reminder);
+                        if (action == 'pin') state.togglePin(reminder.id);
                         if (action == 'nagging') state.toggleNagging(reminder.id);
                         if (action == 'delete') state.deleteReminder(reminder.id);
                       },
                       itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'pin',
+                          child: Row(
+                            children: [
+                              Icon(
+                                reminder.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+                                size: 16,
+                                color: reminder.isPinned ? RemindersColors.textSecondary : RemindersColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(reminder.isPinned ? 'Desfijar' : 'Fijar recordatorio'),
+                            ],
+                          ),
+                        ),
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(

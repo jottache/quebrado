@@ -262,6 +262,7 @@ class ReminderModel {
   final DateTime? lastNotifiedAt;
   final List<String> tags;
   final DateTime? completedAt;
+  final bool isPinned;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -281,6 +282,7 @@ class ReminderModel {
     this.lastNotifiedAt,
     List<String>? tags,
     this.completedAt,
+    this.isPinned = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : tags = tags ?? [],
@@ -337,6 +339,52 @@ class ReminderModel {
     }
   }
 
+  /// Texto legible de tiempo restante en días y horas
+  String get timeRemainingFormatted {
+    if (dueAt == null) return 'Sin fecha límite';
+    final now = DateTime.now();
+    final difference = dueAt!.difference(now);
+
+    if (difference.isNegative) {
+      final absDiff = difference.abs();
+      final totalMinutes = (absDiff.inSeconds / 60).round();
+      final days = totalMinutes ~/ (24 * 60);
+      final hours = (totalMinutes % (24 * 60)) ~/ 60;
+      final minutes = totalMinutes % 60;
+
+      if (days > 0) {
+        return 'Vencido hace ${days}d ${hours}h';
+      } else if (hours > 0) {
+        return 'Vencido hace ${hours}h ${minutes}m';
+      } else {
+        return 'Vencido hace ${minutes}m';
+      }
+    }
+
+    final totalMinutes = (difference.inSeconds / 60).round();
+    final days = totalMinutes ~/ (24 * 60);
+    final hours = (totalMinutes % (24 * 60)) ~/ 60;
+    final minutes = totalMinutes % 60;
+
+    if (days > 0) {
+      if (hours > 0) {
+        return 'Faltan $days días y $hours ${hours == 1 ? "hora" : "horas"}';
+      } else {
+        return 'Faltan $days ${days == 1 ? "día" : "días"}';
+      }
+    } else if (hours > 0) {
+      if (minutes > 0) {
+        return 'Faltan $hours ${hours == 1 ? "hora" : "horas"} y $minutes min';
+      } else {
+        return 'Faltan $hours ${hours == 1 ? "hora" : "horas"}';
+      }
+    } else if (minutes > 0) {
+      return 'Faltan $minutes ${minutes == 1 ? "minuto" : "minutos"}';
+    } else {
+      return '¡Es ahora!';
+    }
+  }
+
   ReminderModel copyWith({
     String? id,
     String? userId,
@@ -357,6 +405,7 @@ class ReminderModel {
     List<String>? tags,
     DateTime? completedAt,
     bool clearCompletedAt = false,
+    bool? isPinned,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -376,6 +425,7 @@ class ReminderModel {
       lastNotifiedAt: lastNotifiedAt ?? this.lastNotifiedAt,
       tags: tags ?? List.from(this.tags),
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
+      isPinned: isPinned ?? this.isPinned,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -398,6 +448,7 @@ class ReminderModel {
       'last_notified_at': lastNotifiedAt?.toUtc().toIso8601String(),
       'tags': tags,
       'completed_at': completedAt?.toUtc().toIso8601String(),
+      'is_pinned': isPinned,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -431,6 +482,7 @@ class ReminderModel {
       completedAt: map['completed_at'] != null
           ? DateTime.tryParse(map['completed_at'].toString())?.toLocal()
           : null,
+      isPinned: map['is_pinned'] == true,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString())?.toLocal() ?? DateTime.now()
           : DateTime.now(),

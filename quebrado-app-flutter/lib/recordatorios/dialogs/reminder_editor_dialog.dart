@@ -23,6 +23,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
   late ReminderRecurrence _recurrence;
   late bool _isNagging;
   late int _nagIntervalMinutes;
+  late bool _isPinned;
   DateTime? _dueAt;
   late List<String> _tags;
 
@@ -37,6 +38,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     _recurrence = r?.recurrence ?? ReminderRecurrence.none;
     _isNagging = r?.isNagging ?? false;
     _nagIntervalMinutes = r?.nagIntervalMinutes ?? 10;
+    _isPinned = r?.isPinned ?? false;
     _dueAt = r?.dueAt;
     _tags = r?.tags != null ? List<String>.from(r!.tags) : [];
   }
@@ -116,6 +118,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
       rrule: _recurrence.rruleString,
       isNagging: _isNagging,
       nagIntervalMinutes: _nagIntervalMinutes,
+      isPinned: _isPinned,
       tags: _tags,
       createdAt: widget.reminder?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
@@ -385,6 +388,16 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
                           value: _isNagging,
                           activeColor: RemindersColors.primary,
                           onChanged: (val) => setState(() => _isNagging = val),
+                        ),
+
+                        // Fijar al inicio (Pinned Reminder)
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Fijar en la parte superior', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          subtitle: const Text('Destacar en el banner superior como mensaje fijado', style: TextStyle(fontSize: 11, color: RemindersColors.textSecondary)),
+                          value: _isPinned,
+                          activeColor: RemindersColors.primary,
+                          onChanged: (val) => setState(() => _isPinned = val),
                         ),
 
                         const SizedBox(height: 8),

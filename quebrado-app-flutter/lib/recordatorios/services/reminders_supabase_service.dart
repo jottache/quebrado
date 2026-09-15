@@ -171,6 +171,7 @@ class RemindersSupabaseService {
         notes: 'Verificar ahorros en bolsillos y gastos categorizados del mes',
         priority: ReminderPriority.p1Urgent,
         status: ReminderStatus.pending,
+        isPinned: true,
         dueAt: DateTime(now.year, now.month, now.day, 18, 0),
         isNagging: true,
         tags: ['finanzas', 'mensual'],

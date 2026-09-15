@@ -218,6 +218,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             dueAt = DateTime.tryParse(data['dueAt'].toString());
           }
           final notes = data['notes']?.toString().trim();
+          final isPinned = data['isPinned'] == true || data['isPinned']?.toString().toLowerCase() == 'true';
 
           final newReminder = ReminderModel(
             id: const Uuid().v4(),
@@ -226,6 +227,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             rrule: recurrence.rruleString,
             dueAt: dueAt ?? DateTime.now().add(const Duration(hours: 2)),
             notes: notes,
+            isPinned: isPinned,
           );
 
           await remindersState.saveReminder(newReminder);

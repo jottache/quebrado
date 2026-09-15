@@ -209,8 +209,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 10),
           IconButton(
+            icon: const Icon(Icons.sync_rounded),
+            iconSize: 26,
+            tooltip: "Sincronizar datos",
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Sincronizando datos..."),
+                  duration: Duration(milliseconds: 1000),
+                ),
+              );
+              await Future.wait([
+                appState.loadData(forceReload: true),
+                appState.refreshRates(),
+              ]);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Datos sincronizados correctamente"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(width: 6),
+          IconButton(
             icon: Icon(Icons.calculate_outlined),
             iconSize: 26,
+            tooltip: "Calculadora de divisas",
             onPressed: () {
               showModalBottomSheet(
                 context: context,

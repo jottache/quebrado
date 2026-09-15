@@ -75,6 +75,10 @@ class HabitosState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Recarga completa de los datos de hábitos
+  Future<void> reload() => _init();
+  Future<void> loadHabits() => _init();
+
   // ===========================================================================
   // DATE NAVIGATION (ZERO SPINNER INSTANT CACHE)
   // ===========================================================================

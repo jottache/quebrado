@@ -22,6 +22,7 @@ class AppLauncherScreen extends StatefulWidget {
 
 class _AppLauncherScreenState extends State<AppLauncherScreen> {
   bool _isActionHubView = false;
+  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -47,6 +48,93 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     try {
       await DatabaseHelper.instance.setSetting('launcher_is_action_hub_view', actionHub ? 'true' : 'false');
     } catch (_) {}
+  }
+
+  Future<void> _syncAllData({
+    required AppState appState,
+    required DiarioState diarioState,
+    required HabitosState habitosState,
+    required RemindersState remindersState,
+  }) async {
+    if (_isSyncing) return;
+    setState(() => _isSyncing = true);
+
+    try {
+      await Future.wait([
+        appState.loadData(forceReload: true),
+        appState.refreshRates(),
+        diarioState.loadAll(),
+        habitosState.loadHabits(),
+        remindersState.reload(),
+      ]);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Todos los datos han sido sincronizados', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al sincronizar: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+      }
+    }
+  }
+
+  Widget _buildSyncButton(
+    BuildContext context,
+    AppState appState,
+    DiarioState diarioState,
+    HabitosState habitosState,
+    RemindersState remindersState,
+  ) {
+    return IconButton(
+      icon: _isSyncing
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary,
+              ),
+            )
+          : const Icon(Icons.sync_rounded),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        padding: const EdgeInsets.all(10),
+      ),
+      tooltip: "Sincronizar datos",
+      onPressed: _isSyncing
+          ? null
+          : () => _syncAllData(
+                appState: appState,
+                diarioState: diarioState,
+                habitosState: habitosState,
+                remindersState: remindersState,
+              ),
+    );
   }
 
   @override
@@ -127,24 +215,37 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                                       ),
                                     ],
                                   ),
-                                  // Calculator Button
-                                  IconButton(
-                                    icon: const Icon(Icons.calculate_outlined),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.black87,
-                                      padding: const EdgeInsets.all(10),
-                                    ),
-                                    tooltip: "Calculadora de divisas",
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (context) =>
-                                            const CalculatorBottomSheet(),
-                                      );
-                                    },
+                                  // Sync & Calculator Buttons
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _buildSyncButton(
+                                        context,
+                                        appState,
+                                        diarioState,
+                                        habitosState,
+                                        remindersState,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.calculate_outlined),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: Colors.black87,
+                                          padding: const EdgeInsets.all(10),
+                                        ),
+                                        tooltip: "Calculadora de divisas",
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (context) =>
+                                                const CalculatorBottomSheet(),
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -387,83 +488,65 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
             ),
           ],
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12.0, 14.0, 12.0, 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14.0, 14.0, 14.0, 14.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. Quebrado Calligraphic Logo & Notification Icon aligned
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 1. Quebrado Calligraphic Logo
                   Container(
-                    height: 40,
+                    height: 38,
                     alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(right: 28.0, left: 2.0),
+                    padding: const EdgeInsets.only(left: 2.0),
                     child: Image.asset(
                       'assets/images/quebrado/logo_quebrado.png',
                       fit: BoxFit.contain,
                     ),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  // 2. Official Rates: Stacked vertically with centered icons
-                  _buildOfficialRatesSection(appState),
+                  _buildPendingNotificationBadge(pendingCount),
                 ],
               ),
-            ),
 
-            // Notification Bell pegada al borde superior derecho de la card
-            Positioned(
-              top: 6,
-              right: 6,
-              child: _buildPendingNotificationBadge(pendingCount),
-            ),
-          ],
+              const SizedBox(height: 10),
+
+              // 2. Official Rates: Stacked vertically with centered icons
+              _buildOfficialRatesSection(appState),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// Notification badge with simple bell icon (with or without notification indicator)
+  /// Notification badge with simple bell icon without circular container or borders
   Widget _buildPendingNotificationBadge(int pendingCount) {
     final hasPending = pendingCount > 0;
 
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: hasPending
-            ? AppColors.expense.withOpacity(0.10)
-            : Colors.grey.withOpacity(0.08),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: hasPending
-              ? AppColors.expense.withOpacity(0.35)
-              : Colors.grey.withOpacity(0.20),
-          width: 1,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(right: 2.0),
       child: Stack(
-        alignment: Alignment.center,
         clipBehavior: Clip.none,
+        alignment: Alignment.center,
         children: [
           Icon(
             hasPending
-                ? Icons.notifications_active_rounded
+                ? Icons.notifications_rounded
                 : Icons.notifications_none_rounded,
-            size: 15,
-            color: hasPending ? AppColors.expense : Colors.grey[500],
+            size: 22,
+            color: hasPending ? AppColors.expense : Colors.grey[400],
           ),
           if (hasPending)
             Positioned(
-              top: 3,
-              right: 3,
+              top: -2,
+              right: -2,
               child: Container(
-                width: 6,
-                height: 6,
+                width: 8,
+                height: 8,
                 decoration: const BoxDecoration(
                   color: Color(0xFFEF4444),
                   shape: BoxShape.circle,
