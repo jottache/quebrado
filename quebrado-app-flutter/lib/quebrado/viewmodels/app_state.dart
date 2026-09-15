@@ -1118,7 +1118,7 @@ class AppState extends ChangeNotifier {
           acc.balance -= amountInAccCurrency;
         }
         if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-          await SupabaseService.instance.updateAccount(acc);
+          await SupabaseService.instance.updateAccount(acc, profileId: _activeDbName);
         }
         if (!kIsWeb) {
           try {
@@ -1223,7 +1223,7 @@ class AppState extends ChangeNotifier {
     // Guardar en el perfil destino
     if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
       await SupabaseService.instance.insertTransaction(targetTx, profileId: targetProfileId);
-      await SupabaseService.instance.updateAccount(targetAccount);
+      await SupabaseService.instance.updateAccount(targetAccount, profileId: targetProfileId);
     }
     if (!kIsWeb) {
       try {
@@ -1366,7 +1366,7 @@ class AppState extends ChangeNotifier {
           acc.balance += amountInAccCurrency;
         }
         if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-          await SupabaseService.instance.updateAccount(acc);
+          await SupabaseService.instance.updateAccount(acc, profileId: _activeDbName);
         }
         if (!kIsWeb) {
           try {
@@ -3508,7 +3508,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> updateAccount(Account account) async {
     if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-      await SupabaseService.instance.updateAccount(account);
+      await SupabaseService.instance.updateAccount(account, profileId: _activeDbName);
     }
     if (!kIsWeb) {
       await DatabaseHelper.instance.updateAccount(account);
@@ -3517,6 +3517,7 @@ class AppState extends ChangeNotifier {
       final idx = accounts.indexWhere((a) => a.id == account.id);
       if (idx != -1) accounts[idx] = account;
     }
+    _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
     notifyListeners();
   }
 
@@ -3528,7 +3529,7 @@ class AppState extends ChangeNotifier {
       return; // Prevent deleting the last remaining account
     }
     if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-      await SupabaseService.instance.deleteAccount(id);
+      await SupabaseService.instance.deleteAccount(id, profileId: _activeDbName);
     }
     if (!kIsWeb) {
       await DatabaseHelper.instance.deleteAccount(id);
@@ -3536,6 +3537,7 @@ class AppState extends ChangeNotifier {
     } else {
       accounts.removeWhere((a) => a.id == id);
     }
+    _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
     notifyListeners();
   }
 
@@ -3818,18 +3820,19 @@ class AppState extends ChangeNotifier {
 
   // MARK: - Profiles / Libros Operations
   Future<void> switchProfile(String dbName) async {
-    if (!kIsWeb) {
-      await DatabaseHelper.instance.switchProfile(dbName);
-    }
-    
-    // Save current active lists back to cache
-    _cachedAccounts[_activeDbName] = accounts;
-    _cachedPockets[_activeDbName] = pockets;
-    _cachedCategories[_activeDbName] = categories;
-    _cachedTransactions[_activeDbName] = transactions;
-    _cachedRecurring[_activeDbName] = recurringPayments;
+    // Save current active lists back to cache as copies
+    _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
+    _cachedPockets[_activeDbName] = List<SavingPocket>.from(pockets);
+    _cachedCategories[_activeDbName] = List<TransactionCategory>.from(categories);
+    _cachedTransactions[_activeDbName] = List<Transaction>.from(transactions);
+    _cachedRecurring[_activeDbName] = List<RecurringPayment>.from(recurringPayments);
 
     _activeDbName = dbName;
+
+    if (!kIsWeb) {
+      await DatabaseHelper.instance.saveProfiles(dbName, _profiles);
+      await DatabaseHelper.instance.switchProfile(dbName);
+    }
     
     final activeProfile = _profiles.firstWhere(
       (p) => p['id'] == _activeDbName,
@@ -3850,6 +3853,11 @@ class AppState extends ChangeNotifier {
       transactions = _cachedTransactions.putIfAbsent(_activeDbName, () => []);
       recurringPayments = _cachedRecurring.putIfAbsent(_activeDbName, () => []);
 
+      if (!kIsWeb && accounts.isEmpty) {
+        accounts = await DatabaseHelper.instance.getAccounts();
+        _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
+      }
+
       await _ensureDefaultAccountsForActiveProfile();
       await updatePendingPaymentsToday();
       notifyListeners();
@@ -3857,12 +3865,16 @@ class AppState extends ChangeNotifier {
       // Persist active profile state in background
       SupabaseService.instance.saveProfiles(dbName, _profiles);
     } else if (!kIsWeb) {
-      await DatabaseHelper.instance.saveProfiles(dbName, _profiles);
       pockets = await DatabaseHelper.instance.getPockets();
       categories = await DatabaseHelper.instance.getCategories();
       transactions = await DatabaseHelper.instance.getTransactions();
       recurringPayments = await DatabaseHelper.instance.getRecurringPayments();
       accounts = await DatabaseHelper.instance.getAccounts();
+      _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
+      _cachedPockets[_activeDbName] = List<SavingPocket>.from(pockets);
+      _cachedCategories[_activeDbName] = List<TransactionCategory>.from(categories);
+      _cachedTransactions[_activeDbName] = List<Transaction>.from(transactions);
+      _cachedRecurring[_activeDbName] = List<RecurringPayment>.from(recurringPayments);
       await updatePendingPaymentsToday();
       notifyListeners();
     }

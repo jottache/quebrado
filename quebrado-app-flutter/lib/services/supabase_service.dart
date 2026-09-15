@@ -137,19 +137,27 @@ class SupabaseService {
     }
   }
 
-  Future<void> updateAccount(Account account) async {
+  Future<void> updateAccount(Account account, {String? profileId}) async {
     if (!isReady) return;
     try {
-      await client!.from('accounts').update(account.toMap()).eq('id', account.id);
+      var query = client!.from('accounts').update(account.toMap()).eq('id', account.id);
+      if (profileId != null) {
+        query = query.eq('profile_id', profileId);
+      }
+      await query;
     } catch (e) {
       debugPrint('Error updating account in Supabase: $e');
     }
   }
 
-  Future<void> deleteAccount(String id) async {
+  Future<void> deleteAccount(String id, {String? profileId}) async {
     if (!isReady) return;
     try {
-      await client!.from('accounts').delete().eq('id', id);
+      var query = client!.from('accounts').delete().eq('id', id);
+      if (profileId != null) {
+        query = query.eq('profile_id', profileId);
+      }
+      await query;
     } catch (e) {
       debugPrint('Error deleting account from Supabase: $e');
     }

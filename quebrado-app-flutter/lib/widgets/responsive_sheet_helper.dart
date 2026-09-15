@@ -29,6 +29,7 @@ Future<T?> showResponsiveSheet<T>({
     barrierColor: Colors.black45,
     transitionDuration: const Duration(milliseconds: 280),
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      final GlobalKey<NavigatorState> nestedNavKey = GlobalKey<NavigatorState>();
       return Align(
         alignment: Alignment.centerRight,
         child: Material(
@@ -55,10 +56,32 @@ Future<T?> showResponsiveSheet<T>({
                 topLeft: Radius.circular(24),
                 bottomLeft: Radius.circular(24),
               ),
-              child: Navigator(
-                onGenerateRoute: (routeSettings) => MaterialPageRoute(
-                  settings: routeSettings,
-                  builder: (nestedContext) => builder(nestedContext),
+              child: PopScope(
+                canPop: false,
+                onPopInvokedWithResult: (didPop, result) {
+                  if (didPop) return;
+                  final nav = nestedNavKey.currentState;
+                  if (nav != null && nav.canPop()) {
+                    nav.pop(result);
+                  } else {
+                    if (Navigator.of(dialogContext).canPop()) {
+                      Navigator.of(dialogContext).pop(result);
+                    }
+                  }
+                },
+                child: Navigator(
+                  key: nestedNavKey,
+                  observers: [
+                    _SheetNavigatorObserver(() {
+                      if (Navigator.of(dialogContext).canPop()) {
+                        Navigator.of(dialogContext).pop();
+                      }
+                    }),
+                  ],
+                  onGenerateRoute: (routeSettings) => MaterialPageRoute(
+                    settings: routeSettings,
+                    builder: (nestedContext) => builder(nestedContext),
+                  ),
                 ),
               ),
             ),
@@ -77,6 +100,34 @@ Future<T?> showResponsiveSheet<T>({
       );
     },
   );
+}
+
+class _SheetNavigatorObserver extends NavigatorObserver {
+  final VoidCallback onEmpty;
+  int _routeCount = 0;
+
+  _SheetNavigatorObserver(this.onEmpty);
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _routeCount++;
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _routeCount--;
+    if (_routeCount <= 0) {
+      onEmpty();
+    }
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _routeCount--;
+    if (_routeCount <= 0) {
+      onEmpty();
+    }
+  }
 }
 
 /// Widget envoltorio para listas con scroll horizontal que en Desktop/Web

@@ -345,7 +345,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               appState.setTabIndex(0); // Volver al dashboard
                               
                               if (mounted) {
-                                Navigator.pop(context); // Close bottom sheet
+                                Navigator.of(context, rootNavigator: true).pop(); // Close bottom sheet
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text("Cargada contabilidad: $profileName"),
