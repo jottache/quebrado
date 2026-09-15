@@ -85,7 +85,7 @@ class DiarioState extends ChangeNotifier {
     return withBday.take(limit).toList();
   }
 
-  Future<void> addContact({
+  Future<DiarioContact> addContact({
     required String name,
     String? nickname,
     String? relationship,
@@ -114,6 +114,7 @@ class DiarioState extends ChangeNotifier {
     notifyListeners();
 
     await _service.saveContact(newContact);
+    return newContact;
   }
 
   Future<void> updateContact(DiarioContact contact) async {

@@ -228,6 +228,20 @@ $bdaysStr
             ),
           ),
           FunctionDeclaration(
+            'proposeCreateDiarioEntry',
+            'Propone registrar una nueva entrada, nota, apunte o bitácora en el Diario Jottache (asociada a un contacto o personal/general) mostrando una tarjeta interactiva con botones de Confirmar y Negar antes de guardarla. Úsala cuando el usuario diga "entrada", "nota", "anota esto", "guarda un apunte", o relate hechos, dolencias, síntomas, sucesos, gustos, medidas o comentarios sobre alguien.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'title': Schema(SchemaType.string, description: 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'),
+                'contentText': Schema(SchemaType.string, description: 'Texto detallado o relato completo de la nota o entrada.'),
+                'contactName': Schema(SchemaType.string, description: 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'),
+                'category': Schema(SchemaType.string, description: 'Categoría sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
+              },
+              requiredProperties: ['title', 'contentText'],
+            ),
+          ),
+          FunctionDeclaration(
             'proposeCreateContact',
             'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
             Schema(
@@ -431,6 +445,20 @@ $bdaysStr
             },
           },
           {
+            'name': 'proposeCreateDiarioEntry',
+            'description': 'Propone registrar una nueva entrada, nota, apunte o bitácora en el Diario Jottache (asociada a un contacto o personal/general) mostrando una tarjeta interactiva con botones de Confirmar y Negar antes de guardarla. Úsala cuando el usuario diga "entrada", "nota", "anota esto", "guarda un apunte", o relate hechos, dolencias, síntomas, sucesos, gustos, medidas o comentarios sobre alguien.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'},
+                'contentText': {'type': 'STRING', 'description': 'Texto detallado o relato completo de la nota o entrada.'},
+                'contactName': {'type': 'STRING', 'description': 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'},
+                'category': {'type': 'STRING', 'description': 'Categoría sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
+              },
+              'required': ['title', 'contentText'],
+            },
+          },
+          {
             'name': 'proposeCreateContact',
             'description': 'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
             'parameters': {
@@ -492,6 +520,28 @@ $bdaysStr
         ],
       },
     ];
+  }
+
+  DiarioContact? _findContact(String query) {
+    final q = query.toLowerCase().trim();
+    if (q.isEmpty) return null;
+    final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+
+    try {
+      return diarioState.contacts.firstWhere((c) {
+        final matchDirect = c.id.toLowerCase() == q ||
+            c.name.toLowerCase() == q ||
+            (c.nickname ?? '').toLowerCase() == q;
+        final matchContains = c.name.toLowerCase().contains(q) ||
+            (c.nickname ?? '').toLowerCase().contains(q);
+        final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+            c.name.toLowerCase().contains(t) ||
+            (c.nickname ?? '').toLowerCase().contains(t));
+        return matchDirect || matchContains || tokenMatch;
+      });
+    } catch (_) {
+      return null;
+    }
   }
 
   Map<String, dynamic> _serializeContactWithRecords(DiarioContact c) {
@@ -722,24 +772,7 @@ $bdaysStr
 
       case 'getContactDetails':
         final q = (arguments['nameOrQuery']?.toString() ?? '').toLowerCase().trim();
-        final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
-
-        DiarioContact? contact;
-        try {
-          contact = diarioState.contacts.firstWhere((c) {
-            final matchDirect = c.id.toLowerCase() == q ||
-                c.name.toLowerCase() == q ||
-                (c.nickname ?? '').toLowerCase() == q;
-            final matchContains = c.name.toLowerCase().contains(q) ||
-                (c.nickname ?? '').toLowerCase().contains(q);
-            final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
-                c.name.toLowerCase().contains(t) ||
-                (c.nickname ?? '').toLowerCase().contains(t));
-            return matchDirect || matchContains || tokenMatch;
-          });
-        } catch (_) {
-          contact = null;
-        }
+        final contact = _findContact(q);
 
         if (contact == null) {
           return ToolExecutionResult(
@@ -1027,6 +1060,58 @@ $bdaysStr
               'dueAt': newReminder.formattedDueTime,
             },
           },
+        );
+
+      case 'proposeCreateDiarioEntry':
+        final title = (arguments['title']?.toString() ?? 'Nueva entrada').trim();
+        final contentText = (arguments['contentText']?.toString() ?? '').trim();
+        final contactName = arguments['contactName']?.toString().trim();
+        final category = arguments['category']?.toString().trim() ?? 'salud';
+
+        DiarioContact? targetContact;
+        if (contactName != null && contactName.isNotEmpty) {
+          targetContact = _findContact(contactName);
+        }
+
+        final contactDisplay = targetContact != null
+            ? targetContact.name
+            : (contactName != null && contactName.isNotEmpty ? contactName : 'General');
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Título', 'value': title},
+          {'label': 'Contacto', 'value': contactDisplay},
+          if (category.isNotEmpty) {'label': 'Categoría', 'value': category},
+          {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: 'Nueva Entrada: $title',
+          content: 'Por favor confirma si deseas registrar esta entrada en tu Diario Jottache para $contactDisplay.',
+          metadata: {
+            'action': 'create_diario_entry',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'title': title,
+              'contentText': contentText,
+              if (contactName != null && contactName.isNotEmpty) 'contactName': contactName,
+              if (targetContact != null) 'contactId': targetContact.id,
+              'category': category,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'create_diario_entry',
+            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para registrar la entrada "$title" en el Diario Jottache para $contactDisplay. Pide al usuario que confirme mediante el botón.',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
         );
 
       case 'proposeCreateContact':

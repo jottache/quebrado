@@ -77,7 +77,7 @@ void main() {
   });
 
   group('SuiteRagService Declarations and Execution', () {
-    test('Declared tools include all 14 super-app capabilities', () {
+    test('Declared tools include all 15 super-app capabilities', () {
       final tools = [
         'searchSuiteData',
         'searchContacts',
@@ -89,19 +89,21 @@ void main() {
         'getHabitsStatus',
         'getReminders',
         'createReminder',
+        'proposeCreateDiarioEntry',
         'proposeCreateContact',
         'proposeCreateReminder',
         'proposeCreateHabit',
         'proposeCreateTransaction',
       ];
 
-      expect(tools.length, equals(14));
+      expect(tools.length, equals(15));
       expect(tools, contains('searchSuiteData'));
       expect(tools, contains('calculateCurrencyExchange'));
       expect(tools, contains('getUpcomingBirthdays'));
       expect(tools, contains('searchContacts'));
       expect(tools, contains('getContactDetails'));
       expect(tools, contains('searchDiarioEntries'));
+      expect(tools, contains('proposeCreateDiarioEntry'));
       expect(tools, contains('proposeCreateContact'));
       expect(tools, contains('proposeCreateReminder'));
       expect(tools, contains('proposeCreateHabit'));
@@ -116,7 +118,7 @@ void main() {
       expect(GeminiConfig.selectedModel, equals('gemini-1.5-pro'));
     });
 
-    test('SuiteRagService returns 14 tools in getDeclaredTools and getToolsJson', () {
+    test('SuiteRagService returns 15 tools in getDeclaredTools and getToolsJson', () {
       final rag = SuiteRagService(
         appState: _MockAppState(),
         diarioState: _MockDiarioState(),
@@ -127,11 +129,12 @@ void main() {
       final declared = rag.getDeclaredTools();
       expect(declared.length, equals(1));
       final funcs = declared.first.functionDeclarations!.map((f) => f.name).toList();
-      expect(funcs.length, equals(14));
+      expect(funcs.length, equals(15));
       expect(funcs, contains('searchSuiteData'));
       expect(funcs, contains('searchContacts'));
       expect(funcs, contains('getContactDetails'));
       expect(funcs, contains('searchDiarioEntries'));
+      expect(funcs, contains('proposeCreateDiarioEntry'));
       expect(funcs, contains('proposeCreateContact'));
       expect(funcs, contains('proposeCreateReminder'));
       expect(funcs, contains('proposeCreateHabit'));
@@ -141,11 +144,12 @@ void main() {
       final jsonFuncs = (jsonTools.first['functionDeclarations'] as List)
           .map((f) => f['name'])
           .toList();
-      expect(jsonFuncs.length, equals(14));
+      expect(jsonFuncs.length, equals(15));
       expect(jsonFuncs, contains('searchSuiteData'));
       expect(jsonFuncs, contains('searchContacts'));
       expect(jsonFuncs, contains('getContactDetails'));
       expect(jsonFuncs, contains('searchDiarioEntries'));
+      expect(jsonFuncs, contains('proposeCreateDiarioEntry'));
       expect(jsonFuncs, contains('proposeCreateContact'));
       expect(jsonFuncs, contains('proposeCreateReminder'));
       expect(jsonFuncs, contains('proposeCreateHabit'));
@@ -373,6 +377,51 @@ void main() {
       expect(txRes.generatedArtifact, isNotNull);
       expect(txRes.generatedArtifact!.metadata['action'], equals('create_transaction'));
       expect(txRes.generatedArtifact!.title, contains('Gasto: Almuerzo de trabajo'));
+    });
+
+    test('proposeCreateDiarioEntry generates actionProposal for notes and entries linked to contacts', () async {
+      final contact = DiarioContact(
+        id: 'c-mariana',
+        name: 'Mariana Dávila',
+      );
+
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(mockContacts: [contact]),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(),
+      );
+
+      final res = await rag.executeFunctionCall(
+        'proposeCreateDiarioEntry',
+        {
+          'title': 'Dolor de espalda cerca del cuello',
+          'contentText': 'Hoy a Mariana Dávila le empezó a doler la espalda cerca del cuello, probablemente durmió mal en la tarde.',
+          'contactName': 'Mariana Dávila',
+          'category': 'salud',
+        },
+        sessionId: 'session-propose',
+      );
+
+      expect(res.resultData['status'], equals('proposed'));
+      expect(res.resultData['action'], equals('create_diario_entry'));
+      expect(res.generatedArtifact, isNotNull);
+
+      final art = res.generatedArtifact!;
+      expect(art.type, equals(ArtifactType.actionProposal));
+      expect(art.title, contains('Dolor de espalda cerca del cuello'));
+      expect(art.metadata['action'], equals('create_diario_entry'));
+      expect(art.metadata['status'], equals('pending'));
+
+      final data = art.metadata['data'] as Map;
+      expect(data['title'], equals('Dolor de espalda cerca del cuello'));
+      expect(data['contactName'], equals('Mariana Dávila'));
+      expect(data['contactId'], equals('c-mariana'));
+      expect(data['category'], equals('salud'));
+
+      final summary = art.metadata['summary'] as List;
+      expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
+      expect(summary.any((s) => s['label'] == 'Categoría' && s['value'] == 'salud'), isTrue);
     });
   });
 }

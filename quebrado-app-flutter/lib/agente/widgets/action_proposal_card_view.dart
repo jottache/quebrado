@@ -30,6 +30,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
   Color _getActionColor() {
     switch (_action) {
       case 'create_contact':
+      case 'create_diario_entry':
         return const Color(0xFF8B5CF6);
       case 'create_reminder':
         return const Color(0xFFF97316);
@@ -46,6 +47,8 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
     switch (_action) {
       case 'create_contact':
         return Icons.person_add_alt_1_rounded;
+      case 'create_diario_entry':
+        return Icons.edit_note_rounded;
       case 'create_reminder':
         return Icons.alarm_add_rounded;
       case 'create_habit':
@@ -60,6 +63,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
   String _getActionModuleLabel() {
     switch (_action) {
       case 'create_contact':
+      case 'create_diario_entry':
         return 'Diario Jottache';
       case 'create_reminder':
         return 'Recordatorios';
@@ -81,6 +85,59 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
       final data = Map<String, dynamic>.from(widget.artifact.metadata['data'] ?? {});
 
       switch (_action) {
+        case 'create_diario_entry':
+          final diarioState = Provider.of<DiarioState>(context, listen: false);
+          final title = data['title']?.toString().trim() ?? 'Nueva entrada';
+          final contentText = data['contentText']?.toString().trim() ?? '';
+          final contactName = data['contactName']?.toString().trim();
+          String? contactId = data['contactId']?.toString().trim();
+          final categoryKey = data['category']?.toString().toLowerCase().trim() ?? 'cat_salud';
+
+          // 1. Resolver contacto
+          if (contactId == null || contactId.isEmpty) {
+            if (contactName != null && contactName.isNotEmpty) {
+              final match = diarioState.contacts.where((c) =>
+                  c.name.toLowerCase().contains(contactName.toLowerCase()) ||
+                  (c.nickname?.toLowerCase().contains(contactName.toLowerCase()) ?? false));
+              if (match.isNotEmpty) {
+                contactId = match.first.id;
+              } else {
+                final newContact = await diarioState.addContact(name: contactName);
+                contactId = newContact.id;
+              }
+            } else if (diarioState.contacts.isNotEmpty) {
+              contactId = diarioState.contacts.first.id;
+            } else {
+              final genContact = await diarioState.addContact(name: 'General');
+              contactId = genContact.id;
+            }
+          }
+
+          // 2. Resolver categoría
+          String categoryId = 'cat_salud';
+          final matchCat = diarioState.categories.where((c) =>
+              c.id.toLowerCase() == categoryKey ||
+              c.id.toLowerCase().contains(categoryKey) ||
+              c.name.toLowerCase().contains(categoryKey));
+          if (matchCat.isNotEmpty) {
+            categoryId = matchCat.first.id;
+          } else {
+            final rootCats = diarioState.getRootCategories(contactId);
+            if (rootCats.isNotEmpty) {
+              categoryId = rootCats.first.id;
+            } else if (diarioState.categories.isNotEmpty) {
+              categoryId = diarioState.categories.first.id;
+            }
+          }
+
+          await diarioState.addEntry(
+            contactId: contactId,
+            categoryId: categoryId,
+            title: title,
+            contentText: contentText,
+          );
+          break;
+
         case 'create_contact':
           final diarioState = Provider.of<DiarioState>(context, listen: false);
           final name = data['name']?.toString().trim() ?? 'Nuevo Contacto';
