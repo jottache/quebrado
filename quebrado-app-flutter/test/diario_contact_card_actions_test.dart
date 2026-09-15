@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_contact.dart';
+import 'package:quebrado_app_flutter/diario/models/diario_entry.dart';
 import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
 import 'package:quebrado_app_flutter/diario/screens/diario_home_screen.dart';
+import 'package:quebrado_app_flutter/diario/screens/contact_detail_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/entry_editor_dialog.dart';
+import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,6 +96,48 @@ void main() {
       // Verify full screen image viewer is opened with InteractiveViewer
       expect(find.byType(InteractiveViewer), findsOneWidget);
       expect(find.text('Mariana Davila'), findsWidgets);
+    });
+
+    testWidgets('Notes without title render contentText directly without generic titles in ContactDetailScreen', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1200, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final state = DiarioState();
+      await state.loadAll();
+
+      final targetContact = state.contacts.first;
+
+      // Add an entry with empty title
+      await state.addEntry(
+        contactId: targetContact.id,
+        categoryId: 'cat_salud',
+        title: '',
+        contentText: 'Esta es una nota rápida sobre café y postres sin título',
+      );
+
+      expect(state.entries.first.hasTitle, isFalse);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
+          ],
+          child: MaterialApp(
+            home: ContactDetailScreen(contactId: targetContact.id),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Verify the content text is rendered directly
+      expect(find.text('Esta es una nota rápida sobre café y postres sin título'), findsOneWidget);
+
+      // Verify NO generic title like "Sin título" or "Nueva entrada" is shown
+      expect(find.text('Sin título'), findsNothing);
+      expect(find.text('Nueva entrada'), findsNothing);
     });
   });
 }

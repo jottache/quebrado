@@ -31,6 +31,7 @@ class DiarioEntry {
 
   bool get isTemplateInstance => entryType == 'template_instance' && templateId != null;
   bool get hasPhoto => photoUrl != null && photoUrl!.trim().isNotEmpty;
+  bool get hasTitle => title.trim().isNotEmpty;
 
   String get formattedDate {
     final now = DateTime.now();

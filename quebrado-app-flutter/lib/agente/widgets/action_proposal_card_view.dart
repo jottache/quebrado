@@ -88,7 +88,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
       switch (_action) {
         case 'create_diario_entry':
           final diarioState = Provider.of<DiarioState>(context, listen: false);
-          final title = data['title']?.toString().trim() ?? 'Nueva entrada';
+          final title = data['title']?.toString().trim() ?? '';
           final contentText = data['contentText']?.toString().trim() ?? '';
           final contactName = data['contactName']?.toString().trim();
           String? contactId = data['contactId']?.toString().trim();

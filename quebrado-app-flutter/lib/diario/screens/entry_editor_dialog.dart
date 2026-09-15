@@ -115,6 +115,18 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
       _formData[entry.key] = entry.value.text.trim();
     }
 
+    final title = _titleController.text.trim();
+    final text = _textController.text.trim();
+    final hasFormData = _formData.values.any((v) => v != null && v.toString().trim().isNotEmpty);
+    final hasPhoto = _photoUrl != null && _photoUrl!.trim().isNotEmpty;
+
+    if (title.isEmpty && text.isEmpty && !hasFormData && !hasPhoto) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escribe una nota o adjunta algún contenido antes de guardar')),
+      );
+      return;
+    }
+
     final state = Provider.of<DiarioState>(context, listen: false);
     final hasTemplate = _selectedTemplateId != null && _selectedTemplateId!.isNotEmpty;
 
@@ -369,20 +381,19 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
 
                             const SizedBox(height: 14),
 
-                            // Title Field
+                            // Title Field (Opcional)
                             TextFormField(
                               controller: _titleController,
                               decoration: InputDecoration(
-                                labelText: 'Título o Resumen del Registro *',
+                                labelText: 'Título o Resumen (Opcional)',
                                 hintText: activeTemplate != null
-                                    ? 'Ej: Toyota Corolla, Pasta con crema, etc.'
-                                    : 'Ej: Comida favorita, Regalo de cumple...',
+                                    ? 'Ej: Toyota Corolla, Pasta con crema... (Opcional)'
+                                    : 'Ej: Comida favorita, Regalo... (Opcional)',
                                 prefixIcon: const Icon(Icons.title_rounded, size: 20),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                                 filled: true,
                                 fillColor: DiarioColors.background,
                               ),
-                              validator: (val) => val == null || val.trim().isEmpty ? 'El título es obligatorio' : null,
                             ),
 
                             const SizedBox(height: 16),

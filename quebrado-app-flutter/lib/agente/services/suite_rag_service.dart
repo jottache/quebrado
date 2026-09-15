@@ -233,14 +233,14 @@ $bdaysStr
             Schema(
               SchemaType.object,
               properties: {
-                'title': Schema(SchemaType.string, description: 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'),
+                'title': Schema(SchemaType.string, description: 'Título opcional de la nota o entrada. Si el usuario no proporciona un título, déjalo vacío ("") o null ya que no es obligatorio poner título a las notas.'),
                 'contentText': Schema(SchemaType.string, description: 'Texto detallado o relato completo de la nota o entrada.'),
                 'contactName': Schema(SchemaType.string, description: 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'),
                 'templateName': Schema(SchemaType.string, description: 'Modelo o plantilla reutilizable opcional si aplica (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es una nota libre o relato general, dejar vacío o "Nota simple".'),
                 'date': Schema(SchemaType.string, description: 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'),
                 'category': Schema(SchemaType.string, description: 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
               },
-              requiredProperties: ['title', 'contentText'],
+              requiredProperties: ['contentText'],
             ),
           ),
           FunctionDeclaration(
@@ -452,14 +452,14 @@ $bdaysStr
             'parameters': {
               'type': 'OBJECT',
               'properties': {
-                'title': {'type': 'STRING', 'description': 'Título descriptivo y breve de la nota o entrada (ej: "Dolor de espalda cerca del cuello", "Gusto culinario", "Talla de calzado").'},
+                'title': {'type': 'STRING', 'description': 'Título opcional de la nota o entrada. Si el usuario no dio título, dejar vacío ("") o null ya que no es obligatorio.'},
                 'contentText': {'type': 'STRING', 'description': 'Texto detallado o relato completo de la nota o entrada.'},
                 'contactName': {'type': 'STRING', 'description': 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'},
                 'templateName': {'type': 'STRING', 'description': 'Modelo o plantilla reutilizable opcional (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es libre, dejar vacío o "Nota simple".'},
                 'date': {'type': 'STRING', 'description': 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'},
                 'category': {'type': 'STRING', 'description': 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
               },
-              'required': ['title', 'contentText'],
+              'required': ['contentText'],
             },
           },
           {
@@ -1067,7 +1067,7 @@ $bdaysStr
         );
 
       case 'proposeCreateDiarioEntry':
-        final title = (arguments['title']?.toString() ?? 'Nueva entrada').trim();
+        final title = (arguments['title']?.toString() ?? '').trim();
         final contentText = (arguments['contentText']?.toString() ?? '').trim();
         final contactName = arguments['contactName']?.toString().trim();
         final category = arguments['category']?.toString().trim() ?? 'salud';
@@ -1103,18 +1103,22 @@ $bdaysStr
             : 'Nota simple (Sin modelo)';
 
         final summaryList = <Map<String, String>>[
-          {'label': 'Título', 'value': title},
+          if (title.isNotEmpty) {'label': 'Título', 'value': title},
           {'label': 'Contacto', 'value': contactDisplay},
           {'label': 'Fecha', 'value': formattedDateStr},
           {'label': 'Modelo', 'value': templateDisplay},
           {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
         ];
 
+        final artifactTitle = title.isNotEmpty
+            ? 'Nueva Entrada: $title'
+            : (contactDisplay != 'General' ? 'Nueva Nota para $contactDisplay' : 'Nueva Nota');
+
         final artifact = ChatArtifactModel(
           id: const Uuid().v4(),
           sessionId: sessionId,
           type: ArtifactType.actionProposal,
-          title: 'Nueva Entrada: $title',
+          title: artifactTitle,
           content: 'Por favor confirma si deseas registrar esta entrada en tu Diario Jottache para $contactDisplay.',
           metadata: {
             'action': 'create_diario_entry',

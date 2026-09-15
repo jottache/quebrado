@@ -836,18 +836,19 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               ],
             ),
 
-            const SizedBox(height: 8),
-
-            // Title
-            Text(
-              entry.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: DiarioColors.textPrimary,
-                letterSpacing: -0.2,
+            // Title (Solo si tiene título definido)
+            if (entry.hasTitle) ...[
+              const SizedBox(height: 8),
+              Text(
+                entry.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: DiarioColors.textPrimary,
+                  letterSpacing: -0.2,
+                ),
               ),
-            ),
+            ],
 
             // Content Data (Structured Model Fields Display)
             if (entry.contentData.isNotEmpty) ...[
@@ -930,10 +931,11 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               const SizedBox(height: 8),
               Text(
                 entry.contentText!,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: DiarioColors.textSecondary,
-                  height: 1.3,
+                style: TextStyle(
+                  fontSize: entry.hasTitle ? 13 : 14.5,
+                  fontWeight: entry.hasTitle ? FontWeight.normal : FontWeight.w500,
+                  color: entry.hasTitle ? DiarioColors.textSecondary : DiarioColors.textPrimary,
+                  height: 1.35,
                 ),
               ),
             ],

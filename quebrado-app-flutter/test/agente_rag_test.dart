@@ -423,6 +423,91 @@ void main() {
       expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
       expect(summary.any((s) => s['label'] == 'Modelo' && s['value'] == 'Nota simple (Sin modelo)'), isTrue);
     });
+
+    test('proposeCreateDiarioEntry works without title and omits title from summary', () async {
+      final contact = DiarioContact(
+        id: 'c-mariana',
+        name: 'Mariana Dávila',
+      );
+
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(mockContacts: [contact]),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(),
+      );
+
+      final res = await rag.executeFunctionCall(
+        'proposeCreateDiarioEntry',
+        {
+          'contentText': 'Le gustó mucho el café con canela hoy en la tarde.',
+          'contactName': 'Mariana Dávila',
+          'category': 'alimentos',
+        },
+        sessionId: 'session-no-title',
+      );
+
+      expect(res.resultData['status'], equals('proposed'));
+      expect(res.generatedArtifact, isNotNull);
+
+      final art = res.generatedArtifact!;
+      expect(art.title, equals('Nueva Nota para Mariana Dávila'));
+
+      final data = art.metadata['data'] as Map;
+      expect(data['title'], isEmpty);
+      expect(data['contentText'], equals('Le gustó mucho el café con canela hoy en la tarde.'));
+
+      final summary = art.metadata['summary'] as List;
+      // Does NOT include dummy generic title
+      expect(summary.any((s) => s['label'] == 'Título'), isFalse);
+      expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
+      expect(summary.any((s) => s['label'] == 'Detalle'), isTrue);
+    });
+
+    test('searchSuiteData and searchDiarioEntries find notes without title through contentText', () async {
+      final contact = DiarioContact(
+        id: 'c-mariana',
+        name: 'Mariana Dávila',
+      );
+
+      final untitledEntry = DiarioEntry(
+        id: 'e-cafe',
+        contactId: 'c-mariana',
+        categoryId: 'cat_alimentos',
+        title: '',
+        contentText: 'Le encanta el café con canela y leche de avena',
+      );
+
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(
+          mockContacts: [contact],
+          mockEntries: [untitledEntry],
+        ),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(),
+      );
+
+      // Search in searchDiarioEntries
+      final resDiario = await rag.executeFunctionCall(
+        'searchDiarioEntries',
+        {'query': 'canela'},
+        sessionId: 'session-search',
+      );
+      final entriesData = resDiario.resultData['entries'] as List;
+      expect(entriesData, isNotEmpty);
+      expect(entriesData.first['notes'], contains('canela'));
+
+      // Search in searchSuiteData
+      final resSuite = await rag.executeFunctionCall(
+        'searchSuiteData',
+        {'query': 'avena'},
+        sessionId: 'session-suite',
+      );
+      final suiteDiario = resSuite.resultData['diarioEntries'] as List;
+      expect(suiteDiario, isNotEmpty);
+      expect(suiteDiario.first['notes'], contains('avena'));
+    });
   });
 }
 

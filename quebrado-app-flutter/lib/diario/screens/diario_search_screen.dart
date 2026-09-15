@@ -250,7 +250,16 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
             size: 20,
           ),
         ),
-        title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        title: Text(
+          entry.hasTitle
+              ? entry.title
+              : ((entry.contentText != null && entry.contentText!.isNotEmpty)
+                  ? (entry.contentText!.length > 50
+                      ? '${entry.contentText!.substring(0, 50)}...'
+                      : entry.contentText!)
+                  : (template?.name ?? 'Registro')),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
         subtitle: Text(
           'En contacto: ${contact?.name ?? "Desconocido"}${template != null ? " • (${template.name})" : ""}',
           style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
