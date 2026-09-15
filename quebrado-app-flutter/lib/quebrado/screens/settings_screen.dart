@@ -45,6 +45,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fit: BoxFit.contain,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: Colors.black54),
+            tooltip: "Cerrar",
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).maybePop();
+            },
+          ),
+        ],
       ),
       body: ClaymorphicBackground(
         child: ListView(
@@ -82,11 +91,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.black54,
                 ),
                 onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => BookSelectorBottomSheet(),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: AppBar(
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          title: const Text(
+                            "Libros de Contabilidad",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.cardText,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        body: const BookSelectorBottomSheet(),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -604,180 +626,159 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showResetOptionsBottomSheet(BuildContext context, AppState appState) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.dialogBg,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text(
+              "Reiniciar Aplicación",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.cardText,
+                fontSize: 16,
+              ),
+            ),
           ),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+          body: ClaymorphicBackground(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              children: [
+                const Text(
+                  "Selecciona una opción para reiniciar tu app desde cero. Esta acción es irreversible.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.cardSubtitleText,
                   ),
                 ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                "Reiniciar Aplicación",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.cardText,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "Selecciona una opción para reiniciar tu app desde cero. Esta acción es irreversible.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.cardSubtitleText,
-                ),
-              ),
-              SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Option 1: Partial reset (keep metadata, clear records)
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Close options sheet
-                  _showResetConfirmationDialog(
-                    context,
-                    appState,
-                    isAbsolute: false,
-                  );
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.15),
-                          shape: BoxShape.circle,
+                // Option 1: Partial reset
+                GestureDetector(
+                  onTap: () {
+                    _showResetConfirmationDialog(
+                      context,
+                      appState,
+                      isAbsolute: false,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.cleaning_services_rounded,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.cleaning_services_rounded,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
-                      ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Limpieza Parcial (Conservar Registros)",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Limpieza Parcial (Conservar Registros)",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              "Conserva tus bolsillos, cuentas y categorías (con saldos en cero), borrando transacciones e ingresos/gastos recurrentes.",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.cardSubtitleText,
-                                height: 1.3,
+                              SizedBox(height: 4),
+                              Text(
+                                "Conserva tus bolsillos, cuentas y categorías (con saldos en cero), borrando transacciones e ingresos/gastos recurrentes.",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.cardSubtitleText,
+                                  height: 1.3,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 12),
-
-              // Option 2: Absolute Reset
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Close options sheet
-                  _showResetConfirmationDialog(
-                    context,
-                    appState,
-                    isAbsolute: true,
-                  );
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.expense.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.expense.withOpacity(0.3),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.expense.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.delete_forever_rounded,
-                          color: AppColors.expense,
-                          size: 20,
-                        ),
+                ),
+                const SizedBox(height: 12),
+
+                // Option 2: Absolute Reset
+                GestureDetector(
+                  onTap: () {
+                    _showResetConfirmationDialog(
+                      context,
+                      appState,
+                      isAbsolute: true,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.expense.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.expense.withOpacity(0.3),
                       ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Borrado Absoluto (Restablecer Todo)",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.expense,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              "Elimina absolutamente todos tus datos, configuraciones, categorías personalizadas, cuentas y bolsillos.",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.cardSubtitleText,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.expense.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.delete_forever_rounded,
+                            color: AppColors.expense,
+                            size: 20,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Limpieza Total (Borrar Todo)",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.expense,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "Elimina absolutamente todos los datos: transacciones, cuentas, bolsillos, categorías y vuelve al estado inicial.",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.cardSubtitleText,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -790,8 +791,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool isAbsolute,
   }) {
     _confirmController.clear();
-    setState(() => _isConfirmEnabled = false);
-    final confirmWord = isAbsolute ? "ELIMINAR" : "REINICIAR";
+    _isConfirmEnabled = false;
 
     showDialog(
       context: context,
@@ -799,14 +799,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              backgroundColor: AppColors.dialogBg,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
               ),
               title: Text(
-                isAbsolute
-                    ? "¿Confirmar Borrado Absoluto?"
-                    : "¿Confirmar Limpieza Parcial?",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                isAbsolute ? "Confirmar Borrado Total" : "Confirmar Limpieza Parcial",
+                style: TextStyle(
+                  color: isAbsolute ? AppColors.expense : Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -814,22 +816,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     isAbsolute
-                        ? "Esta acción es irreversible y eliminará TODO: bolsillos, cuentas, categorías e historial. Escribe '$confirmWord' para continuar."
-                        : "Esta acción es irreversible y borrará tus transacciones y programaciones recurrentes, pero mantendrá tus bolsillos, cuentas y categorías (con saldos en cero). Escribe '$confirmWord' para continuar.",
-                    style: TextStyle(fontSize: 13),
+                        ? "Esta acción eliminará de forma irreversible toda tu información (cuentas, movimientos, bolsillos, etc.) y reiniciará la app."
+                        : "Esta acción vaciará el historial de transacciones, pero conservará tus bolsillos, cuentas y categorías.",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.cardText,
+                    ),
                   ),
                   SizedBox(height: 16),
+                  Text(
+                    "Escribe 'ELIMINAR' para confirmar:",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.cardSubtitleText,
+                    ),
+                  ),
+                  SizedBox(height: 8),
                   TextField(
                     controller: _confirmController,
-                    textCapitalization: TextCapitalization.characters,
+                    autofocus: true,
                     decoration: InputDecoration(
-                      hintText: "Escribe $confirmWord para confirmar",
-                      border: OutlineInputBorder(),
+                      hintText: "ELIMINAR",
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onChanged: (val) {
                       setDialogState(() {
-                        _isConfirmEnabled =
-                            val.trim().toUpperCase() == confirmWord;
+                        _isConfirmEnabled = val.trim() == "ELIMINAR";
                       });
                     },
                   ),
@@ -838,7 +858,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text("Cancelar"),
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(color: AppColors.cardSubtitleText),
+                  ),
                 ),
                 TextButton(
                   onPressed: _isConfirmEnabled
@@ -875,13 +898,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!context.mounted) return;
 
-    final updated = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => PinSetupBottomSheet(
-        mode: currentPin.isEmpty ? PinSetupMode.create : PinSetupMode.update,
-        currentPin: currentPin,
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text(
+              "PIN de Seguridad",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.cardText,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          body: PinSetupBottomSheet(
+            mode: currentPin.isEmpty ? PinSetupMode.create : PinSetupMode.update,
+            currentPin: currentPin,
+          ),
+        ),
       ),
     );
 

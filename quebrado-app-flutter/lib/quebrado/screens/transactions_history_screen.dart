@@ -12,6 +12,9 @@ import '../dialogs/transaction_detail_dialog.dart';
 import 'settings_screen.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
 import '../theme/colors.dart';
+import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/responsive_sheet_helper.dart';
+import '../dialogs/book_selector_dialog.dart';
 
 class TransactionsHistoryScreen extends StatefulWidget {
   const TransactionsHistoryScreen({super.key});
@@ -50,35 +53,36 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
     }
   }
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(Duration(days: 1));
+    final yesterday = today.subtract(const Duration(days: 1));
     final txDate = DateTime(date.year, date.month, date.day);
 
     if (txDate == today) {
-      return "Hoy";
+      return "HOY";
     } else if (txDate == yesterday) {
-      return "Ayer";
+      return "AYER";
     } else {
-      final daysOfWeek = [
-        "Domingo",
-        "Lunes",
-        "Martes",
-        "Miércoles",
-        "Jueves",
-        "Viernes",
-        "Sábado",
+      const months = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
       ];
-      final dayName = daysOfWeek[date.weekday % 7];
-      final dayStr = date.day.toString().padLeft(2, '0');
-      final monthStr = date.month.toString().padLeft(2, '0');
-
-      if (date.year == now.year) {
-        return "$dayName $dayStr/$monthStr";
-      } else {
-        return "$dayName $dayStr/$monthStr/${date.year}";
-      }
+      return "${date.day} de ${months[date.month - 1]} de ${date.year}"
+          .toUpperCase();
     }
   }
 
@@ -103,9 +107,26 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final filtered = _getFilteredTransactions(appState);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+    List<Transaction> transactions = _getFilteredTransactions(appState);
 
-    final List<dynamic> listItems = [];
+    if (_searchQuery.isNotEmpty) {
+      transactions = transactions.where((tx) {
+        final descMatches =
+            tx.note.toLowerCase().contains(_searchQuery.toLowerCase());
+        final category = appState.categories
+            .where((c) => c.id == tx.categoryId)
+            .firstOrNull;
+        final catMatches = category != null &&
+            category.name.toLowerCase().contains(_searchQuery.toLowerCase());
+        return descMatches || catMatches;
+      }).toList();
+    }
+
+    final filtered = List<Transaction>.from(transactions)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    final listItems = [];
     String? currentHeader;
     for (final tx in filtered) {
       final header = _getDateHeader(tx.date);
@@ -122,35 +143,53 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: EdgeInsets.only(right: 30.5),
+          padding: const EdgeInsets.only(right: 30.5),
           child: Image.asset(
             'assets/images/quebrado/logo_quebrado.png',
             height: 50,
             fit: BoxFit.contain,
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.settings_rounded),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => SettingsScreen()),
-            );
-          },
-        ),
+        leading: isDesktop
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Center(
+                  child: ActionChip(
+                    avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                    label: Text(
+                      appState.activeProfileName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    onPressed: () {
+                      showResponsiveSheet(
+                        context: context,
+                        builder: (context) => const BookSelectorBottomSheet(),
+                      );
+                    },
+                  ),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(Icons.settings_rounded),
+                onPressed: () {
+                  showResponsiveSheet(
+                    context: context,
+                    builder: (context) => const SettingsScreen(),
+                  );
+                },
+              ),
+        leadingWidth: isDesktop ? 180 : null,
         actions: [
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.notifications_none_rounded),
+                icon: const Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
-                  showModalBottomSheet(
+                  showResponsiveSheet(
                     context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) =>
-                        PendingConfirmationsBottomSheet(),
+                    builder: (context) => const PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -159,19 +198,19 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -183,16 +222,25 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                 ),
             ],
           ),
+          if (isDesktop)
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: "Ajustes",
+              onPressed: () {
+                showResponsiveSheet(
+                  context: context,
+                  builder: (context) => const SettingsScreen(),
+                );
+              },
+            ),
           const SizedBox(width: 10),
           IconButton(
-            icon: Icon(Icons.calculate_outlined),
+            icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
             onPressed: () {
-              showModalBottomSheet(
+              showResponsiveSheet(
                 context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => CalculatorBottomSheet(),
+                builder: (context) => const CalculatorBottomSheet(),
               );
             },
           ),

@@ -17,6 +17,10 @@ import '../widgets/product_details_bottom_sheet.dart';
 import 'market_trip_screen.dart';
 import 'market_shopping_list_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/responsive_sheet_helper.dart';
+import '../dialogs/book_selector_dialog.dart';
+import 'settings_screen.dart';
 
 class MarketScreen extends StatefulWidget {
   @override
@@ -44,6 +48,7 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
     final spentThisMonth = appState.totalMarketSpentThisMonthUSD;
     final activeTrip = appState.marketTrips.where((t) => t.isActive).firstOrNull;
 
@@ -52,6 +57,27 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          leading: isDesktop
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: Center(
+                    child: ActionChip(
+                      avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                      label: Text(
+                        appState.activeProfileName,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      onPressed: () {
+                        showResponsiveSheet(
+                          context: context,
+                          builder: (context) => const BookSelectorBottomSheet(),
+                        );
+                      },
+                    ),
+                  ),
+                )
+              : null,
+          leadingWidth: isDesktop ? 180 : null,
           title: Text(
             "Mercado",
             style: TextStyle(
@@ -59,6 +85,19 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
               fontWeight: FontWeight.bold,
             ),
           ),
+          actions: [
+            if (isDesktop)
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: "Ajustes",
+                onPressed: () {
+                  showResponsiveSheet(
+                    context: context,
+                    builder: (context) => const SettingsScreen(),
+                  );
+                },
+              ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.only(bottom: 110.0),

@@ -20,6 +20,9 @@ import '../dialogs/pending_confirmations_dialog.dart';
 import 'settings_screen.dart';
 import 'timeline_screen.dart';
 import '../theme/colors.dart';
+import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/responsive_sheet_helper.dart';
+import '../dialogs/book_selector_dialog.dart';
 
 class PocketsScreen extends StatefulWidget {
   const PocketsScreen({super.key});
@@ -285,6 +288,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -292,35 +296,53 @@ class _PocketsScreenState extends State<PocketsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: EdgeInsets.only(right: 30.5),
+          padding: const EdgeInsets.only(right: 30.5),
           child: Image.asset(
             'assets/images/quebrado/logo_quebrado.png',
             height: 50,
             fit: BoxFit.contain,
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.settings_rounded),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => SettingsScreen()),
-            );
-          },
-        ),
+        leading: isDesktop
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Center(
+                  child: ActionChip(
+                    avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                    label: Text(
+                      appState.activeProfileName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    onPressed: () {
+                      showResponsiveSheet(
+                        context: context,
+                        builder: (context) => const BookSelectorBottomSheet(),
+                      );
+                    },
+                  ),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(Icons.settings_rounded),
+                onPressed: () {
+                  showResponsiveSheet(
+                    context: context,
+                    builder: (context) => const SettingsScreen(),
+                  );
+                },
+              ),
+        leadingWidth: isDesktop ? 180 : null,
         actions: [
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.notifications_none_rounded),
+                icon: const Icon(Icons.notifications_none_rounded),
                 iconSize: 26,
                 onPressed: () {
-                  showModalBottomSheet(
+                  showResponsiveSheet(
                     context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) =>
-                        PendingConfirmationsBottomSheet(),
+                    builder: (context) => const PendingConfirmationsBottomSheet(),
                   );
                 },
               ),
@@ -329,19 +351,19 @@ class _PocketsScreenState extends State<PocketsScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
                     ),
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       minWidth: 14,
                       minHeight: 14,
                     ),
                     child: Center(
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
@@ -355,7 +377,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
           ),
           const SizedBox(width: 10),
           IconButton(
-            icon: Icon(Icons.calculate_outlined),
+            icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
             onPressed: () {
               showModalBottomSheet(

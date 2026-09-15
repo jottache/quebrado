@@ -55,7 +55,12 @@ Future<T?> showResponsiveSheet<T>({
                 topLeft: Radius.circular(24),
                 bottomLeft: Radius.circular(24),
               ),
-              child: builder(dialogContext),
+              child: Navigator(
+                onGenerateRoute: (routeSettings) => MaterialPageRoute(
+                  settings: routeSettings,
+                  builder: (nestedContext) => builder(nestedContext),
+                ),
+              ),
             ),
           ),
         ),
