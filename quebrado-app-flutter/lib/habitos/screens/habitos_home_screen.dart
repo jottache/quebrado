@@ -10,6 +10,7 @@ import '../dialogs/habit_detail_cli_dialog.dart';
 import 'habitos_metrics_screen.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/widgets/diario_image_helper.dart';
+import '../../widgets/responsive_breakpoints.dart';
 
 class HabitosHomeScreen extends StatefulWidget {
   const HabitosHomeScreen({super.key});
@@ -24,6 +25,8 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   int _timerSecondsRemaining = 0;
 
   late final ScrollController _dateScrollController;
+  late final ScrollController _categoryScrollController;
+  late final ScrollController _contactScrollController;
   late final DateTime _startDate;
   static const int _daysPast = 45;
   static const int _daysFuture = 15;
@@ -37,6 +40,8 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     final now = DateTime.now();
     _startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: _daysPast));
     _dateScrollController = ScrollController();
+    _categoryScrollController = ScrollController();
+    _contactScrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToDate(DateTime(now.year, now.month, now.day), animate: false);
@@ -46,6 +51,8 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   @override
   void dispose() {
     _dateScrollController.dispose();
+    _categoryScrollController.dispose();
+    _contactScrollController.dispose();
     _activeTimer?.cancel();
     super.dispose();
   }
@@ -462,11 +469,104 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     );
   }
 
+  /// Helper para envolver filas de chips con botones de navegación horizontal en desktop
+  Widget _buildScrollableChipRow({
+    required BuildContext context,
+    required ScrollController controller,
+    required Widget child,
+  }) {
+    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+
+    if (!isDesktop) {
+      return SingleChildScrollView(
+        controller: controller,
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: child,
+      );
+    }
+
+    return Row(
+      children: [
+        _scrollNavButton(
+          icon: Icons.chevron_left_rounded,
+          onTap: () {
+            if (!controller.hasClients) return;
+            final target = (controller.offset - 240.0).clamp(0.0, controller.position.maxScrollExtent);
+            controller.animateTo(
+              target,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          tooltip: 'Desplazar a la izquierda',
+        ),
+        const SizedBox(width: 4),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: controller,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: child,
+          ),
+        ),
+        const SizedBox(width: 4),
+        _scrollNavButton(
+          icon: Icons.chevron_right_rounded,
+          onTap: () {
+            if (!controller.hasClients) return;
+            final target = (controller.offset + 240.0).clamp(0.0, controller.position.maxScrollExtent);
+            controller.animateTo(
+              target,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          tooltip: 'Desplazar a la derecha',
+        ),
+      ],
+    );
+  }
+
+  Widget _scrollNavButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: HabitosColors.cardBorder, width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  offset: const Offset(0, 1),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+            child: Icon(icon, size: 18, color: HabitosColors.textSecondary),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Filtros de vista tipo chips minimalistas
   Widget _buildFilterRow(HabitosState state) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
+    return _buildScrollableChipRow(
+      context: context,
+      controller: _categoryScrollController,
       child: Row(
         children: [
           _filterChip(state, 'all', 'Todos'),
@@ -576,9 +676,9 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             ],
           ),
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+        _buildScrollableChipRow(
+          context: context,
+          controller: _contactScrollController,
           child: Row(
             children: [
               _contactFilterChip(
