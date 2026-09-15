@@ -22,12 +22,28 @@ import '../../widgets/responsive_sheet_helper.dart';
 import '../dialogs/book_selector_dialog.dart';
 import 'settings_screen.dart';
 
-class MarketScreen extends StatefulWidget {
+class MarketScreen extends StatelessWidget {
+  const MarketScreen({super.key});
+
   @override
-  _MarketScreenState createState() => _MarketScreenState();
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        settings: settings,
+        builder: (context) => const _MarketScreenContent(),
+      ),
+    );
+  }
 }
 
-class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderStateMixin {
+class _MarketScreenContent extends StatefulWidget {
+  const _MarketScreenContent({super.key});
+
+  @override
+  _MarketScreenContentState createState() => _MarketScreenContentState();
+}
+
+class _MarketScreenContentState extends State<_MarketScreenContent> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -190,11 +206,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
       return FloatingActionButton(
         heroTag: "fab_catalog",
         onPressed: () {
-          showModalBottomSheet(
+          showResponsiveSheet(
             context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => AddMarketProductBottomSheet(),
+            builder: (context) => const AddMarketProductBottomSheet(),
           );
         },
         backgroundColor: AppColors.primary,
@@ -243,10 +257,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
   }
 
   void _showAddStoreDialog(BuildContext context) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) => AddMarketStoreBottomSheet(
         onStoreAdded: (_) {},
       ),
@@ -410,10 +422,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                     SizedBox(width: 6),
                     GestureDetector(
                       onTap: () {
-                        showModalBottomSheet(
+                        showResponsiveSheet(
                           context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
                           builder: (context) => _MonthDetailsBottomSheet(
                             monthYear: item.title,
                             trips: matchingTrips,
@@ -699,10 +709,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                       child: GestureDetector(
                         onTap: () {
-                          showModalBottomSheet(
+                          showResponsiveSheet(
                             context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
                             builder: (context) => ProductDetailsBottomSheet(product: product),
                           );
                         },
@@ -743,10 +751,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                                   color: Colors.transparent,
                                   child: InkWell(
                                     onTap: () {
-                                      showModalBottomSheet(
+                                      showResponsiveSheet(
                                         context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
                                         builder: (context) => AddMarketProductBottomSheet(productToEdit: product),
                                       );
                                     },
@@ -880,9 +886,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
   }
 
   void _confirmDeleteShoppingList(BuildContext context, AppState appState, MarketShoppingList list) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
@@ -949,10 +954,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
 
   void _showCreateShoppingListDialog(BuildContext context, AppState appState) {
     final controller = TextEditingController();
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(

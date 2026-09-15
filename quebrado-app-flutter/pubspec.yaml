@@ -53,6 +53,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   google_generative_ai: ^0.4.7
   flutter_markdown_plus: ^1.0.12
+  sqflite_common_ffi: ^2.3.5
+  sqflite_common_ffi_web: ^0.4.3+1
 
 dev_dependencies:
   flutter_test:
@@ -66,7 +68,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.0
   flutter_lints: ^6.0.0
-  sqflite_common_ffi: ^2.3.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

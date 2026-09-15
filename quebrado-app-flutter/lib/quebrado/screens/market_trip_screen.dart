@@ -16,6 +16,8 @@ import '../services/biometric_service.dart';
 import '../widgets/add_market_store_bottom_sheet.dart';
 import 'market_trip_store_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 
 class MarketTripScreen extends StatelessWidget {
   final String tripId;
@@ -399,10 +401,8 @@ class MarketTripScreen extends StatelessWidget {
       return;
     }
 
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) => FinishMarketTripBottomSheet(
         appState: appState,
         trip: trip,
@@ -448,10 +448,8 @@ class MarketTripScreen extends StatelessWidget {
   }
 
   void _showStoreSelector(BuildContext context, AppState appState, String tripId) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
@@ -525,10 +523,8 @@ class MarketTripScreen extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      showModalBottomSheet(
+                      showResponsiveSheet(
                         context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
                         builder: (context) => AddMarketStoreBottomSheet(
                           onStoreAdded: (newStoreId) {
                             Navigator.push(
@@ -573,9 +569,8 @@ class MarketTripScreen extends StatelessWidget {
   }
 
   void _confirmDeleteTrip(BuildContext context, AppState appState, MarketTrip trip) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(

@@ -7,6 +7,7 @@ import '../viewmodels/app_state.dart';
 import '../models/market_item.dart';
 import '../models/market_store.dart';
 import '../models/market_product.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 import '../widgets/add_market_store_bottom_sheet.dart';
 import '../widgets/helpers.dart';
 
@@ -123,10 +124,8 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
   }
 
   void _showAddStoreDialog() {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return AddMarketStoreBottomSheet(
           onStoreAdded: (storeId) {

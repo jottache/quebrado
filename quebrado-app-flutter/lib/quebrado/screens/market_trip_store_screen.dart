@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../widgets/add_market_item_bottom_sheet.dart';
@@ -133,10 +134,8 @@ class MarketTripStoreScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
             onPressed: () {
-              showModalBottomSheet(
+              showResponsiveSheet(
                 context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
                 builder: (context) => AddMarketItemBottomSheet(
                   tripId: tripId,
                   initialStoreId: storeId,
@@ -231,10 +230,8 @@ class MarketTripStoreScreen extends StatelessWidget {
               onChanged: (val) {
                 if (val == true) {
                   // Open AddMarketItemBottomSheet in edit/register mode
-                  showModalBottomSheet(
+                  showResponsiveSheet(
                     context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
                     builder: (context) => AddMarketItemBottomSheet(
                       tripId: tripId,
                       initialStoreId: storeId,
@@ -386,10 +383,8 @@ class MarketTripStoreScreen extends StatelessWidget {
     String tripId,
     String storeId,
   ) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         final lists = appState.shoppingLists;
 
@@ -490,9 +485,8 @@ class MarketTripStoreScreen extends StatelessWidget {
   }
 
   void _confirmDeleteStore(BuildContext context, AppState appState, List<MarketItem> itemsInStore) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
@@ -558,9 +552,8 @@ class MarketTripStoreScreen extends StatelessWidget {
   }
 
   void _confirmDeleteItem(BuildContext context, AppState appState, MarketItem item) {
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(

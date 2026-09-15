@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' hide Transaction;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:uuid/uuid.dart';
 import '../models/saving_pocket.dart';
 import '../models/transaction_category.dart';
@@ -48,7 +50,17 @@ class DatabaseHelper {
     return await _getDbPath();
   }
 
+  Future<void> _ensureFactoryInitialized() async {
+    if (kIsWeb) {
+      databaseFactory = databaseFactoryFfiWeb;
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS || Platform.environment.containsKey('FLUTTER_TEST')) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  }
+
   Future<Database> _initDB(String filePath) async {
+    await _ensureFactoryInitialized();
     final dbPath = await _getDbPath();
     final path = join(dbPath, filePath);
 

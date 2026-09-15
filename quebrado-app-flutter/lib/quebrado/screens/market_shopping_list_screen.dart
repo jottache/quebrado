@@ -6,6 +6,7 @@ import '../viewmodels/app_state.dart';
 import '../models/market_shopping_list.dart';
 import '../models/market_shopping_list_item.dart';
 import '../models/market_product.dart';
+import '../../widgets/responsive_sheet_helper.dart';
 import '../widgets/claymorphic_card.dart';
 import '../widgets/add_shopping_list_item_bottom_sheet.dart';
 
@@ -49,9 +50,11 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
     }
 
     final appState = Provider.of<AppState>(context, listen: false);
-    final filtered = appState.marketProducts
-        .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    final allProducts = appState.marketProducts;
+
+    final filtered = allProducts.where((p) {
+      return p.name.toLowerCase().contains(query.toLowerCase());
+    }).toList();
 
     setState(() {
       _searchQuery = query;
@@ -59,7 +62,7 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
     });
   }
 
-  void _addItemToList(MarketProduct product) async {
+  void _addItemToList(MarketProduct product) {
     final appState = Provider.of<AppState>(context, listen: false);
     
     // Check if product is already in this list
@@ -79,10 +82,8 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
     _searchController.clear();
     _searchFocusNode.unfocus();
 
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) => AddShoppingListItemBottomSheet(
         product: product,
         isNewProduct: false,
@@ -108,10 +109,8 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
     _searchController.clear();
     _searchFocusNode.unfocus();
 
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (context) => AddShoppingListItemBottomSheet(
         product: newProduct,
         isNewProduct: true,

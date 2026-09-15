@@ -11,14 +11,25 @@ import 'screens/app_launcher_screen.dart';
 import 'widgets/responsive_suite_scaffold.dart';
 import 'theme/colors.dart';
 
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'services/supabase_config.dart';
 
 void main() async {
   // Ensure Flutter engine is initialized before calling native platforms/services
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SQLite database factory for Web and Desktop
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 
   // Load environment variables from .env file
   try {
