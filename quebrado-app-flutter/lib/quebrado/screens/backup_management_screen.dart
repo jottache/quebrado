@@ -6,6 +6,7 @@ import '../widgets/claymorphic_background.dart';
 import '../widgets/claymorphic_card.dart';
 import '../dialogs/pin_verification_dialog.dart';
 import '../dialogs/pin_setup_bottom_sheet.dart';
+import '../services/backup_service.dart';
 
 class BackupManagementScreen extends StatefulWidget {
   const BackupManagementScreen({super.key});
@@ -103,7 +104,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     BuildContext? progressDialogContext;
 
     try {
-      final success = await appState.importBackupFromFile(
+      final result = await appState.importBackupFromFile(
         onUploadStart: () {
           if (!mounted) return;
           showDialog(
@@ -142,7 +143,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "Subiendo y sincronizando tus libros contables con la base de datos de Supabase...",
+                          "Subiendo y sincronizando tus libros contables...",
                           style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.3),
                           textAlign: TextAlign.center,
                         ),
@@ -151,7 +152,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
                             minHeight: 6,
-                            backgroundColor: Color(0xFFEEEEEE),
+                            backgroundColor: const Color(0xFFEEEEEE),
                             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                           ),
                         ),
@@ -179,30 +180,146 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
       await _refreshData();
       if (!mounted) return;
 
-      if (success) {
+      if (result.isCancelled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Importación cancelada."),
+          ),
+        );
+        return;
+      }
+
+      if (result.success) {
         await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text(
-              "¡Importación Exitosa!",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          builder: (dialogCtx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.income.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.income,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    "¡Importación Exitosa!",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  ),
+                ),
+              ],
             ),
-            content: const Text(
-              "La copia de seguridad ha sido importada de manera exitosa desde el archivo JSON seleccionado.",
-              style: TextStyle(fontSize: 13, height: 1.3),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    result.fileName != null
+                        ? "Se restauraron los datos correctamente desde '${result.fileName}'."
+                        : "Se restauraron los datos correctamente desde la copia de seguridad.",
+                    style: const TextStyle(fontSize: 13, height: 1.3, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F9FA),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSummaryRow(
+                          Icons.person_pin_rounded,
+                          "Perfil Activo:",
+                          result.activeProfileName,
+                          isBold: true,
+                        ),
+                        if (result.profilesCount > 1) ...[
+                          const SizedBox(height: 8),
+                          _buildSummaryRow(
+                            Icons.switch_account_rounded,
+                            "Perfiles en copia:",
+                            "${result.profilesCount}",
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(
+                          Icons.receipt_long_rounded,
+                          "Transacciones:",
+                          "${result.transactionsCount}",
+                          isBold: true,
+                          valueColor: AppColors.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(
+                          Icons.account_balance_wallet_rounded,
+                          "Cuentas:",
+                          "${result.accountsCount}",
+                        ),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(
+                          Icons.savings_rounded,
+                          "Bolsillos:",
+                          "${result.pocketsCount}",
+                        ),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(
+                          Icons.category_rounded,
+                          "Categorías:",
+                          "${result.categoriesCount}",
+                        ),
+                        if (result.recurringCount > 0) ...[
+                          const SizedBox(height: 8),
+                          _buildSummaryRow(
+                            Icons.repeat_rounded,
+                            "Pagos recurrentes:",
+                            "${result.recurringCount}",
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Entendido"),
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: const Text("Cerrar"),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () {
+                  Navigator.of(dialogCtx).pop();
+                  if (mounted && Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                icon: const Icon(Icons.dashboard_rounded, size: 18),
+                label: const Text("Ir al Dashboard"),
               ),
             ],
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Importación cancelada o no se seleccionó ningún archivo."),
+          SnackBar(
+            content: Text(result.errorMessage ?? "Error al importar los datos."),
             backgroundColor: AppColors.expense,
           ),
         );
@@ -363,7 +480,22 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text("Entendido"),
+                child: const Text("Cerrar"),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (mounted && Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                icon: const Icon(Icons.dashboard_rounded, size: 18),
+                label: const Text("Ir al Dashboard"),
               ),
             ],
           ),
@@ -371,7 +503,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error al restaurar los datos."),
+            content: const Text("Error al restaurar los datos."),
             backgroundColor: AppColors.expense,
           ),
         );
@@ -380,6 +512,38 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     if (mounted) {
       await _refreshData();
     }
+  }
+
+  Widget _buildSummaryRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isBold = false,
+    Color? valueColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey.shade600),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            color: Colors.grey.shade700,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12.5,
+            color: valueColor ?? (isBold ? Colors.black87 : Colors.grey.shade800),
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 
   @override

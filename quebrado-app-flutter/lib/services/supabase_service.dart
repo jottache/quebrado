@@ -730,18 +730,28 @@ class SupabaseService {
           if (pList is List) {
             for (var p in pList) {
               if (p is Map) {
-                profilesToSave.add({
-                  'id': p['id']?.toString() ?? 'quebrado.db',
-                  'name': p['name']?.toString() ?? 'Personal',
-                  'is_active': (p['id']?.toString() ?? '') == activeProfile,
-                });
+                final id = p['id']?.toString() ?? 'quebrado.db';
+                final name = p['name']?.toString() ?? 'Personal';
+                final profMap = <String, dynamic>{
+                  'id': id,
+                  'name': name,
+                  'is_active': id == activeProfile,
+                };
+                if (p['color'] != null) {
+                  profMap['color'] = p['color'].toString();
+                }
+                profilesToSave.add(profMap);
               }
             }
           }
         }
         final dbs = backupData['databases'];
-        if (dbs is Map<String, dynamic>) {
-          databases = dbs;
+        if (dbs is Map) {
+          for (var k in dbs.keys) {
+            if (dbs[k] is Map) {
+              databases[k.toString()] = Map<String, dynamic>.from(dbs[k] as Map);
+            }
+          }
         }
       } else {
         // Single profile legacy backup
@@ -750,7 +760,9 @@ class SupabaseService {
           'name': 'Personal',
           'is_active': true,
         });
-        databases['quebrado.db'] = backupData;
+        if (backupData is Map) {
+          databases['quebrado.db'] = Map<String, dynamic>.from(backupData);
+        }
       }
 
       if (profilesToSave.isEmpty) {
@@ -761,12 +773,26 @@ class SupabaseService {
         });
       }
 
-      // 1. Upsert profiles
+      // 1. Limpiar registros existentes en Supabase para los perfiles a importar
+      for (var prof in profilesToSave) {
+        final pId = prof['id']?.toString() ?? '';
+        if (pId.isNotEmpty) {
+          try { await client!.from('recurring_payment_partials').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('recurring_payment_confirmations').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('recurring_payments').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('transactions').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('pockets').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('categories').delete().eq('profile_id', pId); } catch (_) {}
+          try { await client!.from('accounts').delete().eq('profile_id', pId); } catch (_) {}
+        }
+      }
+
+      // 2. Upsert profiles
       for (var prof in profilesToSave) {
         await client!.from('profiles').upsert(prof);
       }
 
-      // 2. Iterate each database (profile)
+      // 3. Iterate each database (profile)
       for (var entry in databases.entries) {
         final profileId = entry.key;
         final dbData = entry.value;

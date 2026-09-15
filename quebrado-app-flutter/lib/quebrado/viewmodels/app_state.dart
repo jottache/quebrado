@@ -3920,23 +3920,30 @@ class AppState extends ChangeNotifier {
       ok = await DatabaseHelper.instance.restoreBackup(folderName);
     }
     if (ok) {
-      await loadData();
+      _cachedAccounts.clear();
+      _cachedPockets.clear();
+      _cachedCategories.clear();
+      _cachedTransactions.clear();
+      _cachedRecurring.clear();
+      _isDataLoaded = false;
+      await loadData(forceReload: true);
+      await updatePendingPaymentsToday();
       notifyListeners();
     }
     return ok;
   }
 
-  Future<bool> importBackupFromFile({VoidCallback? onUploadStart}) async {
+  Future<BackupImportResult> importBackupFromFile({VoidCallback? onUploadStart}) async {
     try {
-      final ok = await BackupService.importBackup(onUploadStart: onUploadStart);
-      if (ok) {
+      final result = await BackupService.importBackup(onUploadStart: onUploadStart);
+      if (result.success) {
         if (!kIsWeb && (!SupabaseConfig.isConfigured || !SupabaseService.instance.isReady)) {
           final metadata = await DatabaseHelper.instance.loadBackupMetadata();
           final restoreHistory = List<Map<String, dynamic>>.from(
             metadata['restore_history'] as List? ?? []
           );
           restoreHistory.add({
-            'backup_name': 'Archivo importado (.json)',
+            'backup_name': result.fileName ?? 'Archivo importado (.json)',
             'restored_at': DateTime.now().toIso8601String(),
             'success': true,
           });
@@ -3944,11 +3951,20 @@ class AppState extends ChangeNotifier {
           await DatabaseHelper.instance.saveBackupMetadata(metadata);
         }
 
-        await loadData();
+        if (result.activeProfileId.isNotEmpty) {
+          _activeDbName = result.activeProfileId;
+        }
+        _cachedAccounts.clear();
+        _cachedPockets.clear();
+        _cachedCategories.clear();
+        _cachedTransactions.clear();
+        _cachedRecurring.clear();
+        _isDataLoaded = false;
+        await loadData(forceReload: true);
+        await updatePendingPaymentsToday();
         notifyListeners();
-        return true;
       }
-      return false;
+      return result;
     } catch (e) {
       if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
         await SupabaseService.instance.recordRestoreHistory(
@@ -3972,7 +3988,7 @@ class AppState extends ChangeNotifier {
           await DatabaseHelper.instance.saveBackupMetadata(metadata);
         } catch (_) {}
       }
-      rethrow;
+      return BackupImportResult.failure(e.toString());
     }
   }
 

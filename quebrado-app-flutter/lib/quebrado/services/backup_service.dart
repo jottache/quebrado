@@ -10,6 +10,49 @@ import 'package:sqflite/sqflite.dart';
 import 'db_helper.dart';
 import 'supabase_service.dart';
 import 'supabase_config.dart';
+/// Result object returned by backup import operations
+class BackupImportResult {
+  final bool success;
+  final bool isCancelled;
+  final String? errorMessage;
+  final String activeProfileName;
+  final String activeProfileId;
+  final int profilesCount;
+  final int transactionsCount;
+  final int accountsCount;
+  final int pocketsCount;
+  final int categoriesCount;
+  final int recurringCount;
+  final int recipientsCount;
+  final String? fileName;
+
+  const BackupImportResult({
+    required this.success,
+    this.isCancelled = false,
+    this.errorMessage,
+    this.activeProfileName = 'Personal',
+    this.activeProfileId = 'quebrado.db',
+    this.profilesCount = 0,
+    this.transactionsCount = 0,
+    this.accountsCount = 0,
+    this.pocketsCount = 0,
+    this.categoriesCount = 0,
+    this.recurringCount = 0,
+    this.recipientsCount = 0,
+    this.fileName,
+  });
+
+  factory BackupImportResult.cancelled() => const BackupImportResult(
+        success: false,
+        isCancelled: true,
+      );
+
+  factory BackupImportResult.failure(String error) => BackupImportResult(
+        success: false,
+        isCancelled: false,
+        errorMessage: error,
+      );
+}
 
 class BackupService {
   static final List<String> _tables = [
@@ -77,7 +120,7 @@ class BackupService {
   }
 
   /// Picks a JSON backup file and imports its content into database tables
-  static Future<bool> importBackup({VoidCallback? onUploadStart}) async {
+  static Future<BackupImportResult> importBackup({VoidCallback? onUploadStart}) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -85,7 +128,7 @@ class BackupService {
     );
 
     if (result == null || result.files.isEmpty) {
-      return false; // User cancelled picking
+      return BackupImportResult.cancelled();
     }
 
     onUploadStart?.call();
@@ -102,131 +145,231 @@ class BackupService {
     }
 
     if (jsonContent == null) {
-      throw Exception("No se pudieron leer los datos del archivo seleccionado.");
+      return BackupImportResult.failure("No se pudieron leer los datos del archivo seleccionado.");
     }
 
     return await importFromJsonString(jsonContent, fileName: fileName);
   }
 
-  static Future<bool> importFromJsonString(String jsonContent, {String? fileName}) async {
-    final decoded = jsonDecode(jsonContent);
-    if (decoded is! Map<String, dynamic>) {
-      throw Exception("El archivo seleccionado no tiene un formato válido.");
+  static Future<BackupImportResult> importFromJsonString(String jsonContent, {String? fileName}) async {
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(jsonContent);
+    } catch (e) {
+      return BackupImportResult.failure("El archivo seleccionado no contiene un formato JSON válido: $e");
     }
 
-    // 1. If Supabase is configured and online, import data directly to Supabase
-    if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-      await SupabaseService.instance.importBackupData(decoded, fileName: fileName);
+    if (decoded is! Map) {
+      return BackupImportResult.failure("El archivo seleccionado no contiene una estructura de datos válida.");
     }
+    final backupMap = Map<String, dynamic>.from(decoded);
 
-    // 2. On Web, SQLite is not supported
-    if (kIsWeb) {
-      if (!SupabaseConfig.isConfigured || !SupabaseService.instance.isReady) {
-        throw Exception("En versión Web se requiere conexión a Supabase para restaurar la copia.");
+    final bool isMultiProfile = backupMap.containsKey('__multi_profile_backup__') &&
+        backupMap['__multi_profile_backup__'] == true;
+
+    if (isMultiProfile) {
+      final profilesConfig = backupMap['profiles_config'];
+      final databasesRaw = backupMap['databases'];
+      if (profilesConfig is! Map || databasesRaw is! Map) {
+        return BackupImportResult.failure(
+          "El archivo de copia multi-perfil está corrupto o incompleto (faltan 'profiles_config' o 'databases')."
+        );
       }
-      return true;
-    }
 
-    final dbHelper = DatabaseHelper.instance;
+      final activeDbName = profilesConfig['active_profile']?.toString() ?? 'quebrado.db';
+      final profilesListRaw = profilesConfig['profiles'];
+      final List<Map<String, String>> profilesList = [];
+      String activeProfileDisplayName = 'Personal';
 
-    // Check if it's a multi-profile backup
-    if (decoded.containsKey('__multi_profile_backup__') && decoded['__multi_profile_backup__'] == true) {
-      final profilesConfig = decoded['profiles_config'];
-      final databases = decoded['databases'];
-      if (profilesConfig is Map<String, dynamic> && databases is Map<String, dynamic>) {
-        final dbPath = await dbHelper.getDbPath();
-        
-        final activeDbName = profilesConfig['active_profile'] as String? ?? 'quebrado.db';
-        final profilesListRaw = profilesConfig['profiles'];
-        final List<Map<String, String>> profilesList = [];
-        if (profilesListRaw is List) {
-          for (var p in profilesListRaw) {
-            if (p is Map) {
-              profilesList.add({
-                'id': p['id']?.toString() ?? '',
-                'name': p['name']?.toString() ?? '',
-              });
+      if (profilesListRaw is List) {
+        for (var p in profilesListRaw) {
+          if (p is Map) {
+            final id = p['id']?.toString() ?? '';
+            final name = p['name']?.toString() ?? 'Personal';
+            if (id == activeDbName) {
+              activeProfileDisplayName = name;
             }
+            final map = <String, String>{
+              'id': id,
+              'name': name,
+            };
+            if (p['color'] != null) {
+              map['color'] = p['color'].toString();
+            }
+            profilesList.add(map);
           }
         }
-        await dbHelper.saveProfiles(activeDbName, profilesList);
+      }
 
-        // Ensure we switch to the target active profile to make its DB connection open
+      if (profilesList.isEmpty) {
+        profilesList.add({'id': activeDbName, 'name': 'Personal'});
+      }
+
+      final Map<String, dynamic> databases = {};
+      for (var k in databasesRaw.keys) {
+        if (databasesRaw[k] is Map) {
+          databases[k.toString()] = Map<String, dynamic>.from(databasesRaw[k] as Map);
+        }
+      }
+
+      // 1. Sincronizar con Supabase si está disponible
+      if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
+        try {
+          await SupabaseService.instance.importBackupData(backupMap, fileName: fileName);
+        } catch (spErr) {
+          debugPrint("Aviso: Error al sincronizar copia con Supabase: $spErr");
+          if (kIsWeb) {
+            return BackupImportResult.failure("Error al sincronizar con Supabase: $spErr");
+          }
+        }
+      }
+
+      // 2. Restaurar bases de datos SQLite en plataformas nativas
+      if (!kIsWeb) {
+        final dbHelper = DatabaseHelper.instance;
+
+        // Guardar la configuración de perfiles y cambiar al perfil activo
+        await dbHelper.saveProfiles(activeDbName, profilesList);
         await dbHelper.switchProfile(activeDbName);
 
         for (var entry in databases.entries) {
           final dbName = entry.key;
-          final dbData = entry.value;
-          if (dbData is Map<String, dynamic>) {
-            final targetPath = join(dbPath, dbName);
-            if (dbName == activeDbName) {
-              final db = await dbHelper.database;
-              await db.execute('PRAGMA foreign_keys = OFF');
-              try {
-                await db.transaction((txn) async {
-                  for (var tableName in _tables) {
-                    try { await txn.delete(tableName); } catch (_) {}
-                  }
-                  for (var tableName in _tables) {
-                    final rowsToInsert = dbData[tableName];
-                    if (rowsToInsert is List) {
-                      for (var row in rowsToInsert) {
-                        if (row is Map<String, dynamic>) {
-                          try { await txn.insert(tableName, row); } catch (_) {}
+          final dbData = entry.value as Map<String, dynamic>;
+
+          if (dbName == activeDbName) {
+            final db = await dbHelper.database;
+            await db.execute('PRAGMA foreign_keys = OFF');
+            try {
+              await db.transaction((txn) async {
+                for (var tableName in _tables) {
+                  try {
+                    await txn.delete(tableName);
+                  } catch (_) {}
+                }
+                for (var tableName in _tables) {
+                  final rowsToInsert = dbData[tableName];
+                  if (rowsToInsert is List) {
+                    for (var row in rowsToInsert) {
+                      if (row is Map) {
+                        try {
+                          await txn.insert(tableName, Map<String, dynamic>.from(row));
+                        } catch (e) {
+                          debugPrint("Error insertando en $tableName ($dbName): $e");
                         }
                       }
                     }
                   }
-                });
-              } finally {
-                await db.execute('PRAGMA foreign_keys = ON');
-              }
-            } else {
-              await _restoreDatabase(dbName, dbData);
+                }
+              });
+            } finally {
+              await db.execute('PRAGMA foreign_keys = ON');
             }
+          } else {
+            await _restoreDatabase(dbName, dbData);
           }
         }
-        return true;
+
+        // Resetear la conexión activa para que la próxima consulta abra el perfil activo restaurado
+        await dbHelper.switchProfile(activeDbName);
+      }
+
+      final activeDbData = databases[activeDbName] ??
+          (databases.isNotEmpty ? databases.values.first as Map<String, dynamic> : <String, dynamic>{});
+      final int txCount = (activeDbData['transactions'] as List?)?.length ?? 0;
+      final int accCount = (activeDbData['accounts'] as List?)?.length ?? 0;
+      final int pocketCount = (activeDbData['pockets'] as List?)?.length ?? 0;
+      final int catCount = (activeDbData['categories'] as List?)?.length ?? 0;
+      final int recCount = (activeDbData['recurring_payments'] as List?)?.length ?? 0;
+      final int recipCount = (activeDbData['mobile_payment_recipients'] as List?)?.length ?? 0;
+
+      return BackupImportResult(
+        success: true,
+        fileName: fileName,
+        activeProfileName: activeProfileDisplayName,
+        activeProfileId: activeDbName,
+        profilesCount: profilesList.length,
+        transactionsCount: txCount,
+        accountsCount: accCount,
+        pocketsCount: pocketCount,
+        categoriesCount: catCount,
+        recurringCount: recCount,
+        recipientsCount: recipCount,
+      );
+    }
+
+    // Copia simple (single-profile legacy)
+    final dbHelper = DatabaseHelper.instance;
+    final activeDbName = await dbHelper.getActiveProfile();
+    final profiles = await dbHelper.loadProfiles();
+    final activeProf = profiles.firstWhere(
+      (p) => p['id'] == activeDbName,
+      orElse: () => {'id': activeDbName, 'name': 'Personal'},
+    );
+    final activeProfileDisplayName = activeProf['name'] ?? 'Personal';
+
+    if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
+      try {
+        await SupabaseService.instance.importBackupData(backupMap, fileName: fileName);
+      } catch (spErr) {
+        debugPrint("Aviso: Error al sincronizar copia con Supabase: $spErr");
+        if (kIsWeb) {
+          return BackupImportResult.failure("Error al sincronizar con Supabase: $spErr");
+        }
       }
     }
 
-    // Validate that tables exist or at least it is a valid backup map structure (Legacy Fallback)
-    for (var tableName in _tables) {
-      if (!decoded.containsKey(tableName)) {
-        // Allow backwards compatibility with older backups that do not contain partials or recipients
-        if (tableName == 'recurring_payment_partials' || tableName == 'mobile_payment_recipients') {
-          continue;
-        }
-        throw Exception("El archivo seleccionado no es válido. Falta la tabla: '$tableName'.");
-      }
-    }
-
-    final db = await dbHelper.database;
-    await db.execute('PRAGMA foreign_keys = OFF');
-    try {
-      await db.transaction((txn) async {
-        // Clear all existing data
-        for (var tableName in _tables) {
-          await txn.delete(tableName);
-        }
-
-        // Insert new data
-        for (var tableName in _tables) {
-          final rowsToInsert = decoded[tableName];
-          if (rowsToInsert is List) {
-            for (var row in rowsToInsert) {
-              if (row is Map<String, dynamic>) {
-                await txn.insert(tableName, row);
+    if (!kIsWeb) {
+      await dbHelper.switchProfile(activeDbName);
+      final db = await dbHelper.database;
+      await db.execute('PRAGMA foreign_keys = OFF');
+      try {
+        await db.transaction((txn) async {
+          for (var tableName in _tables) {
+            try {
+              await txn.delete(tableName);
+            } catch (_) {}
+          }
+          for (var tableName in _tables) {
+            final rowsToInsert = backupMap[tableName];
+            if (rowsToInsert is List) {
+              for (var row in rowsToInsert) {
+                if (row is Map) {
+                  try {
+                    await txn.insert(tableName, Map<String, dynamic>.from(row));
+                  } catch (e) {
+                    debugPrint("Error insertando en $tableName: $e");
+                  }
+                }
               }
             }
           }
-        }
-      });
-    } finally {
-      await db.execute('PRAGMA foreign_keys = ON');
+        });
+      } finally {
+        await db.execute('PRAGMA foreign_keys = ON');
+      }
+      await dbHelper.switchProfile(activeDbName);
     }
 
-    return true;
+    final int txCount = (backupMap['transactions'] as List?)?.length ?? 0;
+    final int accCount = (backupMap['accounts'] as List?)?.length ?? 0;
+    final int pocketCount = (backupMap['pockets'] as List?)?.length ?? 0;
+    final int catCount = (backupMap['categories'] as List?)?.length ?? 0;
+    final int recCount = (backupMap['recurring_payments'] as List?)?.length ?? 0;
+    final int recipCount = (backupMap['mobile_payment_recipients'] as List?)?.length ?? 0;
+
+    return BackupImportResult(
+      success: true,
+      fileName: fileName,
+      activeProfileName: activeProfileDisplayName,
+      activeProfileId: activeDbName,
+      profilesCount: 1,
+      transactionsCount: txCount,
+      accountsCount: accCount,
+      pocketsCount: pocketCount,
+      categoriesCount: catCount,
+      recurringCount: recCount,
+      recipientsCount: recipCount,
+    );
   }
 
   static Future<bool> importMockTestData() async {
