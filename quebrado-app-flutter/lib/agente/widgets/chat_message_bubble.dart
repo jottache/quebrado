@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import '../models/chat_artifact_model.dart';
 import '../models/chat_message_model.dart';
 import '../theme/agente_colors.dart';
 import 'artifact_card_view.dart';
@@ -12,6 +13,8 @@ class ChatMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final hasActionProposal =
+        message.artifacts.any((a) => a.type == ArtifactType.actionProposal);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
@@ -70,15 +73,16 @@ class ChatMessageBubble extends StatelessWidget {
               ),
             ),
 
-          // Message Bubble
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.85,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: isUser ? AgenteColors.userBubble : Colors.white,
-              borderRadius: BorderRadius.only(
+          // Message Bubble (se omite si ya existe una tarjeta interactiva de propuesta de acción, para mostrar únicamente la tarjeta con su resumen y botones)
+          if (isUser || !hasActionProposal)
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: isUser ? AgenteColors.userBubble : Colors.white,
+                borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
                 bottomLeft: Radius.circular(isUser ? 20 : 4),

@@ -33,19 +33,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = Provider.of<DiarioState>(context, listen: false);
-      final roots = state.getRootCategories(widget.contactId);
-      if (roots.isNotEmpty && _selectedRootCategoryId == null) {
-        setState(() {
-          _selectedRootCategoryId = roots.first.id;
-        });
-      }
-    });
+    // Inicia en null para mostrar 'Todos los registros' por defecto
   }
 
   void _openEntryEditor([DiarioEntry? entry]) {
-    final catId = _selectedSubcategoryId ?? _selectedRootCategoryId;
+    final state = Provider.of<DiarioState>(context, listen: false);
+    final catId = entry?.categoryId ??
+        _selectedSubcategoryId ??
+        _selectedRootCategoryId ??
+        state.getRootCategories(widget.contactId).firstOrNull?.id;
+
     if (catId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona o crea una categoría primero')),
@@ -120,20 +117,17 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
     final rootCategories = state.getRootCategories(widget.contactId);
 
-    // Auto-select first root category if none selected
-    if (_selectedRootCategoryId == null && rootCategories.isNotEmpty) {
-      _selectedRootCategoryId = rootCategories.first.id;
-    }
-
     final subcategories = _selectedRootCategoryId != null
         ? state.getSubcategories(_selectedRootCategoryId!, widget.contactId)
         : <DiarioCategory>[];
 
-    // Get entries for current view
+    // Get entries for current view: if _selectedRootCategoryId is null, show all entries for this contact
     final effectiveCategoryId = _selectedSubcategoryId ?? _selectedRootCategoryId;
-    final entries = effectiveCategoryId != null
-        ? state.getEntriesForCategory(contact.id, effectiveCategoryId)
-        : <DiarioEntry>[];
+    final entries = _selectedRootCategoryId == null
+        ? state.getEntriesForContact(contact.id)
+        : (effectiveCategoryId != null
+            ? state.getEntriesForCategory(contact.id, effectiveCategoryId)
+            : <DiarioEntry>[]);
 
     return Scaffold(
       backgroundColor: DiarioColors.background,
@@ -509,15 +503,48 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   // WIDGET: ROOT CATEGORIES SELECTOR
   // ===========================================================================
   Widget _buildRootCategoriesBar(List<DiarioCategory> categories, DiarioState state) {
+    final totalEntriesCount = state.getEntriesForContact(widget.contactId).length;
+
     return Container(
       height: 48,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length + 1,
+        itemCount: categories.length + 2,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          if (index == categories.length) {
+          if (index == 0) {
+            final isSelected = _selectedRootCategoryId == null;
+            return FilterChip(
+              selected: isSelected,
+              showCheckmark: false,
+              avatar: Icon(Icons.grid_view_rounded, size: 16, color: isSelected ? Colors.white : DiarioColors.primary),
+              label: Text(
+                'Todos ($totalEntriesCount)',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                  color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                ),
+              ),
+              backgroundColor: Colors.white,
+              selectedColor: DiarioColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
+                ),
+              ),
+              onSelected: (val) {
+                setState(() {
+                  _selectedRootCategoryId = null;
+                  _selectedSubcategoryId = null;
+                });
+              },
+            );
+          }
+
+          if (index == categories.length + 1) {
             // Button to add custom root category
             return IconButton(
               icon: const Icon(Icons.add_circle_outline_rounded, color: DiarioColors.primary),
@@ -531,15 +558,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             );
           }
 
-          final cat = categories[index];
+          final cat = categories[index - 1];
           final isSelected = cat.id == _selectedRootCategoryId;
+          final catEntriesCount = state.getEntriesForCategory(widget.contactId, cat.id).length;
 
           return FilterChip(
             selected: isSelected,
             showCheckmark: false,
             avatar: Icon(cat.iconData, size: 16, color: isSelected ? Colors.white : cat.color),
             label: Text(
-              cat.name,
+              catEntriesCount > 0 ? '${cat.name} ($catEntriesCount)' : cat.name,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,

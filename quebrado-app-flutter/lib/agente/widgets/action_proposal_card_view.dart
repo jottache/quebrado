@@ -113,9 +113,13 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             }
           }
 
-          // 2. Resolver categoría
+          // 2. Resolver categoría entre las disponibles para este contacto
+          final availableCats = diarioState.categories
+              .where((c) => c.contactId == null || c.contactId == contactId)
+              .toList();
+
           String categoryId = 'cat_salud';
-          final matchCat = diarioState.categories.where((c) =>
+          final matchCat = availableCats.where((c) =>
               c.id.toLowerCase() == categoryKey ||
               c.id.toLowerCase().contains(categoryKey) ||
               c.name.toLowerCase().contains(categoryKey));
@@ -125,8 +129,8 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             final rootCats = diarioState.getRootCategories(contactId);
             if (rootCats.isNotEmpty) {
               categoryId = rootCats.first.id;
-            } else if (diarioState.categories.isNotEmpty) {
-              categoryId = diarioState.categories.first.id;
+            } else if (availableCats.isNotEmpty) {
+              categoryId = availableCats.first.id;
             }
           }
 
