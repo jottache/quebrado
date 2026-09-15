@@ -40,7 +40,6 @@ class ResponsiveSuiteScaffold extends StatefulWidget {
 
 class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
   SuiteModule _currentModule = SuiteModule.commandCenter;
-  bool _isSidebarCollapsed = false;
 
   void _selectModule(SuiteModule module) {
     if (_currentModule != module) {
@@ -60,18 +59,14 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
     }
 
     final isExpanded = ResponsiveBreakpoints.isExpanded(context);
-    final effectiveSidebarWidth = _isSidebarCollapsed
-        ? 78.0
-        : (isExpanded ? 240.0 : 200.0);
+    final effectiveSidebarWidth = isExpanded ? 240.0 : 210.0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Row(
         children: [
           // Sidebar de navegación Desktop
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
+          SizedBox(
             width: effectiveSidebarWidth,
             child: _buildDesktopSidebar(context, effectiveSidebarWidth),
           ),
@@ -104,8 +99,6 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
   }
 
   Widget _buildDesktopSidebar(BuildContext context, double width) {
-    final isCollapsed = _isSidebarCollapsed;
-
     return Container(
       color: Colors.white,
       child: SafeArea(
@@ -115,7 +108,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
           children: [
             // Header del Sidebar
             Padding(
-              padding: EdgeInsets.fromLTRB(isCollapsed ? 12 : 18, 18, 12, 16),
+              padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
               child: Row(
                 children: [
                   Container(
@@ -147,56 +140,35 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                       ),
                     ),
                   ),
-                  if (!isCollapsed) ...[
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "OrtizApp",
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black87,
-                              letterSpacing: -0.4,
-                            ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "OrtizApp",
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black87,
+                            letterSpacing: -0.4,
                           ),
-                          Text(
-                            "SUITE DESKTOP",
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1F6F5F),
-                              letterSpacing: 0.8,
-                            ),
+                        ),
+                        Text(
+                          "SUITE DESKTOP",
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1F6F5F),
+                            letterSpacing: 0.8,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.menu_open_rounded, size: 20),
-                      tooltip: "Colapsar menú",
-                      onPressed: () {
-                        setState(() => _isSidebarCollapsed = true);
-                      },
-                    ),
-                  ],
+                  ),
                 ],
               ),
             ),
-
-            if (isCollapsed)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: IconButton(
-                  icon: const Icon(Icons.menu_rounded, size: 22),
-                  tooltip: "Expandir menú",
-                  onPressed: () {
-                    setState(() => _isSidebarCollapsed = false);
-                  },
-                ),
-              ),
 
             Divider(height: 1, thickness: 1, color: Colors.grey[150]),
             const SizedBox(height: 12),
@@ -207,7 +179,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 children: [
                   _buildNavItem(
-                    module: SuiteModule.commandCenter,
+                     module: SuiteModule.commandCenter,
                     icon: Icons.dashboard_customize_rounded,
                     label: "Command Center",
                     shortcut: "⌘1",
@@ -256,52 +228,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                 ],
               ),
             ),
-
-            // Acceso Rápido Inferior en Sidebar
-            Container(
-              padding: EdgeInsets.all(isCollapsed ? 10 : 14),
-              margin: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F9FA),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: isCollapsed
-                  ? IconButton(
-                      icon: const Icon(Icons.bolt_rounded, color: Color(0xFF1F6F5F)),
-                      tooltip: "Acciones Rápidas",
-                      onPressed: () => _selectModule(SuiteModule.commandCenter),
-                    )
-                  : Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1F6F5F).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.bolt_rounded, color: Color(0xFF1F6F5F), size: 18),
-                        ),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Modo Activo",
-                                style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                "Flujo Rápido",
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -316,19 +243,14 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
     required Color color,
   }) {
     final isSelected = _currentModule == module;
-    final isCollapsed = _isSidebarCollapsed;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _selectModule(module),
         borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(
-            horizontal: isCollapsed ? 10 : 12,
-            vertical: 10,
-          ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? color.withOpacity(0.12) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
@@ -337,35 +259,31 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                 : Border.all(color: Colors.transparent, width: 1.2),
           ),
           child: Row(
-            mainAxisAlignment:
-                isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
               Icon(
                 icon,
                 size: 20,
                 color: isSelected ? color : Colors.grey[700],
               ),
-              if (!isCollapsed) ...[
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? color : Colors.black87,
-                    ),
-                  ),
-                ),
-                Text(
-                  shortcut,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
                   style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? color.withOpacity(0.8) : Colors.grey[400],
+                    fontSize: 13.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? color : Colors.black87,
                   ),
                 ),
-              ],
+              ),
+              Text(
+                shortcut,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? color.withOpacity(0.8) : Colors.grey[400],
+                ),
+              ),
             ],
           ),
         ),
