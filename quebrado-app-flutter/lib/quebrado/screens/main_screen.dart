@@ -35,16 +35,20 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       // 1. Request notifications permission on mobile
       if (!kIsWeb) {
         await NotificationManager.shared.requestAuthorization();
       }
+      if (!mounted) return;
 
       // Ensure data is loaded
       final appState = Provider.of<AppState>(context, listen: false);
       if (!appState.isDataLoaded) {
         await appState.loadData();
       }
+      if (!mounted) return;
 
       // 2. Fallback sync rate histories if database is empty (first time entering app)
       if (appState.rateHistory.isEmpty || appState.euroRateHistory.isEmpty) {
@@ -54,6 +58,7 @@ class _MainScreenState extends State<MainScreen> {
         // Just refresh the latest rates
         await appState.refreshRates();
       }
+      if (!mounted) return;
 
       // 4. Show local reminders for any pending entries due today on mobile
       if (!kIsWeb) {
@@ -61,9 +66,10 @@ class _MainScreenState extends State<MainScreen> {
           await NotificationManager.shared.showImmediateReminder(payment.payment);
         }
       }
+      if (!mounted) return;
 
       // 5. Show confirmations dialog
-      if (context.mounted && appState.pendingPaymentsToday.isNotEmpty) {
+      if (appState.pendingPaymentsToday.isNotEmpty) {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
