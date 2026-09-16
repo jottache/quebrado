@@ -68,6 +68,19 @@ class DiarioState extends ChangeNotifier {
           _service.saveEntry(_entries[i]);
         }
       }
+
+      // Asegurar categoría base para notas personales
+      if (!_categories.any((c) => c.id == 'cat_notas_personales')) {
+        final personalCat = DiarioCategory(
+          id: 'cat_notas_personales',
+          name: 'Notas Personales',
+          icon: 'note_alt',
+          colorHex: '#1F6F5F',
+          sortOrder: 0,
+        );
+        _categories.insert(0, personalCat);
+        _service.saveCategory(personalCat);
+      }
     } catch (e) {
       _errorMessage = 'Error al cargar Diario Jottache: $e';
       debugPrint(_errorMessage);
@@ -305,6 +318,16 @@ class DiarioState extends ChangeNotifier {
       });
   }
 
+  List<DiarioEntry> get personalEntries {
+    return _entries.where((e) => e.contactId == 'personal' || e.contactId.isEmpty).toList()
+      ..sort((a, b) {
+        if (a.isPinned != b.isPinned) {
+          return a.isPinned ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+  }
+
   List<DiarioEntry> getEntriesForContact(String contactId) {
     return _entries.where((e) => e.contactId == contactId).toList()
       ..sort((a, b) {
@@ -313,6 +336,37 @@ class DiarioState extends ChangeNotifier {
         }
         return b.createdAt.compareTo(a.createdAt);
       });
+  }
+
+  Future<DiarioEntry> addPersonalEntry({
+    required String title,
+    String? contentText,
+    String? photoUrl,
+    String? categoryId,
+    String? templateId,
+    String entryType = 'simple_text',
+    Map<String, dynamic>? contentData,
+    bool isPinned = false,
+    DateTime? createdAt,
+  }) async {
+    final entry = DiarioEntry(
+      id: _uuid.v4(),
+      contactId: 'personal',
+      categoryId: categoryId ?? 'cat_notas_personales',
+      templateId: templateId,
+      entryType: entryType,
+      title: title.trim(),
+      contentText: contentText?.trim(),
+      photoUrl: photoUrl,
+      contentData: contentData ?? {},
+      isPinned: isPinned,
+      createdAt: createdAt ?? DateTime.now(),
+    );
+
+    _entries.insert(0, entry);
+    notifyListeners();
+    await _service.saveEntry(entry);
+    return entry;
   }
 
   Future<void> addEntry({

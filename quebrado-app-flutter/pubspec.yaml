@@ -55,6 +55,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.12
   sqflite_common_ffi: ^2.3.5
   sqflite_common_ffi_web: ^0.4.3+1
+  speech_to_text: ^6.6.2
 
 dev_dependencies:
   flutter_test:

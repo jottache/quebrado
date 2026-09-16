@@ -51,6 +51,10 @@
 		<string>Esta aplicación necesita acceder a la cámara para que puedas tomar una foto para tus bolsillos.</string>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Esta aplicación requiere autenticación biométrica para confirmar transacciones de forma segura.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Esta aplicación necesita acceso al micrófono para permitir el dictado por voz en las notas.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Esta aplicación utiliza reconocimiento de voz para transcribir tus notas dictadas.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

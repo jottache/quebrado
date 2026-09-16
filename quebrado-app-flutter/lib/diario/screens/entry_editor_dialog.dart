@@ -6,16 +6,17 @@ import '../models/diario_template.dart';
 import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
+import '../services/speech_recognition_service.dart';
 
 class EntryEditorDialog extends StatefulWidget {
-  final String contactId;
-  final String categoryId;
+  final String? contactId;
+  final String? categoryId;
   final DiarioEntry? entry;
 
   const EntryEditorDialog({
     super.key,
-    required this.contactId,
-    required this.categoryId,
+    this.contactId,
+    this.categoryId,
     this.entry,
   });
 
@@ -35,6 +36,9 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
   final Map<String, dynamic> _formData = {};
   final Map<String, TextEditingController> _controllers = {};
 
+  bool _isListening = false;
+  String _speechTextSnapshot = '';
+
   @override
   void initState() {
     super.initState();
@@ -53,12 +57,54 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
 
   @override
   void dispose() {
+    if (_isListening) {
+      SpeechRecognitionService.instance.stopListening();
+    }
     _titleController.dispose();
     _textController.dispose();
     for (final c in _controllers.values) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _toggleVoiceDictation() async {
+    if (_isListening) {
+      await SpeechRecognitionService.instance.stopListening();
+      if (mounted) setState(() => _isListening = false);
+    } else {
+      _speechTextSnapshot = _textController.text;
+      final started = await SpeechRecognitionService.instance.startListening(
+        onResult: (words, isFinal) {
+          if (mounted) {
+            setState(() {
+              final prefix = _speechTextSnapshot.isNotEmpty ? '$_speechTextSnapshot ' : '';
+              _textController.text = '$prefix$words';
+              _textController.selection = TextSelection.fromPosition(
+                TextPosition(offset: _textController.text.length),
+              );
+            });
+          }
+        },
+        onDone: () {
+          if (mounted) {
+            setState(() => _isListening = false);
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() => _isListening = started);
+        if (!started) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo activar el micrófono o reconocimiento de voz.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
   }
 
   TextEditingController _getController(String key, String? initialValue) {
@@ -129,11 +175,13 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
 
     final state = Provider.of<DiarioState>(context, listen: false);
     final hasTemplate = _selectedTemplateId != null && _selectedTemplateId!.isNotEmpty;
+    final effectiveContactId = widget.entry?.contactId ?? widget.contactId ?? 'personal';
+    final effectiveCategoryId = widget.entry?.categoryId ?? widget.categoryId ?? 'cat_notas_personales';
 
     if (widget.entry == null) {
       state.addEntry(
-        contactId: widget.contactId,
-        categoryId: widget.categoryId,
+        contactId: effectiveContactId,
+        categoryId: effectiveCategoryId,
         templateId: _selectedTemplateId,
         entryType: hasTemplate ? 'template_instance' : 'simple_text',
         title: _titleController.text.trim(),
@@ -211,6 +259,9 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     final modalHeight = isMobile ? (screenHeight * 0.90) : 720.0;
     final modalWidth = isMobile ? (screenWidth * 0.94) : 550.0;
 
+    final isPersonal = (widget.entry?.contactId == 'personal' ||
+        ((widget.contactId == null || widget.contactId == 'personal') && widget.entry == null));
+
     return MediaQuery.removeViewInsets(
       removeBottom: true,
       context: context,
@@ -247,7 +298,9 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
-                          activeTemplate != null ? activeTemplate.iconData : Icons.post_add_rounded,
+                          isPersonal
+                              ? Icons.note_alt_rounded
+                              : (activeTemplate != null ? activeTemplate.iconData : Icons.post_add_rounded),
                           color: DiarioColors.primary,
                           size: 22,
                         ),
@@ -258,7 +311,9 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isEditing ? 'Editar Registro' : 'Nuevo Registro',
+                              isEditing
+                                  ? (isPersonal ? 'Editar Nota Personal' : 'Editar Registro')
+                                  : (isPersonal ? 'Nueva Nota Personal' : 'Nuevo Registro'),
                               style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w900,
@@ -266,9 +321,11 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                               ),
                             ),
                             Text(
-                              activeTemplate != null
-                                  ? 'Modelo: ${activeTemplate.name}'
-                                  : 'Registro libre o usando un modelo predefinido',
+                              isPersonal
+                                  ? 'Nota privada e independiente de contactos'
+                                  : (activeTemplate != null
+                                      ? 'Modelo: ${activeTemplate.name}'
+                                      : 'Registro libre o usando un modelo predefinido'),
                               style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -433,13 +490,101 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                               const SizedBox(height: 16),
                             ],
 
+                            // Content / Notes Header with Voice Dictation Button
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  activeTemplate != null ? 'Notas Adicionales' : 'Contenido de la Nota',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: DiarioColors.textSecondary,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: _toggleVoiceDictation,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: _isListening
+                                          ? const Color(0xFFEF4444).withOpacity(0.12)
+                                          : DiarioColors.primaryLight,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: _isListening
+                                            ? const Color(0xFFEF4444)
+                                            : DiarioColors.primary.withOpacity(0.35),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                                          size: 15,
+                                          color: _isListening ? const Color(0xFFEF4444) : DiarioColors.primary,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          _isListening ? 'Escuchando... (Toca para parar)' : 'Dictar por voz',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: _isListening ? const Color(0xFFEF4444) : DiarioColors.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_isListening) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF2F2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFEF4444),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'Dictado activo: habla con claridad y tus palabras se escribirán automáticamente.',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF991B1B),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 6),
+
                             // Content / Notes Textarea
                             TextFormField(
                               controller: _textController,
                               maxLines: 4,
                               decoration: InputDecoration(
-                                labelText: activeTemplate != null ? 'Notas Adicionales / Observaciones' : 'Detalle o Contenido de la Nota',
-                                hintText: 'Escribe cualquier detalle relevante...',
+                                hintText: 'Escribe o dicta cualquier detalle relevante...',
                                 alignLabelWithHint: true,
                                 prefixIcon: const Padding(
                                   padding: EdgeInsets.only(bottom: 50.0),

@@ -247,6 +247,7 @@ class DiarioSupabaseService {
   List<DiarioCategory> _getDefaultCategories() {
     return [
       // Raíces
+      DiarioCategory(id: 'cat_notas_personales', name: 'Notas Personales', icon: 'note_alt', colorHex: '#1F6F5F', sortOrder: 0),
       DiarioCategory(id: 'cat_alimentos', name: 'Alimentos & Bebidas', icon: 'restaurant', colorHex: '#1F6F5F', sortOrder: 1),
       DiarioCategory(id: 'cat_regalos', name: 'Regalos & Deseos', icon: 'card_giftcard', colorHex: '#1F6F5F', sortOrder: 2),
       DiarioCategory(id: 'cat_vehiculos', name: 'Vehículos & Transporte', icon: 'directions_car', colorHex: '#1F6F5F', sortOrder: 3),

@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Esta aplicación necesita acceso al micrófono para permitir el dictado por voz en las notas.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Esta aplicación utiliza reconocimiento de voz para transcribir tus notas dictadas.</string>
 </dict>
 </plist>

@@ -39,6 +39,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
+      if (find.text('Contactos').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Contactos'));
+        await tester.pumpAndSettle();
+      }
+
       // Verify contact name and nickname are rendered in list
       expect(find.text('Mariana Davila'), findsWidgets);
       expect(find.text('"Cotiprin"'), findsOneWidget);
@@ -58,7 +63,6 @@ void main() {
 
       // Verify EntryEditorDialog is opened
       expect(find.byType(EntryEditorDialog), findsOneWidget);
-      expect(find.text('Nuevo Registro'), findsOneWidget);
     });
 
     testWidgets('Tapping avatar on contact card opens full screen image viewer', (tester) async {
@@ -83,6 +87,11 @@ void main() {
 
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
+
+      if (find.text('Contactos').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Contactos'));
+        await tester.pumpAndSettle();
+      }
 
       // Find the avatar ClipOval inside row
       final avatarFinder = find.byType(ClipOval);

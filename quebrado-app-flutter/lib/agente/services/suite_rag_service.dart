@@ -43,6 +43,7 @@ class SuiteRagService {
     final euro = appState.euroRate;
 
     final contactsCount = diarioState.contacts.length;
+    final personalNotesCount = diarioState.personalEntries.length;
     final upcomingBirthdays = diarioState.getUpcomingBirthdays(limit: 3);
 
     final habitsRate = (habitosState.todayCompletionRate * 100).round();
@@ -75,8 +76,9 @@ class SuiteRagService {
   * Balance total estimado: \$${totalUsd.toStringAsFixed(2)} USD / Bs. ${totalBs.toStringAsFixed(2)}
   * Cuentas activas: ${appState.accounts.length}
   * Pagos pendientes hoy: ${appState.pendingPaymentsToday.length}
-- Contactos y Vínculos (Diario Jottache):
+- Contactos y Diario (Diario Jottache):
   * Total de contactos guardados: $contactsCount
+  * Total de notas personales registradas: $personalNotesCount
   * Próximos cumpleaños:
 $bdaysStr
 - Hábitos y Rutinas:
@@ -147,6 +149,23 @@ $bdaysStr
                 ),
               },
               requiredProperties: ['query'],
+            ),
+          ),
+          FunctionDeclaration(
+            'getPersonalNotes',
+            'Obtiene las notas personales del usuario (reflexiones, apuntes, pensamientos o notas libres no asociadas a contactos), permitiendo filtrar por texto, tema o fecha.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'query': Schema(
+                  SchemaType.string,
+                  description: 'Texto o término a buscar en las notas personales (opcional).',
+                ),
+                'dateFilter': Schema(
+                  SchemaType.string,
+                  description: 'Filtro de fecha o periodo (ej: "2026-09-16", "septiembre", "hoy", "ayer", "semana") (opcional).',
+                ),
+              },
             ),
           ),
           FunctionDeclaration(
@@ -366,6 +385,23 @@ $bdaysStr
                 },
               },
               'required': ['query'],
+            },
+          },
+          {
+            'name': 'getPersonalNotes',
+            'description': 'Obtiene las notas personales del usuario (reflexiones, apuntes, pensamientos o notas libres no asociadas a contactos), permitiendo filtrar por texto, tema o fecha.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'query': {
+                  'type': 'STRING',
+                  'description': 'Texto o término a buscar en las notas personales (opcional).',
+                },
+                'dateFilter': {
+                  'type': 'STRING',
+                  'description': 'Filtro de fecha o periodo (ej: "2026-09-16", "septiembre", "hoy", "ayer", "semana") (opcional).',
+                },
+              },
             },
           },
           {
@@ -658,20 +694,28 @@ $bdaysStr
               e.contentData.values.any((v) => v.toString().toLowerCase().contains(t)));
           return inTitle || inText || inData || tokenMatch;
         }).map((e) {
-          final contact = diarioState.getContactById(e.contactId);
+          final isPersonal = e.contactId == 'personal' || e.contactId.isEmpty;
+          final contact = isPersonal ? null : diarioState.getContactById(e.contactId);
           final categoryName = diarioState.categories
               .firstWhere(
                 (c) => c.id == e.categoryId,
-                orElse: () => DiarioCategory(id: '', contactId: '', name: 'General', icon: ''),
+                orElse: () => DiarioCategory(
+                  id: '',
+                  contactId: '',
+                  name: isPersonal ? 'Notas Personales' : 'General',
+                  icon: isPersonal ? '📝' : '',
+                ),
               )
               .name;
           return {
-            'contactName': contact?.name ?? 'Desconocido',
+            'isPersonalNote': isPersonal,
+            'contactName': isPersonal ? 'Nota Personal (Usuario)' : (contact?.name ?? 'Contacto no encontrado'),
             'contactNickname': contact?.nickname ?? '',
             'entryTitle': e.title,
             'category': categoryName,
             'details': e.contentData,
             'notes': e.contentText ?? '',
+            'date': e.formattedDate,
           };
         }).toList();
 
@@ -816,10 +860,16 @@ $bdaysStr
               (contact.nickname ?? '').toLowerCase().contains(t));
 
           if (inTitle || inText || inData || tokenMatch || contactMatch) {
+            final isPersonal = e.contactId == 'personal' || e.contactId.isEmpty;
             final categoryName = diarioState.categories
                 .firstWhere(
                   (c) => c.id == e.categoryId,
-                  orElse: () => DiarioCategory(id: '', contactId: '', name: 'General', icon: ''),
+                  orElse: () => DiarioCategory(
+                    id: '',
+                    contactId: '',
+                    name: isPersonal ? 'Notas Personales' : 'General',
+                    icon: isPersonal ? '📝' : '',
+                  ),
                 )
                 .name;
 
@@ -831,10 +881,12 @@ $bdaysStr
             });
 
             matches.add({
-              'contactName': contact?.name ?? 'Desconocido',
+              'isPersonalNote': isPersonal,
+              'contactName': isPersonal ? 'Nota Personal (Usuario)' : (contact?.name ?? 'Contacto no encontrado'),
               'contactNickname': contact?.nickname ?? '',
               'entryTitle': e.title,
               'category': categoryName,
+              'date': e.formattedDate,
               'details': e.contentData,
               if (fieldsList.isNotEmpty) 'summary': fieldsList.join(', '),
               if (e.contentText != null && e.contentText!.trim().isNotEmpty)
@@ -847,6 +899,89 @@ $bdaysStr
           resultData: {
             'found': matches.length,
             'entries': matches,
+          },
+        );
+
+      case 'getPersonalNotes':
+        final q = (arguments['query']?.toString() ?? '').toLowerCase().trim();
+        final dateFilter = (arguments['dateFilter']?.toString() ?? '').toLowerCase().trim();
+        final now = DateTime.now();
+
+        final monthNames = [
+          'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+        ];
+
+        var personalNotes = diarioState.personalEntries;
+
+        if (dateFilter.isNotEmpty) {
+          personalNotes = personalNotes.where((e) {
+            final dt = e.createdAt.toLocal();
+            final iso = dt.toIso8601String().toLowerCase();
+            final formatted = e.formattedDate.toLowerCase();
+            final day = dt.day.toString();
+            final year = dt.year.toString();
+            final monthName = (dt.month >= 1 && dt.month <= 12) ? monthNames[dt.month - 1] : '';
+
+            if (dateFilter == 'hoy') {
+              return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+            }
+            if (dateFilter == 'ayer') {
+              final yesterday = now.subtract(const Duration(days: 1));
+              return dt.year == yesterday.year && dt.month == yesterday.month && dt.day == yesterday.day;
+            }
+            if (dateFilter == 'semana' || dateFilter == 'esta semana') {
+              return now.difference(dt).inDays <= 7;
+            }
+
+            return iso.contains(dateFilter) ||
+                formatted.contains(dateFilter) ||
+                (dateFilter.contains(day) && (dateFilter.contains(year) || dateFilter.contains(monthName)));
+          }).toList();
+        }
+
+        if (q.isNotEmpty) {
+          final tokens = q.split(RegExp(r'[\s,]+')).where((t) => t.length > 1).toList();
+          personalNotes = personalNotes.where((e) {
+            final inTitle = e.title.toLowerCase().contains(q);
+            final inText = (e.contentText ?? '').toLowerCase().contains(q);
+            final inData = e.contentData.values.any((v) => v.toString().toLowerCase().contains(q));
+            final tokenMatch = tokens.isNotEmpty && tokens.any((t) =>
+                e.title.toLowerCase().contains(t) ||
+                (e.contentText ?? '').toLowerCase().contains(t) ||
+                e.contentData.values.any((v) => v.toString().toLowerCase().contains(t)));
+            return inTitle || inText || inData || tokenMatch;
+          }).toList();
+        }
+
+        final notesData = personalNotes.map((e) {
+          final fieldsList = <String>[];
+          e.contentData.forEach((key, val) {
+            if (val != null && val.toString().trim().isNotEmpty) {
+              fieldsList.add('$key: $val');
+            }
+          });
+
+          return {
+            'id': e.id,
+            'title': e.title,
+            'date': e.formattedDate,
+            'createdIso': e.createdAt.toIso8601String(),
+            'isPinned': e.isPinned,
+            'hasPhoto': e.hasPhoto,
+            if (fieldsList.isNotEmpty) 'details': fieldsList.join(', '),
+            'content': e.contentText ?? '',
+          };
+        }).toList();
+
+        return ToolExecutionResult(
+          resultData: {
+            'found': notesData.length,
+            'notes': notesData,
+            'filterApplied': {
+              if (q.isNotEmpty) 'query': q,
+              if (dateFilter.isNotEmpty) 'dateFilter': dateFilter,
+            },
           },
         );
 

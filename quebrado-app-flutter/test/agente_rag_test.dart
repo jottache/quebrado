@@ -118,7 +118,7 @@ void main() {
       expect(GeminiConfig.selectedModel, equals('gemini-1.5-pro'));
     });
 
-    test('SuiteRagService returns 15 tools in getDeclaredTools and getToolsJson', () {
+    test('SuiteRagService returns 16 tools in getDeclaredTools and getToolsJson', () {
       final rag = SuiteRagService(
         appState: _MockAppState(),
         diarioState: _MockDiarioState(),
@@ -129,11 +129,12 @@ void main() {
       final declared = rag.getDeclaredTools();
       expect(declared.length, equals(1));
       final funcs = declared.first.functionDeclarations!.map((f) => f.name).toList();
-      expect(funcs.length, equals(15));
+      expect(funcs.length, equals(16));
       expect(funcs, contains('searchSuiteData'));
       expect(funcs, contains('searchContacts'));
       expect(funcs, contains('getContactDetails'));
       expect(funcs, contains('searchDiarioEntries'));
+      expect(funcs, contains('getPersonalNotes'));
       expect(funcs, contains('proposeCreateDiarioEntry'));
       expect(funcs, contains('proposeCreateContact'));
       expect(funcs, contains('proposeCreateReminder'));
@@ -144,11 +145,12 @@ void main() {
       final jsonFuncs = (jsonTools.first['functionDeclarations'] as List)
           .map((f) => f['name'])
           .toList();
-      expect(jsonFuncs.length, equals(15));
+      expect(jsonFuncs.length, equals(16));
       expect(jsonFuncs, contains('searchSuiteData'));
       expect(jsonFuncs, contains('searchContacts'));
       expect(jsonFuncs, contains('getContactDetails'));
       expect(jsonFuncs, contains('searchDiarioEntries'));
+      expect(jsonFuncs, contains('getPersonalNotes'));
       expect(jsonFuncs, contains('proposeCreateDiarioEntry'));
       expect(jsonFuncs, contains('proposeCreateContact'));
       expect(jsonFuncs, contains('proposeCreateReminder'));
@@ -508,6 +510,65 @@ void main() {
       expect(suiteDiario, isNotEmpty);
       expect(suiteDiario.first['notes'], contains('avena'));
     });
+
+    test('SuiteRagService executes getPersonalNotes filtering by query and dateFilter correctly', () async {
+      final personalEntry1 = DiarioEntry(
+        id: 'note-1',
+        contactId: 'personal',
+        categoryId: 'cat_notas_personales',
+        title: 'Idea de negocio SaaS',
+        contentText: 'Desarrollar una herramienta de IA para freelancers',
+        createdAt: DateTime(2026, 9, 16, 10, 0),
+        updatedAt: DateTime(2026, 9, 16, 10, 0),
+        isPinned: true,
+      );
+      final personalEntry2 = DiarioEntry(
+        id: 'note-2',
+        contactId: 'personal',
+        categoryId: 'cat_notas_personales',
+        title: 'Rutina de entrenamiento',
+        contentText: '5x5 press banca y 3x12 dominadas',
+        createdAt: DateTime(2026, 8, 10, 15, 0),
+        updatedAt: DateTime(2026, 8, 10, 15, 0),
+      );
+
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(
+          mockEntries: [personalEntry1, personalEntry2],
+        ),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(),
+      );
+
+      // 1. Search by query 'freelancers'
+      final resQuery = await rag.executeFunctionCall(
+        'getPersonalNotes',
+        {'query': 'freelancers'},
+        sessionId: 'session-notes',
+      );
+      expect(resQuery.resultData['found'], equals(1));
+      final notes = resQuery.resultData['notes'] as List;
+      expect(notes.first['title'], equals('Idea de negocio SaaS'));
+      expect(notes.first['isPinned'], isTrue);
+
+      // 2. Search all personal notes
+      final resAll = await rag.executeFunctionCall(
+        'getPersonalNotes',
+        {},
+        sessionId: 'session-notes-all',
+      );
+      expect(resAll.resultData['found'], equals(2));
+
+      // 3. Search by dateFilter
+      final resDate = await rag.executeFunctionCall(
+        'getPersonalNotes',
+        {'dateFilter': '2026-08'},
+        sessionId: 'session-notes-date',
+      );
+      expect(resDate.resultData['found'], equals(1));
+      expect((resDate.resultData['notes'] as List).first['title'], equals('Rutina de entrenamiento'));
+    });
   });
 }
 
@@ -541,6 +602,10 @@ class _MockDiarioState extends Fake implements DiarioState {
   List<DiarioEntry> get entries => mockEntries;
   @override
   List<DiarioCategory> get categories => mockCategories;
+
+  @override
+  List<DiarioEntry> get personalEntries =>
+      mockEntries.where((e) => e.contactId == 'personal' || e.contactId.isEmpty).toList();
 
   @override
   List<DiarioEntry> getEntriesForContact(String contactId) {
