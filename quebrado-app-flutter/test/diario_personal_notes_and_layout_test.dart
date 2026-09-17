@@ -7,6 +7,7 @@ import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
 import 'package:quebrado_app_flutter/diario/screens/diario_home_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/entry_editor_dialog.dart';
 import 'package:quebrado_app_flutter/diario/widgets/personal_notes_view.dart';
+import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -142,6 +143,80 @@ void main() {
       // Voice dictation bar is present
       expect(find.text('Dictar por voz'), findsOneWidget);
       expect(find.byIcon(Icons.mic_none_rounded), findsOneWidget);
+    });
+
+    testWidgets('PersonalNotesView header has separate "Nota Rápida" and "Nota Completa" buttons, opening QuickNoteDialog on quick note tap', (tester) async {
+      final state = DiarioState();
+      await state.loadAll();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DiarioState>.value(
+          value: state,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: PersonalNotesView(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Check both buttons exist
+      expect(find.text('Nota Rápida'), findsOneWidget);
+      expect(find.text('Nota Completa'), findsOneWidget);
+
+      // Tap 'Nota Rápida'
+      await tester.tap(find.text('Nota Rápida'));
+      await tester.pumpAndSettle();
+
+      // Quick note dialog is shown
+      expect(find.byType(TextField), findsWidgets);
+      expect(find.text('Registrar Nota'), findsOneWidget);
+      expect(find.text('Grabar por voz mientras hablas'), findsOneWidget);
+    });
+
+    testWidgets('Tapping a contact in Desktop column renders ContactDetailScreen embedded and returns to directory on back', (tester) async {
+      final state = DiarioState();
+      await state.loadAll();
+
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
+          ],
+          child: const MaterialApp(
+            home: DiarioHomeScreen(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Directorio de Personas'), findsOneWidget);
+      final contactToTap = state.contacts.first;
+
+      // Scroll into view if needed and tap the contact card
+      final contactFinder = find.text(contactToTap.name).last;
+      await tester.ensureVisible(contactFinder);
+      await tester.tap(contactFinder);
+      await tester.pumpAndSettle();
+
+      // Now ContactDetailScreen is rendered embedded in the same column
+      expect(find.byTooltip('Volver a contactos'), findsOneWidget);
+
+      // Tap back button
+      await tester.tap(find.byTooltip('Volver a contactos'));
+      await tester.pumpAndSettle();
+
+      // We are back at the directory list
+      expect(find.text('Directorio de Personas'), findsOneWidget);
     });
   });
 }

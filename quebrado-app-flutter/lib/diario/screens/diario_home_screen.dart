@@ -6,6 +6,7 @@ import '../theme/diario_colors.dart';
 import '../dialogs/contact_editor_dialog.dart';
 import 'contact_detail_screen.dart';
 import 'entry_editor_dialog.dart';
+import '../dialogs/quick_note_dialog.dart';
 import 'template_manager_screen.dart';
 import 'diario_search_screen.dart';
 import '../widgets/diario_image_helper.dart';
@@ -24,6 +25,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
   late TabController _tabController;
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
+  String? _selectedContactId;
 
   final List<String> _filters = [
     'Todos', 'Favoritos', 'Familia', 'Amigos', 'Pareja'
@@ -56,10 +58,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
   void _openAddPersonalNoteDialog() {
     showDialog(
       context: context,
-      builder: (context) => const EntryEditorDialog(
-        contactId: 'personal',
-        categoryId: 'cat_notas_personales',
-      ),
+      builder: (context) => const QuickNoteDialog(),
     );
   }
 
@@ -235,22 +234,34 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                 ),
               ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => state.loadAll(),
-        color: DiarioColors.primary,
-        child: isDesktop
-            ? _buildDesktopLayout(context, state, filtered, upcomingBirthdays)
-            : _buildMobileLayout(context, state, filtered, upcomingBirthdays),
+      body: PopScope(
+        canPop: _selectedContactId == null,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && _selectedContactId != null) {
+            setState(() {
+              _selectedContactId = null;
+            });
+          }
+        },
+        child: RefreshIndicator(
+          onRefresh: () => state.loadAll(),
+          color: DiarioColors.primary,
+          child: isDesktop
+              ? _buildDesktopLayout(context, state, filtered, upcomingBirthdays)
+              : _buildMobileLayout(context, state, filtered, upcomingBirthdays),
+        ),
       ),
       floatingActionButton: isDesktop
-          ? FloatingActionButton.extended(
-              heroTag: 'fab_diario_desktop',
-              onPressed: _openAddContactDialog,
-              backgroundColor: DiarioColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
-            )
+          ? (_selectedContactId != null
+              ? null
+              : FloatingActionButton.extended(
+                  heroTag: 'fab_diario_desktop',
+                  onPressed: _openAddContactDialog,
+                  backgroundColor: DiarioColors.primary,
+                  foregroundColor: Colors.white,
+                  icon: const Icon(Icons.person_add_alt_1_rounded),
+                  label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
+                ))
           : (_tabController.index == 0
               ? FloatingActionButton.extended(
                   heroTag: 'fab_diario_personal_mob',
@@ -260,14 +271,16 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   icon: const Icon(Icons.edit_note_rounded),
                   label: const Text('Nueva Nota', style: TextStyle(fontWeight: FontWeight.bold)),
                 )
-              : FloatingActionButton.extended(
-                  heroTag: 'fab_diario_contact_mob',
-                  onPressed: _openAddContactDialog,
-                  backgroundColor: DiarioColors.primary,
-                  foregroundColor: Colors.white,
-                  icon: const Icon(Icons.person_add_alt_1_rounded),
-                  label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
-                )),
+              : (_selectedContactId != null
+                  ? null
+                  : FloatingActionButton.extended(
+                      heroTag: 'fab_diario_contact_mob',
+                      onPressed: _openAddContactDialog,
+                      backgroundColor: DiarioColors.primary,
+                      foregroundColor: Colors.white,
+                      icon: const Icon(Icons.person_add_alt_1_rounded),
+                      label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ))),
     );
   }
 
@@ -297,16 +310,26 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               color: DiarioColors.cardBorder,
             ),
 
-            // Right Column: Directorio de Contactos
+            // Right Column: Directorio de Contactos o Detalle de Contacto
             Expanded(
               flex: 6,
-              child: _buildContactsDirectoryView(
-                context,
-                state,
-                filtered,
-                upcomingBirthdays,
-                padding: const EdgeInsets.fromLTRB(20, 20, 24, 88),
-              ),
+              child: _selectedContactId != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: ContactDetailScreen(
+                        key: ValueKey(_selectedContactId),
+                        contactId: _selectedContactId!,
+                        embedded: true,
+                        onBack: () => setState(() => _selectedContactId = null),
+                      ),
+                    )
+                  : _buildContactsDirectoryView(
+                      context,
+                      state,
+                      filtered,
+                      upcomingBirthdays,
+                      padding: const EdgeInsets.fromLTRB(20, 20, 24, 88),
+                    ),
             ),
           ],
         ),
@@ -328,14 +351,21 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
           padding: EdgeInsets.fromLTRB(16, 16, 16, 88),
         ),
 
-        // Tab 2: Directorio de Contactos
-        _buildContactsDirectoryView(
-          context,
-          state,
-          filtered,
-          upcomingBirthdays,
-          padding: const EdgeInsets.fromLTRB(20, 6, 20, 88),
-        ),
+        // Tab 2: Directorio de Contactos o Detalle de Contacto
+        _selectedContactId != null
+            ? ContactDetailScreen(
+                key: ValueKey(_selectedContactId),
+                contactId: _selectedContactId!,
+                embedded: true,
+                onBack: () => setState(() => _selectedContactId = null),
+              )
+            : _buildContactsDirectoryView(
+                context,
+                state,
+                filtered,
+                upcomingBirthdays,
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 88),
+              ),
       ],
     );
   }
@@ -544,9 +574,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                 final days = c.daysUntilBirthday;
                 return InkWell(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => ContactDetailScreen(contactId: c.id)),
-                    );
+                    setState(() {
+                      _selectedContactId = c.id;
+                    });
                   },
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
@@ -611,11 +641,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
       ),
       child: InkWell(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ContactDetailScreen(contactId: contact.id),
-            ),
-          );
+          setState(() {
+            _selectedContactId = contact.id;
+          });
         },
         borderRadius: BorderRadius.circular(18),
         child: Padding(

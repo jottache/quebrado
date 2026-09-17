@@ -19,8 +19,15 @@ import '../../habitos/theme/habitos_terminal_theme.dart';
 
 class ContactDetailScreen extends StatefulWidget {
   final String contactId;
+  final VoidCallback? onBack;
+  final bool embedded;
 
-  const ContactDetailScreen({super.key, required this.contactId});
+  const ContactDetailScreen({
+    super.key,
+    required this.contactId,
+    this.onBack,
+    this.embedded = false,
+  });
 
   @override
   State<ContactDetailScreen> createState() => _ContactDetailScreenState();
@@ -93,7 +100,11 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             onPressed: () {
               Provider.of<DiarioState>(context, listen: false).deleteContact(contact.id);
               Navigator.of(context).pop(); // dialog
-              Navigator.of(context).pop(); // screen
+              if (widget.embedded && widget.onBack != null) {
+                widget.onBack!();
+              } else {
+                Navigator.of(context).pop(); // screen
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: DiarioColors.rose),
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
@@ -110,7 +121,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
     if (contact == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Contacto')),
+        appBar: AppBar(
+          title: const Text('Contacto'),
+          leading: (widget.embedded && widget.onBack != null)
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Volver a contactos',
+                  onPressed: widget.onBack,
+                )
+              : null,
+        ),
         body: const Center(child: Text('El contacto no existe o fue eliminado.')),
       );
     }
@@ -135,6 +155,13 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        leading: (widget.embedded && widget.onBack != null)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Volver a contactos',
+                onPressed: widget.onBack,
+              )
+            : null,
         title: Text(
           contact.name,
           style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DiarioColors.textPrimary),

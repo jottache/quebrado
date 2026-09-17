@@ -5,6 +5,7 @@ import '../models/diario_template.dart';
 import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../screens/entry_editor_dialog.dart';
+import '../dialogs/quick_note_dialog.dart';
 import '../widgets/diario_image_helper.dart';
 
 class PersonalNotesView extends StatefulWidget {
@@ -24,6 +25,13 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
   String _selectedFilter = 'Todas'; // 'Todas', 'Fijadas', 'Con Foto', 'Recientes'
 
   final List<String> _filters = ['Todas', 'Fijadas', 'Con Foto', 'Recientes'];
+
+  void _openQuickNoteDialog({bool autoStartVoice = false}) {
+    showDialog(
+      context: context,
+      builder: (context) => QuickNoteDialog(autoStartVoice: autoStartVoice),
+    );
+  }
 
   void _openNewNoteDialog({bool startListening = false}) {
     showDialog(
@@ -206,7 +214,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _openNewNoteDialog(),
+                  onPressed: () => _openQuickNoteDialog(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF1F6F5F),
@@ -214,9 +222,9 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.edit_note_rounded, size: 18),
+                  icon: const Icon(Icons.bolt_rounded, size: 18),
                   label: const Text(
-                    'Nueva Nota',
+                    'Nota Rápida',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
                   ),
                 ),
@@ -224,16 +232,16 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _openNewNoteDialog(startListening: true),
+                  onPressed: () => _openNewNoteDialog(),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white70, width: 1.2),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.mic_rounded, size: 18),
+                  icon: const Icon(Icons.tune_rounded, size: 18),
                   label: const Text(
-                    'Dictar por Voz',
+                    'Nota Completa',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
                   ),
                 ),

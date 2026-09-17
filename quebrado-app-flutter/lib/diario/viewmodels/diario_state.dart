@@ -339,7 +339,7 @@ class DiarioState extends ChangeNotifier {
   }
 
   Future<DiarioEntry> addPersonalEntry({
-    required String title,
+    String title = '',
     String? contentText,
     String? photoUrl,
     String? categoryId,
