@@ -1,8 +1,17 @@
 -- ==============================================================================
--- MIGRACIÓN 010: DIARIO JOTTACHE - NOTAS PERSONALES
+-- MIGRACIÓN 010: DIARIO (NOTAS PERSONALES) Y RECORDATORIOS (FIJADOS)
 -- ==============================================================================
--- Esta migración adapta las tablas para permitir notas personales independientes
--- de contactos específicos (contact_id = 'personal' o NULL).
+
+-- PARTE A: RECORDATORIOS FIJADOS (is_pinned)
+-- Agrega la columna is_pinned a la tabla reminders para permitir fijar recordatorios
+ALTER TABLE public.reminders 
+ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_reminders_pinned ON public.reminders(is_pinned) WHERE is_pinned = true;
+
+
+-- PARTE B: DIARIO JOTTACHE (NOTAS PERSONALES)
+-- Permite notas personales independientes de contactos (contact_id = 'personal' o NULL).
 
 -- 1. Quitar la restricción NOT NULL de contact_id en diario_entries
 ALTER TABLE diario_entries ALTER COLUMN contact_id DROP NOT NULL;
@@ -21,3 +30,4 @@ ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name,
     icon = EXCLUDED.icon,
     color_hex = EXCLUDED.color_hex;
+

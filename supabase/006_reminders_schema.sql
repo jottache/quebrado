@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.reminders (
   
   -- Metadatos y Organización
   tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+  is_pinned BOOLEAN DEFAULT FALSE,    -- Recordatorio fijado en banner principal
   completed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -69,6 +70,7 @@ CREATE TABLE IF NOT EXISTS public.reminders (
 -- 5. Índices de Alto Rendimiento
 CREATE INDEX IF NOT EXISTS idx_reminders_user_status ON public.reminders(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_reminders_due ON public.reminders(due_at) WHERE status IN ('pending', 'snoozed');
+CREATE INDEX IF NOT EXISTS idx_reminders_pinned ON public.reminders(is_pinned) WHERE is_pinned = true;
 CREATE INDEX IF NOT EXISTS idx_push_user ON public.push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_created ON public.reminders(created_at DESC);
 
