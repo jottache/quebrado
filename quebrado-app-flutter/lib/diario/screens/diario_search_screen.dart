@@ -6,9 +6,17 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
 import 'contact_detail_screen.dart';
+import '../dialogs/entry_reader_dialog.dart';
 
 class DiarioSearchScreen extends StatefulWidget {
-  const DiarioSearchScreen({super.key});
+  final bool isDrawer;
+  final void Function(String contactId)? onSelectContact;
+
+  const DiarioSearchScreen({
+    super.key,
+    this.isDrawer = false,
+    this.onSelectContact,
+  });
 
   @override
   State<DiarioSearchScreen> createState() => _DiarioSearchScreenState();
@@ -35,6 +43,16 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        leading: widget.isDrawer
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded, size: 22),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
         title: TextField(
           controller: _searchController,
           autofocus: true,
@@ -160,11 +178,24 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
       ),
       child: ListTile(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ContactDetailScreen(contactId: contact.id),
-            ),
-          );
+          if (widget.isDrawer) {
+            Navigator.of(context).pop();
+            if (widget.onSelectContact != null) {
+              widget.onSelectContact!(contact.id);
+            } else {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ContactDetailScreen(contactId: contact.id),
+                ),
+              );
+            }
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ContactDetailScreen(contactId: contact.id),
+              ),
+            );
+          }
         },
         leading: GestureDetector(
           onTap: (contact.avatarUrl != null && contact.avatarUrl!.isNotEmpty)
@@ -217,7 +248,8 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
   }
 
   Widget _buildEntryResultItem(DiarioEntry entry, DiarioState state) {
-    final contact = state.getContactById(entry.contactId);
+    final isPersonal = entry.isPersonal || entry.contactId == 'personal';
+    final contact = isPersonal ? null : state.getContactById(entry.contactId);
     final template = entry.templateId != null ? state.getTemplateById(entry.templateId!) : null;
 
     return Container(
@@ -228,25 +260,23 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
         border: Border.all(color: DiarioColors.cardBorder),
       ),
       child: ListTile(
-        onTap: () {
-          if (contact != null) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ContactDetailScreen(contactId: contact.id),
-              ),
-            );
-          }
-        },
+        onTap: () => openEntryReader(context, entry),
         leading: Container(
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: template != null ? template.color.withOpacity(0.12) : DiarioColors.primaryLight,
+            color: isPersonal
+                ? const Color(0xFF1F6F5F).withOpacity(0.12)
+                : (template != null ? template.color.withOpacity(0.12) : DiarioColors.primaryLight),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            template != null ? template.iconData : Icons.article_outlined,
-            color: template != null ? template.color : DiarioColors.primary,
+            isPersonal
+                ? Icons.person_pin_rounded
+                : (template != null ? template.iconData : Icons.article_outlined),
+            color: isPersonal
+                ? const Color(0xFF1F6F5F)
+                : (template != null ? template.color : DiarioColors.primary),
             size: 20,
           ),
         ),
@@ -257,12 +287,18 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
                   ? (entry.contentText!.length > 50
                       ? '${entry.contentText!.substring(0, 50)}...'
                       : entry.contentText!)
-                  : (template?.name ?? 'Registro')),
+                  : (template?.name ?? (isPersonal ? 'Nota Personal' : 'Registro'))),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         subtitle: Text(
-          'En contacto: ${contact?.name ?? "Desconocido"}${template != null ? " • (${template.name})" : ""}',
-          style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+          isPersonal
+              ? 'Nota Personal${template != null ? " • (${template.name})" : ""}'
+              : 'En contacto: ${contact?.name ?? "Contacto"}${template != null ? " • (${template.name})" : ""}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isPersonal ? FontWeight.w700 : FontWeight.normal,
+            color: isPersonal ? const Color(0xFF1F6F5F) : DiarioColors.textSecondary,
+          ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

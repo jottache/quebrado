@@ -7,6 +7,9 @@ import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
 import 'package:quebrado_app_flutter/diario/screens/diario_home_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/entry_editor_dialog.dart';
 import 'package:quebrado_app_flutter/diario/widgets/personal_notes_view.dart';
+import 'package:quebrado_app_flutter/diario/dialogs/entry_reader_dialog.dart';
+import 'package:quebrado_app_flutter/diario/screens/diario_search_screen.dart';
+import 'package:quebrado_app_flutter/diario/screens/template_manager_screen.dart';
 import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 
 void main() {
@@ -217,6 +220,147 @@ void main() {
 
       // We are back at the directory list
       expect(find.text('Directorio de Personas'), findsOneWidget);
+    });
+
+    test('DiarioContact calculates currentAge and ageOnUpcomingBirthday correctly', () {
+      final now = DateTime.now();
+      // Contact born 25 years ago whose birthday already passed this year
+      final bdayPast = DateTime(now.year - 25, now.month - 1 > 0 ? now.month - 1 : 1, 15);
+      final c1 = DiarioContact(id: 'c1', name: 'Test 1', birthdate: bdayPast);
+      expect(c1.currentAge, equals(25));
+      expect(c1.ageOnUpcomingBirthday, equals(26));
+
+      // Contact born today 30 years ago
+      final bdayToday = DateTime(now.year - 30, now.month, now.day);
+      final c2 = DiarioContact(id: 'c2', name: 'Test 2', birthdate: bdayToday);
+      expect(c2.currentAge, equals(30));
+      expect(c2.daysUntilBirthday, equals(0));
+      expect(c2.ageOnUpcomingBirthday, equals(30));
+    });
+
+    testWidgets('Tapping a personal note card opens EntryReaderDialog in reading mode', (tester) async {
+      final state = DiarioState();
+      await state.loadAll();
+
+      await state.addPersonalEntry(
+        title: 'Nota de Prueba Lectura',
+        contentText: 'Este es el contenido completo para verificar el modo lectura.',
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DiarioState>.value(
+          value: state,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: PersonalNotesView(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap on note
+      await tester.tap(find.text('Nota de Prueba Lectura'));
+      await tester.pumpAndSettle();
+
+      // Check EntryReaderDialog opened with reading view elements
+      expect(find.byType(EntryReaderDialog), findsOneWidget);
+      expect(find.text('Personal'), findsWidgets);
+      expect(
+        find.descendant(
+          of: find.byType(EntryReaderDialog),
+          matching: find.text('Nota de Prueba Lectura'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(EntryReaderDialog),
+          matching: find.text('Este es el contenido completo para verificar el modo lectura.'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Editar esta nota'), findsOneWidget);
+    });
+
+    testWidgets('DiarioSearchScreen displays "Nota Personal" badge for personal entries and opens reader on tap', (tester) async {
+      final state = DiarioState();
+      await state.loadAll();
+
+      await state.addPersonalEntry(
+        title: 'Nota Secreta Personal',
+        contentText: 'Comprar frutas frescas hoy por la tarde',
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DiarioState>.value(
+          value: state,
+          child: const MaterialApp(
+            home: DiarioSearchScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Type query in search
+      await tester.enterText(find.byType(TextField), 'frutas frescas');
+      await tester.pumpAndSettle();
+
+      // Check search result displays "Nota Personal"
+      expect(find.text('Nota Personal'), findsWidgets);
+
+      // Tap the result item
+      await tester.tap(find.text('Nota Secreta Personal'));
+      await tester.pumpAndSettle();
+
+      // Check reader is opened
+      expect(find.byType(EntryReaderDialog), findsOneWidget);
+    });
+
+    testWidgets('Desktop view opens endDrawer for search and templates', (tester) async {
+      final state = DiarioState();
+      await state.loadAll();
+
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
+          ],
+          child: const MaterialApp(
+            home: DiarioHomeScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap search icon in AppBar
+      await tester.tap(find.byTooltip('Búsqueda Global'));
+      await tester.pumpAndSettle();
+
+      // Drawer is open with DiarioSearchScreen
+      expect(find.byType(Drawer), findsOneWidget);
+      expect(find.byType(DiarioSearchScreen), findsOneWidget);
+
+      // Close drawer
+      await tester.tap(find.byTooltip('Cerrar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(Drawer), findsNothing);
+
+      // Tap templates icon in AppBar
+      await tester.tap(find.byTooltip('Modelos Reutilizables'));
+      await tester.pumpAndSettle();
+
+      // Drawer is open with TemplateManagerScreen
+      expect(find.byType(Drawer), findsOneWidget);
+      expect(find.text('Modelos Reutilizables'), findsWidgets);
     });
   });
 }

@@ -22,10 +22,12 @@ class DiarioHomeScreen extends StatefulWidget {
 
 class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TabController _tabController;
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
   String? _selectedContactId;
+  String? _activeDrawerContent; // 'search' | 'templates'
 
   final List<String> _filters = [
     'Todos', 'Favoritos', 'Familia', 'Amigos', 'Pareja'
@@ -76,6 +78,30 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     );
   }
 
+  Widget _buildEndDrawer(BuildContext context, bool isDesktop) {
+    final drawerWidth = isDesktop ? 550.0 : MediaQuery.of(context).size.width * 0.92;
+    return Drawer(
+      width: drawerWidth,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: _activeDrawerContent == 'templates'
+          ? const TemplateManagerScreen(isDrawer: true)
+          : DiarioSearchScreen(
+              isDrawer: true,
+              onSelectContact: (contactId) {
+                setState(() {
+                  _selectedContactId = contactId;
+                  if (!isDesktop && _tabController.index != 1) {
+                    _tabController.animateTo(1);
+                  }
+                });
+              },
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<DiarioState>(context);
@@ -111,6 +137,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     final upcomingBirthdays = state.getUpcomingBirthdays(limit: 3);
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawerEnableOpenDragGesture: false,
+      endDrawer: _buildEndDrawer(context, isDesktop),
       backgroundColor: DiarioColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -158,18 +187,22 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
             icon: const Icon(Icons.search_rounded),
             tooltip: 'Búsqueda Global',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const DiarioSearchScreen()),
-              );
+              setState(() => _activeDrawerContent = 'search');
+              _scaffoldKey.currentState?.openEndDrawer();
             },
           ),
           IconButton(
             icon: const Icon(Icons.dashboard_customize_outlined),
             tooltip: 'Modelos Reutilizables',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TemplateManagerScreen()),
-              );
+              if (isDesktop) {
+                setState(() => _activeDrawerContent = 'templates');
+                _scaffoldKey.currentState?.openEndDrawer();
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const TemplateManagerScreen()),
+                );
+              }
             },
           ),
           const SizedBox(width: 6),
@@ -602,7 +635,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            days == 0 ? '¡HOY!' : 'en ${days}d',
+                            days == 0
+                                ? (c.ageOnUpcomingBirthday != null ? '¡HOY! (cumple ${c.ageOnUpcomingBirthday})' : '¡HOY!')
+                                : (c.ageOnUpcomingBirthday != null ? 'en ${days}d (cumplirá ${c.ageOnUpcomingBirthday})' : 'en ${days}d'),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -745,6 +780,22 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        if (contact.currentAge != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: DiarioColors.primaryLight.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${contact.currentAge} años',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: DiarioColors.primary,
                               ),
                             ),
                           ),

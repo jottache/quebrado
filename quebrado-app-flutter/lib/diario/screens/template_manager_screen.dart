@@ -5,7 +5,9 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 
 class TemplateManagerScreen extends StatelessWidget {
-  const TemplateManagerScreen({super.key});
+  final bool isDrawer;
+
+  const TemplateManagerScreen({super.key, this.isDrawer = false});
 
   void _openCreateTemplateDialog(BuildContext context) {
     showDialog(
@@ -25,6 +27,13 @@ class TemplateManagerScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        leading: isDrawer
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded, size: 22),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         title: const Text(
           'Modelos Reutilizables',
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DiarioColors.textPrimary),
@@ -35,6 +44,7 @@ class TemplateManagerScreen extends StatelessWidget {
             tooltip: 'Crear Nuevo Modelo',
             onPressed: () => _openCreateTemplateDialog(context),
           ),
+          if (isDrawer) const SizedBox(width: 4),
         ],
       ),
       body: ListView.separated(

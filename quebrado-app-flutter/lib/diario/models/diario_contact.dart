@@ -56,6 +56,25 @@ class DiarioContact {
     return nextYearBday.difference(DateTime(now.year, now.month, now.day)).inDays;
   }
 
+  int? get currentAge {
+    if (birthdate == null) return null;
+    final now = DateTime.now();
+    int age = now.year - birthdate!.year;
+    if (now.month < birthdate!.month || (now.month == birthdate!.month && now.day < birthdate!.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  int? get ageOnUpcomingBirthday {
+    if (birthdate == null) return null;
+    final age = currentAge;
+    if (age == null) return null;
+    final days = daysUntilBirthday;
+    if (days == null) return null;
+    return days == 0 ? age : age + 1;
+  }
+
   String? get formattedBirthdate {
     if (birthdate == null) return null;
     final months = [

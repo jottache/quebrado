@@ -620,6 +620,9 @@ $bdaysStr
       'birthdate': c.birthdate != null
           ? '${c.birthdate!.day}/${c.birthdate!.month}/${c.birthdate!.year}'
           : 'No registrado',
+      'currentAge': c.currentAge != null ? '${c.currentAge} años' : 'Desconocida',
+      'daysUntilBirthday': c.daysUntilBirthday,
+      'ageOnUpcomingBirthday': c.ageOnUpcomingBirthday != null ? '${c.ageOnUpcomingBirthday} años' : null,
       'notes': c.notes ?? '',
       'records': recordsData,
     };
@@ -988,20 +991,13 @@ $bdaysStr
       case 'getUpcomingBirthdays':
         final limit = int.tryParse(arguments['limit']?.toString() ?? '5') ?? 5;
         final list = diarioState.getUpcomingBirthdays(limit: limit);
-        final now = DateTime.now();
         final bdaysData = list.map((b) {
-          int? nextAge;
-          if (b.birthdate != null) {
-            int age = now.year - b.birthdate!.year;
-            final bdayThisYear = DateTime(now.year, b.birthdate!.month, b.birthdate!.day);
-            if (now.isAfter(bdayThisYear)) age += 1;
-            nextAge = age;
-          }
           return {
             'name': b.name,
             'formattedBirthdate': b.formattedBirthdate,
             'daysUntilBirthday': b.daysUntilBirthday,
-            'nextAge': nextAge,
+            'currentAge': b.currentAge,
+            'nextAge': b.ageOnUpcomingBirthday,
           };
         }).toList();
 
@@ -1009,7 +1005,10 @@ $bdaysStr
           sessionId: sessionId,
           type: ArtifactType.table,
           title: 'Próximos Cumpleaños',
-          content: list.map((b) => '| ${b.name} | ${b.formattedBirthdate ?? "N/A"} | en ${b.daysUntilBirthday} días |').join('\n'),
+          content: list
+              .map((b) =>
+                  '| ${b.name} | ${b.formattedBirthdate ?? "N/A"} | en ${b.daysUntilBirthday} días (cumplirá ${b.ageOnUpcomingBirthday ?? "N/A"}) |')
+              .join('\n'),
           metadata: {'birthdays': bdaysData},
         );
 

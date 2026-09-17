@@ -30,6 +30,7 @@ class DiarioEntry {
         updatedAt = updatedAt ?? DateTime.now();
 
   bool get isTemplateInstance => entryType == 'template_instance' && templateId != null;
+  bool get isPersonal => contactId == 'personal' || contactId.isEmpty;
   bool get hasPhoto => photoUrl != null && photoUrl!.trim().isNotEmpty;
   bool get hasTitle => title.trim().isNotEmpty;
 

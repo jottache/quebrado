@@ -6,6 +6,7 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../screens/entry_editor_dialog.dart';
 import '../dialogs/quick_note_dialog.dart';
+import '../dialogs/entry_reader_dialog.dart';
 import '../widgets/diario_image_helper.dart';
 
 class PersonalNotesView extends StatefulWidget {
@@ -327,7 +328,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _openEditNoteDialog(entry),
+          onTap: () => openEntryReader(context, entry),
           borderRadius: BorderRadius.circular(18),
           child: Padding(
             padding: const EdgeInsets.all(16.0),

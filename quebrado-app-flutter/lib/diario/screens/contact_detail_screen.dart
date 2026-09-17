@@ -10,6 +10,7 @@ import '../theme/diario_colors.dart';
 import '../dialogs/contact_editor_dialog.dart';
 import '../dialogs/category_editor_dialog.dart';
 import 'entry_editor_dialog.dart';
+import '../dialogs/entry_reader_dialog.dart';
 import '../widgets/diario_image_helper.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
 import '../../habitos/models/habit_model.dart';
@@ -479,7 +480,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                         Icon(Icons.cake_outlined, size: 16, color: DiarioColors.primary),
                         const SizedBox(width: 6),
                         Text(
-                          '${contact.formattedBirthdate} (${contact.daysUntilBirthday == 0 ? "¡HOY!" : "en ${contact.daysUntilBirthday}d"})',
+                          '${contact.formattedBirthdate}${contact.currentAge != null ? " • ${contact.currentAge} años" : ""} (${contact.daysUntilBirthday == 0 ? "¡HOY cumple ${contact.ageOnUpcomingBirthday}!" : "en ${contact.daysUntilBirthday}d cumplirá ${contact.ageOnUpcomingBirthday}"})',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DiarioColors.primary),
                         ),
                       ],
@@ -721,11 +722,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => openEntryReader(context, entry),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // Top Bar: Model / Category Badge + Pin + Context Menu
             Row(
               children: [
@@ -1022,8 +1028,10 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildEmptyEntriesState(BuildContext context) {
     return Center(
