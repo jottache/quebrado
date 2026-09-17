@@ -7,6 +7,7 @@ import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../theme/diario_colors.dart';
+import 'clipboard_image_helper.dart';
 
 class DiarioImageHelper {
   static final ImagePicker _picker = ImagePicker();
@@ -170,15 +171,15 @@ class DiarioImageHelper {
     return pickAvatar(source);
   }
 
-  /// Obtiene una imagen directamente desde el portapapeles del sistema operativo
+  /// Obtiene una imagen directamente desde el portapapeles (Desktop nativo o Web)
   /// y la almacena de forma persistente.
   static Future<String?> pickImageFromClipboard(
     BuildContext context, {
     String successMessage = 'Imagen pegada del portapapeles',
   }) async {
     try {
-      final Uint8List? bytes = await Pasteboard.image;
-      if (bytes == null || bytes.isEmpty) {
+      final imageResult = await readImageFromClipboard();
+      if (imageResult == null || imageResult.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -201,7 +202,7 @@ class DiarioImageHelper {
         return null;
       }
 
-      final savedPath = await saveImageBytesPermanently(bytes);
+      final savedPath = await saveImagePermanently(imageResult);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -537,7 +538,7 @@ class DiarioImageHelper {
 
   /// Guarda una copia permanente de la imagen en documents/diario_images
   static Future<String> saveImagePermanently(String tempPath) async {
-    if (kIsWeb) return tempPath;
+    if (kIsWeb || tempPath.startsWith('data:image/')) return tempPath;
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final imagesDir = Directory(p.join(appDir.path, 'diario_images'));

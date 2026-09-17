@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:quebrado_app_flutter/diario/dialogs/contact_editor_dialog.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_contact.dart';
 import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
+import 'package:quebrado_app_flutter/diario/widgets/clipboard_image_helper.dart';
 import 'package:quebrado_app_flutter/diario/widgets/diario_image_helper.dart';
 
 void main() {
@@ -54,6 +55,13 @@ void main() {
       expect(find.text('Cámara'), findsOneWidget);
       expect(find.text('Pegar del Portapapeles'), findsOneWidget);
       expect(find.text('Usa una imagen copiada en tu equipo (Cmd+V)'), findsOneWidget);
+    });
+
+    test('readImageFromClipboard works without exceptions', () async {
+      final result = await readImageFromClipboard();
+      // On macOS environment with an active clipboard image, result is a non-empty string path
+      expect(result, isNotNull);
+      expect(result, isNotEmpty);
     });
   });
 }
