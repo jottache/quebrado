@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../theme/diario_colors.dart';
@@ -10,7 +11,7 @@ import '../theme/diario_colors.dart';
 class DiarioImageHelper {
   static final ImagePicker _picker = ImagePicker();
 
-  /// Abre un modal para seleccionar Cámara, Galería o Quitar Foto para el Avatar del contacto.
+  /// Abre un modal para seleccionar Cámara, Galería, Portapapeles o Quitar Foto para el Avatar del contacto.
   static Future<String?> pickAvatarWithSourceModal(BuildContext context, {bool hasExistingAvatar = false}) async {
     final String? action = await showModalBottomSheet<String>(
       context: context,
@@ -47,7 +48,7 @@ class DiarioImageHelper {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Selecciona una foto para identificar a tu contacto',
+                'Selecciona o pega una foto para identificar a tu contacto',
                 style: TextStyle(fontSize: 13, color: DiarioColors.textSecondary),
               ),
               const SizedBox(height: 18),
@@ -73,6 +74,54 @@ class DiarioImageHelper {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => Navigator.of(ctx).pop('paste'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: DiarioColors.primaryLight.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: DiarioColors.primary.withOpacity(0.3), width: 1.2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: DiarioColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pegar del Portapapeles',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: DiarioColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Usa una imagen copiada en tu equipo (Cmd+V)',
+                              style: TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textSecondary),
+                    ],
+                  ),
+                ),
               ),
               if (hasExistingAvatar) ...[
                 const SizedBox(height: 12),
@@ -113,9 +162,101 @@ class DiarioImageHelper {
 
     if (action == null) return null;
     if (action == 'remove') return ''; // Indicador de eliminación
+    if (action == 'paste') {
+      return pickImageFromClipboard(context, successMessage: 'Foto de perfil pegada del portapapeles');
+    }
 
     final source = action == 'camera' ? ImageSource.camera : ImageSource.gallery;
     return pickAvatar(source);
+  }
+
+  /// Obtiene una imagen directamente desde el portapapeles del sistema operativo
+  /// y la almacena de forma persistente.
+  static Future<String?> pickImageFromClipboard(
+    BuildContext context, {
+    String successMessage = 'Imagen pegada del portapapeles',
+  }) async {
+    try {
+      final Uint8List? bytes = await Pasteboard.image;
+      if (bytes == null || bytes.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('No hay ninguna imagen copiada en el portapapeles.'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.grey[850],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        return null;
+      }
+
+      final savedPath = await saveImageBytesPermanently(bytes);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(successMessage)),
+              ],
+            ),
+            backgroundColor: DiarioColors.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return savedPath;
+    } catch (e) {
+      debugPrint('Error leyendo portapapeles: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al leer imagen del portapapeles: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  /// Guarda bytes binarios de imagen de forma persistente en documents/diario_images
+  static Future<String> saveImageBytesPermanently(Uint8List bytes, {String ext = '.png'}) async {
+    if (kIsWeb) {
+      return 'data:image/png;base64,${base64Encode(bytes)}';
+    }
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory(p.join(appDir.path, 'diario_images'));
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      final fileName = 'diario_clip_${DateTime.now().millisecondsSinceEpoch}$ext';
+      final permanentPath = p.join(imagesDir.path, fileName);
+
+      final file = File(permanentPath);
+      await file.writeAsBytes(bytes);
+      return file.path;
+    } catch (e) {
+      debugPrint('Error guardando imagen binaria en disco: $e');
+      return 'data:image/png;base64,${base64Encode(bytes)}';
+    }
   }
 
   static Widget _buildActionCard({
@@ -193,9 +334,9 @@ class DiarioImageHelper {
     }
   }
 
-  /// Abre un modal para seleccionar Cámara o Galería y retorna la ruta permanente guardada.
+  /// Abre un modal para seleccionar Cámara, Galería o Portapapeles y retorna la ruta permanente guardada.
   static Future<String?> pickImageWithSourceModal(BuildContext context) async {
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+    final String? action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -237,25 +378,73 @@ class DiarioImageHelper {
               Row(
                 children: [
                   Expanded(
-                    child: _buildSourceOptionCard(
+                    child: _buildActionCard(
                       context: ctx,
                       icon: Icons.camera_alt_rounded,
                       title: 'Cámara',
                       subtitle: 'Tomar foto ahora',
-                      source: ImageSource.camera,
+                      actionValue: 'camera',
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildSourceOptionCard(
+                    child: _buildActionCard(
                       context: ctx,
                       icon: Icons.photo_library_rounded,
                       title: 'Galería',
                       subtitle: 'Elegir de fotos',
-                      source: ImageSource.gallery,
+                      actionValue: 'gallery',
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => Navigator.of(ctx).pop('paste'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: DiarioColors.primaryLight.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: DiarioColors.primary.withOpacity(0.3), width: 1.2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: DiarioColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pegar del Portapapeles',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: DiarioColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Adjunta una imagen que tengas copiada (Cmd+V)',
+                              style: TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textSecondary),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -263,7 +452,11 @@ class DiarioImageHelper {
       ),
     );
 
-    if (source == null) return null;
+    if (action == null) return null;
+    if (action == 'paste') {
+      return pickImageFromClipboard(context, successMessage: 'Foto adjuntada del portapapeles');
+    }
+    final source = action == 'camera' ? ImageSource.camera : ImageSource.gallery;
     return pickImage(source);
   }
 

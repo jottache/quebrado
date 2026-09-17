@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/diario_contact.dart';
 import '../viewmodels/diario_state.dart';
@@ -23,8 +24,8 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
   late TextEditingController _notesController;
   DateTime? _selectedBirthdate;
   late String _selectedColor;
-  late bool _isFavorite;
   String? _avatarUrl;
+  bool _isFavorite = false;
 
   final List<String> _suggestedRelationships = [
     'Familia', 'Sobrina', 'Sobrino', 'Novia', 'Novio', 'Esposa', 'Esposo',
@@ -41,9 +42,9 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
     _phoneController = TextEditingController(text: c?.phone ?? '');
     _notesController = TextEditingController(text: c?.notes ?? '');
     _selectedBirthdate = c?.birthdate;
-    _selectedColor = c?.avatarColor ?? '#1F6F5F';
-    _isFavorite = c?.isFavorite ?? false;
+    _selectedColor = c?.avatarColor ?? 'teal';
     _avatarUrl = c?.avatarUrl;
+    _isFavorite = c?.isFavorite ?? false;
   }
 
   @override
@@ -67,6 +68,24 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
     } else {
       setState(() => _avatarUrl = result);
     }
+  }
+
+  Future<void> _pasteAvatarFromClipboard() async {
+    final result = await DiarioImageHelper.pickImageFromClipboard(
+      context,
+      successMessage: 'Foto pegada del portapapeles con éxito',
+    );
+    if (result != null && result.isNotEmpty && mounted) {
+      setState(() => _avatarUrl = result);
+    }
+  }
+
+  void _handleShortcutPaste() {
+    final focus = FocusManager.instance.primaryFocus;
+    if (focus?.context?.widget is EditableText) {
+      return;
+    }
+    _pasteAvatarFromClipboard();
   }
 
   void _removeAvatar() {
@@ -177,18 +196,25 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
     final modalHeight = isMobile ? (screenHeight * 0.90) : 680.0;
     final modalWidth = isMobile ? (screenWidth * 0.94) : 500.0;
 
-    return MediaQuery.removeViewInsets(
-      removeBottom: true,
-      context: context,
-      child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: Colors.white,
-        clipBehavior: Clip.antiAlias,
-        insetPadding: EdgeInsets.symmetric(
-          horizontal: isMobile ? (screenWidth * 0.03) : 20,
-          vertical: isMobile ? (screenHeight * 0.05) : 24,
-        ),
-        child: SizedBox(
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.keyV, meta: true): _handleShortcutPaste,
+        const SingleActivator(LogicalKeyboardKey.keyV, control: true): _handleShortcutPaste,
+      },
+      child: FocusScope(
+        autofocus: true,
+        child: MediaQuery.removeViewInsets(
+          removeBottom: true,
+          context: context,
+          child: Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            backgroundColor: Colors.white,
+            clipBehavior: Clip.antiAlias,
+            insetPadding: EdgeInsets.symmetric(
+              horizontal: isMobile ? (screenWidth * 0.03) : 20,
+              vertical: isMobile ? (screenHeight * 0.05) : 24,
+            ),
+            child: SizedBox(
           width: modalWidth,
           height: isMobile ? modalHeight : null,
           child: ConstrainedBox(
@@ -276,77 +302,104 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
                           children: [
                             // Avatar Photo Picker
                             Center(
-                              child: Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: _pickAvatar,
-                                child: Container(
-                                  width: 76,
-                                  height: 76,
-                                  decoration: BoxDecoration(
-                                    color: DiarioColors.primaryLight,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: DiarioColors.primary.withOpacity(0.3),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: _avatarUrl != null && _avatarUrl!.isNotEmpty
-                                      ? ClipOval(
-                                          child: DiarioImageHelper.buildImageWidget(
-                                            _avatarUrl!,
-                                            width: 76,
-                                            height: 76,
-                                            fit: BoxFit.cover,
+                              child: Column(
+                                children: [
+                                  Stack(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: _pickAvatar,
+                                        child: Container(
+                                          width: 76,
+                                          height: 76,
+                                          decoration: BoxDecoration(
+                                            color: DiarioColors.primaryLight,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: DiarioColors.primary.withOpacity(0.3),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: _avatarUrl != null && _avatarUrl!.isNotEmpty
+                                              ? ClipOval(
+                                                  child: DiarioImageHelper.buildImageWidget(
+                                                    _avatarUrl!,
+                                                    width: 76,
+                                                    height: 76,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.add_a_photo_rounded,
+                                                  color: DiarioColors.primary,
+                                                  size: 30,
+                                                ),
+                                        ),
+                                      ),
+                                      if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                                        Positioned(
+                                          right: 0,
+                                          bottom: 0,
+                                          child: GestureDetector(
+                                            onTap: _removeAvatar,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.redAccent,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.close_rounded,
+                                                color: Colors.white,
+                                                size: 14,
+                                              ),
+                                            ),
                                           ),
                                         )
-                                      : const Icon(
-                                          Icons.add_a_photo_rounded,
-                                          color: DiarioColors.primary,
-                                          size: 30,
+                                      else
+                                        Positioned(
+                                          right: 0,
+                                          bottom: 0,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: const BoxDecoration(
+                                              color: DiarioColors.primary,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.camera_alt_rounded,
+                                              color: Colors.white,
+                                              size: 13,
+                                            ),
+                                          ),
                                         ),
-                                ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  InkWell(
+                                    onTap: _pasteAvatarFromClipboard,
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(Icons.content_paste_rounded, size: 13, color: DiarioColors.primary),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Pegar foto copiada (Cmd+V)',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: DiarioColors.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: GestureDetector(
-                                    onTap: _removeAvatar,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.redAccent,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close_rounded,
-                                        color: Colors.white,
-                                        size: 14,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: const BoxDecoration(
-                                      color: DiarioColors.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.camera_alt_rounded,
-                                      color: Colors.white,
-                                      size: 13,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                            ),
 
                         const SizedBox(height: 16),
                         // Name
@@ -547,6 +600,8 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
       ),
     ),
   ),
+),
+),
 );
 }
 }

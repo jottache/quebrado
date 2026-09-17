@@ -56,6 +56,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.5
   sqflite_common_ffi_web: ^0.4.3+1
   speech_to_text: ^6.6.2
+  pasteboard: ^0.1.0
 
 dev_dependencies:
   flutter_test:
