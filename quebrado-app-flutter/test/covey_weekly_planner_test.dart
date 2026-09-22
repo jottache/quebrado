@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrado_app_flutter/recordatorios/dialogs/covey_guide_dialog.dart';
 import 'package:quebrado_app_flutter/recordatorios/models/covey_quadrant.dart';
 import 'package:quebrado_app_flutter/recordatorios/models/reminder_model.dart';
 import 'package:quebrado_app_flutter/recordatorios/models/role_model.dart';
@@ -167,6 +169,68 @@ void main() {
       await state.toggleBigRock(r.id);
       final updated = state.allReminders.firstWhere((x) => x.id == r.id);
       expect(updated.isBigRock, isTrue);
+    });
+  });
+
+  group('CoveyGuideDialog Widget Tests', () {
+    testWidgets('Muestra la guía paso a paso, navega entre pasos y renderiza contenido de los 6 pasos', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1200, 900));
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: CoveyGuideDialog(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Paso 1: Roles Vitales & Brújula
+      expect(find.text('Roles Vitales & Brújula'), findsWidgets);
+      expect(find.text('Configurar Mis Roles Vitales'), findsOneWidget);
+      expect(find.text('Paso 1 de 6'), findsOneWidget);
+
+      // Avanzar al Paso 2: El Ritual Dominical
+      await tester.tap(find.text('Siguiente Paso'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('El Ritual Dominical'), findsWidgets);
+      expect(find.text('Paso 2 de 6'), findsOneWidget);
+      expect(find.text('Abrir Ritual Dominical'), findsOneWidget);
+
+      // Avanzar al Paso 3: Grandes Rocas vs Arena
+      await tester.tap(find.text('Siguiente Paso'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Grandes Rocas vs Arena'), findsWidgets);
+      expect(find.text('Paso 3 de 6'), findsOneWidget);
+
+      // Avanzar al Paso 4: Agenda Semanal Flexible
+      await tester.tap(find.text('Siguiente Paso'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Agenda Semanal Flexible'), findsWidgets);
+      expect(find.text('Paso 4 de 6'), findsOneWidget);
+
+      // Avanzar al Paso 5: La Matriz de Covey (2x2)
+      await tester.tap(find.text('Siguiente Paso'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('La Matriz de Covey (2x2)'), findsWidgets);
+      expect(find.text('Paso 5 de 6'), findsOneWidget);
+
+      // Avanzar al Paso 6: Captura NLP y Coach Ortiz
+      await tester.tap(find.text('Siguiente Paso'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Captura NLP y Coach Ortiz'), findsWidgets);
+      expect(find.text('Paso 6 de 6'), findsOneWidget);
+      expect(find.text('¡Listo para Empezar!'), findsOneWidget);
+
+      // Botón Anterior
+      await tester.tap(find.text('Anterior'));
+      await tester.pumpAndSettle();
+      expect(find.text('Paso 5 de 6'), findsOneWidget);
     });
   });
 }

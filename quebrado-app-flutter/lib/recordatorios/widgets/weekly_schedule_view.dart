@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../dialogs/covey_guide_dialog.dart';
 import '../dialogs/reminder_editor_dialog.dart';
 import '../dialogs/role_manager_dialog.dart';
 import '../dialogs/sunday_planning_wizard_dialog.dart';
@@ -48,6 +49,13 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     showDialog(
       context: context,
       builder: (ctx) => const SundayPlanningWizardDialog(),
+    );
+  }
+
+  void _openGuide(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => const CoveyGuideDialog(),
     );
   }
 
@@ -137,6 +145,22 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 label: const Text(
                   'Ritual Dominical',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 6),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF4338CA),
+                  backgroundColor: const Color(0xFFEEF2FF),
+                  side: const BorderSide(color: Color(0xFFC7D2FE)),
+                  minimumSize: const Size.fromHeight(34),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => _openGuide(context),
+                icon: const Icon(Icons.school_outlined, size: 15, color: Color(0xFF4F46E5)),
+                label: const Text(
+                  '¿Cómo organizarme? (Guía)',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 12),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../dialogs/command_palette_dialog.dart';
+import '../dialogs/covey_guide_dialog.dart';
 import '../dialogs/reminder_editor_dialog.dart';
 import '../dialogs/role_manager_dialog.dart';
 import '../dialogs/sunday_planning_wizard_dialog.dart';
@@ -182,6 +183,15 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                   ),
                 ),
               ),
+              // Botón Guía Paso a Paso
+              IconButton(
+                icon: const Icon(Icons.help_outline_rounded, size: 21, color: Color(0xFF4F46E5)),
+                tooltip: '¿Cómo organizarme? (Guía Paso a Paso)',
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => const CoveyGuideDialog(),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.add_rounded),
                 tooltip: 'Nuevo Recordatorio Completo',
@@ -201,6 +211,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 860),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(3),
@@ -234,6 +245,27 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                                       onTap: () => state.setSelectedView('classic'),
                                     ),
                                   ],
+                                ),
+                              ),
+                              // Botón Guía de Organización Paso a Paso
+                              TextButton.icon(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (_) => const CoveyGuideDialog(),
+                                ),
+                                icon: const Icon(Icons.school_outlined, size: 16, color: Color(0xFF4F46E5)),
+                                label: const Text(
+                                  '¿Cómo organizarme?',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF4338CA),
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEEF2FF),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 ),
                               ),
                             ],
