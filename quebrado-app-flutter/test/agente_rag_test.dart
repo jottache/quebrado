@@ -129,7 +129,7 @@ void main() {
       final declared = rag.getDeclaredTools();
       expect(declared.length, equals(1));
       final funcs = declared.first.functionDeclarations!.map((f) => f.name).toList();
-      expect(funcs.length, equals(16));
+      expect(funcs.length, equals(19));
       expect(funcs, contains('searchSuiteData'));
       expect(funcs, contains('searchContacts'));
       expect(funcs, contains('getContactDetails'));
@@ -140,12 +140,15 @@ void main() {
       expect(funcs, contains('proposeCreateReminder'));
       expect(funcs, contains('proposeCreateHabit'));
       expect(funcs, contains('proposeCreateTransaction'));
+      expect(funcs, contains('getWeeklySchedule'));
+      expect(funcs, contains('getRolesCompass'));
+      expect(funcs, contains('proposeScheduleBigRock'));
 
       final jsonTools = rag.getToolsJson();
       final jsonFuncs = (jsonTools.first['functionDeclarations'] as List)
           .map((f) => f['name'])
           .toList();
-      expect(jsonFuncs.length, equals(16));
+      expect(jsonFuncs.length, equals(19));
       expect(jsonFuncs, contains('searchSuiteData'));
       expect(jsonFuncs, contains('searchContacts'));
       expect(jsonFuncs, contains('getContactDetails'));
@@ -156,6 +159,9 @@ void main() {
       expect(jsonFuncs, contains('proposeCreateReminder'));
       expect(jsonFuncs, contains('proposeCreateHabit'));
       expect(jsonFuncs, contains('proposeCreateTransaction'));
+      expect(jsonFuncs, contains('getWeeklySchedule'));
+      expect(jsonFuncs, contains('getRolesCompass'));
+      expect(jsonFuncs, contains('proposeScheduleBigRock'));
     });
 
     test('searchSuiteData and getReminders find reminders by query with formatted date and daysRemaining', () async {

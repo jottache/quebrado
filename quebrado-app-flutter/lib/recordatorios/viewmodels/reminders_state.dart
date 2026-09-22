@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../models/covey_quadrant.dart';
 import '../models/reminder_model.dart';
+import '../models/role_model.dart';
+import '../models/weekly_plan_model.dart';
 import '../services/nlp_parser.dart';
 import '../services/reminders_supabase_service.dart';
 
@@ -9,10 +12,15 @@ class RemindersState extends ChangeNotifier {
   final _uuid = const Uuid();
 
   List<ReminderModel> _reminders = [];
+  List<RoleModel> _roles = [];
+  WeeklyPlanModel? _currentWeeklyPlan;
   bool _isLoading = true;
   String _searchQuery = '';
   String? _selectedTagFilter;
   ReminderPriority? _selectedPriorityFilter;
+  CoveyQuadrant? _selectedQuadrantFilter;
+  String? _selectedRoleFilter;
+  String _selectedView = 'weekly'; // 'weekly' (default), 'matrix', 'classic'
   Future<void>? _initFuture;
 
   RemindersState({RemindersSupabaseService? service})
@@ -22,9 +30,14 @@ class RemindersState extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   List<ReminderModel> get allReminders => List.unmodifiable(_reminders);
+  List<RoleModel> get roles => List.unmodifiable(_roles);
+  WeeklyPlanModel? get currentWeeklyPlan => _currentWeeklyPlan;
   String get searchQuery => _searchQuery;
   String? get selectedTagFilter => _selectedTagFilter;
   ReminderPriority? get selectedPriorityFilter => _selectedPriorityFilter;
+  CoveyQuadrant? get selectedQuadrantFilter => _selectedQuadrantFilter;
+  String? get selectedRoleFilter => _selectedRoleFilter;
+  String get selectedView => _selectedView;
 
   // Conteo rápido
   int get overdueCount => overdueReminders.length;
@@ -42,7 +55,14 @@ class RemindersState extends ChangeNotifier {
     return list;
   }
 
-  // Filtrado general por texto, tag y prioridad
+  void setSelectedView(String view) {
+    if (_selectedView != view) {
+      _selectedView = view;
+      notifyListeners();
+    }
+  }
+
+  // Filtrado general por texto, tag, prioridad, cuadrante y rol
   List<ReminderModel> get _filteredList {
     return _reminders.where((r) {
       if (_searchQuery.isNotEmpty) {
@@ -58,17 +78,175 @@ class RemindersState extends ChangeNotifier {
       if (_selectedPriorityFilter != null && r.priority != _selectedPriorityFilter) {
         return false;
       }
+      if (_selectedQuadrantFilter != null && r.quadrant != _selectedQuadrantFilter) {
+        return false;
+      }
+      if (_selectedRoleFilter != null && r.roleId != _selectedRoleFilter) {
+        return false;
+      }
       return true;
     }).toList();
   }
 
-  // Recordatorios Fijados (Pinned Banner)
+  // ==========================================
+  // HÁBITO 3: BRÚJULA SEMANAL & GRANDES ROCAS
+  // ==========================================
+
+  /// Lunes que define el inicio de la semana actual activa
+  DateTime get currentMonday {
+    return _currentWeeklyPlan?.weekStartDate ?? WeeklyPlanModel.normalizeToMonday(DateTime.now());
+  }
+
+  /// Retorna las fechas de los 7 días de la semana actual (Lunes a Domingo)
+  List<DateTime> get currentWeekDays {
+    final monday = currentMonday;
+    return List.generate(7, (i) => monday.add(Duration(days: i)));
+  }
+
+  /// Grandes Rocas de la semana actual (activas o completadas)
+  List<ReminderModel> get bigRocksForCurrentWeek {
+    final monday = currentMonday;
+    final sundayEnd = monday.add(const Duration(days: 7));
+
+    return _reminders.where((r) {
+      if (!r.isBigRock || r.isArchived) return false;
+      if (r.weeklyPlanId != null && r.weeklyPlanId == _currentWeeklyPlan?.id) return true;
+      if (r.dueAt != null) {
+        return r.dueAt!.isAfter(monday.subtract(const Duration(seconds: 1))) &&
+            r.dueAt!.isBefore(sundayEnd);
+      }
+      return r.scheduledDayOfWeek != null;
+    }).toList();
+  }
+
+  /// Grandes Rocas asociadas a un rol específico
+  List<ReminderModel> bigRocksForRole(String roleId) {
+    return bigRocksForCurrentWeek.where((r) => r.roleId == roleId).toList();
+  }
+
+  /// Cuenta de Grandes Rocas para un rol
+  int countBigRocksForRole(String roleId) {
+    return bigRocksForRole(roleId).length;
+  }
+
+  /// Indica si un rol tiene al menos una Gran Roca definida para la semana
+  bool roleHasBigRock(String roleId) {
+    return countBigRocksForRole(roleId) > 0;
+  }
+
+  /// Roles desatendidos (que tienen 0 Grandes Rocas esta semana)
+  List<RoleModel> get unaddressedRoles {
+    return _roles.where((role) => !roleHasBigRock(role.id)).toList();
+  }
+
+  /// Busca un rol por su identificador
+  RoleModel? getRoleById(String? id) {
+    if (id == null) return null;
+    try {
+      return _roles.firstWhere((r) => r.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ==========================================
+  // CRONOGRAMA SEMANAL (7 DÍAS FLEXIBLES)
+  // ==========================================
+
+  /// Obtiene los recordatorios agendados para un día específico de la semana (0=Lunes, ..., 6=Domingo)
+  List<ReminderModel> remindersForDayOfWeek(int dayIndex) {
+    final monday = currentMonday;
+    final targetDay = monday.add(Duration(days: dayIndex));
+
+    return _filteredList.where((r) {
+      if (r.isCompleted || r.isArchived) return false;
+
+      // 1. Asignado explícitamente por el planificador semanal
+      if (r.scheduledDayOfWeek == dayIndex) return true;
+
+      // 2. Coincide con la fecha dueAt dentro de la semana
+      if (r.dueAt != null) {
+        final local = r.dueAt!.toLocal();
+        return local.year == targetDay.year &&
+            local.month == targetDay.month &&
+            local.day == targetDay.day;
+      }
+
+      return false;
+    }).toList()
+      ..sort((a, b) {
+        // Primero Grandes Rocas, luego por hora o creación
+        if (a.isBigRock && !b.isBigRock) return -1;
+        if (!a.isBigRock && b.isBigRock) return 1;
+        return (a.dueAt ?? a.createdAt).compareTo(b.dueAt ?? b.createdAt);
+      });
+  }
+
+  /// Tareas de la semana sin día específico asignado (Bandeja Semanal)
+  List<ReminderModel> get unscheduledWeeklyReminders {
+    final monday = currentMonday;
+    final sundayEnd = monday.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
+    return _filteredList.where((r) {
+      if (r.isCompleted || r.isArchived) return false;
+
+      // Si fue asignado explícitamente a un día de la semana (0 a 6), no va a la bandeja
+      if (r.scheduledDayOfWeek != null && r.scheduledDayOfWeek! >= 0 && r.scheduledDayOfWeek! <= 6) {
+        return false;
+      }
+
+      // Si tiene fecha límite dentro de la semana actual, aparecerá en la columna de ese día
+      if (r.dueAt != null) {
+        final local = r.dueAt!.toLocal();
+        if (local.isAfter(monday.subtract(const Duration(seconds: 1))) && local.isBefore(sundayEnd)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList()
+      ..sort((a, b) {
+        if (a.isBigRock && !b.isBigRock) return -1;
+        if (!a.isBigRock && b.isBigRock) return 1;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+  }
+
+  // ==========================================
+  // MATRIZ DE COVEY (2x2)
+  // ==========================================
+
+  /// Obtiene los recordatorios de un cuadrante Covey (Q1, Q2, Q3, Q4)
+  List<ReminderModel> remindersForQuadrant(CoveyQuadrant quadrant) {
+    return _filteredList.where((r) => r.quadrant == quadrant && !r.isCompleted && !r.isArchived).toList()
+      ..sort((a, b) {
+        if (a.isBigRock && !b.isBigRock) return -1;
+        if (!a.isBigRock && b.isBigRock) return 1;
+        return (a.dueAt ?? a.createdAt).compareTo(b.dueAt ?? b.createdAt);
+      });
+  }
+
+  int get q1Count => remindersForQuadrant(CoveyQuadrant.q1UrgentImportant).length;
+  int get q2Count => remindersForQuadrant(CoveyQuadrant.q2ImportantNotUrgent).length;
+  int get q3Count => remindersForQuadrant(CoveyQuadrant.q3UrgentNotImportant).length;
+  int get q4Count => remindersForQuadrant(CoveyQuadrant.q4NotUrgentNotImportant).length;
+
+  /// Porcentaje de foco en Cuadrante II (Covey recomienda > 65-70%)
+  double get q2FocusPercentage {
+    final active = _reminders.where((r) => !r.isCompleted && !r.isArchived).length;
+    if (active == 0) return 100.0;
+    return (q2Count / active) * 100.0;
+  }
+
+  // ==========================================
+  // SECCIONES DE LISTA CLÁSICA
+  // ==========================================
+
   List<ReminderModel> get pinnedReminders {
     return _filteredList.where((r) => r.isPinned && !r.isCompleted && !r.isArchived).toList()
       ..sort((a, b) => (a.dueAt ?? a.createdAt).compareTo(b.dueAt ?? b.createdAt));
   }
 
-  // Secciones Inteligentes
   List<ReminderModel> get overdueReminders {
     return _filteredList.where((r) => r.isOverdue).toList()
       ..sort((a, b) => (a.dueAt ?? a.createdAt).compareTo(b.dueAt ?? b.createdAt));
@@ -99,25 +277,40 @@ class RemindersState extends ChangeNotifier {
       ..sort((a, b) => (b.completedAt ?? b.updatedAt).compareTo(a.completedAt ?? a.updatedAt));
   }
 
-  /// Inicializar de manera segura e idempotente
+  // ==========================================
+  // INICIALIZACIÓN Y CICLO DE VIDA
+  // ==========================================
+
   Future<void> init() {
-    _initFuture ??= _loadReminders();
+    _initFuture ??= _loadInitialData();
     return _initFuture!;
   }
 
-  /// Recargar datos frescos desde el servicio
   Future<void> reload() async {
-    _initFuture = _loadReminders();
+    _initFuture = _loadInitialData();
     await _initFuture;
   }
 
-  Future<void> _loadReminders() async {
+  Future<void> _loadInitialData() async {
     _isLoading = true;
     notifyListeners();
 
-    _reminders = await _service.fetchReminders();
-    _isLoading = false;
-    notifyListeners();
+    try {
+      final results = await Future.wait([
+        _service.fetchReminders(),
+        _service.fetchRoles(),
+        _service.fetchOrCreateCurrentWeeklyPlan(),
+      ]);
+
+      _reminders = results[0] as List<ReminderModel>;
+      _roles = results[1] as List<RoleModel>;
+      _currentWeeklyPlan = results[2] as WeeklyPlanModel;
+    } catch (e) {
+      debugPrint('[RemindersState] Error cargando datos iniciales: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
 
     _service.subscribeToRealtime(
       onInsert: (newReminder) {
@@ -140,9 +333,31 @@ class RemindersState extends ChangeNotifier {
     );
   }
 
-  /// Creación rápida con procesamiento de lenguaje natural
+  // ==========================================
+  // OPERACIONES Y MUTACIONES (HÁBITO 3)
+  // ==========================================
+
+  /// Creación rápida con procesamiento de lenguaje natural (NLP)
   Future<ReminderModel> createFromNlp(String rawInput, {bool isNagging = false}) async {
     final parsed = NlpParser.parse(rawInput);
+
+    // Si detectó rol (@salud, @trabajo, etc.), buscar el rol que más se aproxime
+    String? matchedRoleId;
+    if (parsed.roleQuery != null && parsed.roleQuery!.isNotEmpty) {
+      final q = parsed.roleQuery!.toLowerCase();
+      try {
+        final found = _roles.firstWhere(
+          (r) => r.name.toLowerCase().contains(q) || q.contains(r.name.toLowerCase()),
+        );
+        matchedRoleId = found.id;
+      } catch (_) {}
+    }
+
+    int? scheduledDay;
+    if (parsed.dueAt != null) {
+      // Dart: Lun=1..Dom=7 -> normalizado a 0..6
+      scheduledDay = parsed.dueAt!.weekday - 1;
+    }
 
     final newReminder = ReminderModel(
       id: _uuid.v4(),
@@ -154,6 +369,12 @@ class RemindersState extends ChangeNotifier {
       rrule: parsed.recurrence.rruleString,
       isNagging: isNagging,
       tags: parsed.tags,
+      roleId: matchedRoleId,
+      weeklyPlanId: _currentWeeklyPlan?.id,
+      quadrant: parsed.quadrant,
+      isBigRock: parsed.isBigRock,
+      scheduledDayOfWeek: scheduledDay,
+      estimatedDurationMinutes: parsed.estimatedDurationMinutes,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -165,6 +386,132 @@ class RemindersState extends ChangeNotifier {
     // Guardado en backend Supabase
     await _service.saveReminder(newReminder);
     return newReminder;
+  }
+
+  /// Mover recordatorio a un día específico del cronograma flexible (0=Lunes..6=Domingo)
+  Future<void> moveReminderToDay(String reminderId, int targetDayOfWeek) async {
+    final index = _reminders.indexWhere((r) => r.id == reminderId);
+    if (index == -1) return;
+
+    final current = _reminders[index];
+    final monday = currentMonday;
+    final targetDate = monday.add(Duration(days: targetDayOfWeek));
+
+    DateTime newDue;
+    if (current.dueAt != null) {
+      newDue = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        current.dueAt!.hour,
+        current.dueAt!.minute,
+      );
+    } else {
+      newDue = DateTime(targetDate.year, targetDate.month, targetDate.day, 9, 0);
+    }
+
+    final updated = current.copyWith(
+      scheduledDayOfWeek: targetDayOfWeek,
+      dueAt: newDue,
+      weeklyPlanId: _currentWeeklyPlan?.id,
+      updatedAt: DateTime.now(),
+    );
+
+    _reminders[index] = updated;
+    notifyListeners();
+
+    await _service.scheduleReminderDay(reminderId, targetDayOfWeek, newDue);
+  }
+
+  /// Cambiar el cuadrante Covey de un recordatorio
+  Future<void> moveReminderToQuadrant(String reminderId, CoveyQuadrant newQuadrant) async {
+    final index = _reminders.indexWhere((r) => r.id == reminderId);
+    if (index == -1) return;
+
+    final updated = _reminders[index].copyWith(
+      quadrant: newQuadrant,
+      updatedAt: DateTime.now(),
+    );
+
+    _reminders[index] = updated;
+    notifyListeners();
+
+    await _service.updateQuadrant(reminderId, newQuadrant);
+  }
+
+  /// Alternar bandera de Gran Roca
+  Future<void> toggleBigRock(String reminderId) async {
+    final index = _reminders.indexWhere((r) => r.id == reminderId);
+    if (index == -1) return;
+
+    final newVal = !_reminders[index].isBigRock;
+    final updated = _reminders[index].copyWith(
+      isBigRock: newVal,
+      weeklyPlanId: newVal ? (_currentWeeklyPlan?.id) : _reminders[index].weeklyPlanId,
+      updatedAt: DateTime.now(),
+    );
+
+    _reminders[index] = updated;
+    notifyListeners();
+
+    await _service.toggleBigRock(reminderId, newVal);
+  }
+
+  /// Asignar o cambiar el rol de vida de un recordatorio
+  Future<void> setReminderRole(String reminderId, String? roleId) async {
+    final index = _reminders.indexWhere((r) => r.id == reminderId);
+    if (index == -1) return;
+
+    final updated = _reminders[index].copyWith(
+      roleId: roleId,
+      clearRoleId: roleId == null,
+      updatedAt: DateTime.now(),
+    );
+
+    _reminders[index] = updated;
+    notifyListeners();
+
+    await _service.saveReminder(updated);
+  }
+
+  /// Guardar o actualizar un rol de vida
+  Future<void> saveRole(RoleModel role) async {
+    final index = _roles.indexWhere((r) => r.id == role.id);
+    if (index != -1) {
+      _roles[index] = role;
+    } else {
+      _roles.add(role);
+    }
+    notifyListeners();
+
+    await _service.saveRole(role);
+  }
+
+  /// Eliminar un rol de vida
+  Future<void> deleteRole(String roleId) async {
+    _roles.removeWhere((r) => r.id == roleId);
+    // Limpiar roleId en los recordatorios que lo tenían asignado
+    for (int i = 0; i < _reminders.length; i++) {
+      if (_reminders[i].roleId == roleId) {
+        _reminders[i] = _reminders[i].copyWith(clearRoleId: true);
+      }
+    }
+    notifyListeners();
+
+    await _service.deleteRole(roleId);
+  }
+
+  /// Guardar notas de retrospectiva en el plan semanal
+  Future<void> saveWeeklyPlanNotes(String reflectionNotes) async {
+    if (_currentWeeklyPlan == null) return;
+
+    final updatedPlan = _currentWeeklyPlan!.copyWith(
+      reflectionNotes: reflectionNotes,
+    );
+    _currentWeeklyPlan = updatedPlan;
+    notifyListeners();
+
+    await _service.saveWeeklyPlan(updatedPlan);
   }
 
   /// Creación o edición personalizada
@@ -180,7 +527,7 @@ class RemindersState extends ChangeNotifier {
     await _service.saveReminder(reminder);
   }
 
-  /// Alternar estado de completado (con actualización optimista y regeneración de recurrencia)
+  /// Alternar estado de completado
   Future<void> toggleCompleted(String id) async {
     final index = _reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
@@ -199,8 +546,6 @@ class RemindersState extends ChangeNotifier {
 
     await _service.updateStatus(id, newStatus);
 
-    // Si se marcó como completado y es un recordatorio recurrente (semanal, quincenal, mensual, etc.)
-    // se programa automáticamente la siguiente ocurrencia
     if (!isDone && current.isRecurring) {
       final baseDate = current.dueAt ?? DateTime.now();
       final nextDue = current.recurrence.calculateNextDueDate(baseDate);
@@ -219,6 +564,12 @@ class RemindersState extends ChangeNotifier {
         isNagging: current.isNagging,
         nagIntervalMinutes: current.nagIntervalMinutes,
         tags: List.from(current.tags),
+        roleId: current.roleId,
+        weeklyPlanId: current.weeklyPlanId,
+        quadrant: current.quadrant,
+        isBigRock: current.isBigRock,
+        scheduledDayOfWeek: nextDue.weekday - 1,
+        estimatedDurationMinutes: current.estimatedDurationMinutes,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -230,13 +581,11 @@ class RemindersState extends ChangeNotifier {
     }
   }
 
-  /// Smart Snooze: Posponer con duración relativa (+15m, +1h, etc.)
   Future<void> snoozeRelative(String id, Duration offset) async {
     final newDue = DateTime.now().add(offset);
     await snoozeTo(id, newDue);
   }
 
-  /// Smart Snooze a un timestamp específico
   Future<void> snoozeTo(String id, DateTime newDueAt) async {
     final index = _reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
@@ -244,6 +593,7 @@ class RemindersState extends ChangeNotifier {
     _reminders[index] = _reminders[index].copyWith(
       status: ReminderStatus.snoozed,
       dueAt: newDueAt,
+      scheduledDayOfWeek: newDueAt.weekday - 1,
       updatedAt: DateTime.now(),
     );
     notifyListeners();
@@ -251,7 +601,6 @@ class RemindersState extends ChangeNotifier {
     await _service.snoozeReminder(id, newDueAt);
   }
 
-  /// Alternar alarma persistente (nagging)
   Future<void> toggleNagging(String id) async {
     final index = _reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
@@ -266,7 +615,6 @@ class RemindersState extends ChangeNotifier {
     await _service.saveReminder(updated);
   }
 
-  /// Alternar recordatorio fijado (pin)
   Future<void> togglePin(String id) async {
     final index = _reminders.indexWhere((r) => r.id == id);
     if (index == -1) return;
@@ -281,7 +629,6 @@ class RemindersState extends ChangeNotifier {
     await _service.saveReminder(updated);
   }
 
-  /// Eliminar recordatorio
   Future<void> deleteReminder(String id) async {
     _reminders.removeWhere((r) => r.id == id);
     notifyListeners();
@@ -289,7 +636,6 @@ class RemindersState extends ChangeNotifier {
     await _service.deleteReminder(id);
   }
 
-  /// Posponer todos los vencidos para mañana a las 9:00 AM
   Future<void> snoozeAllOverdueToTomorrow() async {
     final now = DateTime.now();
     final tomorrow9am = DateTime(now.year, now.month, now.day + 1, 9, 0);
@@ -300,7 +646,7 @@ class RemindersState extends ChangeNotifier {
     }
   }
 
-  // Filtros de búsqueda
+  // Filtros
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
@@ -316,10 +662,22 @@ class RemindersState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setQuadrantFilter(CoveyQuadrant? quadrant) {
+    _selectedQuadrantFilter = quadrant;
+    notifyListeners();
+  }
+
+  void setRoleFilter(String? roleId) {
+    _selectedRoleFilter = roleId;
+    notifyListeners();
+  }
+
   void clearFilters() {
     _searchQuery = '';
     _selectedTagFilter = null;
     _selectedPriorityFilter = null;
+    _selectedQuadrantFilter = null;
+    _selectedRoleFilter = null;
     notifyListeners();
   }
 

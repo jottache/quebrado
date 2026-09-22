@@ -5,6 +5,7 @@ import '../../diario/diario.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../recordatorios/models/reminder_model.dart';
+import '../../recordatorios/models/role_model.dart';
 import '../models/chat_artifact_model.dart';
 
 class ToolExecutionResult {
@@ -51,6 +52,28 @@ class SuiteRagService {
 
     final overdueReminders = remindersState.overdueCount;
     final todayReminders = remindersState.todayCount;
+    final weekPlan = remindersState.currentWeeklyPlan;
+    final weekRange = weekPlan?.formattedRange ?? 'Semana en curso';
+    final rolesList = remindersState.roles;
+    final unaddressed = remindersState.unaddressedRoles;
+    final q1Count = remindersState.q1Count;
+    final q2Count = remindersState.q2Count;
+    final q3Count = remindersState.q3Count;
+    final q4Count = remindersState.q4Count;
+    final q2Focus = remindersState.q2FocusPercentage;
+    final bigRocks = remindersState.bigRocksForCurrentWeek;
+    final bigRocksDone = bigRocks.where((r) => r.isCompleted).length;
+
+    final rolesSummary = rolesList.isEmpty
+        ? '    · Sin roles configurados'
+        : rolesList.map((r) {
+            final rockCount = remindersState.countBigRocksForRole(r.id);
+            return '    · ${r.name}: $rockCount Grandes Rocas definidas';
+          }).join('\n');
+
+    final unaddressedAlert = unaddressed.isNotEmpty
+        ? '⚠️ ALERTA DE EQUILIBRIO VITAL: Hay ${unaddressed.length} roles vitales sin ninguna Gran Roca esta semana (${unaddressed.map((r) => r.name).join(", ")}).'
+        : '✅ Equilibrio de vida óptimo: Todos los roles vitales tienen al menos una Gran Roca definida.';
 
     final bdaysStr = upcomingBirthdays.isEmpty
         ? 'No hay cumpleaños próximos registrados.'
@@ -84,6 +107,13 @@ $bdaysStr
 - Hábitos y Rutinas:
   * Progreso de hábitos hoy: $habitsRate%
   * Mejor racha actual: $habitStreak días
+- Agenda y Planificación Semanal (Stephen Covey - Hábito 3: "Primero lo Primero"):
+  * Plan Semanal Activo: $weekRange
+  * Foco en Cuadrante II (Eficacia y Prevención): ${q2Focus.toStringAsFixed(0)}% (C1 Crisis: $q1Count, C2 Eficacia: $q2Count, C3 Engaño: $q3Count, C4 Desperdicio: $q4Count)
+  * Progreso de Grandes Rocas: $bigRocksDone / ${bigRocks.length} completadas
+  * Roles Vitales del usuario:
+$rolesSummary
+  * Estado de Balance: $unaddressedAlert
 - Recordatorios y Tareas:
   * Recordatorios vencidos: $overdueReminders
   * Recordatorios programados para hoy: $todayReminders
@@ -244,6 +274,46 @@ $bdaysStr
                 ),
               },
               requiredProperties: ['title'],
+            ),
+          ),
+          FunctionDeclaration(
+            'getWeeklySchedule',
+            'Obtiene el cronograma semanal completo (Lunes a Domingo) de la Agenda del Hábito 3 de Stephen Covey, detallando las actividades y Grandes Rocas asignadas por día, y las tareas pendientes en la bandeja semanal.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'dayOfWeek': Schema(
+                  SchemaType.string,
+                  description: 'Filtro opcional por día específico: "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo", o "hoy". Si se omite, retorna toda la semana.',
+                ),
+                'onlyBigRocks': Schema(
+                  SchemaType.boolean,
+                  description: 'Si es true, solo retorna las Grandes Rocas (metas prioritarias) de la semana.',
+                ),
+              },
+            ),
+          ),
+          FunctionDeclaration(
+            'getRolesCompass',
+            'Obtiene la Brújula de Roles Vitales del usuario (ej: Salud, Profesional, Familia, Finanzas), sus declaraciones de propósito y las Grandes Rocas asignadas esta semana, señalando roles desatendidos con 0 rocas para preservar el equilibrio vital.',
+            Schema(
+              SchemaType.object,
+              properties: {},
+            ),
+          ),
+          FunctionDeclaration(
+            'proposeScheduleBigRock',
+            'Propone agendar una Gran Roca (meta de alto impacto del Cuadrante II) en un rol vital específico y en un día determinado de la semana, mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar.',
+            Schema(
+              SchemaType.object,
+              properties: {
+                'title': Schema(SchemaType.string, description: 'Título o meta de la Gran Roca.'),
+                'roleName': Schema(SchemaType.string, description: 'Nombre del rol vital al que pertenece (ej: "Salud", "Profesional", "Familia", "Finanzas").'),
+                'dayOfWeek': Schema(SchemaType.string, description: 'Día de la semana sugerido para agendarla (ej: "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo").'),
+                'estimatedDurationMinutes': Schema(SchemaType.integer, description: 'Duración estimada en minutos (por defecto 60).'),
+                'notes': Schema(SchemaType.string, description: 'Notas explicativas de por qué es una Gran Roca prioritaria.'),
+              },
+              requiredProperties: ['title', 'roleName'],
             ),
           ),
           FunctionDeclaration(
@@ -480,6 +550,46 @@ $bdaysStr
                 },
               },
               'required': ['title'],
+            },
+          },
+          {
+            'name': 'getWeeklySchedule',
+            'description': 'Obtiene el cronograma semanal completo (Lunes a Domingo) de la Agenda del Hábito 3 de Stephen Covey, detallando las actividades y Grandes Rocas asignadas por día, y las tareas pendientes en la bandeja semanal.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'dayOfWeek': {
+                  'type': 'STRING',
+                  'description': 'Filtro opcional por día específico: "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo", o "hoy".',
+                },
+                'onlyBigRocks': {
+                  'type': 'BOOLEAN',
+                  'description': 'Si es true, solo retorna las Grandes Rocas de la semana.',
+                },
+              },
+            },
+          },
+          {
+            'name': 'getRolesCompass',
+            'description': 'Obtiene la Brújula de Roles Vitales del usuario (ej: Salud, Profesional, Familia, Finanzas), sus declaraciones de propósito y las Grandes Rocas asignadas esta semana, señalando roles desatendidos con 0 rocas.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {},
+            },
+          },
+          {
+            'name': 'proposeScheduleBigRock',
+            'description': 'Propone agendar una Gran Roca (meta de alto impacto del Cuadrante II) en un rol vital específico y en un día determinado de la semana, mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar.',
+            'parameters': {
+              'type': 'OBJECT',
+              'properties': {
+                'title': {'type': 'STRING', 'description': 'Título o meta de la Gran Roca.'},
+                'roleName': {'type': 'STRING', 'description': 'Nombre del rol vital al que pertenece (ej: "Salud", "Profesional", "Familia", "Finanzas").'},
+                'dayOfWeek': {'type': 'STRING', 'description': 'Día de la semana sugerido para agendarla (ej: "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo").'},
+                'estimatedDurationMinutes': {'type': 'INTEGER', 'description': 'Duración estimada en minutos (por defecto 60).'},
+                'notes': {'type': 'STRING', 'description': 'Notas explicativas de por qué es una Gran Roca prioritaria.'},
+              },
+              'required': ['title', 'roleName'],
             },
           },
           {
@@ -1198,6 +1308,229 @@ $bdaysStr
               'dueAt': newReminder.formattedDueTime,
             },
           },
+        );
+
+      case 'getWeeklySchedule':
+        final dayQuery = arguments['dayOfWeek']?.toString().toLowerCase().trim();
+        final onlyBigRocks = arguments['onlyBigRocks'] == true || arguments['onlyBigRocks']?.toString().toLowerCase() == 'true';
+        final dayNames = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+        final dayLabels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        int? targetDayIndex;
+        if (dayQuery != null && dayQuery.isNotEmpty) {
+          if (dayQuery == 'hoy' || dayQuery == 'today') {
+            targetDayIndex = DateTime.now().weekday - 1;
+          } else {
+            for (int i = 0; i < dayNames.length; i++) {
+              if (dayNames[i].contains(dayQuery) || dayQuery.contains(dayNames[i]) || dayQuery.startsWith(dayNames[i].substring(0, 3))) {
+                targetDayIndex = i;
+                break;
+              }
+            }
+          }
+        }
+
+        final monday = remindersState.currentMonday;
+        final weekPlan = remindersState.currentWeeklyPlan;
+
+        Map<String, dynamic> scheduleOutput = {};
+
+        if (targetDayIndex != null) {
+          final targetDate = monday.add(Duration(days: targetDayIndex));
+          var dayReminders = remindersState.remindersForDayOfWeek(targetDayIndex);
+          if (onlyBigRocks) {
+            dayReminders = dayReminders.where((r) => r.isBigRock).toList();
+          }
+
+          scheduleOutput['day'] = dayLabels[targetDayIndex];
+          scheduleOutput['date'] = '${targetDate.day}/${targetDate.month}/${targetDate.year}';
+          scheduleOutput['count'] = dayReminders.length;
+          scheduleOutput['bigRocksCount'] = dayReminders.where((r) => r.isBigRock).length;
+          scheduleOutput['tasks'] = dayReminders.map((r) {
+            final role = remindersState.getRoleById(r.roleId);
+            return {
+              'id': r.id,
+              'title': r.title,
+              'isBigRock': r.isBigRock,
+              'quadrant': r.quadrant.label,
+              'role': role?.name ?? 'Sin rol',
+              'durationMinutes': r.estimatedDurationMinutes,
+              'dueTime': r.dueAt != null ? '${r.dueAt!.hour.toString().padLeft(2, '0')}:${r.dueAt!.minute.toString().padLeft(2, '0')}' : 'Sin hora fija',
+              'status': r.status.label,
+            };
+          }).toList();
+        } else {
+          scheduleOutput['weekRange'] = weekPlan?.formattedRange ?? 'Semana activa';
+          final daysList = <Map<String, dynamic>>[];
+          for (int i = 0; i < 7; i++) {
+            final date = monday.add(Duration(days: i));
+            var dayReminders = remindersState.remindersForDayOfWeek(i);
+            if (onlyBigRocks) {
+              dayReminders = dayReminders.where((r) => r.isBigRock).toList();
+            }
+
+            daysList.add({
+              'dayName': dayLabels[i],
+              'date': '${date.day}/${date.month}',
+              'totalTasks': dayReminders.length,
+              'bigRocksCount': dayReminders.where((r) => r.isBigRock).length,
+              'tasks': dayReminders.map((r) {
+                final role = remindersState.getRoleById(r.roleId);
+                return {
+                  'id': r.id,
+                  'title': r.title,
+                  'isBigRock': r.isBigRock,
+                  'quadrant': r.quadrant.label,
+                  'role': role?.name ?? 'Sin rol',
+                  'duration': '~${r.estimatedDurationMinutes}m',
+                };
+              }).toList(),
+            });
+          }
+          scheduleOutput['days'] = daysList;
+
+          final unscheduled = remindersState.unscheduledWeeklyReminders;
+          scheduleOutput['unscheduledCount'] = unscheduled.length;
+          scheduleOutput['unscheduledTasks'] = unscheduled.map((r) => {
+            'title': r.title,
+            'isBigRock': r.isBigRock,
+            'quadrant': r.quadrant.label,
+          }).toList();
+        }
+
+        return ToolExecutionResult(
+          resultData: scheduleOutput,
+        );
+
+      case 'getRolesCompass':
+        final roles = remindersState.roles;
+        final unaddressed = remindersState.unaddressedRoles;
+        final bigRocks = remindersState.bigRocksForCurrentWeek;
+
+        final rolesList = roles.map((role) {
+          final roleRocks = remindersState.bigRocksForRole(role.id);
+          return {
+            'id': role.id,
+            'name': role.name,
+            'purposeStatement': role.purposeStatement ?? 'Sin declaración de propósito',
+            'bigRocksCount': roleRocks.length,
+            'hasBigRock': roleRocks.isNotEmpty,
+            'bigRocks': roleRocks.map((r) => {
+              'id': r.id,
+              'title': r.title,
+              'scheduledDay': r.scheduledDayOfWeek != null
+                  ? ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][r.scheduledDayOfWeek!]
+                  : 'Sin día asignado',
+              'status': r.status.label,
+            }).toList(),
+          };
+        }).toList();
+
+        return ToolExecutionResult(
+          resultData: {
+            'totalRoles': roles.length,
+            'unaddressedCount': unaddressed.length,
+            'unaddressedRoles': unaddressed.map((r) => r.name).toList(),
+            'balanceStatus': unaddressed.isEmpty
+                ? 'Equilibrado: Todos los roles vitales tienen al menos una Gran Roca esta semana.'
+                : 'Desbalance: Hay ${unaddressed.length} roles vitales sin Grandes Rocas (${unaddressed.map((r) => r.name).join(", ")}).',
+            'roles': rolesList,
+            'totalBigRocksThisWeek': bigRocks.length,
+          },
+        );
+
+      case 'proposeScheduleBigRock':
+        final title = (arguments['title']?.toString() ?? 'Nueva Gran Roca').trim();
+        final roleName = arguments['roleName']?.toString().trim() ?? '';
+        final dayQuery = arguments['dayOfWeek']?.toString().toLowerCase().trim() ?? 'lunes';
+        final duration = arguments['estimatedDurationMinutes'] is num
+            ? (arguments['estimatedDurationMinutes'] as num).toInt()
+            : int.tryParse(arguments['estimatedDurationMinutes']?.toString() ?? '60') ?? 60;
+        final notes = arguments['notes']?.toString().trim();
+
+        // Buscar rol por coincidencia
+        RoleModel? matchedRole;
+        if (roleName.isNotEmpty) {
+          try {
+            matchedRole = remindersState.roles.firstWhere(
+              (r) => r.name.toLowerCase().contains(roleName.toLowerCase()) ||
+                  roleName.toLowerCase().contains(r.name.toLowerCase()),
+            );
+          } catch (_) {}
+        }
+        matchedRole ??= remindersState.roles.isNotEmpty ? remindersState.roles.first : null;
+
+        // Normalizar día
+        int dayIndex = 0;
+        final dayNamesMatch = ['lunes', 'martes', 'miércoles', 'miercoles', 'jueves', 'viernes', 'sábado', 'sabado', 'domingo'];
+        for (int i = 0; i < dayNamesMatch.length; i++) {
+          if (dayQuery.contains(dayNamesMatch[i])) {
+            if (i == 3) {
+              dayIndex = 2; // miercoles sin tilde
+            } else if (i == 7) {
+              dayIndex = 5; // sabado sin tilde
+            } else if (i == 8) {
+              dayIndex = 6; // domingo
+            } else {
+              dayIndex = i;
+            }
+            if (dayIndex > 6) dayIndex = 6;
+            break;
+          }
+        }
+
+        final dayLabels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        final dayLabel = dayLabels[dayIndex];
+        final monday = remindersState.currentMonday;
+        final scheduledDate = DateTime(
+          monday.year,
+          monday.month,
+          monday.day + dayIndex,
+          9,
+          0,
+        );
+
+        final summaryList = <Map<String, String>>[
+          {'label': 'Gran Roca', 'value': title},
+          {'label': 'Rol Vital', 'value': matchedRole?.name ?? 'General'},
+          {'label': 'Día Asignado', 'value': '$dayLabel (${scheduledDate.day}/${scheduledDate.month}) a las 9:00 AM'},
+          {'label': 'Cuadrante', 'value': 'Cuadrante II (Importante, No Urgente)'},
+          {'label': 'Duración estimada', 'value': '$duration min'},
+          if (notes != null && notes.isNotEmpty) {'label': 'Propósito / Notas', 'value': notes},
+        ];
+
+        final artifact = ChatArtifactModel(
+          id: const Uuid().v4(),
+          sessionId: sessionId,
+          type: ArtifactType.actionProposal,
+          title: '⭐ Gran Roca: $title',
+          content: 'Stephen Covey enseña a agendar primero las Grandes Rocas para asegurar el equilibrio en tus roles.',
+          metadata: {
+            'action': 'create_reminder',
+            'status': 'pending',
+            'summary': summaryList,
+            'data': {
+              'title': title,
+              'priority': 'p1_urgent',
+              'roleId': matchedRole?.id,
+              'quadrant': 'q2_important_not_urgent',
+              'isBigRock': true,
+              'scheduledDayOfWeek': dayIndex,
+              'dueAt': scheduledDate.toIso8601String(),
+              'estimatedDurationMinutes': duration,
+              if (notes != null && notes.isNotEmpty) 'notes': notes,
+            },
+          },
+        );
+
+        return ToolExecutionResult(
+          resultData: {
+            'status': 'proposed',
+            'action': 'schedule_big_rock',
+            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para agendar la Gran Roca "$title" en tu rol ${matchedRole?.name ?? "vital"} el día $dayLabel.',
+            'summary': summaryList,
+          },
+          generatedArtifact: artifact,
         );
 
       case 'proposeCreateDiarioEntry':

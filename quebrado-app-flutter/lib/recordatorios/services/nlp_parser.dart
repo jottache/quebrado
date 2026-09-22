@@ -1,3 +1,4 @@
+import '../models/covey_quadrant.dart';
 import '../models/reminder_model.dart';
 
 class NlpParseResult {
@@ -7,9 +8,15 @@ class NlpParseResult {
   final ReminderPriority priority;
   final ReminderRecurrence recurrence;
   final List<String> tags;
+  final CoveyQuadrant quadrant;
+  final String? roleQuery;
+  final bool isBigRock;
+  final int estimatedDurationMinutes;
   final String? matchedDateText;
   final String? matchedPriorityText;
   final String? matchedRecurrenceText;
+  final String? matchedQuadrantText;
+  final String? matchedRoleText;
 
   NlpParseResult({
     required this.rawInput,
@@ -18,16 +25,22 @@ class NlpParseResult {
     this.priority = ReminderPriority.p3Medium,
     this.recurrence = ReminderRecurrence.none,
     this.tags = const [],
+    this.quadrant = CoveyQuadrant.q2ImportantNotUrgent,
+    this.roleQuery,
+    this.isBigRock = false,
+    this.estimatedDurationMinutes = 30,
     this.matchedDateText,
     this.matchedPriorityText,
     this.matchedRecurrenceText,
+    this.matchedQuadrantText,
+    this.matchedRoleText,
   });
 
   bool get hasParsedDue => dueAt != null;
   bool get isRecurring => recurrence != ReminderRecurrence.none;
 }
 
-/// Parser de Lenguaje Natural en Español/Inglés para Captura Rápida de Recordatorios.
+/// Parser de Lenguaje Natural en Español/Inglés para Captura Rápida de Recordatorios y Planificación Covey.
 class NlpParser {
   static NlpParseResult parse(String input) {
     if (input.trim().isEmpty) {
@@ -38,12 +51,62 @@ class NlpParser {
     final List<String> tags = [];
     ReminderPriority priority = ReminderPriority.p3Medium;
     ReminderRecurrence recurrence = ReminderRecurrence.none;
+    CoveyQuadrant quadrant = CoveyQuadrant.q2ImportantNotUrgent;
+    String? roleQuery;
+    bool isBigRock = false;
+    int estimatedDurationMinutes = 30;
+
     String? matchedPriorityText;
     String? matchedRecurrenceText;
     String? matchedDateText;
+    String? matchedQuadrantText;
+    String? matchedRoleText;
     DateTime? resolvedDate;
 
     final now = DateTime.now();
+
+    // 0. Extraer Big Rock (!rock, !piedra, !granroca, !bigrock o asteriscos)
+    final bigRockTagRegex = RegExp(r'!(rock|piedra|granroca|bigrock)\b', caseSensitive: false);
+    if (bigRockTagRegex.hasMatch(working)) {
+      isBigRock = true;
+      working = working.replaceAll(bigRockTagRegex, ' ');
+    }
+    if (working.trim().startsWith('*') || working.trim().endsWith('*')) {
+      isBigRock = true;
+      working = working.replaceAll('*', ' ');
+    }
+
+    // 0.1 Extraer Cuadrante Covey (!q1, !q2, !q3, !q4 o !c1..c4)
+    final quadrantRegex = RegExp(r'!(q[1-4]|c[1-4])\b', caseSensitive: false);
+    final quadMatch = quadrantRegex.firstMatch(working);
+    if (quadMatch != null) {
+      matchedQuadrantText = quadMatch.group(0);
+      final qStr = quadMatch.group(1)!.toLowerCase();
+      if (qStr.contains('1')) quadrant = CoveyQuadrant.q1UrgentImportant;
+      if (qStr.contains('2')) quadrant = CoveyQuadrant.q2ImportantNotUrgent;
+      if (qStr.contains('3')) quadrant = CoveyQuadrant.q3UrgentNotImportant;
+      if (qStr.contains('4')) quadrant = CoveyQuadrant.q4NotUrgentNotImportant;
+      working = working.replaceFirst(quadrantRegex, ' ');
+    }
+
+    // 0.2 Extraer Rol (@rol)
+    final roleRegex = RegExp(r'@([a-zA-Z0-9_\-]+)');
+    final roleMatch = roleRegex.firstMatch(working);
+    if (roleMatch != null) {
+      roleQuery = roleMatch.group(1);
+      matchedRoleText = roleMatch.group(0);
+      working = working.replaceFirst(roleRegex, ' ');
+    }
+
+    // 0.3 Extraer Duración Estimada (~30m, ~1h, o duracion: 45m)
+    final durationTildeRegex = RegExp(r'~(\d+)\s*(m|min|mins|h|hr|hrs)?\b', caseSensitive: false);
+    final durationMatch = durationTildeRegex.firstMatch(working);
+    if (durationMatch != null) {
+      final val = int.tryParse(durationMatch.group(1) ?? '30') ?? 30;
+      final unit = durationMatch.group(2)?.toLowerCase() ?? 'm';
+      estimatedDurationMinutes = unit.startsWith('h') ? val * 60 : val;
+      working = working.replaceFirst(durationTildeRegex, ' ');
+    }
 
     // 1. Extraer Tags (#tag)
     final tagRegex = RegExp(r'#([a-zA-Z0-9_\-]+)');
@@ -277,9 +340,15 @@ class NlpParser {
       priority: priority,
       recurrence: recurrence,
       tags: tags,
+      quadrant: quadrant,
+      roleQuery: roleQuery,
+      isBigRock: isBigRock,
+      estimatedDurationMinutes: estimatedDurationMinutes,
       matchedDateText: matchedDateText,
       matchedPriorityText: matchedPriorityText,
       matchedRecurrenceText: matchedRecurrenceText,
+      matchedQuadrantText: matchedQuadrantText,
+      matchedRoleText: matchedRoleText,
     );
   }
 }

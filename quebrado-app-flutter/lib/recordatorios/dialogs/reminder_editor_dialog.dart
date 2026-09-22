@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../models/covey_quadrant.dart';
 import '../models/reminder_model.dart';
+import '../models/role_model.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
@@ -26,6 +28,10 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
   late bool _isPinned;
   DateTime? _dueAt;
   late List<String> _tags;
+  String? _roleId;
+  late CoveyQuadrant _quadrant;
+  late bool _isBigRock;
+  late int _estimatedDurationMinutes;
 
   @override
   void initState() {
@@ -41,6 +47,10 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     _isPinned = r?.isPinned ?? false;
     _dueAt = r?.dueAt;
     _tags = r?.tags != null ? List<String>.from(r!.tags) : [];
+    _roleId = r?.roleId;
+    _quadrant = r?.quadrant ?? CoveyQuadrant.q2ImportantNotUrgent;
+    _isBigRock = r?.isBigRock ?? false;
+    _estimatedDurationMinutes = r?.estimatedDurationMinutes ?? 30;
   }
 
   @override
@@ -105,7 +115,6 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     final state = Provider.of<RemindersState>(context, listen: false);
-    final isEditing = widget.reminder != null;
 
     final reminder = ReminderModel(
       id: widget.reminder?.id ?? const Uuid().v4(),
@@ -120,6 +129,12 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
       nagIntervalMinutes: _nagIntervalMinutes,
       isPinned: _isPinned,
       tags: _tags,
+      roleId: _roleId,
+      weeklyPlanId: widget.reminder?.weeklyPlanId ?? state.currentWeeklyPlan?.id,
+      quadrant: _quadrant,
+      isBigRock: _isBigRock,
+      scheduledDayOfWeek: _dueAt != null ? _dueAt!.weekday - 1 : widget.reminder?.scheduledDayOfWeek,
+      estimatedDurationMinutes: _estimatedDurationMinutes,
       createdAt: widget.reminder?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -219,6 +234,131 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
                             filled: true,
                             fillColor: RemindersColors.background,
                           ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Rol Vital & Cuadrante Covey (Hábito 3)
+                        Consumer<RemindersState>(
+                          builder: (context, state, _) {
+                            final roles = state.roles;
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: RemindersColors.background,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: RemindersColors.cardBorder),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.pie_chart_outline, color: RemindersColors.primary, size: 20),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Rol Vital y Cuadrante Covey',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  // Selector de Rol
+                                  const Text('Rol asignado:', style: TextStyle(fontSize: 11, color: RemindersColors.textMuted)),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: [
+                                      ChoiceChip(
+                                        label: const Text('Sin rol', style: TextStyle(fontSize: 11)),
+                                        selected: _roleId == null,
+                                        onSelected: (_) => setState(() => _roleId = null),
+                                      ),
+                                      ...roles.map((r) {
+                                        final isSelected = _roleId == r.id;
+                                        return ChoiceChip(
+                                          avatar: Icon(r.iconData, size: 14, color: isSelected ? Colors.white : r.color),
+                                          label: Text(r.name, style: const TextStyle(fontSize: 11)),
+                                          selected: isSelected,
+                                          selectedColor: r.color,
+                                          labelStyle: TextStyle(color: isSelected ? Colors.white : RemindersColors.textPrimary),
+                                          onSelected: (_) => setState(() => _roleId = r.id),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Selector de Cuadrante
+                                  const Text('Cuadrante:', style: TextStyle(fontSize: 11, color: RemindersColors.textMuted)),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: CoveyQuadrant.values.map((q) {
+                                      final isSelected = _quadrant == q;
+                                      return ChoiceChip(
+                                        avatar: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                                        label: Text(
+                                          '${q.shortLabel} ${q.title}',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        selected: isSelected,
+                                        selectedColor: q.color,
+                                        labelStyle: TextStyle(
+                                          color: isSelected ? Colors.white : RemindersColors.textPrimary,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        ),
+                                        onSelected: (_) => setState(() => _quadrant = q),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Switch Gran Roca
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: _isBigRock ? const Color(0xFFFEF3C7) : Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: _isBigRock ? const Color(0xFFF59E0B) : Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: SwitchListTile(
+                                      dense: true,
+                                      title: const Text(
+                                        '⭐ Gran Roca de la Semana',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: const Text(
+                                        'Meta prioritaria de alto impacto para tu rol esta semana',
+                                        style: TextStyle(fontSize: 10.5),
+                                      ),
+                                      value: _isBigRock,
+                                      activeColor: const Color(0xFFD97706),
+                                      onChanged: (val) => setState(() => _isBigRock = val),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Duración estimada
+                                  const Text('Duración estimada:', style: TextStyle(fontSize: 11, color: RemindersColors.textMuted)),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 6,
+                                    children: [15, 30, 45, 60, 90, 120].map((dur) {
+                                      final isSelected = _estimatedDurationMinutes == dur;
+                                      return ChoiceChip(
+                                        label: Text('${dur}m', style: const TextStyle(fontSize: 11)),
+                                        selected: isSelected,
+                                        selectedColor: RemindersColors.primary,
+                                        labelStyle: TextStyle(color: isSelected ? Colors.white : RemindersColors.textPrimary),
+                                        onSelected: (_) => setState(() => _estimatedDurationMinutes = dur),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 16),

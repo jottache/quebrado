@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../dialogs/command_palette_dialog.dart';
+import '../dialogs/reminder_editor_dialog.dart';
+import '../dialogs/role_manager_dialog.dart';
+import '../dialogs/sunday_planning_wizard_dialog.dart';
 import '../models/reminder_model.dart';
 import '../services/nlp_parser.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
-import '../dialogs/command_palette_dialog.dart';
-import '../dialogs/reminder_editor_dialog.dart';
+import '../widgets/covey_matrix_view.dart';
+import '../widgets/weekly_schedule_view.dart';
 
 class RemindersHomeScreen extends StatefulWidget {
   const RemindersHomeScreen({super.key});
@@ -129,27 +133,52 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: const Text(
-              'Recordatorios',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: RemindersColors.textPrimary),
+              'Agenda & Hábitos',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: RemindersColors.textPrimary),
             ),
             actions: [
+              // Botón Ritual Dominical de Stephen Covey
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: TextButton.icon(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) => const SundayPlanningWizardDialog(),
+                  ),
+                  icon: const Icon(Icons.wb_sunny_outlined, size: 15, color: Color(0xFFD97706)),
+                  label: const Text(
+                    'Ritual Dominical',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFFFEF3C7),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              // Botón Gestor de Roles Vitales
+              IconButton(
+                icon: const Icon(Icons.pie_chart_outline_rounded, size: 20, color: RemindersColors.primary),
+                tooltip: 'Roles Vitales (Brújula)',
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => const RoleManagerDialog(),
+                ),
+              ),
               // Atajo visual Command Palette
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                 child: OutlinedButton.icon(
                   onPressed: _openCommandPalette,
                   icon: const Icon(Icons.terminal_rounded, size: 16),
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Buscar / Cmd+K', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
+                  label: const Text('Cmd+K', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: RemindersColors.primary,
                     side: BorderSide(color: RemindersColors.primary.withOpacity(0.3)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
               ),
@@ -163,84 +192,86 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
           ),
           body: state.isLoading
               ? const Center(child: CircularProgressIndicator(color: RemindersColors.primary))
-              : Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 860),
-                    child: CustomScrollView(
-                      slivers: [
-                        // Recordatorios Fijados (Pinned Banner estilo WhatsApp/Telegram)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 14, 20, 2),
+              : Column(
+                  children: [
+                    // Barra de Switcher de Vistas Covey
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 860),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildViewSwitcherBtn(
+                                      label: 'Agenda Semanal',
+                                      icon: Icons.calendar_view_week_rounded,
+                                      viewKey: 'weekly',
+                                      current: state.selectedView,
+                                      onTap: () => state.setSelectedView('weekly'),
+                                    ),
+                                    _buildViewSwitcherBtn(
+                                      label: 'Matriz 2x2',
+                                      icon: Icons.grid_view_rounded,
+                                      viewKey: 'matrix',
+                                      current: state.selectedView,
+                                      onTap: () => state.setSelectedView('matrix'),
+                                    ),
+                                    _buildViewSwitcherBtn(
+                                      label: 'Feed Clásico',
+                                      icon: Icons.format_list_bulleted_rounded,
+                                      viewKey: 'classic',
+                                      current: state.selectedView,
+                                      onTap: () => state.setSelectedView('classic'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Banner de Recordatorios Fijados (visible para cualquier vista si hay fijados activos)
+                    if (state.pinnedReminders.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 6, 20, 2),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 860),
                             child: _buildPinnedRemindersBanner(state),
                           ),
                         ),
+                      ),
 
-                        // 1. Barra de Captura Ultrarrápida con NLP
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                            child: _buildQuickCaptureBar(state, quickNlp),
-                          ),
+                    // Barra de Captura Ultrarrápida con NLP (presente en la parte superior)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 860),
+                          child: _buildQuickCaptureBar(state, quickNlp),
                         ),
-
-                        // 2. Barra de Filtros y Estadísticas Rápidas
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: _buildStatusFilterTabs(state),
-                          ),
-                        ),
-
-                        // 3. Contenido Principal según Pestaña
-                        if (_activeTab == 'Todos') ...[
-                          _buildSectionSliver(
-                            title: 'VENCIDOS',
-                            count: state.overdueReminders.length,
-                            items: state.overdueReminders,
-                            color: RemindersColors.overdue,
-                            actionWidget: state.overdueCount > 0
-                                ? TextButton.icon(
-                                    onPressed: () => state.snoozeAllOverdueToTomorrow(),
-                                    icon: const Icon(Icons.snooze_rounded, size: 14),
-                                    label: const Text('Posponer a mañana', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                    style: TextButton.styleFrom(foregroundColor: RemindersColors.overdue),
-                                  )
-                                : null,
-                          ),
-                          _buildSectionSliver(
-                            title: 'PARA HOY',
-                            count: state.todayReminders.length,
-                            items: state.todayReminders,
-                            color: RemindersColors.high,
-                          ),
-                          _buildSectionSliver(
-                            title: 'PRÓXIMOS',
-                            count: state.upcomingReminders.length,
-                            items: state.upcomingReminders,
-                            color: RemindersColors.primary,
-                          ),
-                          _buildSectionSliver(
-                            title: 'SIN FECHA LÍMITE',
-                            count: state.noDateReminders.length,
-                            items: state.noDateReminders,
-                            color: RemindersColors.low,
-                          ),
-                          _buildSectionSliver(
-                            title: 'COMPLETADOS',
-                            count: state.completedReminders.length,
-                            items: state.completedReminders,
-                            color: RemindersColors.completed,
-                            isCollapsible: true,
-                          ),
-                        ] else ...[
-                          _buildFilteredListSliver(state),
-                        ],
-
-                        const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                      ],
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: state.selectedView == 'weekly'
+                          ? const WeeklyScheduleView()
+                          : state.selectedView == 'matrix'
+                              ? const CoveyMatrixView()
+                              : _buildClassicView(state),
+                    ),
+                  ],
                 ),
           floatingActionButton: FloatingActionButton(
             backgroundColor: RemindersColors.primary,
@@ -249,6 +280,121 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             tooltip: 'Crear Recordatorio',
             child: const Icon(Icons.add_task_rounded),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewSwitcherBtn({
+    required String label,
+    required IconData icon,
+    required String viewKey,
+    required String current,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = viewKey == current;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(7),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(7),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? RemindersColors.primary : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? RemindersColors.primary : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClassicView(RemindersState state) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 860),
+        child: CustomScrollView(
+          slivers: [
+            // Barra de Filtros y Estadísticas Rápidas
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildStatusFilterTabs(state),
+              ),
+            ),
+
+            // Contenido Principal según Pestaña
+            if (_activeTab == 'Todos') ...[
+              _buildSectionSliver(
+                title: 'VENCIDOS',
+                count: state.overdueReminders.length,
+                items: state.overdueReminders,
+                color: RemindersColors.overdue,
+                actionWidget: state.overdueCount > 0
+                    ? TextButton.icon(
+                        onPressed: () => state.snoozeAllOverdueToTomorrow(),
+                        icon: const Icon(Icons.snooze_rounded, size: 14),
+                        label: const Text('Posponer a mañana', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        style: TextButton.styleFrom(foregroundColor: RemindersColors.overdue),
+                      )
+                    : null,
+              ),
+              _buildSectionSliver(
+                title: 'PARA HOY',
+                count: state.todayReminders.length,
+                items: state.todayReminders,
+                color: RemindersColors.high,
+              ),
+              _buildSectionSliver(
+                title: 'PRÓXIMOS',
+                count: state.upcomingReminders.length,
+                items: state.upcomingReminders,
+                color: RemindersColors.primary,
+              ),
+              _buildSectionSliver(
+                title: 'SIN FECHA LÍMITE',
+                count: state.noDateReminders.length,
+                items: state.noDateReminders,
+                color: RemindersColors.low,
+              ),
+              _buildSectionSliver(
+                title: 'COMPLETADOS',
+                count: state.completedReminders.length,
+                items: state.completedReminders,
+                color: RemindersColors.completed,
+                isCollapsible: true,
+              ),
+            ] else ...[
+              _buildFilteredListSliver(state),
+            ],
+
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
         ),
       ),
     );

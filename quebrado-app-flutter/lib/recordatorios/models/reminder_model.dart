@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/reminders_colors.dart';
+import 'covey_quadrant.dart';
 
 enum ReminderPriority {
   p1Urgent,
@@ -263,6 +264,12 @@ class ReminderModel {
   final List<String> tags;
   final DateTime? completedAt;
   final bool isPinned;
+  final String? roleId;
+  final String? weeklyPlanId;
+  final CoveyQuadrant quadrant;
+  final bool isBigRock;
+  final int? scheduledDayOfWeek; // 0=Mon, 1=Tue, ..., 6=Sun
+  final int estimatedDurationMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -283,6 +290,12 @@ class ReminderModel {
     List<String>? tags,
     this.completedAt,
     this.isPinned = false,
+    this.roleId,
+    this.weeklyPlanId,
+    this.quadrant = CoveyQuadrant.q2ImportantNotUrgent,
+    this.isBigRock = false,
+    this.scheduledDayOfWeek,
+    this.estimatedDurationMinutes = 30,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : tags = tags ?? [],
@@ -406,6 +419,15 @@ class ReminderModel {
     DateTime? completedAt,
     bool clearCompletedAt = false,
     bool? isPinned,
+    String? roleId,
+    bool clearRoleId = false,
+    String? weeklyPlanId,
+    bool clearWeeklyPlanId = false,
+    CoveyQuadrant? quadrant,
+    bool? isBigRock,
+    int? scheduledDayOfWeek,
+    bool clearScheduledDayOfWeek = false,
+    int? estimatedDurationMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -426,6 +448,12 @@ class ReminderModel {
       tags: tags ?? List.from(this.tags),
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
       isPinned: isPinned ?? this.isPinned,
+      roleId: clearRoleId ? null : (roleId ?? this.roleId),
+      weeklyPlanId: clearWeeklyPlanId ? null : (weeklyPlanId ?? this.weeklyPlanId),
+      quadrant: quadrant ?? this.quadrant,
+      isBigRock: isBigRock ?? this.isBigRock,
+      scheduledDayOfWeek: clearScheduledDayOfWeek ? null : (scheduledDayOfWeek ?? this.scheduledDayOfWeek),
+      estimatedDurationMinutes: estimatedDurationMinutes ?? this.estimatedDurationMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -449,6 +477,12 @@ class ReminderModel {
       'tags': tags,
       'completed_at': completedAt?.toUtc().toIso8601String(),
       'is_pinned': isPinned,
+      'role_id': roleId,
+      'weekly_plan_id': weeklyPlanId,
+      'quadrant': quadrant.code,
+      'is_big_rock': isBigRock,
+      'scheduled_day_of_week': scheduledDayOfWeek,
+      'estimated_duration_minutes': estimatedDurationMinutes,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -483,6 +517,16 @@ class ReminderModel {
           ? DateTime.tryParse(map['completed_at'].toString())?.toLocal()
           : null,
       isPinned: map['is_pinned'] == true,
+      roleId: map['role_id']?.toString(),
+      weeklyPlanId: map['weekly_plan_id']?.toString(),
+      quadrant: CoveyQuadrant.fromCode(map['quadrant']?.toString()),
+      isBigRock: map['is_big_rock'] == true,
+      scheduledDayOfWeek: map['scheduled_day_of_week'] is int
+          ? map['scheduled_day_of_week']
+          : int.tryParse(map['scheduled_day_of_week']?.toString() ?? ''),
+      estimatedDurationMinutes: map['estimated_duration_minutes'] is int
+          ? map['estimated_duration_minutes']
+          : int.tryParse(map['estimated_duration_minutes']?.toString() ?? '30') ?? 30,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString())?.toLocal() ?? DateTime.now()
           : DateTime.now(),

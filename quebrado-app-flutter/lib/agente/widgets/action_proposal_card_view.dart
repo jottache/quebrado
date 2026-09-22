@@ -5,6 +5,7 @@ import '../models/chat_artifact_model.dart';
 import '../theme/agente_colors.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/models/diario_template.dart';
+import '../../recordatorios/models/covey_quadrant.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../recordatorios/models/reminder_model.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
@@ -219,6 +220,16 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
           }
           final notes = data['notes']?.toString().trim();
           final isPinned = data['isPinned'] == true || data['isPinned']?.toString().toLowerCase() == 'true';
+          final isBigRock = data['isBigRock'] == true || data['isBigRock']?.toString().toLowerCase() == 'true';
+          final roleId = data['roleId']?.toString();
+          final quadrantCode = data['quadrant']?.toString();
+          final quadrant = CoveyQuadrant.fromCode(quadrantCode);
+          final scheduledDayOfWeek = data['scheduledDayOfWeek'] is int
+              ? data['scheduledDayOfWeek']
+              : int.tryParse(data['scheduledDayOfWeek']?.toString() ?? '');
+          final duration = data['estimatedDurationMinutes'] is int
+              ? data['estimatedDurationMinutes']
+              : int.tryParse(data['estimatedDurationMinutes']?.toString() ?? '60') ?? 60;
 
           final newReminder = ReminderModel(
             id: const Uuid().v4(),
@@ -228,6 +239,12 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             dueAt: dueAt ?? DateTime.now().add(const Duration(hours: 2)),
             notes: notes,
             isPinned: isPinned,
+            roleId: roleId,
+            weeklyPlanId: remindersState.currentWeeklyPlan?.id,
+            quadrant: quadrant,
+            isBigRock: isBigRock,
+            scheduledDayOfWeek: scheduledDayOfWeek ?? (dueAt != null ? dueAt.weekday - 1 : null),
+            estimatedDurationMinutes: duration,
           );
 
           await remindersState.saveReminder(newReminder);

@@ -58,6 +58,7 @@ dependencies:
   speech_to_text: ^6.6.2
   pasteboard: ^0.1.0
   web: ^0.5.1
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:
