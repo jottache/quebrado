@@ -131,13 +131,13 @@ class RemindersSupabaseService {
   }
 
   /// Reasignar día programado de la semana y fecha para el cronograma flexible
-  Future<bool> scheduleReminderDay(String id, int dayOfWeek, DateTime newDueAt) async {
+  Future<bool> scheduleReminderDay(String id, int? dayOfWeek, DateTime? newDueAt) async {
     if (!isRemoteAvailable) return true;
 
     try {
       await _client!.from('reminders').update({
         'scheduled_day_of_week': dayOfWeek,
-        'due_at': newDueAt.toUtc().toIso8601String(),
+        'due_at': newDueAt?.toUtc().toIso8601String(),
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', id);
       return true;

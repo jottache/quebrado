@@ -9,8 +9,19 @@ import '../viewmodels/reminders_state.dart';
 
 class ReminderEditorDialog extends StatefulWidget {
   final ReminderModel? reminder;
+  final int? scheduledDayOfWeek;
+  final bool? isBigRock;
+  final String? roleId;
+  final CoveyQuadrant? quadrant;
 
-  const ReminderEditorDialog({super.key, this.reminder});
+  const ReminderEditorDialog({
+    super.key,
+    this.reminder,
+    this.scheduledDayOfWeek,
+    this.isBigRock,
+    this.roleId,
+    this.quadrant,
+  });
 
   @override
   State<ReminderEditorDialog> createState() => _ReminderEditorDialogState();
@@ -47,10 +58,17 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     _isPinned = r?.isPinned ?? false;
     _dueAt = r?.dueAt;
     _tags = r?.tags != null ? List<String>.from(r!.tags) : [];
-    _roleId = r?.roleId;
-    _quadrant = r?.quadrant ?? CoveyQuadrant.q2ImportantNotUrgent;
-    _isBigRock = r?.isBigRock ?? false;
+    _roleId = r?.roleId ?? widget.roleId;
+    _quadrant = r?.quadrant ?? widget.quadrant ?? CoveyQuadrant.q2ImportantNotUrgent;
+    _isBigRock = r?.isBigRock ?? widget.isBigRock ?? false;
     _estimatedDurationMinutes = r?.estimatedDurationMinutes ?? 30;
+
+    if (r == null && widget.scheduledDayOfWeek != null) {
+      final now = DateTime.now();
+      final monday = now.subtract(Duration(days: now.weekday - 1));
+      final targetDate = monday.add(Duration(days: widget.scheduledDayOfWeek!));
+      _dueAt = DateTime(targetDate.year, targetDate.month, targetDate.day, 9, 0);
+    }
   }
 
   @override
@@ -133,7 +151,9 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
       weeklyPlanId: widget.reminder?.weeklyPlanId ?? state.currentWeeklyPlan?.id,
       quadrant: _quadrant,
       isBigRock: _isBigRock,
-      scheduledDayOfWeek: _dueAt != null ? _dueAt!.weekday - 1 : widget.reminder?.scheduledDayOfWeek,
+      scheduledDayOfWeek: _dueAt != null
+          ? _dueAt!.weekday - 1
+          : (widget.reminder?.scheduledDayOfWeek ?? widget.scheduledDayOfWeek),
       estimatedDurationMinutes: _estimatedDurationMinutes,
       createdAt: widget.reminder?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),

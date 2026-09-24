@@ -123,156 +123,227 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
       },
       child: Focus(
         autofocus: true,
-        child: Scaffold(
-          backgroundColor: RemindersColors.background,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: const Text(
-              'Agenda & Hábitos',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: RemindersColors.textPrimary),
-            ),
-            actions: [
-              // Botón Ritual Dominical de Stephen Covey
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: TextButton.icon(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => const SundayPlanningWizardDialog(),
-                  ),
-                  icon: const Icon(Icons.wb_sunny_outlined, size: 15, color: Color(0xFFD97706)),
-                  label: const Text(
-                    'Ritual Dominical',
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFFEF3C7),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 650;
+
+            return Scaffold(
+              backgroundColor: RemindersColors.background,
+              appBar: AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              ),
-              const SizedBox(width: 4),
-              // Botón Gestor de Roles Vitales
-              IconButton(
-                icon: const Icon(Icons.pie_chart_outline_rounded, size: 20, color: RemindersColors.primary),
-                tooltip: 'Roles Vitales (Brújula)',
-                onPressed: () => showDialog(
-                  context: context,
-                  builder: (_) => const RoleManagerDialog(),
+                title: Text(
+                  isMobile ? 'Agenda Semanal' : 'Agenda & Hábitos (Covey)',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: RemindersColors.textPrimary),
                 ),
+                actions: isMobile
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.help_outline_rounded, size: 20, color: Color(0xFF4F46E5)),
+                          tooltip: '¿Cómo organizarme?',
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (_) => const CoveyGuideDialog(),
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert_rounded, size: 20, color: RemindersColors.textPrimary),
+                          tooltip: 'Opciones de Agenda',
+                          onSelected: (val) {
+                            if (val == 'ritual') {
+                              showDialog(context: context, builder: (_) => const SundayPlanningWizardDialog());
+                            } else if (val == 'roles') {
+                              showDialog(context: context, builder: (_) => const RoleManagerDialog());
+                            } else if (val == 'palette') {
+                              _openCommandPalette();
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            const PopupMenuItem(
+                              value: 'ritual',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFFD97706)),
+                                  SizedBox(width: 10),
+                                  Text('Ritual Dominical', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'roles',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.pie_chart_outline_rounded, size: 18, color: RemindersColors.primary),
+                                  SizedBox(width: 10),
+                                  Text('Roles Vitales (Brújula)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'palette',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.terminal_rounded, size: 18, color: RemindersColors.textMuted),
+                                  SizedBox(width: 10),
+                                  Text('Buscar / Comandos', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_rounded, size: 22, color: RemindersColors.primary),
+                          tooltip: 'Nuevo Recordatorio',
+                          onPressed: () => _openEditorDialog(),
+                        ),
+                        const SizedBox(width: 4),
+                      ]
+                    : [
+                        // Botón Ritual Dominical de Stephen Covey
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: TextButton.icon(
+                            onPressed: () => showDialog(
+                              context: context,
+                              builder: (_) => const SundayPlanningWizardDialog(),
+                            ),
+                            icon: const Icon(Icons.wb_sunny_outlined, size: 15, color: Color(0xFFD97706)),
+                            label: const Text(
+                              'Ritual Dominical',
+                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: const Color(0xFFFEF3C7),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Botón Gestor de Roles Vitales
+                        IconButton(
+                          icon: const Icon(Icons.pie_chart_outline_rounded, size: 20, color: RemindersColors.primary),
+                          tooltip: 'Roles Vitales (Brújula)',
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (_) => const RoleManagerDialog(),
+                          ),
+                        ),
+                        // Atajo visual Command Palette
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                          child: OutlinedButton.icon(
+                            onPressed: _openCommandPalette,
+                            icon: const Icon(Icons.terminal_rounded, size: 16),
+                            label: const Text('Cmd+K', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: RemindersColors.primary,
+                              side: BorderSide(color: RemindersColors.primary.withOpacity(0.3)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                          ),
+                        ),
+                        // Botón Guía Paso a Paso
+                        IconButton(
+                          icon: const Icon(Icons.help_outline_rounded, size: 21, color: Color(0xFF4F46E5)),
+                          tooltip: '¿Cómo organizarme? (Guía Paso a Paso)',
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (_) => const CoveyGuideDialog(),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_rounded),
+                          tooltip: 'Nuevo Recordatorio Completo',
+                          onPressed: () => _openEditorDialog(),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
               ),
-              // Atajo visual Command Palette
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                child: OutlinedButton.icon(
-                  onPressed: _openCommandPalette,
-                  icon: const Icon(Icons.terminal_rounded, size: 16),
-                  label: const Text('Cmd+K', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: RemindersColors.primary,
-                    side: BorderSide(color: RemindersColors.primary.withOpacity(0.3)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ),
-              // Botón Guía Paso a Paso
-              IconButton(
-                icon: const Icon(Icons.help_outline_rounded, size: 21, color: Color(0xFF4F46E5)),
-                tooltip: '¿Cómo organizarme? (Guía Paso a Paso)',
-                onPressed: () => showDialog(
-                  context: context,
-                  builder: (_) => const CoveyGuideDialog(),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_rounded),
-                tooltip: 'Nuevo Recordatorio Completo',
-                onPressed: () => _openEditorDialog(),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: state.isLoading
-              ? const Center(child: CircularProgressIndicator(color: RemindersColors.primary))
-              : Column(
-                  children: [
-                    // Barra de Switcher de Vistas Covey
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 860),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                ),
+              body: state.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: RemindersColors.primary))
+                  : Column(
+                      children: [
+                        // Barra de Switcher de Vistas Covey
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 20, vertical: 4),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 860),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildViewSwitcherBtn(
-                                      label: 'Agenda Semanal',
-                                      icon: Icons.calendar_view_week_rounded,
-                                      viewKey: 'weekly',
-                                      current: state.selectedView,
-                                      onTap: () => state.setSelectedView('weekly'),
+                                    Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          _buildViewSwitcherBtn(
+                                            label: isMobile ? 'Semana' : 'Agenda Semanal',
+                                            icon: Icons.calendar_view_week_rounded,
+                                            viewKey: 'weekly',
+                                            current: state.selectedView,
+                                            onTap: () => state.setSelectedView('weekly'),
+                                          ),
+                                          _buildViewSwitcherBtn(
+                                            label: 'Matriz 2x2',
+                                            icon: Icons.grid_view_rounded,
+                                            viewKey: 'matrix',
+                                            current: state.selectedView,
+                                            onTap: () => state.setSelectedView('matrix'),
+                                          ),
+                                          _buildViewSwitcherBtn(
+                                            label: isMobile ? 'Feed' : 'Feed Clásico',
+                                            icon: Icons.format_list_bulleted_rounded,
+                                            viewKey: 'classic',
+                                            current: state.selectedView,
+                                            onTap: () => state.setSelectedView('classic'),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    _buildViewSwitcherBtn(
-                                      label: 'Matriz 2x2',
-                                      icon: Icons.grid_view_rounded,
-                                      viewKey: 'matrix',
-                                      current: state.selectedView,
-                                      onTap: () => state.setSelectedView('matrix'),
-                                    ),
-                                    _buildViewSwitcherBtn(
-                                      label: 'Feed Clásico',
-                                      icon: Icons.format_list_bulleted_rounded,
-                                      viewKey: 'classic',
-                                      current: state.selectedView,
-                                      onTap: () => state.setSelectedView('classic'),
+                                    const SizedBox(width: 8),
+                                    // Botón Guía de Organización Paso a Paso
+                                    TextButton.icon(
+                                      onPressed: () => showDialog(
+                                        context: context,
+                                        builder: (_) => const CoveyGuideDialog(),
+                                      ),
+                                      icon: const Icon(Icons.school_outlined, size: 15, color: Color(0xFF4F46E5)),
+                                      label: Text(
+                                        isMobile ? 'Guía' : '¿Cómo organizarme?',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF4338CA),
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: const Color(0xFFEEF2FF),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 10, vertical: 8),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              // Botón Guía de Organización Paso a Paso
-                              TextButton.icon(
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (_) => const CoveyGuideDialog(),
-                                ),
-                                icon: const Icon(Icons.school_outlined, size: 16, color: Color(0xFF4F46E5)),
-                                label: const Text(
-                                  '¿Cómo organizarme?',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF4338CA),
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: const Color(0xFFEEF2FF),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
 
                     // Banner de Recordatorios Fijados (visible para cualquier vista si hay fijados activos)
                     if (state.pinnedReminders.isNotEmpty)
@@ -312,10 +383,12 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             tooltip: 'Crear Recordatorio',
             child: const Icon(Icons.add_task_rounded),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  ),
+);
+}
 
   Widget _buildViewSwitcherBtn({
     required String label,

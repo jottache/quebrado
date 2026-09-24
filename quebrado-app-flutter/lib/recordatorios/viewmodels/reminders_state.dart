@@ -388,31 +388,37 @@ class RemindersState extends ChangeNotifier {
     return newReminder;
   }
 
-  /// Mover recordatorio a un día específico del cronograma flexible (0=Lunes..6=Domingo)
-  Future<void> moveReminderToDay(String reminderId, int targetDayOfWeek) async {
+  /// Mover recordatorio a un día específico del cronograma flexible (0=Lunes..6=Domingo) o a la bandeja (null)
+  Future<void> moveReminderToDay(String reminderId, int? targetDayOfWeek) async {
     final index = _reminders.indexWhere((r) => r.id == reminderId);
     if (index == -1) return;
 
     final current = _reminders[index];
-    final monday = currentMonday;
-    final targetDate = monday.add(Duration(days: targetDayOfWeek));
+    DateTime? newDue;
 
-    DateTime newDue;
-    if (current.dueAt != null) {
-      newDue = DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-        current.dueAt!.hour,
-        current.dueAt!.minute,
-      );
+    if (targetDayOfWeek != null) {
+      final monday = currentMonday;
+      final targetDate = monday.add(Duration(days: targetDayOfWeek));
+      if (current.dueAt != null) {
+        newDue = DateTime(
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          current.dueAt!.hour,
+          current.dueAt!.minute,
+        );
+      } else {
+        newDue = DateTime(targetDate.year, targetDate.month, targetDate.day, 9, 0);
+      }
     } else {
-      newDue = DateTime(targetDate.year, targetDate.month, targetDate.day, 9, 0);
+      newDue = null;
     }
 
     final updated = current.copyWith(
       scheduledDayOfWeek: targetDayOfWeek,
+      clearScheduledDayOfWeek: targetDayOfWeek == null,
       dueAt: newDue,
+      clearDueAt: targetDayOfWeek == null,
       weeklyPlanId: _currentWeeklyPlan?.id,
       updatedAt: DateTime.now(),
     );
