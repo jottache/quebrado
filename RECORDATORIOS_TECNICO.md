@@ -1,96 +1,114 @@
-# Documentación Técnica: Recordatorios (Reminders App)
+# Documentación Técnica: Recordatorios y Agenda Semanal (4ta Generación - Hábito 3 de Stephen Covey)
 **Suite de Productividad OrtizApp**
 
 ---
 
 ## 1. Visión General y Filosofía de Diseño
 
-**Recordatorios** es un módulo de gestión de tareas y recordatorios de alto rendimiento, diseñado bajo una filosofía **keyboard-first** (prioridad al teclado), con captura ultrarrápida mediante Procesamiento de Lenguaje Natural (NLP), reprogramación inteligente (*Smart Snooze*), alertas persistentes (*Nagging*), recurrencia automática según el estándar RFC 5545 y sincronización reactiva en tiempo real respaldada por **Supabase Realtime**.
+El módulo **Recordatorios & Agenda** es un sistema de gestión personal de alto rendimiento que combina una arquitectura **keyboard-first** (prioridad al teclado) y captura ultrarrápida mediante Procesamiento de Lenguaje Natural (NLP), con la filosofía de **4ta Generación de Gestión del Tiempo (Hábito 3: «Primero lo Primero» / «Put First Things First» de Stephen R. Covey)**.
 
 ### Principios Fundamentales
-1. **Fricción Cero en Captura:** Capacidad de registrar cualquier tarea en menos de un segundo escribiendo frases en lenguaje cotidiano en español (ej. `"Pagar tarjeta mañana a las 3pm !urgente #finanzas"`).
-2. **Productividad Orientada al Teclado:** Acceso universal a una paleta de comandos global mediante `Cmd+K` (macOS) o `Ctrl+K` (Windows/Linux/Web), permitiendo crear, buscar, filtrar y posponer tareas sin tocar el ratón.
-3. **Recurrencia Automática Robusta:** Soporte nativo para tareas repetitivas semanales, quincenales, mensuales y diarias. Al marcar como completada una tarea recurrente, el motor crea y programa de forma autónoma la siguiente ocurrencia.
-4. **Sincronización Reactiva:** Suscripción por WebSockets a `supabase_realtime`, garantizando coherencia multi-pestaña y multi-dispositivo instantánea con actualizaciones optimistas en la UI.
-5. **Estética Minimalista Unificada:** Identidad visual integrada en la suite OrtizApp con paleta sobria basada en **Slate Indigo** (`#2E5B88`).
+1. **La Brújula precede al Reloj:** Priorizar la dirección, el propósito y el equilibrio de vida antes que la velocidad. La gestión se basa en **Roles Vitales** y sus enunciados de misión.
+2. **Las 4 Dimensiones Humanas:** Cobertura equilibrada de las dimensiones Física, Mental, Espiritual y Social/Emocional, con alerta activa de desbalance si algún rol tiene 0 Grandes Rocas.
+3. **Grandes Rocas Primero (Cuadrante II):** Identificar de 1 a 3 prioridades no negociables de alta efectividad (C2: Importante, No Urgente) por rol y bloquear su espacio en la semana antes de que la arena y la grava cotidiana ocupen el tiempo.
+4. **Marco Semanal Flexible:** Grilla de 7 días (Lunes a Domingo) con reprogramación interactiva mediante **Drag & Drop** y bandeja de tareas semanales sin asignar.
+5. **Captura Fricción Cero:** Creación instantánea de tareas enriquecidas con cuadrante (`!c1..c4`), Gran Roca (`*rock*`), rol (`@rol`), duración (`~30m`) y fecha natural en una sola línea.
+6. **Coaching Inteligente con Agente Ortiz:** Supervisión continua del balance de roles, auditoría del cronograma semanal y propuesta interactiva de agendamiento en 1 toque mediante Action Proposals.
+7. **Sincronización Reactiva:** Respaldado por **Supabase Realtime** y persistencia offline con mutaciones optimistas en la UI.
 
 ---
 
 ## 2. Arquitectura del Sistema
 
-El módulo reside en `lib/recordatorios/` dentro de `quebrado-app-flutter` y sigue un patrón de arquitectura **MVVM (Model - View - ViewModel)** desacoplado:
+El módulo reside en `lib/recordatorios/` dentro de `quebrado-app-flutter` bajo una arquitectura **MVVM (Model - View - ViewModel)**:
 
 ```
 lib/recordatorios/
 ├── dialogs/
-│   ├── command_palette_dialog.dart   # Paleta de comandos global (Cmd/Ctrl + K)
-│   └── reminder_editor_dialog.dart   # Diálogo modal detallado de edición y creación
+│   ├── command_palette_dialog.dart       # Paleta global (Cmd/Ctrl + K)
+│   ├── covey_guide_dialog.dart           # Modal interactivo con guía paso a paso (6 pasos)
+│   ├── reminder_editor_dialog.dart       # Modal detallado con selectores de Covey
+│   ├── role_manager_dialog.dart          # Gestor de Roles Vitales, colores, iconos y misión
+│   └── sunday_planning_wizard_dialog.dart # Asistente de 3 pasos para el Ritual Dominical
 ├── models/
-│   └── reminder_model.dart           # Modelo de dominio, enums (prioridad, estado, recurrencia)
+│   ├── covey_quadrant.dart               # Enum C1..C4, etiquetas, colores y helpers
+│   ├── reminder_model.dart               # Entidad principal con campos de Hábito 3
+│   ├── role_model.dart                   # Modelo de Rol Vital y semillas de 4 dimensiones
+│   └── weekly_plan_model.dart            # Plan semanal normalizado a lunes
 ├── screens/
-│   └── reminders_home_screen.dart    # Pantalla principal con feed agrupado y captura rápida
+│   └── reminders_home_screen.dart        # Vista principal con selector de vistas y banner fijado
 ├── services/
-│   ├── nlp_parser.dart               # Motor léxico y sintáctico de lenguaje natural en español
-│   └── reminders_supabase_service.dart # Servicio de persistencia y Supabase Realtime
+│   ├── nlp_parser.dart                   # Motor léxico de lenguaje natural y tokens Covey
+│   └── reminders_supabase_service.dart   # Servicio de persistencia y Supabase Realtime
 ├── theme/
-│   └── reminders_colors.dart         # Tokens de diseño y colores semánticos
+│   └── reminders_colors.dart             # Tokens de diseño y colores semánticos
 ├── viewmodels/
-│   └── reminders_state.dart          # Gestor de estado reactivo (ChangeNotifier)
-└── recordatorios.dart                # Barril de exportación pública del módulo
+│   └── reminders_state.dart              # Gestor de estado reactivo (ChangeNotifier)
+└── widgets/
+    ├── covey_matrix_view.dart            # Vista Matriz 2x2 interactiva (Drag & Drop + foco C2)
+    └── weekly_schedule_view.dart         # Vista 7 días + Sidebar de Brújula + Drawer inferior
 ```
 
 ---
 
 ## 3. Modelo de Datos y Enums
 
-### 3.1 `ReminderPriority`
-Define la criticidad de la tarea:
-| Enum Dart | Código DB | Etiqueta | Color UI | Sintaxis NLP |
-| :--- | :--- | :--- | :--- | :--- |
-| `p1Urgent` | `'p1_urgent'` | P1 Urgente | `#EF4444` (Rojo) | `!p1`, `!urgente`, `!urgent` |
-| `p2High` | `'p2_high'` | P2 Alta | `#F97316` (Naranja) | `!p2`, `!alta`, `!high` |
-| `p3Medium` | `'p3_medium'` | P3 Media | `#3B82F6` (Azul) | `!p3`, `!media`, `!medium` (Predeterminado) |
-| `p4Low` | `'p4_low'` | P4 Baja | `#94A3B8` (Gris) | `!p4`, `!baja`, `!low` |
+### 3.1 `CoveyQuadrant`
+Define los cuadrantes de la matriz de Stephen Covey:
+| Enum Dart | Código DB | Etiqueta | Naturaleza | Color UI | Sintaxis NLP |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `q1UrgentImportant` | `'q1_urgent_important'` | C1 Crisis | Urgente & Importante | `#EF4444` (Rojo) | `!c1`, `!q1` |
+| `q2ImportantNotUrgent`| `'q2_important_not_urgent'`| C2 Eficacia ★ | Importante, NO Urgente | `#059669` (Esmeralda) | `!c2`, `!q2` (Default) |
+| `q3UrgentNotImportant`| `'q3_urgent_not_important'`| C3 Engaño | Urgente, NO Importante | `#F59E0B` (Ámbar) | `!c3`, `!q3` |
+| `q4NotUrgentNotImportant`| `'q4_not_urgent_not_important'`| C4 Desperdicio| Ni Urgente ni Importante | `#64748B` (Gris Pizarra)| `!c4`, `!q4` |
 
-### 3.2 `ReminderStatus`
-Ciclo de vida del recordatorio:
-- `pending`: Tarea activa pendiente por vencer o realizar.
-- `completed`: Tarea resuelta (conserva `completedAt`).
-- `snoozed`: Pospuesta temporalmente.
-- `archived`: Descartada o archivada fuera de las vistas principales.
+### 3.2 `RoleModel` (Tabla: `user_life_roles`)
+Representa cada una de las facetas fundamentales de responsabilidad del usuario:
+- `id` (`String` / `UUID PRIMARY KEY`): Identificador único.
+- `userId` (`String?` / `UUID REFERENCES auth.users(id)`).
+- `name` (`String`): Nombre del rol (ej. *"Salud & Vitalidad"*, *"Familia & Pareja"*).
+- `purposeStatement` (`String?`): Declaración de misión o propósito de vida para este rol.
+- `iconName` (`String`): Identificador del icono Material (ej. `'fitness_center'`, `'favorite'`).
+- `colorHex` (`String`): Color distintivo en formato hexadecimal (ej. `'#10B981'`).
+- `orderIndex` (`int`): Posición ordinal de visualización.
 
-### 3.3 `ReminderRecurrence`
-Mapeo estándar iCalendar RFC 5545:
-| Enum Dart | Cadena `rrule` | Etiqueta | Cálculo de Siguiente Ocurrencia |
-| :--- | :--- | :--- | :--- |
-| `none` | `null` | No se repite | Misma fecha |
-| `daily` | `'FREQ=DAILY'` | Diario | `baseDate + 1 día` |
-| `weekly` | `'FREQ=WEEKLY'` | Semanal | `baseDate + 7 días` |
-| `biweekly`| `'FREQ=WEEKLY;INTERVAL=2'`| Quincenal (cada 15 días) | `baseDate + 14 días` |
-| `monthly` | `'FREQ=MONTHLY'` | Mensual | `baseDate + 1 mes` (con ajuste de fin de mes) |
-| `yearly` | `'FREQ=YEARLY'` | Anual | `baseDate + 1 año` |
+### 3.3 `WeeklyPlanModel` (Tabla: `weekly_plans`)
+Controla el ciclo de planificación semanal:
+- `id` (`String` / `UUID PRIMARY KEY`).
+- `userId` (`String?` / `UUID REFERENCES auth.users(id)`).
+- `weekStartDate` (`DateTime`): Fecha normalizada al **Lunes** de la semana.
+- `retrospectiveNotes` (`String?`): Reflexión de logros, lecciones y dificultades.
+- `prioritiesNotes` (`String?`): Compromisos prioritarios de la semana.
+- `formattedRange`: Helper que retorna el rango legible (ej. *"21 Sep - 27 Sep 2026"*).
 
-### 3.4 `ReminderModel`
-Estructura completa de la entidad:
+### 3.4 `ReminderModel` (Tabla: `reminders`)
+Entidad extendida con compatibilidad total:
 ```dart
 class ReminderModel {
-  final String id;                    // UUID
-  final String? userId;               // UUID del usuario autenticado
-  final String title;                 // Título limpio de modificadores NLP
-  final String? notes;                // Notas secundarias
-  final ReminderPriority priority;    // Prioridad (p1 a p4)
-  final ReminderStatus status;        // Estado (pending, completed, snoozed, archived)
-  final DateTime? dueAt;              // Vencimiento en UTC
-  final String clientTimezone;        // Zona horaria de origen (ej. 'America/Caracas')
-  final String? rrule;                // Regla de recurrencia RFC 5545
-  final String? parentId;             // Enlace a la tarea padre si proviene de recurrencia
-  final bool isNagging;               // Alerta persistente activada
-  final int nagIntervalMinutes;       // Intervalo de re-notificación
-  final DateTime? lastNotifiedAt;     // Última alerta despachada
-  final List<String> tags;            // Etiquetas ('finanzas', 'hogar', etc.)
-  final DateTime? completedAt;        // Fecha de resolución
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String id;
+  final String? userId;
+  final String title;
+  final String? notes;
+  final ReminderPriority priority;
+  final ReminderStatus status;
+  final DateTime? dueAt;
+  final String clientTimezone;
+  final String? rrule;
+  final String? parentId;
+  final bool isNagging;
+  final int nagIntervalMinutes;
+  final DateTime? lastNotifiedAt;
+  final List<String> tags;
+  final bool isPinned;
+  final DateTime? completedAt;
+
+  // Extensiones Hábito 3 de Stephen Covey
+  final String? roleId;                     // Vinculación a Rol Vital
+  final String? weeklyPlanId;               // Enlace al Plan Semanal
+  final CoveyQuadrant quadrant;             // C1, C2, C3, C4 (Default: C2)
+  final bool isBigRock;                     // Gran Roca semanal no negociable
+  final int? scheduledDayOfWeek;            // 0=Lun .. 6=Dom, null=Bandeja sin asignar
+  final int? estimatedDurationMinutes;      // Duración estimada (ej. 30, 45, 60 min)
 }
 ```
 
@@ -98,159 +116,159 @@ class ReminderModel {
 
 ## 4. Motor de Procesamiento de Lenguaje Natural (`NlpParser`)
 
-El servicio [`NlpParser`](file:///Users/jottache/development/quebrado-app/quebrado-app-flutter/lib/recordatorios/services/nlp_parser.dart) analiza texto en español en tiempo real y extrae parámetros estructurados sin librerías externas pesadas.
+El servicio [`NlpParser`](file:///Users/jottache/development/quebrado-app/quebrado-app-flutter/lib/recordatorios/services/nlp_parser.dart) extrae parámetros tanto tradicionales como de 4ta generación:
 
 ### 4.1 Fases del Pipeline
-1. **Extracción de Etiquetas:** Detecta `#etiqueta` mediante `RegExp(r'#([a-zA-Z0-9_\u00C0-\u00FF]+)')`.
-2. **Extracción de Prioridades:** Detecta `!(p1|p2|p3|p4|urgente|alta|media|baja)`.
-3. **Extracción de Recurrencia:** Detecta expresiones como `quincenal`, `cada 15 días`, `semanal`, `cada semana`, `mensual`, `cada mes`, `diario`, o tags `#semanal`, `#quincenal`, etc.
-4. **Extracción de Duraciones Relativas:** Detecta patrones de anticipación inmediata: `en X minutos`, `en X horas`, `en X días`.
-5. **Extracción de Fechas Calendario:**
-   - Expresiones relativas: `hoy`, `mañana`, `pasado mañana`, `el lunes`, `el viernes`.
-   - Días del mes: `15 de octubre`, `el 24 de dic`.
-6. **Extracción de Horas y Momentos del Día:**
-   - Horas estándar: `a las 3pm`, `15:30`, `8:00 am`.
-   - Bloques contextuales: `en la mañana` (09:00), `a mediodía` (12:00), `en la tarde` (15:00), `esta noche` (20:00).
-7. **Limpieza del Título:** Remueve todos los tokens identificados y preserva el nombre legible de la tarea.
+1. **Tokens Covey de Cuadrante:** `!(c1|c2|c3|c4|q1|q2|q3|q4)` $\rightarrow$ Asigna el cuadrante `CoveyQuadrant`.
+2. **Tokens de Gran Roca:** `\*rock\*`, `!rock`, `!piedra`, `!granroca` $\rightarrow$ Marca `isBigRock = true`.
+3. **Tokens de Rol Vital:** `@([a-zA-Z0-9_\u00C0-\u00FF]+)` $\rightarrow$ Extrae el nombre del rol a vincular.
+4. **Tokens de Duración:** `~([0-9]+(?:\.[0-9]+)?)(m|h)` $\rightarrow$ Convierte a minutos (`~45m` $\rightarrow$ 45, `~1h` $\rightarrow$ 60).
+5. **Etiquetas y Prioridades Clásicas:** `#tag`, `!urgente`, `!p1`, `!p2`, `!p3`, `!p4`.
+6. **Recurrencia RFC 5545:** `diario`, `semanal`, `quincenal`, `mensual`, `cada 15 días`.
+7. **Fechas Relativas y Horas:** `mañana a las 8am`, `el viernes a las 3pm`, `en 30 minutos`, `esta noche`.
+8. **Limpieza del Título:** Retira todos los modificadores y conserva el texto limpio.
+
+**Ejemplo completo:**
+```text
+Entrenar pesas y movilidad *rock* !c2 @Salud ~1h mañana a las 7am
+```
+- Título: *"Entrenar pesas y movilidad"*
+- Cuadrante: `q2ImportantNotUrgent`
+- Gran Roca: `true`
+- Rol: *"Salud"*
+- Duración: 60 minutos
+- Fecha límite: Mañana a las 07:00
 
 ---
 
 ## 5. Gestión del Estado (`RemindersState`)
 
-Implementado con `ChangeNotifier` para garantizar rendimiento óptimo y reactividad:
+El ViewModel reactivo provee los siguientes cálculos y mutaciones:
 
-### 5.1 Vistas Filtradas Computadas
-- `overdueReminders`: Tareas no completadas cuya fecha límite es anterior a `DateTime.now()`.
-- `todayReminders`: Tareas programadas para el día calendario actual.
-- `upcomingReminders`: Tareas futuras a partir de mañana.
-- `noDueDateReminders`: Tareas sin fecha asignada (bandeja de entrada).
-- `completedReminders`: Historial de tareas completadas ordenadas por `completedAt DESC`.
+### 5.1 Getters Computados de 4ta Generación
+- `remindersForDay(int dayOfWeek)`: Recordatorios agendados para un día específico (0=Lunes .. 6=Domingo).
+- `unscheduledWeeklyReminders`: Tareas asignadas a la semana pero sin día fijo (bandeja semanal).
+- `bigRocksForRole(String roleId)`: Lista de Grandes Rocas asociadas a un rol en la semana activa.
+- `unaddressedRoles`: Lista de roles vitales activos que tienen **0 Grandes Rocas** programadas.
+- `remindersForQuadrant(CoveyQuadrant q)`: Tareas activas clasificadas en dicho cuadrante.
+- `q2FocusPercentage`: Porcentaje de tareas en Cuadrante II sobre el total activo.
 
-### 5.2 Acciones de Negocio
-- **`createFromNlp(String rawInput)`:** Analiza el texto con `NlpParser` y almacena el recordatorio de forma optimista en la lista local antes de sincronizar con Supabase.
-- **`toggleCompleted(ReminderModel reminder)`:**
-  - Si no estaba completada, la marca como `completed` con `completedAt = DateTime.now()`.
-  - **Reprogramación Recurrente:** Si `reminder.isRecurring == true`, calcula automáticamente la siguiente fecha límite (`recurrence.calculateNextDueDate(baseDate)`) y registra una nueva tarea pendiente vinculada mediante `parentId = reminder.id`.
-- **`quickSnooze(ReminderModel reminder, Duration duration)`:** Aplaza el vencimiento sumando la duración a partir del momento actual o de la fecha original.
-- **`snoozeAllOverdueToTomorrow()`:** Acción masiva en lote para mover todas las tareas atrasadas a mañana a las 9:00 AM.
-
----
-
-## 6. Componentes de Interfaz de Usuario
-
-### 6.1 `RemindersHomeScreen`
-- **Barra Superior:** Búsqueda rápida, selector de filtros por etiqueta y botón de acceso a la paleta de comandos.
-- **Barra de Captura Rápida:** Campo de texto inline con botón de envío y visualización en tiempo real de los chips extraídos (fecha, prioridad, recurrencia, tags).
-- **Banner de Vencidos:** Alerta prominente en rojo que se muestra si hay tareas atrasadas, con acceso directo a posponerlas todas a mañana.
-- **Feed Seccionado:** Listas colapsables con tarjetas que incluyen:
-  - Checkbox interactivo de completitud.
-  - Indicador de prioridad mediante barra de color lateral y badge textual.
-  - Insignia de recurrencia (`🔁 Semanal`, `🔁 Quincenal`, `🔁 Mensual`).
-  - Insignia de alerta persistente (*Nagging*).
-  - Menú de Smart Snooze rápido (+15m, +1h, +3h, esta noche, mañana).
-  - Menú contextual para editar o eliminar.
-
-### 6.2 `CommandPaletteDialog` (`Cmd/Ctrl + K`)
-- Cuadro de diálogo modal estilo *Spotlight*.
-- Permite escribir y crear al vuelo con `Enter`.
-- Si el texto coincide con recordatorios existentes, los muestra en una lista de resultados con opciones directas de completar o posponer.
-- Incluye accesos directos a filtros frecuentes y posposición masiva.
-
-### 6.3 `ReminderEditorDialog`
-- Modal para creación o edición detallada con:
-  - Título y notas.
-  - Selector visual de prioridad (4 niveles con colores semánticos).
-  - Selector de fecha y hora interactivo.
-  - Selector de frecuencia de recurrencia mediante `ChoiceChips`.
-  - Switch de alertas persistentes (*Nagging*) con slider de minutos.
-  - Campo de gestión de tags.
+### 5.2 Mutaciones Optimistas
+- **`moveReminderToDay(String reminderId, int? dayOfWeek)`:** Asigna o mueve una tarea a un día de la semana (o a la bandeja si `dayOfWeek == null`).
+- **`moveReminderToQuadrant(String reminderId, CoveyQuadrant quadrant)`:** Reubica una tarea entre cuadrantes.
+- **`toggleBigRock(String reminderId)`:** Alterna la marca de Gran Roca.
+- **`saveRole(RoleModel role)` / `deleteRole(String roleId)`:** Gestión completa de roles vitales.
+- **`saveWeeklyPlanNotes({String? retrospective, String? priorities})`:** Actualiza las notas del ritual dominical.
 
 ---
 
-## 7. Esquema de Base de Datos (Supabase PostgreSQL)
+## 6. Vistas y Componentes de Interfaz de Usuario
 
-El archivo [`supabase/006_reminders_schema.sql`](file:///Users/jottache/development/quebrado-app/supabase/006_reminders_schema.sql) define el almacenamiento y la seguridad:
+### 6.1 `WeeklyScheduleView` (Agenda Semanal)
+- **Barra Lateral de Brújula:** Roles vitales con misión, contador de rocas y alerta de desbalance. Incluye botón al Ritual Dominical y a la Guía Paso a Paso.
+- **Grilla de 7 Días (Lunes a Domingo):** Columnas con encabezado de fecha, indicador de día actual y drop-targets.
+- **Drag & Drop:** Implementación con `Draggable` y `DragTarget` para reprogramar tareas entre días con feedback táctil y visual.
+- **Bandeja Semanal Sin Asignar:** Drawer deslizable inferior para tareas capturadas pendientes de día.
+
+### 6.2 `CoveyMatrixView` (Matriz 2x2)
+- Disposición de 4 cuadrantes con foco y borde destacado en **Cuadrante II**.
+- Barra superior con porcentaje de enfoque en C2 y felicitación al superar el **60%**.
+- Drag & Drop interactivo para mover tareas entre cuadrantes.
+
+### 6.3 `SundayPlanningWizardDialog` (El Ritual Dominical)
+- Flujo en 3 pasos:
+  1. *Retrospectiva:* Evaluación de la semana y conexión con la misión.
+  2. *Grandes Rocas:* Selección de 1 a 3 prioridades no negociables por rol.
+  3. *Agendamiento:* Asignación a días de la semana y reserva de bloques de tiempo.
+
+### 6.4 `RoleManagerDialog` (Gestor de Roles Vitales)
+- Diálogo modal para crear, editar, reordenar y eliminar roles vitales con selector de iconos y colores.
+
+### 6.5 `CoveyGuideDialog` (Modal de Guía Paso a Paso)
+- Modal grande de 6 pasos pedagógicos que explica la filosofía y el uso de cada feature. Accesible desde la barra superior (`¿Cómo organizarme?`), el AppBar (`?`) y la barra lateral.
+
+---
+
+## 7. Integración con el Agente Ortiz (Coaching y Herramientas)
+
+El chatbot asistente inteligente (**Agente Ortiz**) actúa como un coach proactivo de Hábito 3:
+
+### 7.1 Live Context Snapshot (`SuiteRagService`)
+Inyecta en tiempo real el estado de la semana:
+- Rango de fechas de la semana activa.
+- Porcentaje de enfoque en Cuadrante II.
+- Desglose de Grandes Rocas por rol y estado de balance.
+- Advertencia explícita si existen roles desatendidos (0 rocas).
+
+### 7.2 Herramientas Disponibles
+1. **`getWeeklySchedule`:** Retorna el cronograma semanal organizado por día y la bandeja sin asignar.
+2. **`getRolesCompass`:** Retorna la lista de roles, sus propósitos, el conteo de rocas y roles en riesgo.
+3. **`proposeScheduleBigRock`:** Genera un artefacto de propuesta de acción interactiva (`ActionProposalCardView`) con `isBigRock: true`, `quadrant: 'q2_important_not_urgent'`, `roleId`, `scheduledDayOfWeek` y `estimatedDurationMinutes`, permitiendo confirmar la creación en 1 solo toque.
+
+---
+
+## 8. Esquema de Base de Datos SQL (`011_agenda_covey_system.sql`)
 
 ```sql
--- Enums
-CREATE TYPE reminder_priority AS ENUM ('p1_urgent', 'p2_high', 'p3_medium', 'p4_low');
-CREATE TYPE reminder_status AS ENUM ('pending', 'completed', 'snoozed', 'archived');
-
--- Tabla de Suscripciones Web Push
-CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+-- Tabla de Roles Vitales
+CREATE TABLE IF NOT EXISTS public.user_life_roles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  endpoint TEXT NOT NULL UNIQUE,
-  p256dh TEXT NOT NULL,
-  auth TEXT NOT NULL,
-  user_agent TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabla Principal de Recordatorios
-CREATE TABLE IF NOT EXISTS public.reminders (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  notes TEXT,
-  priority reminder_priority DEFAULT 'p3_medium',
-  status reminder_status DEFAULT 'pending',
-  due_at TIMESTAMPTZ,
-  client_timezone TEXT DEFAULT 'UTC',
-  rrule TEXT,
-  parent_id UUID REFERENCES public.reminders(id) ON DELETE SET NULL,
-  is_nagging BOOLEAN DEFAULT FALSE,
-  nag_interval_minutes INTEGER DEFAULT 10,
-  last_notified_at TIMESTAMPTZ,
-  tags TEXT[] DEFAULT ARRAY[]::TEXT[],
-  completed_at TIMESTAMPTZ,
+  name TEXT NOT NULL,
+  purpose_statement TEXT,
+  icon_name TEXT DEFAULT 'star',
+  color_hex TEXT DEFAULT '#3B82F6',
+  position INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Índices de Alto Rendimiento
-CREATE INDEX IF NOT EXISTS idx_reminders_user_status ON public.reminders(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_reminders_due ON public.reminders(due_at) WHERE status IN ('pending', 'snoozed');
-CREATE INDEX IF NOT EXISTS idx_push_user ON public.push_subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_reminders_created ON public.reminders(created_at DESC);
+-- Tabla de Planes Semanales
+CREATE TABLE IF NOT EXISTS public.weekly_plans (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  week_start_date DATE NOT NULL,
+  retrospective_notes TEXT,
+  priorities_notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, week_start_date)
+);
 
--- Políticas de Seguridad (RLS)
-ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
+-- Columnas añadidas a reminders
+ALTER TABLE public.reminders
+  ADD COLUMN IF NOT EXISTS role_id UUID REFERENCES public.user_life_roles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS weekly_plan_id UUID REFERENCES public.weekly_plans(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS covey_quadrant TEXT DEFAULT 'q2_important_not_urgent',
+  ADD COLUMN IF NOT EXISTS is_big_rock BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS scheduled_day_of_week INTEGER,
+  ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER;
 
-CREATE POLICY "Acceso completo a reminders" ON public.reminders
-  FOR ALL USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL)
-  WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+-- Índices de alto rendimiento
+CREATE INDEX IF NOT EXISTS idx_reminders_covey_quadrant ON public.reminders(covey_quadrant);
+CREATE INDEX IF NOT EXISTS idx_reminders_role_id ON public.reminders(role_id);
+CREATE INDEX IF NOT EXISTS idx_reminders_weekly_plan_id ON public.reminders(weekly_plan_id);
+CREATE INDEX IF NOT EXISTS idx_reminders_big_rock ON public.reminders(is_big_rock) WHERE is_big_rock = TRUE;
 
--- Supabase Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.reminders;
+-- Seguridad a nivel de fila (RLS)
+ALTER TABLE public.user_life_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.weekly_plans ENABLE ROW LEVEL SECURITY;
 ```
 
 ---
 
-## 8. Calidad, Pruebas y Validación
+## 9. Calidad y Suite de Pruebas Automatizadas
 
-### 8.1 Pruebas Unitarias (`test/reminders_nlp_test.dart`)
-Se cuenta con una suite automatizada de 12 pruebas unitarias que validan:
-1. Extracción léxica de prioridad (`!p1`) y etiquetas múltiples (`#finanzas #banco`).
-2. Fechas relativas en lenguaje coloquial (*"mañana a las 3pm"*).
-3. Offset de tiempo relativo (*"en 30 minutos"*).
-4. Momentos del día (*"esta noche"* $\rightarrow$ 20:00).
-5. Serialización bidireccional `toMap()` / `fromMap()`.
-6. Detección precisa de vencimiento con `isOverdue`.
-7. Mapeo y persistencia de reglas RFC 5545 (`weekly`, `biweekly`, `monthly`).
-8. Algoritmo de cálculo de siguiente ocurrencia con ajuste de fin de mes.
-9. Extracción NLP de recurrencia semanal (*"Reunión de sprint semanal"*).
-10. Extracción NLP de recurrencia quincenal (*"Pago nómina quincenal"*, *"cada 15 días"*).
-11. Extracción NLP de recurrencia mensual (*"Pagar suscripción mensual"*, *"cada mes"*).
-12. Detección alternativa mediante tags de recurrencia (`#semanal`, `#quincenal`).
-
-### 8.2 Comandos de Verificación
 ```bash
-# Ejecución de pruebas unitarias
-flutter test test/reminders_nlp_test.dart
+# Ejecución de la suite completa de Agenda y Recordatorios
+flutter test \
+  test/covey_weekly_planner_test.dart \
+  test/covey_agent_rag_test.dart \
+  test/reminders_nlp_test.dart \
+  test/reminders_pinned_banner_and_sync_test.dart \
+  test/agente_rag_test.dart
 
 # Análisis estático y linter
 flutter analyze lib
 ```
-Resultado actual: **0 errores, 0 warnings (clean analysis)**.
+Estado actual: **38 pruebas aprobadas (100% éxito), 0 errores, 0 warnings (clean analysis)**.

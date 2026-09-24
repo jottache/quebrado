@@ -322,39 +322,66 @@ Registro de cumplimiento por día.
 ```mermaid
 erDiagram
     PROFILES ||--o{ PUSH_SUBSCRIPTIONS : "dispositivos suscritos"
+    PROFILES ||--o{ USER_LIFE_ROLES : "define roles vitales"
+    PROFILES ||--o{ WEEKLY_PLANS : "planifica semanas"
     PROFILES ||--o{ REMINDERS : "posee recordatorios"
+    USER_LIFE_ROLES ||--o{ REMINDERS : "asociado a rol"
+    WEEKLY_PLANS ||--o{ REMINDERS : "agendado en plan"
     REMINDERS ||--o{ REMINDERS : "recurrencia / hijo"
 ```
 
 ---
 
-### 5.2 Modelos de Recordatorios
+### 5.2 Modelos de Recordatorios & Agenda de 4ta Generación
 
-#### `ReminderModel` (Tabla: `reminders`)
-Entidad principal para la captura y programación de tareas personales.
+#### `RoleModel` (Tabla: `user_life_roles`)
+Define las dimensiones fundamentales de la vida del usuario (Salud, Familia, Profesional, Espiritual, etc.) según el Hábito 3 de Stephen Covey.
 - **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único.
 - **`userId`** (`String?` / `UUID REFERENCES auth.users(id)`).
-- **`title`** (`String` / `TEXT NOT NULL`): Título o descripción de la tarea (limpiado automáticamente de tokens de fecha y prioridad por el parser NLP).
+- **`name`** (`String` / `TEXT NOT NULL`): Nombre del rol vital.
+- **`purposeStatement`** (`String?` / `TEXT`): Declaración de misión o propósito de vida para este rol.
+- **`iconName`** (`String` / `TEXT DEFAULT 'star'`): Identificador del icono Material.
+- **`colorHex`** (`String` / `TEXT DEFAULT '#3B82F6'`): Color distintivo del rol en formato hexadecimal.
+- **`position`** (`int` / `INTEGER DEFAULT 0`): Posición ordinal de ordenamiento en la brújula.
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
+
+#### `WeeklyPlanModel` (Tabla: `weekly_plans`)
+Controla el ciclo semanal de planificación y balance vital.
+- **`id`** (`String` / `UUID PRIMARY KEY`).
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id)`).
+- **`weekStartDate`** (`DateTime` / `DATE NOT NULL`): Fecha correspondiente al **Lunes** de inicio de la semana.
+- **`retrospectiveNotes`** (`String?` / `TEXT`): Notas de evaluación, logros y aprendizajes de la semana previa.
+- **`prioritiesNotes`** (`String?` / `TEXT`): Notas de prioridades y compromisos de la semana actual.
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
+
+#### `ReminderModel` (Tabla: `reminders`)
+Entidad principal para la captura y programación de tareas personales, enriquecida con los atributos de 4ta generación (Covey):
+- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único.
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id)`).
+- **`roleId`** (`String?` / `UUID REFERENCES public.user_life_roles(id)`): Rol vital al que pertenece la tarea.
+- **`weeklyPlanId`** (`String?` / `UUID REFERENCES public.weekly_plans(id)`): Plan semanal asignado.
+- **`coveyQuadrant`** (`CoveyQuadrant` / `TEXT DEFAULT 'q2_important_not_urgent'`):
+  - `'q1_urgent_important'`: C1 Crisis (Urgente e Importante)
+  - `'q2_important_not_urgent'`: C2 Eficacia & Liderazgo (Importante, NO Urgente, ⭐ foco >60%)
+  - `'q3_urgent_not_important'`: C3 El Engaño (Urgente, NO Importante)
+  - `'q4_not_urgent_not_important'`: C4 Desperdicio (Ni Urgente ni Importante)
+- **`isBigRock`** (`bool` / `BOOLEAN DEFAULT FALSE`): Bandera de Gran Roca semanal no negociable.
+- **`scheduledDayOfWeek`** (`int?` / `INTEGER`): Día asignado en la agenda semanal (0 = Lunes, 1 = Martes ... 6 = Domingo; `null` = Bandeja semanal no asignada).
+- **`estimatedDurationMinutes`** (`int?` / `INTEGER`): Estimación de duración en minutos (ej. 30, 45, 60 min).
+- **`isPinned`** (`bool` / `BOOLEAN DEFAULT FALSE`): Fijado en el banner global superior.
+- **`title`** (`String` / `TEXT NOT NULL`): Título limpio de la tarea.
 - **`notes`** (`String?` / `TEXT`): Detalles adicionales o notas de apoyo.
-- **`priority`** (`ReminderPriority` / `reminder_priority`):
-  - `p1_urgent`: Urgente (🔴)
-  - `p2_high`: Alta (🟠)
-  - `p3_medium`: Media (🔵, predeterminada)
-  - `p4_low`: Baja (⚪)
-- **`status`** (`ReminderStatus` / `reminder_status`):
-  - `pending`: Pendiente por atender.
-  - `completed`: Resuelto / Completado.
-  - `snoozed`: Pospuesto temporalmente.
-  - `archived`: Archivado o descartado.
-- **`dueAt`** (`DateTime?` / `TIMESTAMPTZ`): Momento exacto de vencimiento (almacenado en UTC, mostrado en hora local).
-- **`clientTimezone`** (`String` / `TEXT DEFAULT 'UTC'`): Zona horaria del cliente al programar.
-- **`rrule`** (`String?` / `TEXT`): Regla de recurrencia estándar RFC 5545 iCalendar (ej. `FREQ=WEEKLY;BYDAY=MO,WE,FR`).
-- **`parentId`** (`String?` / `UUID REFERENCES public.reminders(id)`): Para instancias generadas a partir de una tarea padre recurrente.
-- **`isNagging`** (`bool` / `BOOLEAN DEFAULT FALSE`): Si está activo, el sistema re-notifica periódicamente hasta que el usuario resuelva o posponga la tarea.
-- **`nagIntervalMinutes`** (`int` / `INTEGER DEFAULT 10`): Intervalo de repetición en minutos para alertas persistentes.
-- **`lastNotifiedAt`** (`DateTime?` / `TIMESTAMPTZ`): Última fecha/hora en que se envió la notificación.
-- **`tags`** (`List<String>` / `TEXT[] DEFAULT ARRAY[]::TEXT[]`): Etiquetas organizativas extraídas mediante `#tag` o asignadas manualmente.
-- **`completedAt`** (`DateTime?` / `TIMESTAMPTZ`): Timestamp de resolución de la tarea.
+- **`priority`** (`ReminderPriority` / `reminder_priority`): `p1_urgent`, `p2_high`, `p3_medium`, `p4_low`.
+- **`status`** (`ReminderStatus` / `reminder_status`): `pending`, `completed`, `snoozed`, `archived`.
+- **`dueAt`** (`DateTime?` / `TIMESTAMPTZ`): Momento exacto de vencimiento.
+- **`clientTimezone`** (`String` / `TEXT DEFAULT 'UTC'`).
+- **`rrule`** (`String?` / `TEXT`): Regla de recurrencia estándar RFC 5545 iCalendar.
+- **`parentId`** (`String?` / `UUID REFERENCES public.reminders(id)`): Para instancias generadas de tareas recurrentes.
+- **`isNagging`** (`bool` / `BOOLEAN DEFAULT FALSE`): Alertas persistentes re-notificables.
+- **`nagIntervalMinutes`** (`int` / `INTEGER DEFAULT 10`).
+- **`lastNotifiedAt`** (`DateTime?` / `TIMESTAMPTZ`).
+- **`tags`** (`List<String>` / `TEXT[] DEFAULT ARRAY[]::TEXT[]`).
+- **`completedAt`** (`DateTime?` / `TIMESTAMPTZ`).
 - **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
 
 #### `PushSubscription` (Tabla: `push_subscriptions`)
