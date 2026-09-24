@@ -3,18 +3,64 @@
 -- BASADO EN EL HÁBITO 3 ("PRIMERO LO PRIMERO") DE STEPHEN COVEY
 -- ==============================================================================
 -- Incluye:
--- 1. Enum para Cuadrantes de Covey (covey_quadrant: Q1, Q2, Q3, Q4)
--- 2. Tabla de Roles de Vida (public.roles) con propósito, color e ícono
--- 3. Tabla de Planes Semanales (public.weekly_plans) con retrospectiva
--- 4. Extensión retrocompatible de public.reminders (role_id, quadrant, is_big_rock, etc.)
--- 5. Ajustes de planificación dominical en public.profiles
--- 6. Políticas RLS y publicación en Supabase Realtime
+-- 1. Enums base de Recordatorios y Enums de Cuadrantes de Covey
+-- 2. Tabla base de Recordatorios (public.reminders) y Suscripciones (si aún no existen)
+-- 3. Tabla de Roles de Vida (public.roles) con propósito, color e ícono
+-- 4. Tabla de Planes Semanales (public.weekly_plans) con retrospectiva
+-- 5. Extensión de public.reminders (role_id, quadrant, is_big_rock, etc.)
+-- 6. Ajustes de planificación dominical en public.profiles
+-- 7. Políticas RLS y publicación en Supabase Realtime
 -- ==============================================================================
 
 -- 1. Extensiones necesarias
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Enum para Cuadrantes de Covey
+-- 2. Enums base de Recordatorios (Prerrequisito)
+DO $$ BEGIN
+    CREATE TYPE reminder_priority AS ENUM ('p1_urgent', 'p2_high', 'p3_medium', 'p4_low');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE reminder_status AS ENUM ('pending', 'completed', 'snoozed', 'archived');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- 3. Tabla base de Recordatorios (si no se corrió 006_reminders_schema.sql)
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.reminders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  notes TEXT,
+  priority reminder_priority DEFAULT 'p3_medium',
+  status reminder_status DEFAULT 'pending',
+  due_at TIMESTAMPTZ,
+  client_timezone TEXT DEFAULT 'UTC',
+  rrule TEXT,
+  parent_id UUID REFERENCES public.reminders(id) ON DELETE SET NULL,
+  is_nagging BOOLEAN DEFAULT FALSE,
+  nag_interval_minutes INTEGER DEFAULT 10,
+  last_notified_at TIMESTAMPTZ,
+  tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+  is_pinned BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Enum para Cuadrantes de Covey
 DO $$ BEGIN
     CREATE TYPE covey_quadrant AS ENUM (
       'q1_urgent_important',       -- Crisis, problemas apremiantes, fechas límite
@@ -26,7 +72,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 3. Tabla de Roles de Vida (roles)
+-- 5. Tabla de Roles de Vida (roles)
 CREATE TABLE IF NOT EXISTS public.roles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -78,8 +124,20 @@ CREATE INDEX IF NOT EXISTS idx_roles_user ON public.roles(user_id) WHERE archive
 CREATE INDEX IF NOT EXISTS idx_weekly_plans_user_week ON public.weekly_plans(user_id, week_start_date);
 
 -- 8. Políticas de Seguridad (Row Level Security - RLS)
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.weekly_plans ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Acceso completo a push_subscriptions" ON public.push_subscriptions;
+CREATE POLICY "Acceso completo a push_subscriptions" ON public.push_subscriptions
+  FOR ALL USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL)
+  WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+DROP POLICY IF EXISTS "Acceso completo a reminders" ON public.reminders;
+CREATE POLICY "Acceso completo a reminders" ON public.reminders
+  FOR ALL USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL)
+  WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
 DROP POLICY IF EXISTS "Acceso completo a roles" ON public.roles;
 CREATE POLICY "Acceso completo a roles" ON public.roles
@@ -92,6 +150,12 @@ CREATE POLICY "Acceso completo a weekly_plans" ON public.weekly_plans
   WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
 -- 9. Publicación en Supabase Realtime
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.reminders;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
 DO $$ BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.roles;
 EXCEPTION
