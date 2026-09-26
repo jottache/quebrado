@@ -6,6 +6,7 @@ import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
 import '../dialogs/category_manager_dialog.dart';
 import '../dialogs/note_reader_dialog.dart';
+import '../services/note_pdf_service.dart';
 import 'note_editor_screen.dart';
 
 /// Pantalla principal de la mini-app Notas & Acuerdos.
@@ -580,12 +581,27 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
       padding: EdgeInsets.zero,
       icon: const Icon(Icons.more_vert_rounded, size: 18, color: Colors.grey),
       onSelected: (val) async {
+        final category = notasState.getCategoryById(note.categoryId);
         switch (val) {
           case 'pin':
             await notasState.togglePinNote(note.id);
             break;
           case 'edit':
             NoteEditorScreen.open(context, note: note);
+            break;
+          case 'pdf':
+            await NotePdfService.instance.downloadNotePdf(
+              note: note,
+              category: category,
+              context: context,
+            );
+            break;
+          case 'share':
+            await NotePdfService.showShareModal(
+              context: context,
+              note: note,
+              category: category,
+            );
             break;
           case 'delete':
             final confirmed = await showDialog<bool>(
@@ -631,6 +647,26 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
               Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
               SizedBox(width: 8),
               Text('Editar', style: TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'pdf',
+          child: Row(
+            children: [
+              Icon(Icons.picture_as_pdf_outlined, size: 16, color: Colors.grey),
+              SizedBox(width: 8),
+              Text('Descargar PDF', style: TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'share',
+          child: Row(
+            children: [
+              Icon(Icons.share_outlined, size: 16, color: Colors.grey),
+              SizedBox(width: 8),
+              Text('Compartir', style: TextStyle(fontSize: 13)),
             ],
           ),
         ),

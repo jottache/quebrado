@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/note_item.dart';
+import '../models/note_category.dart';
 import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
 import '../widgets/note_block_widget.dart';
 import '../screens/note_editor_screen.dart';
+import '../services/note_pdf_service.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/models/diario_entry.dart';
 import '../../diario/dialogs/entry_reader_dialog.dart';
@@ -45,12 +47,14 @@ class NoteReaderDialog extends StatelessWidget {
       orElse: () => initialNote ?? NoteItem(id: targetId, title: 'Nota no encontrada'),
     );
 
-    final category = notasState.categories.firstWhere(
-      (c) => c.id == note.categoryId,
-      orElse: () => notasState.categories.isNotEmpty
-          ? notasState.categories.first
-          : null as dynamic,
-    );
+    NoteCategory? category;
+    for (final c in notasState.categories) {
+      if (c.id == note.categoryId) {
+        category = c;
+        break;
+      }
+    }
+    category ??= notasState.categories.isNotEmpty ? notasState.categories.first : null;
 
     // Obtener backlinks desde DiarioState
     final diarioState = Provider.of<DiarioState>(context, listen: false);
@@ -227,6 +231,32 @@ class NoteReaderDialog extends StatelessWidget {
             ),
 
           const Spacer(),
+
+          // Descargar PDF
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined, size: 19, color: Colors.black87),
+            tooltip: 'Descargar como PDF',
+            onPressed: () async {
+              await NotePdfService.instance.downloadNotePdf(
+                note: note,
+                category: category is NoteCategory ? category : null,
+                context: context,
+              );
+            },
+          ),
+
+          // Compartir
+          IconButton(
+            icon: const Icon(Icons.share_outlined, size: 19, color: Colors.black87),
+            tooltip: 'Compartir nota',
+            onPressed: () async {
+              await NotePdfService.showShareModal(
+                context: context,
+                note: note,
+                category: category is NoteCategory ? category : null,
+              );
+            },
+          ),
 
           // Copiar Markdown
           IconButton(

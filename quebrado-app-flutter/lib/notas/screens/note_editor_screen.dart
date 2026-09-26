@@ -8,6 +8,7 @@ import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
 import '../widgets/note_block_widget.dart';
 import '../dialogs/category_manager_dialog.dart';
+import '../services/note_pdf_service.dart';
 
 /// Pantalla / Modal de edición de Notas & Acuerdos al estilo Notion.
 /// Permite gestionar bloques interactivos (párrafos, títulos, checklists, desplegables, callouts, divisores).
@@ -683,6 +684,21 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     );
   }
 
+  NoteItem _getCurrentNotePreview() {
+    return NoteItem(
+      id: widget.note?.id ?? 'preview',
+      title: _titleController.text.trim().isNotEmpty ? _titleController.text.trim() : 'Sin título',
+      categoryId: _selectedCategoryId,
+      icon: _selectedEmoji,
+      colorHex: widget.note?.colorHex ?? '#6366F1',
+      blocks: _blocks,
+      sharedTag: widget.note?.sharedTag,
+      isPinned: _isPinned,
+      createdAt: widget.note?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(BuildContext context, List<NoteCategory> categories) {
     return AppBar(
       backgroundColor: Colors.white,
@@ -706,6 +722,42 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
       ),
       actions: [
+        // Descargar PDF
+        IconButton(
+          icon: const Icon(Icons.picture_as_pdf_outlined, size: 20, color: Colors.black54),
+          tooltip: 'Descargar como PDF',
+          onPressed: () async {
+            final notePreview = _getCurrentNotePreview();
+            final category = categories.firstWhere(
+              (c) => c.id == _selectedCategoryId,
+              orElse: () => categories.first,
+            );
+            await NotePdfService.instance.downloadNotePdf(
+              note: notePreview,
+              category: category,
+              context: context,
+            );
+          },
+        ),
+
+        // Compartir nota
+        IconButton(
+          icon: const Icon(Icons.share_outlined, size: 20, color: Colors.black54),
+          tooltip: 'Compartir nota',
+          onPressed: () async {
+            final notePreview = _getCurrentNotePreview();
+            final category = categories.firstWhere(
+              (c) => c.id == _selectedCategoryId,
+              orElse: () => categories.first,
+            );
+            await NotePdfService.showShareModal(
+              context: context,
+              note: notePreview,
+              category: category,
+            );
+          },
+        ),
+
         IconButton(
           icon: const Icon(Icons.copy_rounded, size: 20, color: Colors.black54),
           tooltip: 'Copiar como Markdown',

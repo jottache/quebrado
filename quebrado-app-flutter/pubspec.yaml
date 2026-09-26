@@ -59,6 +59,8 @@ dependencies:
   pasteboard: ^0.1.0
   web: ^0.5.1
   intl: ^0.20.3
+  pdf: ^3.12.0
+  printing: ^5.13.1
 
 dev_dependencies:
   flutter_test:
