@@ -115,12 +115,91 @@
       right: 0;
     }
   </style>
+  <!-- Cache prevention for development mode -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <script id="splash-screen-script">
+    // 1. Unregister all service workers in development mode to prevent stale caches
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var i = 0; i < registrations.length; i++) {
+          registrations[i].unregister();
+        }
+      });
+    }
+
+    // 2. Robust splash removal
     function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
+      const splash = document.getElementById("splash");
+      if (splash) splash.remove();
+      const branding = document.getElementById("splash-branding");
+      if (branding) branding.remove();
       document.body.style.background = "transparent";
     }
+
+    function checkAndRemoveSplash() {
+      if (document.querySelector('flutter-view') || document.querySelector('flt-glass-pane') || document.querySelector('flt-renderer')) {
+        removeSplashFromWeb();
+        return true;
+      }
+      return false;
+    }
+
+    // Auto-remove splash when Flutter engine attaches to DOM
+    const splashObserver = new MutationObserver(function(mutations, obs) {
+      if (checkAndRemoveSplash()) {
+        obs.disconnect();
+      }
+    });
+
+    if (document.body) {
+      splashObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener("DOMContentLoaded", function() {
+        splashObserver.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+
+    // Fast interval polling
+    var splashInterval = setInterval(function() {
+      if (checkAndRemoveSplash()) {
+        clearInterval(splashInterval);
+      }
+    }, 100);
+
+    // Guaranteed fallback timeout: after 2.5s always remove splash
+    setTimeout(function() {
+      removeSplashFromWeb();
+      clearInterval(splashInterval);
+    }, 2500);
+
+    window.addEventListener('flutter-first-frame', function() {
+      removeSplashFromWeb();
+    });
+
+    // 4. Auto-trigger Flutter start if DWDS is waiting for Dart Debug Extension
+    var _appStarted = false;
+    function ensureFlutterStarts() {
+      if (_appStarted || window.$dartMainExecuted) return;
+      if (typeof window.$dartRunMain === 'function') {
+        _appStarted = true;
+        clearInterval(flutterStartInterval);
+        try {
+          window.$dartRunMain();
+        } catch (e) {
+          console.warn('Auto dartRunMain notice:', e);
+        }
+      }
+    }
+    var flutterStartInterval = setInterval(function() {
+      if (window.$dartMainExecuted || _appStarted) {
+        clearInterval(flutterStartInterval);
+      } else {
+        ensureFlutterStarts();
+      }
+    }, 150);
   </script>
 </head>
 <body>

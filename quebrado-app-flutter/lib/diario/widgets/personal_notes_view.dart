@@ -8,6 +8,8 @@ import '../screens/entry_editor_dialog.dart';
 import '../dialogs/quick_note_dialog.dart';
 import '../dialogs/entry_reader_dialog.dart';
 import '../widgets/diario_image_helper.dart';
+import '../widgets/mention_text_field.dart';
+import '../../notas/notas.dart';
 
 class PersonalNotesView extends StatefulWidget {
   final EdgeInsetsGeometry padding;
@@ -467,12 +469,24 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                 // Content text
                 if (entry.contentText != null && entry.contentText!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    entry.contentText!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: DiarioColors.textSecondary,
-                      height: 1.4,
+                  Text.rich(
+                    TextSpan(
+                      children: MentionTextSpanHelper.buildSpans(
+                        text: entry.contentText!,
+                        contacts: state.contacts,
+                        notes: Provider.of<NotasState>(context, listen: false).notes,
+                        baseStyle: const TextStyle(
+                          fontSize: 13,
+                          color: DiarioColors.textSecondary,
+                          height: 1.4,
+                        ),
+                        onContactTap: (clickedContact) {
+                          state.selectContact(clickedContact.id);
+                        },
+                        onNoteTap: (clickedNote) {
+                          NoteReaderDialog.show(context, note: clickedNote);
+                        },
+                      ),
                     ),
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,

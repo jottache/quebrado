@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../theme/diario_colors.dart';
 import '../viewmodels/diario_state.dart';
 import '../services/speech_recognition_service.dart';
+import '../widgets/mention_text_field.dart';
+import '../../notas/notas.dart';
 
 class QuickNoteDialog extends StatefulWidget {
   final bool autoStartVoice;
@@ -17,7 +19,8 @@ class QuickNoteDialog extends StatefulWidget {
 }
 
 class _QuickNoteDialogState extends State<QuickNoteDialog> {
-  final TextEditingController _textController = TextEditingController();
+  late MentionTextEditingController _textController;
+  final Set<String> _mentionedContactIds = {};
   bool _isListening = false;
   String _speechTextSnapshot = '';
   bool _isSaving = false;
@@ -25,6 +28,12 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> {
   @override
   void initState() {
     super.initState();
+    _textController = MentionTextEditingController(
+      getContacts: () {
+        if (!mounted) return [];
+        return Provider.of<DiarioState>(context, listen: false).contacts;
+      },
+    );
     if (widget.autoStartVoice) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _toggleVoiceDictation();
@@ -100,9 +109,14 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> {
     setState(() => _isSaving = true);
     try {
       final state = Provider.of<DiarioState>(context, listen: false);
+      final notasState = Provider.of<NotasState>(context, listen: false);
+      final mentionsList = state.extractMentionedContactIds(text);
+      final noteMentionsList = state.extractMentionedNoteIds(text, notasState.notes);
       await state.addPersonalEntry(
         title: '',
         contentText: text,
+        mentionedContactIds: mentionsList,
+        mentionedNoteIds: noteMentionsList,
         isPinned: false,
       );
 
@@ -200,18 +214,17 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> {
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                child: TextField(
+                child: MentionAutocompleteField(
                   controller: _textController,
-                  autofocus: !widget.autoStartVoice,
+                  contacts: Provider.of<DiarioState>(context).contacts,
+                  notes: Provider.of<NotasState>(context).notes,
                   maxLines: 5,
                   minLines: 3,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.45,
-                    color: DiarioColors.textPrimary,
-                  ),
+                  onMentionSelected: (contact) {
+                    _mentionedContactIds.add(contact.id);
+                  },
                   decoration: const InputDecoration(
-                    hintText: '¿Qué estás pensando? Escribe aquí o usa el dictado por voz...',
+                    hintText: '¿Qué estás pensando? Escribe (@ personas, # notas) o dicta...',
                     hintStyle: TextStyle(
                       fontSize: 14,
                       color: DiarioColors.textMuted,

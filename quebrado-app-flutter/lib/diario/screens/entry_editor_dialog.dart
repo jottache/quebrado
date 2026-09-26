@@ -7,6 +7,8 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
 import '../services/speech_recognition_service.dart';
+import '../widgets/mention_text_field.dart';
+import '../../notas/notas.dart';
 
 class EntryEditorDialog extends StatefulWidget {
   final String? contactId;
@@ -27,7 +29,8 @@ class EntryEditorDialog extends StatefulWidget {
 class _EntryEditorDialogState extends State<EntryEditorDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
-  late TextEditingController _textController;
+  late MentionTextEditingController _textController;
+  final Set<String> _mentionedContactIds = {};
   late bool _isPinned;
   late DateTime _selectedDate;
   String? _photoUrl;
@@ -44,7 +47,16 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     super.initState();
     final e = widget.entry;
     _titleController = TextEditingController(text: e?.title ?? '');
-    _textController = TextEditingController(text: e?.contentText ?? '');
+    _textController = MentionTextEditingController(
+      text: e?.contentText ?? '',
+      getContacts: () {
+        if (!mounted) return [];
+        return Provider.of<DiarioState>(context, listen: false).contacts;
+      },
+    );
+    if (e != null && e.mentionedContactIds.isNotEmpty) {
+      _mentionedContactIds.addAll(e.mentionedContactIds);
+    }
     _isPinned = e?.isPinned ?? false;
     _selectedDate = e?.createdAt ?? DateTime.now();
     _selectedTemplateId = e?.templateId;
@@ -177,6 +189,13 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     final hasTemplate = _selectedTemplateId != null && _selectedTemplateId!.isNotEmpty;
     final effectiveContactId = widget.entry?.contactId ?? widget.contactId ?? 'personal';
     final effectiveCategoryId = widget.entry?.categoryId ?? widget.categoryId ?? 'cat_notas_personales';
+    final notasState = Provider.of<NotasState>(context, listen: false);
+    final mentionsList = text.isNotEmpty
+        ? state.extractMentionedContactIds(text)
+        : <String>[];
+    final noteMentionsList = text.isNotEmpty
+        ? state.extractMentionedNoteIds(text, notasState.notes)
+        : <String>[];
 
     if (widget.entry == null) {
       state.addEntry(
@@ -185,14 +204,15 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
         templateId: _selectedTemplateId,
         entryType: hasTemplate ? 'template_instance' : 'simple_text',
         title: _titleController.text.trim(),
-        contentText: _textController.text.trim().isNotEmpty ? _textController.text.trim() : null,
+        contentText: text.isNotEmpty ? text : null,
         photoUrl: _photoUrl,
         contentData: _formData,
+        mentionedContactIds: mentionsList,
+        mentionedNoteIds: noteMentionsList,
         isPinned: _isPinned,
         createdAt: _selectedDate,
       );
     } else {
-      final text = _textController.text.trim();
       state.updateEntry(
         widget.entry!.copyWith(
           templateId: _selectedTemplateId,
@@ -204,6 +224,8 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
           photoUrl: _photoUrl,
           clearPhoto: _photoUrl == null || _photoUrl!.isEmpty,
           contentData: _formData,
+          mentionedContactIds: mentionsList,
+          mentionedNoteIds: noteMentionsList,
           isPinned: _isPinned,
           createdAt: _selectedDate,
         ),
@@ -579,12 +601,17 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
                             ],
                             const SizedBox(height: 6),
 
-                            // Content / Notes Textarea
-                            TextFormField(
+                            // Content / Notes Textarea con soporte de menciones (@ y #)
+                            MentionAutocompleteField(
                               controller: _textController,
+                              contacts: state.contacts,
+                              notes: Provider.of<NotasState>(context).notes,
                               maxLines: 4,
+                              onMentionSelected: (contact) {
+                                _mentionedContactIds.add(contact.id);
+                              },
                               decoration: InputDecoration(
-                                hintText: 'Escribe o dicta cualquier detalle relevante...',
+                                hintText: 'Escribe o dicta detalles... (@ para personas, # para notas o acuerdos)',
                                 alignLabelWithHint: true,
                                 prefixIcon: const Padding(
                                   padding: EdgeInsets.only(bottom: 50.0),

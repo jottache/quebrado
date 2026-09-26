@@ -7,6 +7,7 @@ import '../diario/diario.dart';
 import '../habitos/habitos.dart';
 import '../recordatorios/recordatorios.dart';
 import '../agente/agente.dart';
+import '../notas/notas.dart';
 import '../theme/colors.dart';
 import '../quebrado/screens/main_screen.dart';
 import '../quebrado/dialogs/calculator_dialog.dart';
@@ -55,6 +56,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     required DiarioState diarioState,
     required HabitosState habitosState,
     required RemindersState remindersState,
+    required NotasState notasState,
   }) async {
     if (_isSyncing) return;
     setState(() => _isSyncing = true);
@@ -66,6 +68,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
         diarioState.loadAll(),
         habitosState.loadHabits(),
         remindersState.reload(),
+        notasState.loadAll(),
       ]);
 
       if (mounted) {
@@ -108,6 +111,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     DiarioState diarioState,
     HabitosState habitosState,
     RemindersState remindersState,
+    NotasState notasState,
   ) {
     return IconButton(
       icon: _isSyncing
@@ -133,6 +137,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                 diarioState: diarioState,
                 habitosState: habitosState,
                 remindersState: remindersState,
+                notasState: notasState,
               ),
     );
   }
@@ -144,6 +149,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     final habitosState = Provider.of<HabitosState>(context);
     final remindersState = Provider.of<RemindersState>(context);
     final agenteState = Provider.of<AgenteState>(context);
+    final notasState = Provider.of<NotasState>(context);
 
     // Conectar dependencias vivas al motor RAG del Agente
     agenteState.updateDependencies(
@@ -225,6 +231,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                                         diarioState,
                                         habitosState,
                                         remindersState,
+                                        notasState,
                                       ),
                                       const SizedBox(width: 8),
                                       IconButton(
@@ -334,13 +341,17 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                // Row 3: Agente Ortiz (Chats & Artefactos)
+                                // Row 3: Agente Ortiz & Notas & Acuerdos
                                 IntrinsicHeight(
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
                                       Expanded(
                                         child: _buildAgenteHubCard(context, agenteState),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildNotasHubCard(context, notasState),
                                       ),
                                     ],
                                   ),
@@ -1184,6 +1195,142 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                       value: "$artifactsCount",
                       icon: Icons.inventory_2_outlined,
                       accentColor: AgenteColors.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The Minimalist Notas & Acuerdos Card (Matches OrtizApp suite styling)
+  Widget _buildNotasHubCard(BuildContext context, NotasState notasState) {
+    final notesCount = notasState.notes.length;
+    final categoriesCount = notasState.categories.length;
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const NotasHomeScreen(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      splashColor: NotasColors.primary.withOpacity(0.08),
+      highlightColor: NotasColors.primary.withOpacity(0.04),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: NotasColors.primary.withOpacity(0.20),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: NotasColors.primary.withOpacity(0.06),
+              offset: const Offset(0, 8),
+              blurRadius: 20.0,
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              offset: const Offset(0, 2),
+              blurRadius: 6.0,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12.0, 14.0, 12.0, 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. Header (40px height)
+              Container(
+                height: 40,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 2.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: NotasColors.primaryLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: NotasColors.primary.withOpacity(0.20),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.edit_note_rounded,
+                        color: NotasColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Notas",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                              letterSpacing: -0.3,
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            "ACUERDOS & IDEAS",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: NotasColors.primary,
+                              letterSpacing: 0.6,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // 2. Summary Box
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!, width: 1),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildRateRow(
+                      label: "NOTAS Y ACUERDOS",
+                      value: "$notesCount",
+                      icon: Icons.notes_rounded,
+                      accentColor: NotasColors.primary,
+                    ),
+                    Divider(height: 12, thickness: 1, color: Colors.grey[200]),
+                    _buildRateRow(
+                      label: "CATEGORÍAS",
+                      value: "$categoriesCount",
+                      icon: Icons.folder_outlined,
+                      accentColor: NotasColors.primary,
                     ),
                   ],
                 ),

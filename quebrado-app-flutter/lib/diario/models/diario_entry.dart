@@ -8,6 +8,8 @@ class DiarioEntry {
   final String? contentText;
   final String? photoUrl;
   final Map<String, dynamic> contentData;
+  final List<String> mentionedContactIds;
+  final List<String> mentionedNoteIds;
   final bool isPinned;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -22,10 +24,14 @@ class DiarioEntry {
     this.contentText,
     this.photoUrl,
     Map<String, dynamic>? contentData,
+    List<String>? mentionedContactIds,
+    List<String>? mentionedNoteIds,
     this.isPinned = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : contentData = contentData ?? {},
+        mentionedContactIds = mentionedContactIds ?? [],
+        mentionedNoteIds = mentionedNoteIds ?? [],
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
@@ -33,6 +39,9 @@ class DiarioEntry {
   bool get isPersonal => contactId == 'personal' || contactId.isEmpty;
   bool get hasPhoto => photoUrl != null && photoUrl!.trim().isNotEmpty;
   bool get hasTitle => title.trim().isNotEmpty;
+  bool get hasMentions => mentionedContactIds.isNotEmpty || mentionedNoteIds.isNotEmpty;
+  bool get hasContactMentions => mentionedContactIds.isNotEmpty;
+  bool get hasNoteMentions => mentionedNoteIds.isNotEmpty;
 
   String get formattedDate {
     final now = DateTime.now();
@@ -80,6 +89,8 @@ class DiarioEntry {
     String? photoUrl,
     bool clearPhoto = false,
     Map<String, dynamic>? contentData,
+    List<String>? mentionedContactIds,
+    List<String>? mentionedNoteIds,
     bool? isPinned,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -94,6 +105,8 @@ class DiarioEntry {
       contentText: clearContentText ? null : (contentText ?? this.contentText),
       photoUrl: clearPhoto ? null : (photoUrl ?? this.photoUrl),
       contentData: contentData ?? this.contentData,
+      mentionedContactIds: mentionedContactIds ?? this.mentionedContactIds,
+      mentionedNoteIds: mentionedNoteIds ?? this.mentionedNoteIds,
       isPinned: isPinned ?? this.isPinned,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -106,6 +119,18 @@ class DiarioEntry {
       data['photo_url'] = photoUrl;
     } else {
       data.remove('photo_url');
+    }
+
+    if (mentionedContactIds.isNotEmpty) {
+      data['mentioned_contact_ids'] = mentionedContactIds;
+    } else {
+      data.remove('mentioned_contact_ids');
+    }
+
+    if (mentionedNoteIds.isNotEmpty) {
+      data['mentioned_note_ids'] = mentionedNoteIds;
+    } else {
+      data.remove('mentioned_note_ids');
     }
 
     return {
@@ -136,6 +161,20 @@ class DiarioEntry {
     parsedData.remove('photo_url');
     parsedData.remove('photo_path');
 
+    final rawMentions = map['mentioned_contact_ids'] ?? parsedData['mentioned_contact_ids'];
+    List<String> parsedMentions = [];
+    if (rawMentions is List) {
+      parsedMentions = rawMentions.map((e) => e.toString()).toList();
+    }
+    parsedData.remove('mentioned_contact_ids');
+
+    final rawNoteMentions = map['mentioned_note_ids'] ?? parsedData['mentioned_note_ids'];
+    List<String> parsedNoteMentions = [];
+    if (rawNoteMentions is List) {
+      parsedNoteMentions = rawNoteMentions.map((e) => e.toString()).toList();
+    }
+    parsedData.remove('mentioned_note_ids');
+
     return DiarioEntry(
       id: map['id']?.toString() ?? '',
       contactId: map['contact_id']?.toString() ?? '',
@@ -146,6 +185,8 @@ class DiarioEntry {
       contentText: map['content_text']?.toString(),
       photoUrl: photo,
       contentData: parsedData,
+      mentionedContactIds: parsedMentions,
+      mentionedNoteIds: parsedNoteMentions,
       isPinned: map['is_pinned'] == true,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()

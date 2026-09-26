@@ -10,3 +10,4 @@ export 'screens/diario_home_screen.dart';
 export 'screens/contact_detail_screen.dart';
 export 'screens/template_manager_screen.dart';
 export 'screens/diario_search_screen.dart';
+export 'widgets/mention_text_field.dart';

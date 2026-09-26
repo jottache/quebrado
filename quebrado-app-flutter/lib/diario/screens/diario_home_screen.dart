@@ -135,6 +135,15 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     }).toList();
 
     final upcomingBirthdays = state.getUpcomingBirthdays(limit: 3);
+    final activeContactId = state.selectedContactId ?? _selectedContactId;
+
+    if (state.selectedContactId != null && !isDesktop && _tabController.index != 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _tabController.index != 1) {
+          _tabController.animateTo(1);
+        }
+      });
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -268,9 +277,10 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               ),
       ),
       body: PopScope(
-        canPop: _selectedContactId == null,
+        canPop: activeContactId == null,
         onPopInvokedWithResult: (didPop, result) {
-          if (!didPop && _selectedContactId != null) {
+          if (!didPop && activeContactId != null) {
+            state.selectContact(null);
             setState(() {
               _selectedContactId = null;
             });
@@ -280,12 +290,12 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
           onRefresh: () => state.loadAll(),
           color: DiarioColors.primary,
           child: isDesktop
-              ? _buildDesktopLayout(context, state, filtered, upcomingBirthdays)
-              : _buildMobileLayout(context, state, filtered, upcomingBirthdays),
+              ? _buildDesktopLayout(context, state, filtered, upcomingBirthdays, activeContactId)
+              : _buildMobileLayout(context, state, filtered, upcomingBirthdays, activeContactId),
         ),
       ),
       floatingActionButton: isDesktop
-          ? (_selectedContactId != null
+          ? (activeContactId != null
               ? null
               : FloatingActionButton.extended(
                   heroTag: 'fab_diario_desktop',
@@ -304,7 +314,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   icon: const Icon(Icons.edit_note_rounded),
                   label: const Text('Nueva Nota', style: TextStyle(fontWeight: FontWeight.bold)),
                 )
-              : (_selectedContactId != null
+              : (activeContactId != null
                   ? null
                   : FloatingActionButton.extended(
                       heroTag: 'fab_diario_contact_mob',
@@ -322,6 +332,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     DiarioState state,
     List<DiarioContact> filtered,
     List<DiarioContact> upcomingBirthdays,
+    String? activeContactId,
   ) {
     return Center(
       child: ConstrainedBox(
@@ -346,14 +357,17 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
             // Right Column: Directorio de Contactos o Detalle de Contacto
             Expanded(
               flex: 6,
-              child: _selectedContactId != null
+              child: activeContactId != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: ContactDetailScreen(
-                        key: ValueKey(_selectedContactId),
-                        contactId: _selectedContactId!,
+                        key: ValueKey(activeContactId),
+                        contactId: activeContactId,
                         embedded: true,
-                        onBack: () => setState(() => _selectedContactId = null),
+                        onBack: () {
+                          state.selectContact(null);
+                          setState(() => _selectedContactId = null);
+                        },
                       ),
                     )
                   : _buildContactsDirectoryView(
@@ -375,6 +389,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     DiarioState state,
     List<DiarioContact> filtered,
     List<DiarioContact> upcomingBirthdays,
+    String? activeContactId,
   ) {
     return TabBarView(
       controller: _tabController,
@@ -385,12 +400,15 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
         ),
 
         // Tab 2: Directorio de Contactos o Detalle de Contacto
-        _selectedContactId != null
+        activeContactId != null
             ? ContactDetailScreen(
-                key: ValueKey(_selectedContactId),
-                contactId: _selectedContactId!,
+                key: ValueKey(activeContactId),
+                contactId: activeContactId,
                 embedded: true,
-                onBack: () => setState(() => _selectedContactId = null),
+                onBack: () {
+                  state.selectContact(null);
+                  setState(() => _selectedContactId = null);
+                },
               )
             : _buildContactsDirectoryView(
                 context,

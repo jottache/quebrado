@@ -9,6 +9,7 @@ import '../diario/diario.dart';
 import '../habitos/habitos.dart';
 import '../recordatorios/recordatorios.dart';
 import '../agente/agente.dart';
+import '../notas/notas.dart';
 import '../quebrado/screens/main_screen.dart';
 import '../quebrado/dialogs/calculator_dialog.dart';
 import '../quebrado/dialogs/add_transaction_dialog.dart';
@@ -24,6 +25,7 @@ enum SuiteModule {
   habitos,
   recordatorios,
   agente,
+  notas,
 }
 
 class ResponsiveSuiteScaffold extends StatefulWidget {
@@ -270,6 +272,14 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     label: "Agente Ortiz",
                     shortcut: "⌘6",
                     color: AgenteColors.primary,
+                  ),
+                  const SizedBox(height: 4),
+                  _buildNavItem(
+                    module: SuiteModule.notas,
+                    icon: Icons.edit_note_rounded,
+                    label: "Notas & Acuerdos",
+                    shortcut: "⌘7",
+                    color: NotasColors.primary,
                   ),
                 ],
               ),
@@ -528,6 +538,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                           foregroundColor: const Color(0xFF1F6F5F),
                         ),
                         onPressed: () async {
+                          final notasState = Provider.of<NotasState>(context, listen: false);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text("Sincronizando suite completa..."),
@@ -540,6 +551,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                             diarioState.loadAll(),
                             habitosState.loadHabits(),
                             remindersState.reload(),
+                            notasState.loadAll(),
                           ]);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -576,6 +588,8 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
         return "Recordatorios & Agenda";
       case SuiteModule.agente:
         return "Agente Ortiz • Inteligencia & Artefactos";
+      case SuiteModule.notas:
+        return "Notas & Acuerdos • Documentos & Acuerdos";
     }
   }
 
@@ -593,6 +607,8 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
         return const RemindersHomeScreen();
       case SuiteModule.agente:
         return const AgenteHomeScreen();
+      case SuiteModule.notas:
+        return const NotasHomeScreen();
     }
   }
 }

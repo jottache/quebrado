@@ -5,6 +5,7 @@ import 'quebrado/quebrado.dart';
 import 'diario/diario.dart';
 import 'habitos/habitos.dart';
 import 'recordatorios/recordatorios.dart';
+import 'notas/notas.dart';
 import 'agente/agente.dart';
 import 'services/notification_manager.dart';
 import 'screens/app_launcher_screen.dart';
@@ -18,6 +19,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'services/supabase_config.dart';
+import 'package:web/web.dart' as web;
 
 void main() async {
   // Ensure Flutter engine is initialized before calling native platforms/services
@@ -67,12 +69,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) {
+      try {
+        web.document.getElementById('splash')?.remove();
+        web.document.getElementById('splash-branding')?.remove();
+        web.document.body?.style.background = 'transparent';
+      } catch (_) {}
+    }
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppState>(create: (_) => AppState()),
         ChangeNotifierProvider<DiarioState>(create: (_) => DiarioState()),
         ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
         ChangeNotifierProvider<RemindersState>(create: (_) => RemindersState()),
+        ChangeNotifierProvider<NotasState>(create: (_) => NotasState()..loadAll()),
         ChangeNotifierProvider<AgenteState>(create: (_) => AgenteState()),
       ],
       child: Consumer<AppState>(

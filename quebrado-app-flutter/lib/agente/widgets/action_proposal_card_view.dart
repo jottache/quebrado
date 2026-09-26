@@ -176,6 +176,11 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             customCreatedAt = DateTime.tryParse(data['date'].toString());
           }
 
+          List<String>? mentions;
+          if (data['mentionedContactIds'] is List) {
+            mentions = (data['mentionedContactIds'] as List).map((e) => e.toString()).toList();
+          }
+
           await diarioState.addEntry(
             contactId: contactId,
             categoryId: categoryId,
@@ -183,6 +188,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             entryType: matchedTemplate != null ? 'template_instance' : 'simple_text',
             title: title,
             contentText: contentText,
+            mentionedContactIds: mentions,
             createdAt: customCreatedAt,
           );
           break;
