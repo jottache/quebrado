@@ -5,6 +5,7 @@ import '../models/diario_category.dart';
 import '../models/diario_template.dart';
 import '../models/diario_entry.dart';
 import '../services/diario_supabase_service.dart';
+import '../../notas/models/note_item.dart';
 
 class DiarioSearchResult {
   final List<DiarioContact> matchedContacts;
@@ -30,13 +31,21 @@ class DiarioState extends ChangeNotifier {
 
   bool _isLoading = true;
   String? _errorMessage;
+  String? _selectedContactId;
 
   List<DiarioContact> get contacts => _contacts;
   List<DiarioCategory> get categories => _categories;
   List<DiarioTemplate> get templates => _templates;
   List<DiarioEntry> get entries => _entries;
+  List<DiarioEntry> get allEntries => _entries;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get selectedContactId => _selectedContactId;
+
+  void selectContact(String? id) {
+    _selectedContactId = id;
+    notifyListeners();
+  }
 
   DiarioState() {
     loadAll();
@@ -338,6 +347,130 @@ class DiarioState extends ChangeNotifier {
       });
   }
 
+  bool isContactMentionedInText(DiarioContact contact, String text) {
+    if (text.isEmpty) return false;
+    final lowerText = text.toLowerCase();
+
+    // 1. Nombre completo (ej: "@mariana davila")
+    final fullName = contact.name.trim().toLowerCase();
+    if (fullName.isNotEmpty) {
+      final pattern = RegExp('@${RegExp.escape(fullName)}(?:[\\s,.;:!?\\n\\r\\)]|\$)', caseSensitive: false);
+      if (pattern.hasMatch(lowerText)) return true;
+    }
+
+    // 2. Primer nombre (ej: "@mariana" para Mariana Davila)
+    final parts = contact.name.trim().split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      final first = parts.first.trim().toLowerCase();
+      if (first.length >= 3) {
+        final pattern = RegExp('@${RegExp.escape(first)}(?:[\\s,.;:!?\\n\\r\\)]|\$)', caseSensitive: false);
+        if (pattern.hasMatch(lowerText)) return true;
+      }
+    }
+
+    // 3. Apodo / alias (ej: "@cotiprin")
+    if (contact.nickname != null && contact.nickname!.trim().isNotEmpty) {
+      final nick = contact.nickname!.trim().toLowerCase();
+      final pattern = RegExp('@${RegExp.escape(nick)}(?:[\\s,.;:!?\\n\\r\\)]|\$)', caseSensitive: false);
+      if (pattern.hasMatch(lowerText)) return true;
+    }
+
+    return false;
+  }
+
+  List<DiarioEntry> getEntriesMentioningContact(String contactId) {
+    final c = getContactById(contactId);
+    return _entries.where((e) {
+      if (e.contactId == contactId) return false;
+      // Si la entrada tiene texto, validar que el contacto esté realmente mencionado en el texto actual
+      if (e.contentText != null && e.contentText!.isNotEmpty) {
+        if (c != null && isContactMentionedInText(c, e.contentText!)) return true;
+        return false;
+      }
+      return e.mentionedContactIds.contains(contactId);
+    }).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  List<String> extractMentionedContactIds(String text) {
+    if (text.isEmpty || _contacts.isEmpty) return [];
+    final ids = <String>{};
+    for (final contact in _contacts) {
+      if (isContactMentionedInText(contact, text)) {
+        ids.add(contact.id);
+      }
+    }
+    return ids.toList();
+  }
+
+  /// Extrae IDs de notas mencionadas con el prefijo '#' en el texto
+  List<String> extractMentionedNoteIds(String text, List<NoteItem> notes) =>
+      parseMentionedNoteIds(text, notes);
+
+  static List<String> parseMentionedNoteIds(String text, List<NoteItem> notes) {
+    if (text.isEmpty || notes.isEmpty || !text.contains('#')) return [];
+    final ids = <String>{};
+    for (final note in notes) {
+      if (checkNoteMentionedInText(note, text)) {
+        ids.add(note.id);
+      }
+    }
+    return ids.toList();
+  }
+
+  bool isNoteMentionedInText(NoteItem note, String text) =>
+      checkNoteMentionedInText(note, text);
+
+  static bool checkNoteMentionedInText(NoteItem note, String text) {
+    if (!text.contains('#')) return false;
+    final lower = text.toLowerCase();
+    final tag = '#${note.title.trim().toLowerCase()}';
+    if (tag.length <= 1) return false;
+
+    int index = lower.indexOf(tag);
+    while (index != -1) {
+      final end = index + tag.length;
+      if (end == lower.length || RegExp(r'[\s,.;:!?\n\r\)]').hasMatch(lower[end])) {
+        return true;
+      }
+      index = lower.indexOf(tag, index + 1);
+    }
+    return false;
+  }
+
+  /// Resuelve y filtra los IDs de menciones asegurando que los contactos
+  /// borrados del texto se descarten y no persistan
+  List<String> _resolveMentions({
+    String? contentText,
+    List<String>? explicitIds,
+    String? excludeContactId,
+  }) {
+    final validIds = <String>{};
+
+    if (contentText != null && contentText.trim().isNotEmpty) {
+      // 1. Extraer menciones presentes actualmente en el texto
+      validIds.addAll(extractMentionedContactIds(contentText));
+
+      // 2. Si se pasaron IDs explícitos, verificar que sigan en el texto
+      if (explicitIds != null) {
+        for (final id in explicitIds) {
+          final c = getContactById(id);
+          if (c != null && isContactMentionedInText(c, contentText)) {
+            validIds.add(id);
+          }
+        }
+      }
+    } else if (explicitIds != null) {
+      validIds.addAll(explicitIds);
+    }
+
+    if (excludeContactId != null) {
+      validIds.remove(excludeContactId);
+    }
+
+    return validIds.toList();
+  }
+
   Future<DiarioEntry> addPersonalEntry({
     String title = '',
     String? contentText,
@@ -346,9 +479,16 @@ class DiarioState extends ChangeNotifier {
     String? templateId,
     String entryType = 'simple_text',
     Map<String, dynamic>? contentData,
+    List<String>? mentionedContactIds,
+    List<String>? mentionedNoteIds,
     bool isPinned = false,
     DateTime? createdAt,
   }) async {
+    final allMentions = _resolveMentions(
+      contentText: contentText,
+      explicitIds: mentionedContactIds,
+    );
+
     final entry = DiarioEntry(
       id: _uuid.v4(),
       contactId: 'personal',
@@ -359,6 +499,8 @@ class DiarioState extends ChangeNotifier {
       contentText: contentText?.trim(),
       photoUrl: photoUrl,
       contentData: contentData ?? {},
+      mentionedContactIds: allMentions,
+      mentionedNoteIds: mentionedNoteIds ?? [],
       isPinned: isPinned,
       createdAt: createdAt ?? DateTime.now(),
     );
@@ -378,9 +520,17 @@ class DiarioState extends ChangeNotifier {
     String? contentText,
     String? photoUrl,
     Map<String, dynamic>? contentData,
+    List<String>? mentionedContactIds,
+    List<String>? mentionedNoteIds,
     bool isPinned = false,
     DateTime? createdAt,
   }) async {
+    final allMentions = _resolveMentions(
+      contentText: contentText,
+      explicitIds: mentionedContactIds,
+      excludeContactId: contactId,
+    );
+
     final newEntry = DiarioEntry(
       id: _uuid.v4(),
       contactId: contactId,
@@ -391,6 +541,8 @@ class DiarioState extends ChangeNotifier {
       contentText: contentText?.trim(),
       photoUrl: photoUrl,
       contentData: contentData ?? {},
+      mentionedContactIds: allMentions,
+      mentionedNoteIds: mentionedNoteIds ?? [],
       isPinned: isPinned,
       createdAt: createdAt ?? DateTime.now(),
     );
@@ -402,7 +554,17 @@ class DiarioState extends ChangeNotifier {
 
   Future<void> updateEntry(DiarioEntry entry) async {
     final index = _entries.indexWhere((e) => e.id == entry.id);
-    final updated = entry.copyWith(updatedAt: DateTime.now());
+    final allMentions = _resolveMentions(
+      contentText: entry.contentText,
+      explicitIds: entry.mentionedContactIds,
+      excludeContactId: entry.contactId,
+    );
+
+    final updated = entry.copyWith(
+      mentionedContactIds: allMentions,
+      updatedAt: DateTime.now(),
+    );
+
     if (index != -1) {
       _entries[index] = updated;
     } else {

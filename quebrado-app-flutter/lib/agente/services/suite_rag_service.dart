@@ -721,6 +721,21 @@ $rolesSummary
       };
     }).toList();
 
+    final mentions = diarioState.getEntriesMentioningContact(c.id);
+    final mentionsData = mentions.map((e) {
+      final originName = e.isPersonal
+          ? 'Nota Personal'
+          : (diarioState.getContactById(e.contactId)?.name ?? 'Otro Contacto');
+      return {
+        'title': e.title.isNotEmpty ? e.title : 'Sin título',
+        'origin': originName,
+        'date': e.formattedDate,
+        if (e.contentText != null && e.contentText!.trim().isNotEmpty)
+          'notes': e.contentText,
+        'details': e.contentData,
+      };
+    }).toList();
+
     return {
       'id': c.id,
       'name': c.name,
@@ -735,6 +750,7 @@ $rolesSummary
       'ageOnUpcomingBirthday': c.ageOnUpcomingBirthday != null ? '${c.ageOnUpcomingBirthday} años' : null,
       'notes': c.notes ?? '',
       'records': recordsData,
+      'mentionsInOtherNotes': mentionsData,
     };
   }
 
@@ -972,7 +988,15 @@ $rolesSummary
               contact.name.toLowerCase().contains(t) ||
               (contact.nickname ?? '').toLowerCase().contains(t));
 
-          if (inTitle || inText || inData || tokenMatch || contactMatch) {
+          final mentionMatch = e.mentionedContactIds.any((cid) {
+            final mc = diarioState.getContactById(cid);
+            if (mc == null) return false;
+            return mc.name.toLowerCase().contains(q) ||
+                (mc.nickname?.toLowerCase().contains(q) ?? false) ||
+                (tokens.isNotEmpty && tokens.any((t) => mc.name.toLowerCase().contains(t)));
+          });
+
+          if (inTitle || inText || inData || tokenMatch || contactMatch || mentionMatch) {
             final isPersonal = e.contactId == 'personal' || e.contactId.isEmpty;
             final categoryName = diarioState.categories
                 .firstWhere(
@@ -1001,6 +1025,11 @@ $rolesSummary
               'category': categoryName,
               'date': e.formattedDate,
               'details': e.contentData,
+              if (e.mentionedContactIds.isNotEmpty)
+                'mentionedContacts': e.mentionedContactIds
+                    .map((cid) => diarioState.getContactById(cid)?.name)
+                    .whereType<String>()
+                    .toList(),
               if (fieldsList.isNotEmpty) 'summary': fieldsList.join(', '),
               if (e.contentText != null && e.contentText!.trim().isNotEmpty)
                 'notes': e.contentText,
@@ -1569,9 +1598,22 @@ $rolesSummary
             ? templateName
             : 'Nota simple (Sin modelo)';
 
+        final autoMentionIds = diarioState.extractMentionedContactIds(contentText);
+        if (targetContact != null) {
+          autoMentionIds.remove(targetContact.id);
+        }
+
         final summaryList = <Map<String, String>>[
           if (title.isNotEmpty) {'label': 'Título', 'value': title},
           {'label': 'Contacto', 'value': contactDisplay},
+          if (autoMentionIds.isNotEmpty)
+            {
+              'label': 'Menciones',
+              'value': autoMentionIds
+                  .map((id) => diarioState.getContactById(id)?.name)
+                  .whereType<String>()
+                  .join(', ')
+            },
           {'label': 'Fecha', 'value': formattedDateStr},
           {'label': 'Modelo', 'value': templateDisplay},
           {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
@@ -1596,6 +1638,7 @@ $rolesSummary
               'contentText': contentText,
               if (contactName != null && contactName.isNotEmpty) 'contactName': contactName,
               if (targetContact != null) 'contactId': targetContact.id,
+              if (autoMentionIds.isNotEmpty) 'mentionedContactIds': autoMentionIds,
               'date': entryDate.toIso8601String(),
               'category': category,
               'templateName': templateDisplay,

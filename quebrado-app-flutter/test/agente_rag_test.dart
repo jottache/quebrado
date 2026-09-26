@@ -629,6 +629,25 @@ class _MockDiarioState extends Fake implements DiarioState {
 
   @override
   List<DiarioContact> getUpcomingBirthdays({int limit = 5}) => [];
+
+  @override
+  List<DiarioEntry> getEntriesMentioningContact(String contactId) {
+    return mockEntries
+        .where((e) => e.mentionedContactIds.contains(contactId))
+        .toList();
+  }
+
+  @override
+  List<String> extractMentionedContactIds(String text) {
+    if (!text.contains('@') || mockContacts.isEmpty) return [];
+    final ids = <String>[];
+    for (final contact in mockContacts) {
+      if (text.toLowerCase().contains('@${contact.name.toLowerCase()}')) {
+        ids.add(contact.id);
+      }
+    }
+    return ids;
+  }
 }
 
 class _MockHabitosState extends Fake implements HabitosState {

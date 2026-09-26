@@ -607,7 +607,7 @@ class DesktopCommandCenterView extends StatelessWidget {
               context: context,
               builder: (_) => EntryEditorDialog(
                 contactId: firstContact.id,
-                categoryId: 'cat_general',
+                categoryId: null,
               ),
             );
           }

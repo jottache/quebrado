@@ -6,6 +6,7 @@ Este documento describe de manera exhaustiva el funcionamiento del motor de base
 2. **Diario Jottache:** Sistema de gestión de relaciones personales (PRM), categorías jerárquicas en árbol, esquemas dinámicos JSONB y registro de fotos (cámara/galería).
 3. **Hábitos:** Seguimiento y forja de hábitos positivos, rotura de malos hábitos, rutinas/stacks y cálculo de rachas y métricas.
 4. **Recordatorios:** Captura ultrarrápida mediante lenguaje natural (NLP), atajos de teclado globales (`Cmd/Ctrl+K`), alertas persistentes (nagging), smart snooze y sincronización en tiempo real con Supabase.
+5. **Notas & Acuerdos:** Cuaderno inteligente de notas escalables con formato enriquecido estilo Notion (encabezados, listas de verificación interactivas, desplegables colapsables, callouts), categorías dinámicas y sistema de referencias cruzadas `#nota` bidireccionales con la app de Diario.
 
 ---
 
@@ -180,6 +181,7 @@ Agenda de datos para Pago Móvil venezolano (banco, cédula, teléfono, alias).
 erDiagram
     DIARIO_CONTACTS ||--o{ DIARIO_CATEGORIES : "tiene categorias personalizadas"
     DIARIO_CONTACTS ||--o{ DIARIO_ENTRIES : "posee registros"
+    DIARIO_ENTRIES }o--o{ DIARIO_CONTACTS : "menciona / referencia (@)"
     DIARIO_CATEGORIES ||--o{ DIARIO_CATEGORIES : "subcategorias (arbol)"
     DIARIO_CATEGORIES ||--o{ DIARIO_ENTRIES : "clasifica"
     DIARIO_TEMPLATES ||--o{ DIARIO_ENTRIES : "define esquema de"
@@ -241,9 +243,10 @@ Registros concretos almacenados dentro de un contacto y una categoría.
 - **`templateId`** (`String?` / `TEXT REFERENCES diario_templates(id) ON DELETE SET NULL`): Enlace opcional a un modelo estructurado.
 - **`entryType`** (`String` / `TEXT`): `simple_text`, `list_item`, `template_instance`.
 - **`title`** (`String` / `TEXT NOT NULL`): Título del registro (ej. "Toyota Corolla 2022", "Pasta de Hígado").
-- **`contentText`** (`String?` / `TEXT`): Texto largo descriptivo o notas libres.
+- **`contentText`** (`String?` / `TEXT`): Texto largo descriptivo o notas libres (soporta menciones interactivas `@Nombre`).
 - **`photoUrl`** (`String?` / `TEXT`): Ruta local persistente (`diario_images/...`) o URL de la fotografía adjunta.
 - **`contentData`** (`Map<String, dynamic>` / `JSONB`): Almacenamiento clave-valor de los campos del esquema de plantilla. Indexado en Supabase con **GIN** para búsquedas ultra rápidas de placas, marcas, tallas, etc.
+- **`mentionedContactIds`** (`List<String>` / `TEXT[]` o en `content_data['mentioned_contact_ids']`): Lista de UUIDs de contactos referenciados mediante `@Nombre` en el contenido de la nota para consultas cruzadas bidireccionales y memoria relacional del Agente de IA.
 - **`isPinned`** (`bool` / `BOOLEAN`): Si la entrada aparece fijada en la parte superior.
 - **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
 
@@ -395,43 +398,115 @@ Suscripciones Web Push y móviles vinculadas al perfil de usuario para recepció
 
 ---
 
-## 6. Mini-App de Notas & Acuerdos (Estilo Notion)
+---
 
-Módulo para la captura ágil, estructurada y persistente de acuerdos personales y de pareja, ideas, listas dinámicas y notas enriquecidas con soporte para bloques y menciones cruzadas en el Diario.
+## 6. App 5: Notas & Acuerdos (Mini-App de Notas Ricas estilo Notion)
 
-### 6.1 `NoteCategory` (Tabla: `note_categories`)
-Categorías personalizables y de sistema para la clasificación visual de notas:
-- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único de la categoría.
-- **`userId`** (`String?` / `UUID REFERENCES auth.users(id) ON DELETE CASCADE`): Propietario de la categoría (permite `NULL` para uso local/anónimo).
-- **`name`** (`String` / `TEXT NOT NULL`): Nombre de la categoría (ej. 'General', 'Acuerdos de Pareja', 'Ideas & Proyectos').
-- **`icon`** (`String` / `TEXT DEFAULT 'folder_outlined'`): Emoji o identificador de icono.
-- **`colorHex`** (`String` / `TEXT DEFAULT '#6366F1'`): Color hexadecimal representativo.
-- **`sortOrder`** (`int` / `INTEGER DEFAULT 0`): Posición en el selector y filtros.
-- **`isSystem`** (`bool` / `BOOLEAN DEFAULT FALSE`): Si es `true` (ej. categoría 'General'), está protegida contra eliminación.
-- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ DEFAULT NOW()`).
+### 6.1 Diagrama Entidad-Relación (ERD)
 
-### 6.2 `NoteItem` (Tabla: `notas`)
-Entidad principal de nota con almacenamiento jerárquico por bloques:
-- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único de la nota.
-- **`userId`** (`String?` / `UUID REFERENCES auth.users(id) ON DELETE CASCADE`): Propietario (permite `NULL`).
-- **`categoryId`** (`String?` / `UUID REFERENCES public.note_categories(id) ON DELETE SET NULL`): Categoría vinculada. Si se elimina la categoría, las notas se reasignan a 'General'.
-- **`title`** (`String` / `TEXT NOT NULL`): Título de la nota.
-- **`icon`** (`String` / `TEXT DEFAULT '📝'`): Emoji principal de la nota.
-- **`colorHex`** (`String` / `TEXT DEFAULT '#6366F1'`): Acento cromático de la nota.
-- **`blocks`** (`List<NoteBlock>` / `JSONB NOT NULL DEFAULT '[]'::jsonb`): Estructura en bloques editables:
-  - `paragraph` (texto plano enriquecido)
-  - `h1`, `h2`, `h3` (encabezados jerárquicos)
-  - `bullet`, `numbered` (listas con viñetas o numeración continua)
-  - `todo` (tareas con checkbox interactivo `isChecked`)
-  - `toggle` (desplegables interactivos con bloques hijos `children` y estado `isExpanded`)
-  - `callout` (cajas destacadas con icono)
-  - `quote` (citas en bloque)
-  - `divider` (separador horizontal)
-- **`contentText`** (`String?` / `TEXT`): Exportación plana / Markdown de la nota para indexación, búsqueda y RAG con el Agente Gemini.
-- **`isPinned`** (`bool` / `BOOLEAN DEFAULT FALSE`): Fijada al tope de la lista.
-- **`isArchived`** (`bool` / `BOOLEAN DEFAULT FALSE`): Archivado lógico.
-- **`sharedTag`** (`String?` / `TEXT`): Tag para compartir o filtrar (ej. 'pareja').
-- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ DEFAULT NOW()`).
+```mermaid
+erDiagram
+    NOTE_CATEGORIES ||--o{ NOTAS : "clasifica"
+    NOTAS ||--o{ NOTE_BLOCKS : "compuesta por"
+    DIARIO_ENTRIES }o--o{ NOTAS : "menciona (#nota)"
+
+    NOTE_CATEGORIES {
+        uuid id PK
+        uuid user_id FK
+        text name
+        text icon
+        text color_hex
+        int sort_order
+        boolean is_system
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    NOTAS {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        text title
+        text icon
+        text color_hex
+        jsonb blocks
+        text content_text
+        boolean is_pinned
+        boolean is_archived
+        text shared_tag
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    NOTE_BLOCKS {
+        string id
+        string type
+        string content
+        boolean is_checked
+        jsonb children
+        string callout_icon
+        string callout_color
+    }
+```
+
+### 6.2 Modelos de Notas & Acuerdos
+
+#### `NoteCategory` (Tabla: `note_categories`)
+Define agrupaciones temáticas dinámicas personalizables para clasificar notas y acuerdos.
+- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único.
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id)`).
+- **`name`** (`String` / `TEXT NOT NULL`): Nombre de la categoría (ej. "Acuerdos de Pareja", "Ideas de Negocio", "Direcciones & Datos Útiles").
+- **`icon`** (`String` / `TEXT DEFAULT 'folder_outlined'`): Emoji (💍, 💡, 📍) o identificador visual.
+- **`colorHex`** (`String` / `TEXT DEFAULT '#6366F1'`): Color representativo para etiquetas y badges.
+- **`sortOrder`** (`int` / `INTEGER DEFAULT 0`): Orden de visualización en pestañas/filtros.
+- **`isSystem`** (`bool` / `BOOLEAN DEFAULT FALSE`): Las categorías de sistema (ej. "General") no pueden eliminarse, garantizando un destino seguro para reasignación de notas.
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
+
+#### `NoteItem` (Tabla: `notas`)
+Representa un documento o nota enriquecida que almacena contenido estructurado en bloques:
+- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único.
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id)`).
+- **`categoryId`** (`String?` / `UUID REFERENCES public.note_categories(id) ON DELETE SET NULL`): Categoría a la que pertenece.
+- **`title`** (`String` / `TEXT NOT NULL`): Título del documento.
+- **`icon`** (`String` / `TEXT DEFAULT '📝'`): Emoji o icono que identifica la nota.
+- **`colorHex`** (`String?` / `TEXT`): Color personalizado opcional.
+- **`blocks`** (`List<NoteBlock>` / `JSONB DEFAULT '[]'::jsonb`): Lista de bloques interactivos estructurados.
+- **`contentText`** (`String?` / `TEXT`): Representación concatenada en texto plano / Markdown, optimizada para búsquedas full-text y extracción RAG para el Agente IA.
+- **`isPinned`** (`bool` / `BOOLEAN DEFAULT FALSE`): Fijada en el área superior de notas prioritarias.
+- **`isArchived`** (`bool` / `BOOLEAN DEFAULT FALSE`): Estado archivado para notas inactivas.
+- **`sharedTag`** (`String?` / `TEXT`): Etiqueta opcional para acuerdos compartidos (ej. `'pareja'`, `'proyecto'`).
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ`).
+
+#### `NoteBlock` (Estructura de Bloques JSONB)
+Cada nota está conformada por una colección ordenada de bloques modulares:
+- **`id`** (`String`): Identificador único de bloque (`UUID`).
+- **`type`** (`String` / `BlockType`):
+  - `'paragraph'`: Párrafo de texto normal.
+  - `'heading1'`: Encabezado grande (H1).
+  - `'heading2'`: Encabezado mediano (H2).
+  - `'heading3'`: Encabezado pequeño (H3).
+  - `'todo'`: Lista de verificación con checkbox interactivo (`isChecked: bool`).
+  - `'bulletList'`: Elemento de lista con viñeta (`•`).
+  - `'numberedList'`: Elemento de lista numerada (`1.`, `2.`).
+  - `'toggle'`: Sección colapsable/desplegable con título y sub-bloques hijos (`children: List<NoteBlock>`).
+  - `'callout'`: Caja destacada con icono (`calloutIcon`) y fondo coloreado (`calloutColor`).
+  - `'divider'`: Línea separadora horizontal.
+- **`content`** (`String`): Contenido textual del bloque.
+- **`isChecked`** (`bool`): Estado de cumplimiento para bloques de tipo `'todo'`.
+- **`children`** (`List<NoteBlock>`): Sub-bloques anidados para bloques de tipo `'toggle'`.
+- **`calloutIcon`** / **`calloutColor`** (`String?`): Icono y color hexadecimal para bloques de tipo `'callout'`.
+
+### 6.3 Mecánica de Eliminación y Reasignación de Categorías
+Para proteger la integridad de la información del usuario:
+1. **No hay borrado en cascada:** Al eliminar una categoría personalizada, las notas asociadas **NUNCA** se eliminan de la base de datos.
+2. **Reasignación a Categoría Segura:** Las notas pertenecientes a la categoría eliminada son transferidas de manera automática a la categoría predeterminada del sistema (`is_system = TRUE`, ej. **General**).
+3. **Confirmación Transparente:** La interfaz presenta al usuario un aviso informativo indicando la cantidad de notas que serán reubicadas antes de proceder con el borrado.
+
+### 6.4 Menciones Cruzadas Bidireccionales con Diario Jottache
+1. **Sintaxis de Referencia (`#nota`):** En el área de texto de cualquier entrada del Diario (personal o de un contacto), escribir el símbolo `#` activa un overlay emergente con las notas disponibles. Al seleccionar una nota, se inserta `#Título de la Nota `.
+2. **Persistencia en Diario (`content_data['mentioned_note_ids']`):** Los IDs de las notas referenciadas se almacenan dentro del campo JSONB `content_data` de la tabla `diario_entries`, manteniendo total compatibilidad con PostgreSQL sin alterar la raíz de la tabla.
+3. **Interacción en Lectura:** En el diálogo lector de Diario, la mención `#Título de la Nota` aparece estilizada en color temático, negrita y subrayado sutil. Al tocarla, se abre de forma interactiva el visor completo de la nota con sus bloques desplegables y tareas.
+4. **Vínculos Inversos (Backlinks):** En la mini-app de Notas, cada nota calcula y muestra dinámicamente en qué entradas del Diario ha sido referenciada.
 
 ---
 
@@ -459,5 +534,5 @@ Este script limpia ordenadamente las tablas dependientes en cascada y reinserta:
 8. `market_stores`, `market_products`, `market_trips`, `market_items`, `market_shopping_lists`
 
 ### 7.3 Índices de Rendimiento Globales
-- **Índices GIN:** Aplicados sobre columnas `JSONB` (`diario_entries.content_data`) para posibilitar búsquedas instantáneas sobre campos dinámicos sin importar cuántos atributos cree el usuario.
-- **Índices Compuestos:** `(habit_id, log_date)` en `habit_logs` e `(account_id, date DESC)` en `transactions` para optimizar consultas de timeline y rachas cronológicas.
+- **Índices GIN:** Aplicados sobre columnas `JSONB` (`diario_entries.content_data`, `notas.blocks`) para posibilitar búsquedas instantáneas sobre campos dinámicos sin importar cuántos atributos cree el usuario.
+- **Índices Compuestos:** `(habit_id, log_date)` en `habit_logs`, `(account_id, date DESC)` en `transactions` y `(user_id, updated_at DESC)` en `notas` para optimizar consultas de timeline y notas recientes.

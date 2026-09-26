@@ -8,6 +8,8 @@ import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
 import '../screens/entry_editor_dialog.dart';
+import '../widgets/mention_text_field.dart';
+import '../../notas/notas.dart';
 
 /// Abre el visor de nota en modo lectura:
 /// - En desktop: un Dialog centrado elegante.
@@ -86,6 +88,22 @@ class EntryReaderDialog extends StatelessWidget {
     final template = currentEntry.templateId != null
         ? state.getTemplateById(currentEntry.templateId!)
         : null;
+    final allMentionIds = <String>{};
+    if (currentEntry.contentText != null && currentEntry.contentText!.isNotEmpty) {
+      allMentionIds.addAll(state.extractMentionedContactIds(currentEntry.contentText!));
+      for (final id in currentEntry.mentionedContactIds) {
+        final c = state.getContactById(id);
+        if (c != null && state.isContactMentionedInText(c, currentEntry.contentText!)) {
+          allMentionIds.add(id);
+        }
+      }
+    } else {
+      allMentionIds.addAll(currentEntry.mentionedContactIds);
+    }
+    final mentionedContacts = allMentionIds
+        .map((id) => state.getContactById(id))
+        .whereType<DiarioContact>()
+        .toList();
 
     final contentWidget = Container(
       decoration: BoxDecoration(
@@ -425,15 +443,83 @@ class EntryReaderDialog extends StatelessWidget {
                     ),
                   ],
 
-                  // Main Content Text (Reading Mode)
+                  // Mentioned Contacts Bar
+                  if (mentionedContacts.isNotEmpty) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: DiarioColors.primaryLight.withOpacity(0.55),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: DiarioColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.alternate_email_rounded, size: 14, color: DiarioColors.primary),
+                              SizedBox(width: 4),
+                              Text(
+                                'Mencionados:',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: DiarioColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          ...mentionedContacts.map((c) => ActionChip(
+                                avatar: CircleAvatar(
+                                  backgroundColor: DiarioColors.primary,
+                                  child: Text(
+                                    c.initials,
+                                    style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                label: Text(
+                                  c.name,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: DiarioColors.primary),
+                                ),
+                                backgroundColor: Colors.white,
+                                side: BorderSide(color: DiarioColors.primary.withOpacity(0.3)),
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  state.selectContact(c.id);
+                                },
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Main Content Text (Reading Mode con menciones interactivas)
                   if (currentEntry.contentText != null && currentEntry.contentText!.trim().isNotEmpty) ...[
-                    SelectableText(
-                      currentEntry.contentText!,
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        height: 1.65,
-                        color: DiarioColors.textPrimary,
-                        letterSpacing: 0.1,
+                    Text.rich(
+                      TextSpan(
+                        children: MentionTextSpanHelper.buildSpans(
+                          text: currentEntry.contentText!,
+                          contacts: state.contacts,
+                          notes: Provider.of<NotasState>(context, listen: false).notes,
+                          baseStyle: const TextStyle(
+                            fontSize: 15.5,
+                            height: 1.65,
+                            color: DiarioColors.textPrimary,
+                            letterSpacing: 0.1,
+                          ),
+                          onContactTap: (clickedContact) {
+                            Navigator.of(context).pop();
+                            state.selectContact(clickedContact.id);
+                          },
+                          onNoteTap: (clickedNote) {
+                            NoteReaderDialog.show(context, note: clickedNote);
+                          },
+                        ),
                       ),
                     ),
                   ] else if (!currentEntry.hasTitle && !currentEntry.hasPhoto && (currentEntry.contentData == null || currentEntry.contentData!.isEmpty)) ...[

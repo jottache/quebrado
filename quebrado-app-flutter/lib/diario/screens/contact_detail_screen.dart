@@ -12,11 +12,13 @@ import '../dialogs/category_editor_dialog.dart';
 import 'entry_editor_dialog.dart';
 import '../dialogs/entry_reader_dialog.dart';
 import '../widgets/diario_image_helper.dart';
+import '../widgets/mention_text_field.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
 import '../../habitos/models/habit_model.dart';
 import '../../habitos/dialogs/habit_terminal_editor_dialog.dart';
 import '../../habitos/dialogs/habit_detail_cli_dialog.dart';
 import '../../habitos/theme/habitos_terminal_theme.dart';
+import '../../notas/notas.dart';
 
 class ContactDetailScreen extends StatefulWidget {
   final String contactId;
@@ -138,17 +140,29 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
     final rootCategories = state.getRootCategories(widget.contactId);
 
-    final subcategories = _selectedRootCategoryId != null
+    final subcategories = _selectedRootCategoryId != null && _selectedRootCategoryId != '__mentions__'
         ? state.getSubcategories(_selectedRootCategoryId!, widget.contactId)
         : <DiarioCategory>[];
 
-    // Get entries for current view: if _selectedRootCategoryId is null, show all entries for this contact
+    final directEntries = state.getEntriesForContact(contact.id);
+    final mentionEntries = state.getEntriesMentioningContact(contact.id);
+
+    // Get entries for current view
     final effectiveCategoryId = _selectedSubcategoryId ?? _selectedRootCategoryId;
-    final entries = _selectedRootCategoryId == null
-        ? state.getEntriesForContact(contact.id)
-        : (effectiveCategoryId != null
-            ? state.getEntriesForCategory(contact.id, effectiveCategoryId)
-            : <DiarioEntry>[]);
+    final List<DiarioEntry> entries;
+    if (_selectedRootCategoryId == '__mentions__') {
+      entries = mentionEntries;
+    } else if (_selectedRootCategoryId == null) {
+      entries = [...directEntries, ...mentionEntries]
+        ..sort((a, b) {
+          if (a.isPinned != b.isPinned) return a.isPinned ? -1 : 1;
+          return b.createdAt.compareTo(a.createdAt);
+        });
+    } else if (effectiveCategoryId != null) {
+      entries = state.getEntriesForCategory(contact.id, effectiveCategoryId);
+    } else {
+      entries = <DiarioEntry>[];
+    }
 
     return Scaffold(
       backgroundColor: DiarioColors.background,
@@ -546,14 +560,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   // WIDGET: ROOT CATEGORIES SELECTOR
   // ===========================================================================
   Widget _buildRootCategoriesBar(List<DiarioCategory> categories, DiarioState state) {
-    final totalEntriesCount = state.getEntriesForContact(widget.contactId).length;
+    final directEntries = state.getEntriesForContact(widget.contactId);
+    final mentionEntries = state.getEntriesMentioningContact(widget.contactId);
+    final totalEntriesCount = directEntries.length + mentionEntries.length;
 
     return Container(
       height: 48,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length + 2,
+        itemCount: categories.length + 3,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -587,7 +603,38 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             );
           }
 
-          if (index == categories.length + 1) {
+          if (index == 1) {
+            final isSelected = _selectedRootCategoryId == '__mentions__';
+            return FilterChip(
+              selected: isSelected,
+              showCheckmark: false,
+              avatar: Icon(Icons.alternate_email_rounded, size: 16, color: isSelected ? Colors.white : DiarioColors.primary),
+              label: Text(
+                'Menciones (${mentionEntries.length})',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                  color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                ),
+              ),
+              backgroundColor: Colors.white,
+              selectedColor: DiarioColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
+                ),
+              ),
+              onSelected: (val) {
+                setState(() {
+                  _selectedRootCategoryId = '__mentions__';
+                  _selectedSubcategoryId = null;
+                });
+              },
+            );
+          }
+
+          if (index == categories.length + 2) {
             // Button to add custom root category
             return IconButton(
               icon: const Icon(Icons.add_circle_outline_rounded, color: DiarioColors.primary),
@@ -601,7 +648,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             );
           }
 
-          final cat = categories[index - 1];
+          final cat = categories[index - 2];
           final isSelected = cat.id == _selectedRootCategoryId;
           final catEntriesCount = state.getEntriesForCategory(widget.contactId, cat.id).length;
 
@@ -704,19 +751,22 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     }
 
     final category = state.getCategoryById(entry.categoryId);
+    final isMention = entry.contactId != widget.contactId;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isMention ? const Color(0xFFF3F9F7) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: entry.isPinned ? DiarioColors.primary.withOpacity(0.35) : DiarioColors.cardBorder,
-          width: entry.isPinned ? 1.5 : 1.0,
+          color: isMention
+              ? DiarioColors.primary.withOpacity(0.4)
+              : (entry.isPinned ? DiarioColors.primary.withOpacity(0.35) : DiarioColors.cardBorder),
+          width: (isMention || entry.isPinned) ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: isMention ? DiarioColors.primary.withOpacity(0.06) : Colors.black.withOpacity(0.02),
             offset: const Offset(0, 3),
             blurRadius: 8,
           ),
@@ -735,7 +785,34 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             // Top Bar: Model / Category Badge + Pin + Context Menu
             Row(
               children: [
-                if (template != null)
+                if (isMention)
+                  Container(
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: DiarioColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.alternate_email_rounded, size: 12, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          entry.isPersonal
+                              ? 'Mención en Nota Personal'
+                              : 'Mención en ${state.getContactById(entry.contactId)?.name ?? "Contacto"}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (template != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -962,13 +1039,25 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             // Content Text (Notes)
             if (entry.contentText != null && entry.contentText!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(
-                entry.contentText!,
-                style: TextStyle(
-                  fontSize: entry.hasTitle ? 13 : 14.5,
-                  fontWeight: entry.hasTitle ? FontWeight.normal : FontWeight.w500,
-                  color: entry.hasTitle ? DiarioColors.textSecondary : DiarioColors.textPrimary,
-                  height: 1.35,
+              Text.rich(
+                TextSpan(
+                  children: MentionTextSpanHelper.buildSpans(
+                    text: entry.contentText!,
+                    contacts: state.contacts,
+                    notes: Provider.of<NotasState>(context, listen: false).notes,
+                    baseStyle: TextStyle(
+                      fontSize: entry.hasTitle ? 13 : 14.5,
+                      fontWeight: entry.hasTitle ? FontWeight.normal : FontWeight.w500,
+                      color: entry.hasTitle ? DiarioColors.textSecondary : DiarioColors.textPrimary,
+                      height: 1.35,
+                    ),
+                    onContactTap: (clickedContact) {
+                      state.selectContact(clickedContact.id);
+                    },
+                    onNoteTap: (clickedNote) {
+                      NoteReaderDialog.show(context, note: clickedNote);
+                    },
+                  ),
                 ),
               ),
             ],
@@ -1023,6 +1112,23 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     ),
                   ),
                 ),
+              ),
+            ],
+            if (isMention) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.open_in_new_rounded, size: 13, color: DiarioColors.primary.withOpacity(0.85)),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Toca para abrir la nota original completa',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: DiarioColors.primary.withOpacity(0.9),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],
