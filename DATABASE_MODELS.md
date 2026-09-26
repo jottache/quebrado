@@ -395,12 +395,52 @@ Suscripciones Web Push y móviles vinculadas al perfil de usuario para recepció
 
 ---
 
-## 6. Estrategia de Sincronización, Respaldos y Migraciones
+## 6. Mini-App de Notas & Acuerdos (Estilo Notion)
 
-### 5.1 Respaldos Locales JSON (`BackupService`)
+Módulo para la captura ágil, estructurada y persistente de acuerdos personales y de pareja, ideas, listas dinámicas y notas enriquecidas con soporte para bloques y menciones cruzadas en el Diario.
+
+### 6.1 `NoteCategory` (Tabla: `note_categories`)
+Categorías personalizables y de sistema para la clasificación visual de notas:
+- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único de la categoría.
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id) ON DELETE CASCADE`): Propietario de la categoría (permite `NULL` para uso local/anónimo).
+- **`name`** (`String` / `TEXT NOT NULL`): Nombre de la categoría (ej. 'General', 'Acuerdos de Pareja', 'Ideas & Proyectos').
+- **`icon`** (`String` / `TEXT DEFAULT 'folder_outlined'`): Emoji o identificador de icono.
+- **`colorHex`** (`String` / `TEXT DEFAULT '#6366F1'`): Color hexadecimal representativo.
+- **`sortOrder`** (`int` / `INTEGER DEFAULT 0`): Posición en el selector y filtros.
+- **`isSystem`** (`bool` / `BOOLEAN DEFAULT FALSE`): Si es `true` (ej. categoría 'General'), está protegida contra eliminación.
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ DEFAULT NOW()`).
+
+### 6.2 `NoteItem` (Tabla: `notas`)
+Entidad principal de nota con almacenamiento jerárquico por bloques:
+- **`id`** (`String` / `UUID PRIMARY KEY`): Identificador único de la nota.
+- **`userId`** (`String?` / `UUID REFERENCES auth.users(id) ON DELETE CASCADE`): Propietario (permite `NULL`).
+- **`categoryId`** (`String?` / `UUID REFERENCES public.note_categories(id) ON DELETE SET NULL`): Categoría vinculada. Si se elimina la categoría, las notas se reasignan a 'General'.
+- **`title`** (`String` / `TEXT NOT NULL`): Título de la nota.
+- **`icon`** (`String` / `TEXT DEFAULT '📝'`): Emoji principal de la nota.
+- **`colorHex`** (`String` / `TEXT DEFAULT '#6366F1'`): Acento cromático de la nota.
+- **`blocks`** (`List<NoteBlock>` / `JSONB NOT NULL DEFAULT '[]'::jsonb`): Estructura en bloques editables:
+  - `paragraph` (texto plano enriquecido)
+  - `h1`, `h2`, `h3` (encabezados jerárquicos)
+  - `bullet`, `numbered` (listas con viñetas o numeración continua)
+  - `todo` (tareas con checkbox interactivo `isChecked`)
+  - `toggle` (desplegables interactivos con bloques hijos `children` y estado `isExpanded`)
+  - `callout` (cajas destacadas con icono)
+  - `quote` (citas en bloque)
+  - `divider` (separador horizontal)
+- **`contentText`** (`String?` / `TEXT`): Exportación plana / Markdown de la nota para indexación, búsqueda y RAG con el Agente Gemini.
+- **`isPinned`** (`bool` / `BOOLEAN DEFAULT FALSE`): Fijada al tope de la lista.
+- **`isArchived`** (`bool` / `BOOLEAN DEFAULT FALSE`): Archivado lógico.
+- **`sharedTag`** (`String?` / `TEXT`): Tag para compartir o filtrar (ej. 'pareja').
+- **`createdAt` / `updatedAt`** (`DateTime` / `TIMESTAMPTZ DEFAULT NOW()`).
+
+---
+
+## 7. Estrategia de Sincronización, Respaldos y Migraciones
+
+### 7.1 Respaldos Locales JSON (`BackupService`)
 Quebrado cuenta con un motor de respaldo completo en formato JSON (`copia_seguridad_quebrado_...json`), el cual serializa todas las tablas SQLite en un único documento para exportación o restauración local directa.
 
-### 5.2 Restauración Atómica en Supabase vía RPC (`import_quebrado_backup`)
+### 7.2 Restauración Atómica en Supabase vía RPC (`import_quebrado_backup`)
 Para sincronizar un respaldo local completo hacia la nube sin inconsistencias ni errores de claves foráneas, se implementó el procedimiento almacenado en PostgreSQL:
 ```sql
 CREATE OR REPLACE FUNCTION import_quebrado_backup(
@@ -418,6 +458,6 @@ Este script limpia ordenadamente las tablas dependientes en cascada y reinserta:
 7. `recurring_payments` y sus confirmaciones
 8. `market_stores`, `market_products`, `market_trips`, `market_items`, `market_shopping_lists`
 
-### 5.3 Índices de Rendimiento Globales
+### 7.3 Índices de Rendimiento Globales
 - **Índices GIN:** Aplicados sobre columnas `JSONB` (`diario_entries.content_data`) para posibilitar búsquedas instantáneas sobre campos dinámicos sin importar cuántos atributos cree el usuario.
 - **Índices Compuestos:** `(habit_id, log_date)` en `habit_logs` e `(account_id, date DESC)` en `transactions` para optimizar consultas de timeline y rachas cronológicas.
