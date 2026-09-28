@@ -34,11 +34,36 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
     'Domingo',
   ];
 
+  static const List<String> _monthsShort = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
   @override
   void initState() {
     super.initState();
     final state = Provider.of<RemindersState>(context, listen: false);
     _notesCtrl = TextEditingController(text: state.currentWeeklyPlan?.reflectionNotes ?? '');
+    // El sábado y el domingo se planifica la semana siguiente.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _changeWeek(state.suggestedPlanningMonday));
+  }
+
+  Future<void> _changeWeek(DateTime monday) async {
+    final state = Provider.of<RemindersState>(context, listen: false);
+    await state.selectWeek(monday);
+    if (mounted) _notesCtrl.text = state.currentWeeklyPlan?.reflectionNotes ?? '';
+  }
+
+  static String _formatShort(DateTime d) => '${d.day} ${_monthsShort[d.month - 1]}';
+
+  static String _weekRelativeLabel(int offset) {
+    switch (offset) {
+      case 0:
+        return 'Esta semana';
+      case 1:
+        return 'Próxima semana';
+      case -1:
+        return 'Semana pasada';
+      default:
+        return offset > 0 ? 'En $offset semanas' : 'Hace ${-offset} semanas';
+    }
   }
 
   @override
@@ -52,9 +77,19 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
     setState(() {
       _newRocksPerRole.putIfAbsent(roleId, () => []);
       _newRocksPerRole[roleId]!.add(title.trim());
-      // Asignar por defecto a lunes o martes
-      _rockScheduledDay[title.trim()] = 0;
+      // Por defecto, el primer día de la semana planificada que aún no pasó.
+      _rockScheduledDay[title.trim()] = _firstUpcomingDayIndex();
     });
+  }
+
+  int _firstUpcomingDayIndex() {
+    final monday = Provider.of<RemindersState>(context, listen: false).currentMonday;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    for (var i = 0; i < 7; i++) {
+      if (!DateTime(monday.year, monday.month, monday.day + i).isBefore(today)) return i;
+    }
+    return 0;
   }
 
   void _removeRock(String roleId, String title) {
@@ -66,6 +101,7 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
 
   Future<void> _completeWizard() async {
     final state = Provider.of<RemindersState>(context, listen: false);
+    var failed = 0;
 
     // 1. Guardar notas de retrospectiva
     await state.saveWeeklyPlanNotes(_notesCtrl.text.trim());
@@ -100,19 +136,104 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
           tags: ['gran-roca', 'q2', 'ritual-dominical'],
         );
 
-        await state.saveReminder(rock);
+        if (!await state.saveReminder(rock)) failed++;
       }
     }
 
     if (mounted) {
+      final monday = state.currentMonday;
+      final sunday = DateTime(monday.year, monday.month, monday.day + 6);
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎯 ¡Semana planificada con éxito bajo los principios de Stephen Covey!'),
-          backgroundColor: Color(0xFF059669),
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(failed == 0
+              ? '🎯 Semana del ${_formatShort(monday)} al ${_formatShort(sunday)} planificada con éxito.'
+              : '⚠️ $failed ${failed == 1 ? "Gran Roca no se pudo" : "Grandes Rocas no se pudieron"} guardar en la nube. Revisa tu conexión y vuelve a intentarlo.'),
+          backgroundColor: failed == 0 ? const Color(0xFF059669) : const Color(0xFFB45309),
+          duration: Duration(seconds: failed == 0 ? 4 : 8),
         ),
       );
     }
+  }
+
+  /// Selector de la semana que se está planificando.
+  Widget _buildWeekSelector(RemindersState state) {
+    final monday = state.currentMonday;
+    final sunday = DateTime(monday.year, monday.month, monday.day + 6);
+    final offset = state.selectedWeekOffset;
+    final thisMonday = RemindersState.thisWeekMonday();
+    final nextMonday = DateTime(thisMonday.year, thisMonday.month, thisMonday.day + 7);
+
+    Widget quickChip(String label, DateTime target, int targetOffset) {
+      final selected = offset == targetOffset;
+      return ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        showCheckmark: false,
+        onSelected: (_) => _changeWeek(target),
+        selectedColor: const Color(0xFFFEF3C7),
+        labelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+          color: selected ? const Color(0xFF92400E) : RemindersColors.textPrimary,
+        ),
+        side: BorderSide(color: selected ? const Color(0xFFD97706) : Colors.grey.shade300),
+        visualDensity: VisualDensity.compact,
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+      ),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Semana anterior',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.chevron_left_rounded),
+                onPressed: () => _changeWeek(DateTime(monday.year, monday.month, monday.day - 7)),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Planificando: ${_formatShort(monday)} – ${_formatShort(sunday)}',
+                    key: const ValueKey('wizard_week_range'),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                  ),
+                  Text(
+                    _weekRelativeLabel(offset),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+                  ),
+                ],
+              ),
+              IconButton(
+                tooltip: 'Semana siguiente',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.chevron_right_rounded),
+                onPressed: () => _changeWeek(DateTime(monday.year, monday.month, monday.day + 7)),
+              ),
+              if (state.isLoadingWeek)
+                const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+            ],
+          ),
+          quickChip('Esta semana', thisMonday, 0),
+          quickChip('Próxima semana', nextMonday, 1),
+        ],
+      ),
+    );
   }
 
   @override
@@ -151,9 +272,9 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                             'Ritual Dominical de Planificación',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
                           ),
-                          Text(
-                            'Hábito 3: "Primero lo Primero" - Semana ${state.currentWeeklyPlan?.formattedRange ?? ""}',
-                            style: const TextStyle(fontSize: 12, color: RemindersColors.textMuted),
+                          const Text(
+                            'Hábito 3: "Primero lo Primero"',
+                            style: TextStyle(fontSize: 12, color: RemindersColors.textMuted),
                           ),
                         ],
                       ),
@@ -165,16 +286,18 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
+              _buildWeekSelector(state),
+              const SizedBox(height: 14),
 
               // Barra de Pasos Visual
               Row(
                 children: [
-                  _buildStepIndicator(0, '1. Retrospectiva', Icons.rate_review_outlined),
+                  Flexible(flex: 3, child: _buildStepIndicator(0, '1. Retrospectiva', Icons.rate_review_outlined)),
                   const Expanded(child: Divider(thickness: 1.5, indent: 8, endIndent: 8)),
-                  _buildStepIndicator(1, '2. Grandes Rocas', Icons.star_outline),
+                  Flexible(flex: 3, child: _buildStepIndicator(1, '2. Grandes Rocas', Icons.star_outline)),
                   const Expanded(child: Divider(thickness: 1.5, indent: 8, endIndent: 8)),
-                  _buildStepIndicator(2, '3. Agendar la Semana', Icons.calendar_month_outlined),
+                  Flexible(flex: 3, child: _buildStepIndicator(2, '3. Agendar la Semana', Icons.calendar_month_outlined)),
                 ],
               ),
               const SizedBox(height: 20),
@@ -250,12 +373,16 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? RemindersColors.textPrimary : RemindersColors.textMuted,
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  color: isActive ? RemindersColors.textPrimary : RemindersColors.textMuted,
+                ),
               ),
             ),
           ],
@@ -560,6 +687,9 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
   // PASO 3: AGENDAR PRIMERO LAS ROCAS
   // ==========================================
   Widget _buildStep3Schedule(List<RoleModel> roles) {
+    final monday = Provider.of<RemindersState>(context).currentMonday;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     // Lista plana de todas las nuevas rocas para asignar a días
     final List<MapEntry<String, String>> rocksWithRole = [];
     for (final entry in _newRocksPerRole.entries) {
@@ -649,11 +779,17 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                       underline: const SizedBox(),
                       borderRadius: BorderRadius.circular(8),
                       items: List.generate(7, (dayIdx) {
+                        final date = DateTime(monday.year, monday.month, monday.day + dayIdx);
+                        final isPast = date.isBefore(today);
                         return DropdownMenuItem<int>(
                           value: dayIdx,
                           child: Text(
-                            _dayNames[dayIdx],
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                            '${_dayNames[dayIdx]} ${_formatShort(date)}${isPast ? " · ya pasó" : ""}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isPast ? RemindersColors.textMuted : null,
+                            ),
                           ),
                         );
                       }),

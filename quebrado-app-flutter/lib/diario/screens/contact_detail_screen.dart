@@ -6,6 +6,8 @@ import '../models/diario_category.dart';
 import '../models/diario_template.dart';
 import '../models/diario_entry.dart';
 import '../viewmodels/diario_state.dart';
+import '../viewmodels/animo_state.dart';
+import '../widgets/contact_mood_section.dart';
 import '../theme/diario_colors.dart';
 import '../dialogs/contact_editor_dialog.dart';
 import '../dialogs/category_editor_dialog.dart';
@@ -102,6 +104,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ElevatedButton(
             onPressed: () {
               Provider.of<DiarioState>(context, listen: false).deleteContact(contact.id);
+              // En Supabase el trigger borra su ánimo percibido; aquí se limpia la memoria.
+              AnimoState.maybeOf(context, listen: false)?.removeLogsForContact(contact.id);
               Navigator.of(context).pop(); // dialog
               if (widget.embedded && widget.onBack != null) {
                 widget.onBack!();
@@ -226,6 +230,11 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           // 2. Linked Habits Section
           SliverToBoxAdapter(
             child: _buildLinkedHabitsSection(context, contact),
+          ),
+
+          // 2b. Ánimo percibido
+          SliverToBoxAdapter(
+            child: ContactMoodSection(contact: contact),
           ),
 
           // 3. Root Categories Selector (Horizontal Bar)

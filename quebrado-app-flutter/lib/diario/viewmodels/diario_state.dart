@@ -5,6 +5,7 @@ import '../models/diario_category.dart';
 import '../models/diario_template.dart';
 import '../models/diario_entry.dart';
 import '../services/diario_supabase_service.dart';
+import '../../services/media_storage_service.dart';
 import '../../notas/models/note_item.dart';
 
 class DiarioSearchResult {
@@ -22,6 +23,8 @@ class DiarioSearchResult {
 
 class DiarioState extends ChangeNotifier {
   final DiarioSupabaseService _service = DiarioSupabaseService.instance;
+  final MediaStorageService _media = MediaStorageService.instance;
+  bool _isMigratingImages = false;
   final _uuid = const Uuid();
 
   List<DiarioContact> _contacts = [];
@@ -97,6 +100,9 @@ class DiarioState extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+
+    // Fotos antiguas en base64 / rutas locales → Supabase Storage (en segundo plano).
+    migrateInlineImages();
   }
 
   // ===========================================================================
@@ -144,12 +150,14 @@ class DiarioState extends ChangeNotifier {
     _contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     notifyListeners();
 
-    await _service.saveContact(newContact);
-    return newContact;
+    final stored = await _withRemoteAvatar(newContact);
+    await _service.saveContact(stored);
+    return stored;
   }
 
   Future<void> updateContact(DiarioContact contact) async {
     final index = _contacts.indexWhere((c) => c.id == contact.id);
+    final previousAvatar = index != -1 ? _contacts[index].avatarUrl : null;
     final updated = contact.copyWith(updatedAt: DateTime.now());
     if (index != -1) {
       _contacts[index] = updated;
@@ -158,15 +166,24 @@ class DiarioState extends ChangeNotifier {
     }
     _contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     notifyListeners();
-    await _service.saveContact(updated);
+    final stored = await _withRemoteAvatar(updated);
+    await _service.saveContact(stored);
+    if (previousAvatar != stored.avatarUrl) await _media.deleteByUrl(previousAvatar);
   }
 
   Future<void> deleteContact(String contactId) async {
+    final orphanPhotos = [
+      getContactById(contactId)?.avatarUrl,
+      ..._entries.where((e) => e.contactId == contactId).map((e) => e.photoUrl),
+    ];
     _contacts.removeWhere((c) => c.id == contactId);
     _entries.removeWhere((e) => e.contactId == contactId);
     _categories.removeWhere((cat) => cat.contactId == contactId);
     notifyListeners();
     await _service.deleteContact(contactId);
+    for (final url in orphanPhotos) {
+      await _media.deleteByUrl(url);
+    }
   }
 
   Future<void> toggleFavoriteContact(String contactId) async {
@@ -507,8 +524,9 @@ class DiarioState extends ChangeNotifier {
 
     _entries.insert(0, entry);
     notifyListeners();
-    await _service.saveEntry(entry);
-    return entry;
+    final stored = await _withRemotePhoto(entry);
+    await _service.saveEntry(stored);
+    return stored;
   }
 
   Future<void> addEntry({
@@ -549,11 +567,12 @@ class DiarioState extends ChangeNotifier {
 
     _entries.insert(0, newEntry);
     notifyListeners();
-    await _service.saveEntry(newEntry);
+    await _service.saveEntry(await _withRemotePhoto(newEntry));
   }
 
   Future<void> updateEntry(DiarioEntry entry) async {
     final index = _entries.indexWhere((e) => e.id == entry.id);
+    final previousPhoto = index != -1 ? _entries[index].photoUrl : null;
     final allMentions = _resolveMentions(
       contentText: entry.contentText,
       explicitIds: entry.mentionedContactIds,
@@ -571,13 +590,86 @@ class DiarioState extends ChangeNotifier {
       _entries.insert(0, updated);
     }
     notifyListeners();
-    await _service.saveEntry(updated);
+    final stored = await _withRemotePhoto(updated);
+    await _service.saveEntry(stored);
+    if (previousPhoto != stored.photoUrl) await _media.deleteByUrl(previousPhoto);
   }
 
   Future<void> deleteEntry(String entryId) async {
+    String? photo;
+    for (final e in _entries) {
+      if (e.id == entryId) photo = e.photoUrl;
+    }
     _entries.removeWhere((e) => e.id == entryId);
     notifyListeners();
     await _service.deleteEntry(entryId);
+    await _media.deleteByUrl(photo);
+  }
+
+  // ===========================================================================
+  // FOTOS EN SUPABASE STORAGE
+  // ===========================================================================
+
+  /// Sube el avatar si está en base64 o en una ruta local y actualiza la memoria
+  /// (solo si nadie lo cambió mientras se subía).
+  Future<DiarioContact> _withRemoteAvatar(DiarioContact contact, {bool fallbackToInline = true}) async {
+    if (!MediaStorageService.needsUpload(contact.avatarUrl)) return contact;
+    final url = await _media.ensureRemote(contact.avatarUrl, MediaImagePreset.avatar, fallbackToInline: fallbackToInline);
+    if (url == null || url == contact.avatarUrl) return contact;
+
+    final updated = contact.copyWith(avatarUrl: url);
+    final index = _contacts.indexWhere((c) => c.id == contact.id);
+    if (index != -1 && _contacts[index].avatarUrl == contact.avatarUrl) {
+      _contacts[index] = updated;
+      notifyListeners();
+    }
+    return updated;
+  }
+
+  Future<DiarioEntry> _withRemotePhoto(DiarioEntry entry, {bool fallbackToInline = true}) async {
+    if (!MediaStorageService.needsUpload(entry.photoUrl)) return entry;
+    final url = await _media.ensureRemote(entry.photoUrl, MediaImagePreset.entryPhoto, fallbackToInline: fallbackToInline);
+    if (url == null || url == entry.photoUrl) return entry;
+
+    final updated = entry.copyWith(photoUrl: url);
+    final index = _entries.indexWhere((e) => e.id == entry.id);
+    if (index != -1 && _entries[index].photoUrl == entry.photoUrl) {
+      _entries[index] = updated;
+      notifyListeners();
+    }
+    return updated;
+  }
+
+  /// Migra una sola vez por sesión las fotos guardadas como base64 o rutas locales.
+  /// Solo guarda cuando la subida devolvió una URL real, así nunca recomprime
+  /// una foto varias veces si Storage no está disponible.
+  Future<void> migrateInlineImages() async {
+    if (_isMigratingImages || !_media.isReady) return;
+    _isMigratingImages = true;
+    var migrated = 0;
+    try {
+      for (final contact in List<DiarioContact>.from(_contacts)) {
+        if (!MediaStorageService.needsUpload(contact.avatarUrl)) continue;
+        final updated = await _withRemoteAvatar(contact, fallbackToInline: false);
+        if (MediaStorageService.isRemoteUrl(updated.avatarUrl)) {
+          await _service.saveContact(updated);
+          migrated++;
+        }
+      }
+      for (final entry in List<DiarioEntry>.from(_entries)) {
+        if (!MediaStorageService.needsUpload(entry.photoUrl)) continue;
+        final updated = await _withRemotePhoto(entry, fallbackToInline: false);
+        if (MediaStorageService.isRemoteUrl(updated.photoUrl)) {
+          await _service.saveEntry(updated);
+          migrated++;
+        }
+      }
+      if (migrated > 0) debugPrint('Diario: $migrated fotos migradas a Supabase Storage');
+    } catch (e) {
+      debugPrint('Diario: error migrando fotos a Storage ($e)');
+    } finally {
+      _isMigratingImages = false;
+    }
   }
 
   Future<void> togglePinEntry(String entryId) async {

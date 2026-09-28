@@ -31,10 +31,17 @@ class SupabaseService {
   bool get isReady => client != null;
 
   // MARK: - Settings
+  /// Claves pesadas que no se deben descargar al arrancar (copias de seguridad).
+  /// Se leen solo cuando se necesitan con [loadSettingValue].
+  static const List<String> heavySettingKeys = ['backup_snapshots', 'backup_metadata'];
+
   Future<Map<String, String>> loadSettings() async {
     if (!isReady) return {};
     try {
-      final List response = await client!.from('settings').select();
+      final List response = await client!
+          .from('settings')
+          .select('key, value')
+          .not('key', 'in', '(${heavySettingKeys.join(',')})');
       final Map<String, String> settings = {};
       for (var row in response) {
         if (row['key'] != null && row['value'] != null) {
@@ -45,6 +52,18 @@ class SupabaseService {
     } catch (e) {
       debugPrint('Error loading settings from Supabase: $e');
       return {};
+    }
+  }
+
+  /// Lee una sola clave de settings (sin descargar el resto de la tabla).
+  Future<String?> loadSettingValue(String key) async {
+    if (!isReady) return null;
+    try {
+      final row = await client!.from('settings').select('value').eq('key', key).maybeSingle();
+      return row?['value'] as String?;
+    } catch (e) {
+      debugPrint('Error loading setting $key from Supabase: $e');
+      return null;
     }
   }
 
@@ -1118,10 +1137,10 @@ class SupabaseService {
 
   // MARK: - Backup Metadata & Restoration History
   Future<Map<String, dynamic>> loadBackupMetadata() async {
-    final settings = await loadSettings();
-    if (settings.containsKey('backup_metadata')) {
+    final raw = await loadSettingValue('backup_metadata');
+    if (raw != null) {
       try {
-        final decoded = jsonDecode(settings['backup_metadata']!);
+        final decoded = jsonDecode(raw);
         if (decoded is Map<String, dynamic>) return decoded;
       } catch (_) {}
     }
@@ -1160,10 +1179,10 @@ class SupabaseService {
 
   // MARK: - Backup Snapshots (Available Backups list)
   Future<List<Map<String, dynamic>>> listBackupSnapshots() async {
-    final settings = await loadSettings();
-    if (settings.containsKey('backup_snapshots')) {
+    final raw = await loadSettingValue('backup_snapshots');
+    if (raw != null) {
       try {
-        final list = jsonDecode(settings['backup_snapshots']!) as List;
+        final list = jsonDecode(raw) as List;
         return list.map((item) {
           final m = Map<String, dynamic>.from(item as Map);
           if (m['created_at'] is String) {
@@ -1221,30 +1240,62 @@ class SupabaseService {
 
     final effectiveProfiles = profiles.isNotEmpty ? profiles : [{'id': 'quebrado.db', 'name': 'Personal'}];
 
+    // Settings sin las copias de seguridad (filtrado en el servidor: evita bajar ~9 MB).
+    Future<List<Map<String, dynamic>>> fetchCleanSettings() async {
+      try {
+        final List res = await client!
+            .from('settings')
+            .select()
+            .not('key', 'in', '(${heavySettingKeys.join(',')})');
+        return res.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+      } catch (e) {
+        debugPrint('Error fetching settings for export: $e');
+        return [];
+      }
+    }
+
+    // Las tablas globales se descargan una sola vez y se repiten en cada perfil
+    // (el formato del respaldo y el RPC de importación no cambian).
+    const globalTables = [
+      'rate_history',
+      'recurring_payment_confirmations',
+      'recurring_payment_partials',
+      'mobile_payment_recipients',
+      'market_stores',
+      'market_products',
+      'market_trips',
+      'market_items',
+      'market_shopping_lists',
+      'market_shopping_list_items',
+    ];
+    const profileTables = ['categories', 'accounts', 'pockets', 'transactions', 'recurring_payments'];
+
+    final cleanSettings = await fetchCleanSettings();
+    final globalResults = await Future.wait(globalTables.map((t) => fetchTable(t)));
+    final globalData = {for (var i = 0; i < globalTables.length; i++) globalTables[i]: globalResults[i]};
+
     for (var prof in effectiveProfiles) {
       final profId = prof['id']!;
-      final allSettings = await fetchTable('settings');
-      final cleanSettings = allSettings
-          .where((s) => s['key'] != 'backup_snapshots' && s['key'] != 'backup_metadata')
-          .toList();
+      final profileResults = await Future.wait(profileTables.map((t) => fetchTable(t, profileId: profId)));
+      final profileData = {for (var i = 0; i < profileTables.length; i++) profileTables[i]: profileResults[i]};
 
       backupData['databases'][profId] = {
         'settings': cleanSettings,
-        'categories': await fetchTable('categories', profileId: profId),
-        'accounts': await fetchTable('accounts', profileId: profId),
-        'pockets': await fetchTable('pockets', profileId: profId),
-        'transactions': await fetchTable('transactions', profileId: profId),
-        'rate_history': await fetchTable('rate_history'),
-        'recurring_payments': await fetchTable('recurring_payments', profileId: profId),
-        'recurring_payment_confirmations': await fetchTable('recurring_payment_confirmations'),
-        'recurring_payment_partials': await fetchTable('recurring_payment_partials'),
-        'mobile_payment_recipients': await fetchTable('mobile_payment_recipients'),
-        'market_stores': await fetchTable('market_stores'),
-        'market_products': await fetchTable('market_products'),
-        'market_trips': await fetchTable('market_trips'),
-        'market_items': await fetchTable('market_items'),
-        'market_shopping_lists': await fetchTable('market_shopping_lists'),
-        'market_shopping_list_items': await fetchTable('market_shopping_list_items'),
+        'categories': profileData['categories'],
+        'accounts': profileData['accounts'],
+        'pockets': profileData['pockets'],
+        'transactions': profileData['transactions'],
+        'rate_history': globalData['rate_history'],
+        'recurring_payments': profileData['recurring_payments'],
+        'recurring_payment_confirmations': globalData['recurring_payment_confirmations'],
+        'recurring_payment_partials': globalData['recurring_payment_partials'],
+        'mobile_payment_recipients': globalData['mobile_payment_recipients'],
+        'market_stores': globalData['market_stores'],
+        'market_products': globalData['market_products'],
+        'market_trips': globalData['market_trips'],
+        'market_items': globalData['market_items'],
+        'market_shopping_lists': globalData['market_shopping_lists'],
+        'market_shopping_list_items': globalData['market_shopping_list_items'],
       };
     }
 
@@ -1259,6 +1310,9 @@ class SupabaseService {
       final now = DateTime.now();
       final dateStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
       final lastDate = metadata['last_auto_backup_date'] as String? ?? '';
+
+      // La metadata pesa ~1 KB: si ya hubo respaldo hoy no se descargan las copias (~9 MB).
+      if (lastDate == dateStr) return;
 
       final snapshots = await listBackupSnapshots();
       final alreadyHasToday = snapshots.any((s) => s['is_auto'] == true && s['name'] == 'auto_backup_$dateStr');

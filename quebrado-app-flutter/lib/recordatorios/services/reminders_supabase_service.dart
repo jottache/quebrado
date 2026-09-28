@@ -23,6 +23,18 @@ class RemindersSupabaseService {
 
   String? get currentUserId => _client?.auth.currentUser?.id;
 
+  static final RegExp _uuidPattern =
+      RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+
+  /// Las columnas id / user_id / role_id / weekly_plan_id son UUID en Supabase:
+  /// valores locales como 'local-user' o 'role_individual' hacen fallar el guardado.
+  static bool isUuid(String? value) => value != null && _uuidPattern.hasMatch(value);
+
+  /// Sin sesión iniciada se guarda NULL (las políticas RLS lo permiten), nunca 'local-user'.
+  void _applyUserId(Map<String, dynamic> data) {
+    data['user_id'] = currentUserId;
+  }
+
   // ==========================================
   // RECORDATORIOS (REMINDERS)
   // ==========================================
@@ -64,13 +76,34 @@ class RemindersSupabaseService {
   Future<bool> saveReminder(ReminderModel reminder) async {
     if (!isRemoteAvailable) return true;
 
+    final data = reminder.toMap();
+    _applyUserId(data);
+    if (!isUuid(data['role_id'] as String?)) data['role_id'] = null;
+    if (!isUuid(data['weekly_plan_id'] as String?)) data['weekly_plan_id'] = null;
+    if (!isUuid(data['parent_id'] as String?)) data['parent_id'] = null;
+
     try {
-      final data = reminder.toMap();
-      if (currentUserId != null) {
-        data['user_id'] = currentUserId;
-      }
       await _client!.from('reminders').upsert(data);
       return true;
+    } on PostgrestException catch (e) {
+      // 23503 = la referencia (rol o plan semanal) no existe en la BD. Se guarda el
+      // recordatorio sin esa referencia antes que perderlo.
+      if (e.code == '23503') {
+        final msg = '${e.message} ${e.details ?? ''}';
+        if (msg.contains('weekly_plan')) data['weekly_plan_id'] = null;
+        if (msg.contains('role')) data['role_id'] = null;
+        if (msg.contains('parent')) data['parent_id'] = null;
+        try {
+          await _client!.from('reminders').upsert(data);
+          debugPrint('[Reminders] Recordatorio guardado sin una referencia inexistente: ${e.message}');
+          return true;
+        } catch (e2) {
+          debugPrint('[Reminders] Error al guardar recordatorio: $e2');
+          return false;
+        }
+      }
+      debugPrint('[Reminders] Error al guardar recordatorio: $e');
+      return false;
     } catch (e) {
       debugPrint('[Reminders] Error al guardar recordatorio: $e');
       return false;
@@ -194,7 +227,7 @@ class RemindersSupabaseService {
       final response = await _client!
           .from('roles')
           .select()
-          .order('order_index', ascending: true);
+          .order('position', ascending: true);
 
       final list = (response as List<dynamic>)
           .map((item) => RoleModel.fromMap(Map<String, dynamic>.from(item)))
@@ -202,7 +235,10 @@ class RemindersSupabaseService {
 
       if (list.isEmpty) {
         debugPrint('[Reminders] No hay roles configurados, creando semillas por defecto');
-        final seeds = RoleModel.defaultSeeds(effectiveUserId);
+        // Las semillas locales usan ids legibles ('role_individual'); en la BD deben ser UUID.
+        final seeds = RoleModel.defaultSeedRoles()
+            .map((r) => r.copyWith(id: _uuid.v4(), userId: currentUserId))
+            .toList();
         for (final r in seeds) {
           await saveRole(r);
         }
@@ -221,10 +257,12 @@ class RemindersSupabaseService {
     if (!isRemoteAvailable) return true;
 
     try {
-      final data = role.toMap();
-      if (currentUserId != null) {
-        data['user_id'] = currentUserId;
+      if (!isUuid(role.id)) {
+        debugPrint('[Reminders] Rol con id local (${role.id}) no se guarda en Supabase');
+        return false;
       }
+      final data = role.toMap();
+      _applyUserId(data);
       await _client!.from('roles').upsert(data);
       return true;
     } catch (e) {
@@ -251,9 +289,12 @@ class RemindersSupabaseService {
   // ==========================================
 
   /// Obtiene el plan de la semana actual o lo crea si no existe
-  Future<WeeklyPlanModel> fetchOrCreateCurrentWeeklyPlan() async {
+  Future<WeeklyPlanModel> fetchOrCreateCurrentWeeklyPlan() => fetchOrCreateWeeklyPlan(DateTime.now());
+
+  /// Obtiene (o crea) el plan de la semana que contiene [anyDateInWeek].
+  Future<WeeklyPlanModel> fetchOrCreateWeeklyPlan(DateTime anyDateInWeek) async {
     final effectiveUserId = currentUserId ?? 'local-user';
-    final monday = WeeklyPlanModel.normalizeToMonday(DateTime.now());
+    final monday = WeeklyPlanModel.normalizeToMonday(anyDateInWeek);
     final mondayStr = DateFormat('yyyy-MM-dd').format(monday);
 
     if (!isRemoteAvailable) {
@@ -266,14 +307,17 @@ class RemindersSupabaseService {
     }
 
     try {
-      final response = await _client!
+      // Sin sesión user_id es NULL y la restricción UNIQUE no evita duplicados:
+      // se toma el plan más antiguo de esa semana.
+      final List rows = await _client!
           .from('weekly_plans')
           .select()
           .eq('week_start_date', mondayStr)
-          .maybeSingle();
+          .order('created_at', ascending: true)
+          .limit(1);
 
-      if (response != null) {
-        return WeeklyPlanModel.fromMap(Map<String, dynamic>.from(response));
+      if (rows.isNotEmpty) {
+        return WeeklyPlanModel.fromMap(Map<String, dynamic>.from(rows.first as Map));
       }
 
       // Si no existe, creamos el plan semanal inicial
@@ -301,10 +345,9 @@ class RemindersSupabaseService {
     if (!isRemoteAvailable) return true;
 
     try {
+      if (!isUuid(plan.id)) return false; // plan local sin conexión
       final data = plan.toMap();
-      if (currentUserId != null) {
-        data['user_id'] = currentUserId;
-      }
+      _applyUserId(data);
       await _client!.from('weekly_plans').upsert(data);
       return true;
     } catch (e) {

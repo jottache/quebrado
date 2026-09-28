@@ -64,10 +64,9 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     _estimatedDurationMinutes = r?.estimatedDurationMinutes ?? 30;
 
     if (r == null && widget.scheduledDayOfWeek != null) {
-      final now = DateTime.now();
-      final monday = now.subtract(Duration(days: now.weekday - 1));
-      final targetDate = monday.add(Duration(days: widget.scheduledDayOfWeek!));
-      _dueAt = DateTime(targetDate.year, targetDate.month, targetDate.day, 9, 0);
+      // El día corresponde a la semana que se está viendo en la agenda, no siempre a la actual.
+      final monday = Provider.of<RemindersState>(context, listen: false).currentMonday;
+      _dueAt = DateTime(monday.year, monday.month, monday.day + widget.scheduledDayOfWeek!, 9, 0);
     }
   }
 

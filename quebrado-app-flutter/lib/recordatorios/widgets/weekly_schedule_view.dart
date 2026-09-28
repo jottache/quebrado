@@ -48,6 +48,92 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     );
   }
 
+  static String _weekRelativeLabel(int offset) {
+    switch (offset) {
+      case 0:
+        return 'Esta semana';
+      case 1:
+        return 'Próxima semana';
+      case -1:
+        return 'Semana pasada';
+      default:
+        return offset > 0 ? 'En $offset semanas' : 'Hace ${-offset} semanas';
+    }
+  }
+
+  /// Barra ‹ semana › para ver y planificar cualquier semana.
+  Widget _buildWeekNavigator(RemindersState state, {bool compact = false}) {
+    final monday = state.currentMonday;
+    final sunday = DateTime(monday.year, monday.month, monday.day + 6);
+    final offset = state.selectedWeekOffset;
+    final range = '${_formatDayHeader(monday)} – ${_formatDayHeader(sunday)}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: offset == 0 ? Colors.white : const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: offset == 0 ? Colors.grey.shade200 : const Color(0xFFFDE68A)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            key: const ValueKey('week_prev'),
+            tooltip: 'Semana anterior',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_left_rounded),
+            onPressed: state.previousWeek,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  range,
+                  key: const ValueKey('week_range'),
+                  style: TextStyle(
+                    fontSize: compact ? 13 : 14,
+                    fontWeight: FontWeight.bold,
+                    color: RemindersColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  _weekRelativeLabel(offset),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: offset == 0 ? RemindersColors.primary : const Color(0xFFB45309),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (state.isLoadingWeek)
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+          if (offset != 0)
+            TextButton(
+              onPressed: state.goToCurrentWeek,
+              style: TextButton.styleFrom(
+                foregroundColor: RemindersColors.primary,
+                visualDensity: VisualDensity.compact,
+              ),
+              child: const Text('Hoy', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          IconButton(
+            key: const ValueKey('week_next'),
+            tooltip: 'Semana siguiente',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_right_rounded),
+            onPressed: state.nextWeek,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openRoleManager(BuildContext context) {
     showDialog(
       context: context,
@@ -188,6 +274,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
   ) {
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+          child: _buildWeekNavigator(state, compact: true),
+        ),
+
         // Sub-barra superior de navegación móvil: [ Cronograma Semanal | Brújula (Roles) ]
         Container(
           margin: const EdgeInsets.fromLTRB(16, 6, 16, 8),
@@ -709,6 +800,9 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: Column(
               children: [
+                _buildWeekNavigator(state),
+                const SizedBox(height: 10),
+
                 // Grilla de los 7 Días de la Semana
                 Expanded(
                   child: Row(

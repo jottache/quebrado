@@ -80,6 +80,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AppState>(create: (_) => AppState()),
         ChangeNotifierProvider<DiarioState>(create: (_) => DiarioState()),
+        ChangeNotifierProvider<AnimoState>(create: (_) => AnimoState()..loadAll()),
         ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
         ChangeNotifierProvider<RemindersState>(create: (_) => RemindersState()),
         ChangeNotifierProvider<NotasState>(create: (_) => NotasState()..loadAll()),

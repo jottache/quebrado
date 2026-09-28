@@ -9,6 +9,8 @@ import '../dialogs/quick_note_dialog.dart';
 import '../dialogs/entry_reader_dialog.dart';
 import '../widgets/diario_image_helper.dart';
 import '../widgets/mention_text_field.dart';
+import '../widgets/mood_quick_bar.dart';
+import '../screens/animo_dashboard_screen.dart';
 import '../../notas/notas.dart';
 
 class PersonalNotesView extends StatefulWidget {
@@ -84,6 +86,12 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
     return ListView(
       padding: widget.padding,
       children: [
+        // 0. Check-in de ánimo (no se dibuja si AnimoState no está registrado)
+        MoodTodayCard(
+          margin: const EdgeInsets.only(bottom: 14),
+          onOpenDashboard: () => openAnimoDashboard(context),
+        ),
+
         // 1. Header Banner: Quick Action & Stats
         _buildHeaderBanner(context, allPersonal.length),
 

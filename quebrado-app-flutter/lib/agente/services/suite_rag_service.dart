@@ -1510,7 +1510,8 @@ $rolesSummary
 
         final dayLabels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         final dayLabel = dayLabels[dayIndex];
-        final monday = remindersState.currentMonday;
+        // Fin de semana → próxima semana; si el usuario está viendo otra semana, esa.
+        final monday = remindersState.suggestedPlanningMonday;
         final scheduledDate = DateTime(
           monday.year,
           monday.month,

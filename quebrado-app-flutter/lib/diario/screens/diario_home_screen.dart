@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/diario_contact.dart';
 import '../viewmodels/diario_state.dart';
+import '../viewmodels/animo_state.dart';
+import 'animo_dashboard_screen.dart';
 import '../theme/diario_colors.dart';
 import '../dialogs/contact_editor_dialog.dart';
 import 'contact_detail_screen.dart';
@@ -192,6 +194,12 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
           ],
         ),
         actions: [
+          if (AnimoState.maybeOf(context, listen: false) != null)
+            IconButton(
+              icon: const Icon(Icons.mood_rounded),
+              tooltip: 'Mi ánimo',
+              onPressed: () => openAnimoDashboard(context),
+            ),
           IconButton(
             icon: const Icon(Icons.search_rounded),
             tooltip: 'Búsqueda Global',
@@ -827,6 +835,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                           '$entriesCount ${entriesCount == 1 ? "registro" : "registros"}',
                           style: TextStyle(fontSize: 11, color: Colors.grey[400]),
                         ),
+                        ?_buildPerceivedMoodBadge(contact),
                       ],
                     ),
                   ],
@@ -842,6 +851,24 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Emoji del último ánimo percibido del contacto (si es de los últimos 14 días).
+  Widget? _buildPerceivedMoodBadge(DiarioContact contact) {
+    final latest = AnimoState.maybeOf(context)?.latestFor(contact.id);
+    if (latest == null || DateTime.now().difference(latest.loggedAt).inDays > 14) return null;
+    final meta = latest.valenceMeta;
+    return Tooltip(
+      message: 'Ánimo percibido: ${meta.label}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(
+          color: meta.lightColor,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(meta.emoji, style: const TextStyle(fontSize: 11)),
       ),
     );
   }

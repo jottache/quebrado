@@ -250,8 +250,9 @@ class AppState extends ChangeNotifier {
 
         await _ensureDefaultAccountsForActiveProfile();
 
-        // Perform daily auto backup on Supabase in background
-        SupabaseService.instance.checkAndPerformAutoBackup();
+        // Respaldo automático diario en segundo plano, cuando la carga inicial ya terminó
+        // para no competir por la red con los datos que el usuario está esperando.
+        Future.delayed(const Duration(seconds: 20), () => SupabaseService.instance.checkAndPerformAutoBackup());
       } else if (!kIsWeb) {
         _profiles = await DatabaseHelper.instance.loadProfiles();
         _activeDbName = await DatabaseHelper.instance.getActiveProfile();

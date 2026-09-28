@@ -92,9 +92,91 @@ class RemindersState extends ChangeNotifier {
   // HÁBITO 3: BRÚJULA SEMANAL & GRANDES ROCAS
   // ==========================================
 
-  /// Lunes que define el inicio de la semana actual activa
+  /// Lunes de la semana SELECCIONADA (por defecto la actual; se cambia con [selectWeek]).
   DateTime get currentMonday {
     return _currentWeeklyPlan?.weekStartDate ?? WeeklyPlanModel.normalizeToMonday(DateTime.now());
+  }
+
+  /// Lunes de la semana en curso según el calendario (independiente de la selección).
+  static DateTime thisWeekMonday([DateTime? now]) => WeeklyPlanModel.normalizeToMonday(now ?? DateTime.now());
+
+  /// Semana que conviene planificar: el sábado y el domingo se planifica la semana siguiente.
+  static DateTime defaultPlanningMonday([DateTime? now]) {
+    final today = now ?? DateTime.now();
+    final monday = thisWeekMonday(today);
+    return today.weekday >= DateTime.saturday ? DateTime(monday.year, monday.month, monday.day + 7) : monday;
+  }
+
+  /// Semana para acciones de planificación (ritual, Agente): la que el usuario está
+  /// mirando si eligió otra; si está en la semana en curso, la sugerida por el día.
+  DateTime get suggestedPlanningMonday =>
+      isViewingCurrentWeek ? defaultPlanningMonday() : currentMonday;
+
+  bool get isViewingCurrentWeek => _isSameDay(currentMonday, thisWeekMonday());
+
+  /// Diferencia en semanas entre la semana seleccionada y la actual (0 = esta, 1 = próxima, -1 = pasada).
+  int get selectedWeekOffset {
+    final diffDays = currentMonday.difference(thisWeekMonday()).inHours / 24;
+    return (diffDays / 7).round();
+  }
+
+  bool _isLoadingWeek = false;
+  bool get isLoadingWeek => _isLoadingWeek;
+  int _weekRequestId = 0;
+
+  /// Cambia la semana que se muestra y planifica. Carga (o crea) su plan semanal.
+  Future<void> selectWeek(DateTime anyDateInWeek) async {
+    final monday = WeeklyPlanModel.normalizeToMonday(anyDateInWeek);
+    if (_currentWeeklyPlan != null && _isSameDay(monday, currentMonday)) return;
+
+    final requestId = ++_weekRequestId;
+    // Cambio inmediato en la UI con un plan provisional mientras llega el real.
+    _currentWeeklyPlan = WeeklyPlanModel(
+      id: 'local-week-${monday.toIso8601String().substring(0, 10)}',
+      userId: _service.currentUserId ?? 'local-user',
+      weekStartDate: monday,
+      createdAt: DateTime.now(),
+    );
+    _isLoadingWeek = true;
+    notifyListeners();
+
+    try {
+      final plan = await _service.fetchOrCreateWeeklyPlan(monday);
+      if (requestId == _weekRequestId) _currentWeeklyPlan = plan;
+    } catch (e) {
+      debugPrint('[RemindersState] Error cargando plan semanal: $e');
+    } finally {
+      if (requestId == _weekRequestId) {
+        _isLoadingWeek = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> nextWeek() => selectWeek(DateTime(currentMonday.year, currentMonday.month, currentMonday.day + 7));
+  Future<void> previousWeek() => selectWeek(DateTime(currentMonday.year, currentMonday.month, currentMonday.day - 7));
+  Future<void> goToCurrentWeek() => selectWeek(DateTime.now());
+
+  static bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _isInSelectedWeek(DateTime date) {
+    final local = date.toLocal();
+    final monday = currentMonday;
+    final nextMonday = DateTime(monday.year, monday.month, monday.day + 7);
+    return !local.isBefore(monday) && local.isBefore(nextMonday);
+  }
+
+  /// Un recordatorio solo se asocia al plan seleccionado si su fecha cae en esa semana.
+  String? _planIdFor(DateTime? dueAt) {
+    if (dueAt == null || _isInSelectedWeek(dueAt)) return _currentWeeklyPlan?.id;
+    return null;
+  }
+
+  /// Un recordatorio agendado solo por día de la semana (sin fecha) pertenece a la
+  /// semana de su plan; los antiguos sin plan se muestran en la semana en curso.
+  bool _belongsToSelectedWeekByDayOnly(ReminderModel r) {
+    if (r.weeklyPlanId == null || !RemindersSupabaseService.isUuid(r.weeklyPlanId)) return isViewingCurrentWeek;
+    return r.weeklyPlanId == _currentWeeklyPlan?.id;
   }
 
   /// Retorna las fechas de los 7 días de la semana actual (Lunes a Domingo)
@@ -110,12 +192,12 @@ class RemindersState extends ChangeNotifier {
 
     return _reminders.where((r) {
       if (!r.isBigRock || r.isArchived) return false;
-      if (r.weeklyPlanId != null && r.weeklyPlanId == _currentWeeklyPlan?.id) return true;
       if (r.dueAt != null) {
-        return r.dueAt!.isAfter(monday.subtract(const Duration(seconds: 1))) &&
-            r.dueAt!.isBefore(sundayEnd);
+        final local = r.dueAt!.toLocal();
+        return local.isAfter(monday.subtract(const Duration(seconds: 1))) && local.isBefore(sundayEnd);
       }
-      return r.scheduledDayOfWeek != null;
+      if (r.weeklyPlanId != null && r.weeklyPlanId == _currentWeeklyPlan?.id) return true;
+      return r.scheduledDayOfWeek != null && _belongsToSelectedWeekByDayOnly(r);
     }).toList();
   }
 
@@ -161,10 +243,7 @@ class RemindersState extends ChangeNotifier {
     return _filteredList.where((r) {
       if (r.isCompleted || r.isArchived) return false;
 
-      // 1. Asignado explícitamente por el planificador semanal
-      if (r.scheduledDayOfWeek == dayIndex) return true;
-
-      // 2. Coincide con la fecha dueAt dentro de la semana
+      // 1. Con fecha: manda la fecha real (así no aparece en todas las semanas)
       if (r.dueAt != null) {
         final local = r.dueAt!.toLocal();
         return local.year == targetDay.year &&
@@ -172,7 +251,8 @@ class RemindersState extends ChangeNotifier {
             local.day == targetDay.day;
       }
 
-      return false;
+      // 2. Solo día de la semana: se muestra en la semana de su plan
+      return r.scheduledDayOfWeek == dayIndex && _belongsToSelectedWeekByDayOnly(r);
     }).toList()
       ..sort((a, b) {
         // Primero Grandes Rocas, luego por hora o creación
@@ -370,7 +450,7 @@ class RemindersState extends ChangeNotifier {
       isNagging: isNagging,
       tags: parsed.tags,
       roleId: matchedRoleId,
-      weeklyPlanId: _currentWeeklyPlan?.id,
+      weeklyPlanId: _planIdFor(parsed.dueAt),
       quadrant: parsed.quadrant,
       isBigRock: parsed.isBigRock,
       scheduledDayOfWeek: scheduledDay,
@@ -453,7 +533,7 @@ class RemindersState extends ChangeNotifier {
     final newVal = !_reminders[index].isBigRock;
     final updated = _reminders[index].copyWith(
       isBigRock: newVal,
-      weeklyPlanId: newVal ? (_currentWeeklyPlan?.id) : _reminders[index].weeklyPlanId,
+      weeklyPlanId: newVal ? _planIdFor(_reminders[index].dueAt) : _reminders[index].weeklyPlanId,
       updatedAt: DateTime.now(),
     );
 
@@ -520,17 +600,26 @@ class RemindersState extends ChangeNotifier {
     await _service.saveWeeklyPlan(updatedPlan);
   }
 
-  /// Creación o edición personalizada
-  Future<void> saveReminder(ReminderModel reminder) async {
-    final index = _reminders.indexWhere((r) => r.id == reminder.id);
+  /// Creación o edición personalizada. Devuelve false si no se pudo guardar en Supabase.
+  Future<bool> saveReminder(ReminderModel reminder) async {
+    // Si la fecha cae fuera de la semana del plan seleccionado, no se asocia a ese plan.
+    var toSave = reminder;
+    if (reminder.weeklyPlanId != null &&
+        reminder.weeklyPlanId == _currentWeeklyPlan?.id &&
+        reminder.dueAt != null &&
+        !_isInSelectedWeek(reminder.dueAt!)) {
+      toSave = reminder.copyWith(clearWeeklyPlanId: true);
+    }
+
+    final index = _reminders.indexWhere((r) => r.id == toSave.id);
     if (index != -1) {
-      _reminders[index] = reminder.copyWith(updatedAt: DateTime.now());
+      _reminders[index] = toSave.copyWith(updatedAt: DateTime.now());
     } else {
-      _reminders.insert(0, reminder);
+      _reminders.insert(0, toSave);
     }
     notifyListeners();
 
-    await _service.saveReminder(reminder);
+    return _service.saveReminder(toSave);
   }
 
   /// Alternar estado de completado
