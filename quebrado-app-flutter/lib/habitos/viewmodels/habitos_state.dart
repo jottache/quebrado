@@ -136,6 +136,105 @@ class HabitosState extends ChangeNotifier {
     return log?.value ?? 0.0;
   }
 
+  HabitModel? _habitById(String habitId) {
+    for (final h in _habits) {
+      if (h.id == habitId) return h;
+    }
+    return null;
+  }
+
+  // ===========================================================================
+  // MALOS HÁBITOS: RECAÍDAS
+  // Un día es de recaída si su registro tiene completed == false. Por compatibilidad
+  // con registros antiguos, un contador negativo con valor > 0 también lo es
+  // (antes el +1 lo marcaba como "cumplido").
+  // ===========================================================================
+
+  bool isRelapseLog(HabitModel habit, HabitLogModel? log) {
+    if (!habit.isNegative || log == null) return false;
+    if (!log.completed) return true;
+    return habit.type == HabitType.counter && log.value > 0;
+  }
+
+  bool isRelapseDay(String habitId, [String? dateKey]) {
+    final habit = _habitById(habitId);
+    if (habit == null) return false;
+    return isRelapseLog(habit, getLog(habitId, dateKey));
+  }
+
+  /// Veces que se recayó ese día (mínimo 1 si hubo recaída; los registros antiguos
+  /// guardaban 0 al reportar la recaída y el número exacto se perdió).
+  int getRelapseCount(String habitId, [String? dateKey]) {
+    final habit = _habitById(habitId);
+    if (habit == null) return 0;
+    final log = getLog(habitId, dateKey);
+    if (!isRelapseLog(habit, log)) return 0;
+    return log!.value < 1 ? 1 : log.value.round();
+  }
+
+  /// ¿El día cuenta como logrado? Buenos hábitos: completado. Malos hábitos: sin recaída
+  /// (solo desde que existe el hábito y hasta hoy).
+  bool isSuccessfulDay(HabitModel habit, DateTime date) {
+    final key = _formatDate(date);
+    if (!habit.isNegative) return isCompleted(habit.id, key);
+    final day = DateTime(date.year, date.month, date.day);
+    final created = DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day);
+    final now = DateTime.now();
+    if (day.isBefore(created) || day.isAfter(DateTime(now.year, now.month, now.day))) return false;
+    return !isRelapseLog(habit, getLog(habit.id, key));
+  }
+
+  /// Estado de cada día de los últimos [days] días (el último es hoy).
+  List<HabitDayStatus> getDayStatuses(String habitId, {required int days}) {
+    final habit = _habitById(habitId);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final result = <HabitDayStatus>[];
+    for (var i = days - 1; i >= 0; i--) {
+      final date = DateTime(today.year, today.month, today.day - i);
+      final key = _formatDate(date);
+      final log = getLog(habitId, key);
+      HabitDayKind kind;
+      if (habit == null) {
+        kind = HabitDayKind.none;
+      } else if (date.isBefore(DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day))) {
+        kind = HabitDayKind.beforeCreation;
+      } else if (habit.isNegative) {
+        kind = isRelapseLog(habit, log) ? HabitDayKind.relapse : HabitDayKind.clean;
+      } else if (log?.completed ?? false) {
+        kind = HabitDayKind.completed;
+      } else if ((log?.value ?? 0) > 0) {
+        kind = HabitDayKind.partial;
+      } else {
+        kind = HabitDayKind.none;
+      }
+      result.add(HabitDayStatus(
+        date: date,
+        dateKey: key,
+        kind: kind,
+        value: log?.value ?? 0,
+        relapseCount: kind == HabitDayKind.relapse ? getRelapseCount(habitId, key) : 0,
+      ));
+    }
+    return result;
+  }
+
+  /// Resumen de un rango (30, 90, 180, 365 días) contando solo días desde la creación.
+  HabitRangeStats getRangeStats(String habitId, {required int days}) {
+    final statuses = getDayStatuses(habitId, days: days)
+        .where((s) => s.kind != HabitDayKind.beforeCreation)
+        .toList();
+    final relapses = statuses.where((s) => s.kind == HabitDayKind.relapse).toList();
+    final successDays = statuses.where((s) => s.kind == HabitDayKind.completed || s.kind == HabitDayKind.clean).length;
+    return HabitRangeStats(
+      trackedDays: statuses.length,
+      successDays: successDays,
+      relapseDays: relapses.length,
+      relapseCount: relapses.fold(0, (sum, s) => sum + s.relapseCount),
+      totalValue: statuses.fold(0.0, (sum, s) => sum + s.value),
+    );
+  }
+
   /// Porcentaje de cumplimiento del día seleccionado (0.0 a 1.0)
   double getDailyCompletionRate(DateTime date) {
     final key = _formatDate(date);
@@ -144,7 +243,7 @@ class HabitosState extends ChangeNotifier {
 
     int completedCount = 0;
     for (final h in active) {
-      if (isCompleted(h.id, key)) {
+      if (isSuccessfulDay(h, date)) {
         completedCount++;
       }
     }
@@ -155,13 +254,12 @@ class HabitosState extends ChangeNotifier {
   double get todayCompletionRate => getDailyCompletionRate(DateTime.now());
 
   int get selectedDayCompletedCount {
-    final key = selectedDateKey;
-    return allHabits.where((h) => isCompleted(h.id, key)).length;
+    return allHabits.where((h) => isSuccessfulDay(h, _selectedDate)).length;
   }
 
   int get todayCompletedCount {
-    final key = todayKey;
-    return allHabits.where((h) => isCompleted(h.id, key)).length;
+    final now = DateTime.now();
+    return allHabits.where((h) => isSuccessfulDay(h, now)).length;
   }
 
   int get bestCurrentStreak {
@@ -202,40 +300,29 @@ class HabitosState extends ChangeNotifier {
 
   /// Días limpios invicto para malos hábitos (días desde la última recaída)
   int calculateCleanDays(String habitId) {
+    final habit = _habitById(habitId);
+    if (habit == null) return 0;
+    final created = DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day);
+    final now = DateTime.now();
+    var checkDate = DateTime(now.year, now.month, now.day);
     int days = 0;
-    var checkDate = DateTime.now();
 
-    while (true) {
-      final key = _formatDate(checkDate);
-      final log = getLog(habitId, key);
-
-      // Si hay un log explícitamente no completado (recaída) se corta la racha
-      if (log != null && !log.completed) {
-        break;
-      }
+    // Desde hoy hacia atrás hasta la última recaída (o hasta que se creó el hábito)
+    while (!checkDate.isBefore(created) && days <= 365) {
+      if (isRelapseLog(habit, getLog(habitId, _formatDate(checkDate)))) break;
       days++;
-      checkDate = checkDate.subtract(const Duration(days: 1));
-
-      // Límite de revisión 365 días
-      if (days > 365) break;
+      checkDate = DateTime(checkDate.year, checkDate.month, checkDate.day - 1);
     }
 
     return days;
   }
 
-  /// Score de Resiliencia a 30 días (%)
-  double calculateResilienceScore(String habitId) {
-    int completedDays = 0;
-    final now = DateTime.now();
-
-    for (int i = 0; i < 30; i++) {
-      final d = now.subtract(Duration(days: i));
-      if (isCompleted(habitId, _formatDate(d))) {
-        completedDays++;
-      }
-    }
-
-    return (completedDays / 30.0) * 100.0;
+  /// Score de Resiliencia (%) en los últimos [days] días. Malos hábitos: días sin recaída.
+  /// Solo cuenta días desde la creación del hábito.
+  double calculateResilienceScore(String habitId, {int days = 30}) {
+    final stats = getRangeStats(habitId, days: days);
+    if (stats.trackedDays == 0) return 0.0;
+    return stats.successRate * 100.0;
   }
 
   /// Datos diarios para el Heatmap estilo GitHub (últimos X días)
@@ -326,6 +413,25 @@ class HabitosState extends ChangeNotifier {
     final habit = _habits.firstWhere((h) => h.id == habitId);
     final existingLog = getLog(habitId, dateKey);
 
+    // Malos hábitos: el valor es el número de recaídas del día; 0 = día limpio.
+    if (habit.isNegative) {
+      final current = getRelapseCount(habitId, dateKey).toDouble();
+      final next = (current + delta) < 0 ? 0.0 : (current + delta);
+      final updated = (existingLog ?? HabitLogModel(
+        id: _uuid.v4(),
+        habitId: habitId,
+        logDate: dateKey,
+      )).copyWith(
+        value: next,
+        completed: next == 0,
+        updatedAt: DateTime.now(),
+      );
+      _upsertLogInMemory(updated);
+      notifyListeners();
+      await _service.saveHabitLog(updated);
+      return;
+    }
+
     final currentValue = existingLog?.value ?? 0.0;
     final double newValue;
     if (habit.type == HabitType.counter) {
@@ -351,20 +457,22 @@ class HabitosState extends ChangeNotifier {
     await _service.saveHabitLog(updatedLog);
   }
 
-  Future<void> reportRelapse(String habitId, {String? reason}) async {
+  /// Registra una recaída más ese día (suma 1 al contador de recaídas; antes lo ponía en 0).
+  Future<void> reportRelapse(String habitId, {String? reason, String? dateKey}) async {
     HapticFeedback.heavyImpact();
 
-    final dateKey = selectedDateKey;
-    final existingLog = getLog(habitId, dateKey);
+    final key = dateKey ?? selectedDateKey;
+    final existingLog = getLog(habitId, key);
+    final previous = getRelapseCount(habitId, key);
 
     final updatedLog = (existingLog ?? HabitLogModel(
       id: _uuid.v4(),
       habitId: habitId,
-      logDate: dateKey,
+      logDate: key,
     )).copyWith(
       completed: false,
-      value: 0.0,
-      notes: reason ?? 'Recaída reportada en terminal',
+      value: (previous + 1).toDouble(),
+      notes: reason ?? existingLog?.notes ?? 'Recaída reportada en terminal',
       updatedAt: DateTime.now(),
     );
 
@@ -469,4 +577,40 @@ class HabitosState extends ChangeNotifier {
   String _formatDate(DateTime date) {
     return "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
+}
+
+enum HabitDayKind { beforeCreation, none, partial, completed, clean, relapse }
+
+class HabitDayStatus {
+  final DateTime date;
+  final String dateKey;
+  final HabitDayKind kind;
+  final double value;
+  final int relapseCount;
+
+  const HabitDayStatus({
+    required this.date,
+    required this.dateKey,
+    required this.kind,
+    required this.value,
+    required this.relapseCount,
+  });
+}
+
+class HabitRangeStats {
+  final int trackedDays;
+  final int successDays;
+  final int relapseDays;
+  final int relapseCount;
+  final double totalValue;
+
+  const HabitRangeStats({
+    required this.trackedDays,
+    required this.successDays,
+    required this.relapseDays,
+    required this.relapseCount,
+    required this.totalValue,
+  });
+
+  double get successRate => trackedDays == 0 ? 0 : successDays / trackedDays;
 }

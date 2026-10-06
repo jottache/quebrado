@@ -347,10 +347,14 @@ class SupabaseService {
     }
   }
 
-  Future<void> updateTransaction(Transaction transaction) async {
+  Future<void> updateTransaction(Transaction transaction, {String? profileId}) async {
     if (!isReady) return;
     try {
-      await client!.from('transactions').update(transaction.toMap()).eq('id', transaction.id);
+      var query = client!.from('transactions').update(transaction.toMap()).eq('id', transaction.id);
+      if (profileId != null) {
+        query = query.eq('profile_id', profileId);
+      }
+      await query;
     } catch (e) {
       debugPrint('Error updating transaction in Supabase: $e');
     }

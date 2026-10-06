@@ -1040,8 +1040,7 @@ class AppState extends ChangeNotifier {
     if (deposit <= 0) return;
 
     pockets[index].currentAmountUSD += deposit;
-    await DatabaseHelper.instance.updatePocket(pockets[index]);
-    pockets = await DatabaseHelper.instance.getPockets();
+    await _persistPocketBalance(pockets[index]);
     notifyListeners();
   }
 
@@ -1058,9 +1057,33 @@ class AppState extends ChangeNotifier {
     if (withdraw <= 0) return;
 
     pockets[index].currentAmountUSD -= withdraw;
-    await DatabaseHelper.instance.updatePocket(pockets[index]);
-    pockets = await DatabaseHelper.instance.getPockets();
+    await _persistPocketBalance(pockets[index]);
     notifyListeners();
+  }
+
+  /// Guarda el saldo de un bolsillo en Supabase (si está activo) y en SQLite (fuera de web).
+  Future<void> _persistPocketBalance(SavingPocket pocket) async {
+    if (_usesSupabase) {
+      await SupabaseService.instance.updatePocket(pocket);
+    }
+    if (!kIsWeb) {
+      try {
+        await DatabaseHelper.instance.updatePocket(pocket);
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error updating pocket in DB: $e");
+        }
+      }
+    }
+    if (_localDbIsSourceOfTruth) {
+      try {
+        pockets = await DatabaseHelper.instance.getPockets();
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error reloading pockets from DB: $e");
+        }
+      }
+    }
   }
 
   // MARK: - Transactions Ledger
@@ -1168,7 +1191,7 @@ class AppState extends ChangeNotifier {
       }
     }
 
-    if (!kIsWeb) {
+    if (_localDbIsSourceOfTruth) {
       try {
         transactions = await DatabaseHelper.instance.getTransactions();
         pockets = await DatabaseHelper.instance.getPockets();
@@ -1241,118 +1264,118 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Con Supabase configurado, Supabase es la fuente de verdad y la base SQLite local
+  /// puede estar vacía (siempre en web). Solo sin Supabase se recargan las listas desde SQLite.
+  bool get _usesSupabase => SupabaseConfig.isConfigured && SupabaseService.instance.isReady;
+  bool get _localDbIsSourceOfTruth => debugLocalDbIsSourceOfTruth ?? (!kIsWeb && !_usesSupabase);
+
+  /// Solo para tests: simula el modo web/Supabase (false) en el que SQLite no tiene los datos.
+  @visibleForTesting
+  static bool? debugLocalDbIsSourceOfTruth;
+
   Future<void> updateTransaction(Transaction oldTx, Transaction newTx) async {
-    // 1. Revert old transaction's impact on account balance
-    if (oldTx.accountId != null) {
-      final oldAccIndex = accounts.indexWhere((acc) => acc.id == oldTx.accountId);
-      if (oldAccIndex != -1) {
-        final acc = accounts[oldAccIndex];
-        final amountInAccCurrency = _getTransactionAmountInAccountCurrency(oldTx, acc);
-        if (oldTx.type == TransactionType.income) {
-          acc.balance -= amountInAccCurrency;
-        } else {
-          acc.balance += amountInAccCurrency;
-        }
-        try {
-          await DatabaseHelper.instance.updateAccount(acc);
-        } catch (e) {
-          if (kDebugMode) {
-            print("Error updating account in DB: $e");
-          }
+    // 1. Revertir el efecto del movimiento original en cuenta y bolsillo (Supabase + SQLite)
+    await _revertTransactionImpact(oldTx);
+
+    // 2. Aplicar el efecto del movimiento editado
+    await _applyTransactionImpact(newTx);
+
+    // 3. Guardar el movimiento editado
+    if (_usesSupabase) {
+      await SupabaseService.instance.updateTransaction(newTx, profileId: _activeDbName);
+    }
+    if (!kIsWeb) {
+      try {
+        await DatabaseHelper.instance.updateTransaction(newTx);
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error updating transaction in DB: $e");
         }
       }
     }
 
-    // 2. Revert old transaction's impact on pocket balance (if any)
-    if (oldTx.destinationPocketId != null) {
-      final oldPocketIndex = pockets.indexWhere((p) => p.id == oldTx.destinationPocketId);
-      if (oldPocketIndex != -1) {
-        final pocket = pockets[oldPocketIndex];
-        final double amountUSD = oldTx.currency == CurrencyType.usd
-            ? oldTx.amount
-            : oldTx.amount / (oldTx.exchangeRate > 0 ? oldTx.exchangeRate : 1.0);
-        
-        if (oldTx.type == TransactionType.income) {
-          pocket.currentAmountUSD = pocket.currentAmountUSD - amountUSD > 0 ? pocket.currentAmountUSD - amountUSD : 0.0;
-        } else {
-          pocket.currentAmountUSD += amountUSD;
-        }
-        try {
-          await DatabaseHelper.instance.updatePocket(pocket);
-        } catch (e) {
-          if (kDebugMode) {
-            print("Error updating pocket in DB: $e");
-          }
+    // 4. Actualizar la lista en memoria (antes se recargaba desde SQLite, que en web está
+    //    vacía: todos los montos pasaban a 0 y la edición no llegaba a Supabase).
+    final index = transactions.indexWhere((t) => t.id == oldTx.id);
+    if (index != -1) {
+      transactions[index] = newTx;
+    } else {
+      transactions.insert(0, newTx);
+    }
+
+    if (_localDbIsSourceOfTruth) {
+      try {
+        transactions = await DatabaseHelper.instance.getTransactions();
+        pockets = await DatabaseHelper.instance.getPockets();
+        accounts = await DatabaseHelper.instance.getAccounts();
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error reloading lists from DB: $e");
         }
       }
     }
 
-    // 3. Apply new transaction's impact on account balance
-    if (newTx.accountId != null) {
-      final newAccIndex = accounts.indexWhere((acc) => acc.id == newTx.accountId);
-      if (newAccIndex != -1) {
-        final acc = accounts[newAccIndex];
-        final amountInAccCurrency = _getTransactionAmountInAccountCurrency(newTx, acc);
-        if (newTx.type == TransactionType.income) {
-          acc.balance += amountInAccCurrency;
-        } else {
-          acc.balance -= amountInAccCurrency;
-        }
-        try {
-          await DatabaseHelper.instance.updateAccount(acc);
-        } catch (e) {
-          if (kDebugMode) {
-            print("Error updating account in DB: $e");
-          }
-        }
-      }
-    }
-
-    // 4. Apply new transaction's impact on pocket balance (if any)
-    if (newTx.destinationPocketId != null) {
-      final newPocketIndex = pockets.indexWhere((p) => p.id == newTx.destinationPocketId);
-      if (newPocketIndex != -1) {
-        final pocket = pockets[newPocketIndex];
-        final double amountUSD = newTx.currency == CurrencyType.usd
-            ? newTx.amount
-            : newTx.amount / (newTx.exchangeRate > 0 ? newTx.exchangeRate : 1.0);
-        
-        if (newTx.type == TransactionType.income) {
-          pocket.currentAmountUSD += amountUSD;
-        } else {
-          pocket.currentAmountUSD = pocket.currentAmountUSD - amountUSD > 0 ? pocket.currentAmountUSD - amountUSD : 0.0;
-        }
-        try {
-          await DatabaseHelper.instance.updatePocket(pocket);
-        } catch (e) {
-          if (kDebugMode) {
-            print("Error updating pocket in DB: $e");
-          }
-        }
-      }
-    }
-
-    // 5. Update transaction in SQLite
-    try {
-      await DatabaseHelper.instance.updateTransaction(newTx);
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error updating transaction in DB: $e");
-      }
-    }
-
-    // 6. Reload lists from database to ensure everything is in sync
-    try {
-      transactions = await DatabaseHelper.instance.getTransactions();
-      pockets = await DatabaseHelper.instance.getPockets();
-      accounts = await DatabaseHelper.instance.getAccounts();
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error reloading lists from DB: $e");
-      }
-    }
-    
+    await updatePendingPaymentsToday();
     notifyListeners();
+  }
+
+  /// Aplica el efecto de un movimiento en el saldo de su cuenta y bolsillo (inverso de
+  /// [_revertTransactionImpact]).
+  Future<void> _applyTransactionImpact(Transaction t) async {
+    if (t.accountId != null) {
+      final index = accounts.indexWhere((acc) => acc.id == t.accountId);
+      if (index != -1) {
+        final acc = accounts[index];
+        final amountInAccCurrency = _getTransactionAmountInAccountCurrency(t, acc);
+        if (t.type == TransactionType.income) {
+          acc.balance += amountInAccCurrency;
+        } else {
+          acc.balance -= amountInAccCurrency;
+        }
+        if (_usesSupabase) {
+          await SupabaseService.instance.updateAccount(acc, profileId: _activeDbName);
+        }
+        if (!kIsWeb) {
+          try {
+            await DatabaseHelper.instance.updateAccount(acc);
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error updating account in DB: $e");
+            }
+          }
+        }
+      }
+    }
+
+    if (t.destinationPocketId != null) {
+      final index = pockets.indexWhere((p) => p.id == t.destinationPocketId);
+      if (index != -1) {
+        final pocket = pockets[index];
+        final double amountUSD = t.currency == CurrencyType.usd
+            ? t.amount
+            : t.amount / (t.exchangeRate > 0 ? t.exchangeRate : 1.0);
+
+        if (t.type == TransactionType.income) {
+          pocket.currentAmountUSD += amountUSD;
+        } else {
+          pocket.currentAmountUSD = pocket.currentAmountUSD - amountUSD > 0
+              ? pocket.currentAmountUSD - amountUSD
+              : 0.0;
+        }
+        if (_usesSupabase) {
+          await SupabaseService.instance.updatePocket(pocket);
+        }
+        if (!kIsWeb) {
+          try {
+            await DatabaseHelper.instance.updatePocket(pocket);
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error updating pocket in DB: $e");
+            }
+          }
+        }
+      }
+    }
   }
 
   Future<void> _revertTransactionImpact(Transaction t) async {
@@ -1465,7 +1488,7 @@ class AppState extends ChangeNotifier {
       transactions.removeWhere((t) => t.id == counterpart!.id);
     }
 
-    if (!kIsWeb) {
+    if (_localDbIsSourceOfTruth) {
       try {
         transactions = await DatabaseHelper.instance.getTransactions();
         pockets = await DatabaseHelper.instance.getPockets();
@@ -3565,8 +3588,23 @@ class AppState extends ChangeNotifier {
       colorHex: "#FF9500",
       type: type,
     );
-    await DatabaseHelper.instance.insertCategory(newCat);
-    categories = await DatabaseHelper.instance.getCategories();
+    if (_usesSupabase) {
+      await SupabaseService.instance.insertCategory(newCat, profileId: _activeDbName);
+    }
+    if (!kIsWeb) {
+      try {
+        await DatabaseHelper.instance.insertCategory(newCat);
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error inserting exchange category in DB: $e");
+        }
+      }
+    }
+    if (_localDbIsSourceOfTruth) {
+      categories = await DatabaseHelper.instance.getCategories();
+    } else {
+      categories.add(newCat);
+    }
     return newId;
   }
 
@@ -3629,10 +3667,7 @@ class AppState extends ChangeNotifier {
         exchangeRate: exchangeRate,
       );
 
-      await DatabaseHelper.instance.updateAccount(usdAcc);
-      await DatabaseHelper.instance.updateAccount(vesAcc);
-      await DatabaseHelper.instance.insertTransaction(usdTx);
-      await DatabaseHelper.instance.insertTransaction(vesTx);
+      await _persistExchange(usdAcc, vesAcc, usdTx, vesTx);
     } else {
       // Compra: VES -> USD
       // 1. VES Account Egress (Expense)
@@ -3665,15 +3700,45 @@ class AppState extends ChangeNotifier {
         exchangeRate: exchangeRate,
       );
 
-      await DatabaseHelper.instance.updateAccount(usdAcc);
-      await DatabaseHelper.instance.updateAccount(vesAcc);
-      await DatabaseHelper.instance.insertTransaction(usdTx);
-      await DatabaseHelper.instance.insertTransaction(vesTx);
+      await _persistExchange(usdAcc, vesAcc, usdTx, vesTx);
     }
 
-    transactions = await DatabaseHelper.instance.getTransactions();
-    accounts = await DatabaseHelper.instance.getAccounts();
+    if (_localDbIsSourceOfTruth) {
+      try {
+        transactions = await DatabaseHelper.instance.getTransactions();
+        accounts = await DatabaseHelper.instance.getAccounts();
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error reloading lists after exchange: $e");
+        }
+      }
+    }
     notifyListeners();
+  }
+
+  /// Guarda un cambio de divisa (dos cuentas y dos movimientos) en Supabase y/o SQLite,
+  /// y agrega los movimientos a la lista en memoria.
+  Future<void> _persistExchange(Account usdAcc, Account vesAcc, Transaction usdTx, Transaction vesTx) async {
+    if (_usesSupabase) {
+      await SupabaseService.instance.updateAccount(usdAcc, profileId: _activeDbName);
+      await SupabaseService.instance.updateAccount(vesAcc, profileId: _activeDbName);
+      await SupabaseService.instance.insertTransaction(usdTx, profileId: _activeDbName);
+      await SupabaseService.instance.insertTransaction(vesTx, profileId: _activeDbName);
+    }
+    if (!kIsWeb) {
+      try {
+        await DatabaseHelper.instance.updateAccount(usdAcc);
+        await DatabaseHelper.instance.updateAccount(vesAcc);
+        await DatabaseHelper.instance.insertTransaction(usdTx);
+        await DatabaseHelper.instance.insertTransaction(vesTx);
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error saving exchange in DB: $e");
+        }
+      }
+    }
+    transactions.removeWhere((t) => t.id == usdTx.id || t.id == vesTx.id);
+    transactions.insertAll(0, [usdTx, vesTx]);
   }
 
   // MARK: - Guided Tutorial/Showcases States

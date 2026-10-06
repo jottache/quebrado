@@ -187,7 +187,9 @@ class NoteBlockWidget extends StatelessWidget {
         },
         textInputAction: TextInputAction.next,
         onFieldSubmitted: (_) => onEnterPressed?.call(),
-        maxLines: 1,
+        keyboardType: TextInputType.text,
+        minLines: 1,
+        maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
         style: TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: NotasColors.textPrimary),
         decoration: InputDecoration(
           hintText: 'Encabezado...',
@@ -314,7 +316,9 @@ class NoteBlockWidget extends StatelessWidget {
               },
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => onEnterPressed?.call(),
-              maxLines: 1,
+              keyboardType: TextInputType.text,
+              minLines: 1,
+              maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
               style: TextStyle(
                 fontSize: 14,
                 color: isChecked ? NotasColors.textMuted : NotasColors.textPrimary,
@@ -384,8 +388,10 @@ class NoteBlockWidget extends StatelessWidget {
               },
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => onEnterPressed?.call(),
-              maxLines: 1,
-              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary),
+              keyboardType: TextInputType.text,
+              minLines: 1,
+              maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
+              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
               decoration: const InputDecoration(
                 hintText: 'Elemento de lista...',
                 hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
@@ -457,8 +463,10 @@ class NoteBlockWidget extends StatelessWidget {
               },
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => onEnterPressed?.call(),
-              maxLines: 1,
-              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary),
+              keyboardType: TextInputType.text,
+              minLines: 1,
+              maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
+              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
               decoration: const InputDecoration(
                 hintText: 'Paso numerado...',
                 hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
@@ -649,6 +657,9 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
                     setState(() => _isExpanded = true);
                     widget.onEnterPressed?.call();
                   },
+                  keyboardType: TextInputType.text,
+                  minLines: 1,
+                  maxLines: null,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

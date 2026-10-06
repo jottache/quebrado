@@ -667,7 +667,18 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   /// Filtro horizontal por Contacto Asociado del Diario
   Widget _buildContactFilterRow(BuildContext context, HabitosState state) {
     final diarioState = Provider.of<DiarioState>(context);
-    final contacts = diarioState.contacts;
+
+    // Solo contactos con hábitos activos, de más a menos hábitos (empate: por nombre).
+    final habitsPerContact = <String, int>{};
+    for (final h in state.allHabits) {
+      final cid = h.contactId;
+      if (cid != null && cid.isNotEmpty) habitsPerContact[cid] = (habitsPerContact[cid] ?? 0) + 1;
+    }
+    final contacts = diarioState.contacts.where((c) => habitsPerContact.containsKey(c.id)).toList()
+      ..sort((a, b) {
+        final byCount = habitsPerContact[b.id]!.compareTo(habitsPerContact[a.id]!);
+        return byCount != 0 ? byCount : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
     if (contacts.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -732,7 +743,6 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                 icon: Icons.people_alt_outlined,
               ),
               ...contacts.map((c) {
-                final habitsCount = state.allHabits.where((h) => h.contactId == c.id).length;
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: _contactFilterChip(
@@ -740,7 +750,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     contactId: c.id,
                     label: c.name,
                     avatarUrl: c.avatarUrl,
-                    count: habitsCount > 0 ? habitsCount : null,
+                    count: habitsPerContact[c.id],
                   ),
                 );
               }),
@@ -857,6 +867,8 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
   Widget _buildHabitCard(BuildContext context, HabitModel habit, HabitosState state) {
     final isDone = state.isCompleted(habit.id);
     final currentVal = state.getValue(habit.id);
+    // En malos hábitos el contador son las recaídas del día (los registros antiguos guardaban 0).
+    final counterVal = habit.isNegative ? state.getRelapseCount(habit.id).toDouble() : currentVal;
     final streak = state.calculateCurrentStreak(habit.id);
     final cleanDays = habit.isNegative ? state.calculateCleanDays(habit.id) : null;
     final diarioState = Provider.of<DiarioState>(context, listen: false);
@@ -1082,22 +1094,22 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'REGISTRO DE HOY',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        Text(
+                          habit.isNegative ? 'RECAÍDAS DEL DÍA' : 'REGISTRO DE HOY',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
                         Text(
-                          '${currentVal.toInt()} ${habit.unit ?? "veces"}',
-                          style: const TextStyle(
+                          '${counterVal.toInt()} ${habit.unit ?? "veces"}',
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w900,
-                            color: HabitosColors.primary,
+                            color: habit.isNegative && counterVal > 0 ? HabitosColors.rose : HabitosColors.primary,
                           ),
                         ),
                       ],
                     ),
                     const Spacer(),
-                    if (currentVal > 0) ...[
+                    if (counterVal > 0) ...[
                       _circleCountBtn(
                         label: '-1',
                         onTap: () => state.updateHabitValue(habit.id, -1),
