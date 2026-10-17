@@ -14,6 +14,8 @@ class SavingPocket {
   String fundingRuleType; // 'none', 'percentage', 'fixedThreshold'
   double? fundingRuleValue;
   double? fundingRuleThreshold;
+  /// Fecha de creación (columna created_at de Supabase). No se envía en toMap: la BD la asigna.
+  DateTime? createdAt;
 
   SavingPocket({
     required this.id,
@@ -29,7 +31,24 @@ class SavingPocket {
     this.fundingRuleType = 'none',
     this.fundingRuleValue,
     this.fundingRuleThreshold,
+    this.createdAt,
   });
+
+  /// Día en que empezó el plan de ahorro: created_at, o el id si es un timestamp en ms
+  /// (así se generan los ids en la app). Null si no se puede saber.
+  DateTime? get planStartDate {
+    final created = createdAt ?? _dateFromTimestampId(id);
+    if (created == null) return null;
+    final local = created.toLocal();
+    return DateTime(local.year, local.month, local.day);
+  }
+
+  static DateTime? _dateFromTimestampId(String id) {
+    final ms = int.tryParse(id);
+    // Rango razonable: 2020-01-01 .. 2100-01-01
+    if (ms == null || ms < 1577836800000 || ms > 4102444800000) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
 
   double get progress {
     if (targetAmountUSD <= 0) return 0.0;
@@ -69,6 +88,7 @@ class SavingPocket {
       fundingRuleType: map['funding_rule_type'] ?? 'none',
       fundingRuleValue: map['funding_rule_value'] != null ? (map['funding_rule_value'] as num).toDouble() : null,
       fundingRuleThreshold: map['funding_rule_threshold'] != null ? (map['funding_rule_threshold'] as num).toDouble() : null,
+      createdAt: map['created_at'] is String ? DateTime.tryParse(map['created_at']) : null,
     );
   }
 }

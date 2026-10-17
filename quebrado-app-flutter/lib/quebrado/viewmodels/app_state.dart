@@ -79,6 +79,12 @@ class AppState extends ChangeNotifier {
   final Set<String> _confirmedKeys = {};
   final Set<String> _manualSavingsConfirmed = {};
 
+  /// Sugerencias "Apartar para Bolsillo" ya cumplidas (clave: perfil|yyyy-MM-dd|pocketId).
+  /// Sin esto, la proyección recalculaba lo que faltaba con el saldo nuevo y volvía a
+  /// sugerir ese mismo día una fracción del abono (100 → 50 → 25…).
+  static const String fulfilledSuggestionsSettingKey = 'pocket_suggestions_fulfilled';
+  final Set<String> _fulfilledPocketSuggestions = {};
+
   // In-memory multi-profile cache for instant switching
   Map<String, List<Account>> _cachedAccounts = {};
   Map<String, List<SavingPocket>> _cachedPockets = {};
@@ -168,6 +174,7 @@ class AppState extends ChangeNotifier {
     transactions = [];
     accounts = [];
     _confirmedKeys.clear();
+    _fulfilledPocketSuggestions.clear();
     partialPayments = [];
     
     try {
@@ -199,6 +206,8 @@ class AppState extends ChangeNotifier {
         if (spSettings.containsKey('selectedCurrency')) _selectedCurrency = CurrencyType.fromString(spSettings['selectedCurrency']!);
         if (spSettings.containsKey('useBiometrics')) _useBiometrics = spSettings['useBiometrics'] == 'true';
         if (spSettings.containsKey('useSlideToConfirm')) _useSlideToConfirm = spSettings['useSlideToConfirm'] == 'true';
+        _loadStringSet(spSettings[fulfilledSuggestionsSettingKey], _fulfilledPocketSuggestions);
+        _loadStringSet(spSettings['manual_savings_confirmed'], _manualSavingsConfirmed);
 
         final spProfiles = results[1] as List<Map<String, String>>;
         if (spProfiles.isNotEmpty) {
@@ -319,6 +328,11 @@ class AppState extends ChangeNotifier {
 
         final allPartials = await DatabaseHelper.instance.getAllPartials();
         partialPayments = allPartials.map((e) => RecurringPaymentPartial.fromMap(e)).toList();
+
+        _loadStringSet(
+          await DatabaseHelper.instance.getSetting(fulfilledSuggestionsSettingKey),
+          _fulfilledPocketSuggestions,
+        );
 
         _manualSavingsConfirmed.clear();
         final confirmedStr = await DatabaseHelper.instance.getSetting("manual_savings_confirmed");
@@ -1022,11 +1036,88 @@ class AppState extends ChangeNotifier {
     }
     
     // Save to settings
-    final list = _manualSavingsConfirmed.toList();
-    await DatabaseHelper.instance.setSetting("manual_savings_confirmed", jsonEncode(list));
+    await _saveSetting("manual_savings_confirmed", jsonEncode(_manualSavingsConfirmed.toList()));
 
     // Deposit to pocket
     await depositToPocket(id: pocketId, amountUSD: amountUSD);
+  }
+
+  // MARK: - Sugerencias de abono cumplidas
+
+  static String _dayKey(DateTime d) =>
+      "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
+  String _suggestionKey(DateTime date, String pocketId) => "$_activeDbName|${_dayKey(date)}|$pocketId";
+
+  bool isPocketSuggestionFulfilled(DateTime date, String pocketId) =>
+      _fulfilledPocketSuggestions.contains(_suggestionKey(date, pocketId));
+
+  /// Abona la sugerencia del timeline y la marca como cumplida para que no reaparezca ese día.
+  /// Devuelve false si no se pudo abonar (por ejemplo, sin saldo líquido).
+  Future<bool> fulfillPocketSuggestion({
+    required DateTime date,
+    required String pocketId,
+    required double amountUSD,
+    List<String>? associatedTransactionIds,
+  }) async {
+    final index = pockets.indexWhere((p) => p.id == pocketId);
+    if (index == -1) return false;
+    final before = pockets[index].currentAmountUSD;
+
+    if (associatedTransactionIds != null && associatedTransactionIds.isNotEmpty) {
+      await confirmManualSaving(
+        transactionIds: associatedTransactionIds,
+        pocketId: pocketId,
+        amountUSD: amountUSD,
+      );
+    } else {
+      await depositToPocket(id: pocketId, amountUSD: amountUSD);
+    }
+
+    final after = pockets.firstWhere((p) => p.id == pocketId, orElse: () => pockets[index]).currentAmountUSD;
+    if (after <= before) return false;
+
+    _fulfilledPocketSuggestions.add(_suggestionKey(date, pocketId));
+    _pruneFulfilledSuggestions();
+    await _saveSetting(fulfilledSuggestionsSettingKey, jsonEncode(_fulfilledPocketSuggestions.toList()));
+    notifyListeners();
+    return true;
+  }
+
+  /// Conserva solo las marcas de los últimos 120 días (la proyección no mira hacia atrás).
+  void _pruneFulfilledSuggestions() {
+    final limit = DateTime.now().subtract(const Duration(days: 120));
+    final limitKey = _dayKey(limit);
+    _fulfilledPocketSuggestions.removeWhere((key) {
+      final parts = key.split('|');
+      return parts.length == 3 && parts[1].compareTo(limitKey) < 0;
+    });
+  }
+
+  void _loadStringSet(String? json, Set<String> target) {
+    if (json == null || json.isEmpty) return;
+    try {
+      final decoded = jsonDecode(json);
+      if (decoded is List) {
+        target.addAll(decoded.whereType<String>());
+      }
+    } catch (e) {
+      if (kDebugMode) print("Error decoding string set setting: $e");
+    }
+  }
+
+  /// Guarda un setting en Supabase (si está activo) y en SQLite (fuera de web).
+  Future<void> _saveSetting(String key, String value) async {
+    if (_usesSupabase) {
+      await SupabaseService.instance.saveSetting(key, value);
+    }
+    if (!kIsWeb) {
+      try {
+        await DatabaseHelper.instance.setSetting(key, value);
+      } catch (e) {
+        if (kDebugMode) print("Error saving setting $key in DB: $e");
+      }
+    }
   }
 
   Future<void> depositToPocket({
@@ -1998,7 +2089,8 @@ class AppState extends ChangeNotifier {
       double remaining = pocket.targetAmountUSD > 0
           ? pocket.targetAmountUSD - pocket.currentAmountUSD
           : double.infinity;
-      if (remaining <= 0 && !hasRule) continue;
+      // Margen de un centavo para no sugerir restos de redondeo ($0.00)
+      if (remaining < 0.01 && !hasRule) continue;
 
       DateTime? targetD = pocket.targetDate;
       if (targetD != null) {
@@ -2021,7 +2113,15 @@ class AppState extends ChangeNotifier {
         // If targetD is before startD, skip scheduling
         if (targetD.isBefore(startD)) continue;
 
-        // Find income paydays between startD and targetD (inclusive) regardless of simulation horizon
+        // El plan cuenta los cobros desde que se creó el bolsillo (no solo desde hoy): si un
+        // cobro pasó sin apartar, su parte no debe acumularse en el último cobro.
+        DateTime collectFrom = startD;
+        final planStart = pocket.planStartDate;
+        if (startD == rangeStart && planStart != null && planStart.isBefore(rangeStart)) {
+          collectFrom = planStart;
+        }
+
+        // Find income paydays between collectFrom and targetD (inclusive) regardless of simulation horizon
         List<DateTime> pocketPaydays = [];
         for (var payment in recurringPayments) {
           if (payment.type == TransactionType.income && payment.currency == CurrencyType.usd) {
@@ -2040,8 +2140,8 @@ class AppState extends ChangeNotifier {
                   count > payment.totalInstallments!) {
                 break;
               }
-              if (current.isAfter(startD) ||
-                  current.isAtSameMomentAs(startD)) {
+              if (current.isAfter(collectFrom) ||
+                  current.isAtSameMomentAs(collectFrom)) {
                 if (!pocketPaydays.contains(current)) {
                   pocketPaydays.add(current);
                 }
@@ -2117,70 +2217,67 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        if (pocketPaydays.isNotEmpty) {
-          double amountPerPayday = remaining / pocketPaydays.length;
-          for (var payday in pocketPaydays) {
-            final isLastPayday = payday == pocketPaydays.last;
-            final dateKey =
-                "${payday.year}-${payday.month.toString().padLeft(2, '0')}-${payday.day.toString().padLeft(2, '0')}_${pocket.id}";
-            if (consolidatedDeposits.containsKey(dateKey)) {
-              final existing = consolidatedDeposits[dateKey]!;
-              if (!existing.reasons.containsKey("Meta de Ahorro")) {
-                existing.reasons["Meta de Ahorro"] = _VirtualDepositReason(name: "Meta de Ahorro");
-              }
-              consolidatedDeposits[dateKey] = _VirtualDeposit(
-                pocketId: pocket.id,
-                amountUSD: existing.amountUSD + amountPerPayday,
-                amount: existing.amount + amountPerPayday,
-                currency: CurrencyType.usd,
-                date: payday,
-                reasons: existing.reasons,
-                isLast: existing.isLast || isLastPayday,
-              );
-            } else {
-              consolidatedDeposits[dateKey] = _VirtualDeposit(
-                pocketId: pocket.id,
-                amountUSD: amountPerPayday,
-                amount: amountPerPayday,
-                currency: CurrencyType.usd,
-                date: payday,
-                reasons: {
-                  "Meta de Ahorro": _VirtualDepositReason(name: "Meta de Ahorro")
-                },
-                isLast: isLastPayday,
-              );
-            }
-          }
-        } else {
-          // Fallback: single deposit today (rangeStart)
+        if (remaining < 0.01 || !remaining.isFinite) continue;
+        pocketPaydays.sort();
+
+        void addGoalDeposit(DateTime date, double amount, {required bool isLast, String? extraReason}) {
+          if (amount < 0.01) return;
           final dateKey =
-              "${rangeStart.year}-${rangeStart.month.toString().padLeft(2, '0')}-${rangeStart.day.toString().padLeft(2, '0')}_${pocket.id}";
-          if (consolidatedDeposits.containsKey(dateKey)) {
-            final existing = consolidatedDeposits[dateKey]!;
-            if (!existing.reasons.containsKey("Meta de Ahorro")) {
-              existing.reasons["Meta de Ahorro"] = _VirtualDepositReason(name: "Meta de Ahorro");
-            }
-            consolidatedDeposits[dateKey] = _VirtualDeposit(
-              pocketId: pocket.id,
-              amountUSD: existing.amountUSD + remaining,
-              amount: existing.amount + remaining,
-              currency: CurrencyType.usd,
-              date: rangeStart,
-              reasons: existing.reasons,
-              isLast: true,
-            );
-          } else {
-            consolidatedDeposits[dateKey] = _VirtualDeposit(
-              pocketId: pocket.id,
-              amountUSD: remaining,
-              amount: remaining,
-              currency: CurrencyType.usd,
-              date: rangeStart,
-              reasons: {
-                "Meta de Ahorro": _VirtualDepositReason(name: "Meta de Ahorro")
-              },
-              isLast: true,
-            );
+              "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}_${pocket.id}";
+          final existing = consolidatedDeposits[dateKey];
+          final reasons = existing?.reasons ?? <String, _VirtualDepositReason>{};
+          reasons.putIfAbsent("Meta de Ahorro", () => _VirtualDepositReason(name: "Meta de Ahorro"));
+          if (extraReason != null) {
+            reasons.putIfAbsent(extraReason, () => _VirtualDepositReason(name: extraReason));
+          }
+          consolidatedDeposits[dateKey] = _VirtualDeposit(
+            pocketId: pocket.id,
+            amountUSD: (existing?.amountUSD ?? 0.0) + amount,
+            amount: (existing?.amount ?? 0.0) + amount,
+            currency: CurrencyType.usd,
+            date: date,
+            reasons: reasons,
+            isLast: (existing?.isLast ?? false) || isLast,
+          );
+        }
+
+        final todayFulfilled = isPocketSuggestionFulfilled(rangeStart, pocket.id);
+
+        if (pocketPaydays.isEmpty) {
+          // Sin ingresos antes de la fecha meta: todo hoy
+          if (!todayFulfilled) addGoalDeposit(rangeStart, remaining, isLast: true);
+          continue;
+        }
+
+        // Cobros ya "vencidos": pasaron, o ya se abonó su sugerencia.
+        // Cobros por venir: hoy o después, sin abonar todavía.
+        final duePaydays = pocketPaydays
+            .where((d) => d.isBefore(rangeStart) || isPocketSuggestionFulfilled(d, pocket.id))
+            .toList();
+        final futurePaydays = pocketPaydays
+            .where((d) => !d.isBefore(rangeStart) && !isPocketSuggestionFulfilled(d, pocket.id))
+            .toList();
+
+        // Lo que ya debería estar apartado según el plan y no está (se sugiere hoy).
+        final target = pocket.targetAmountUSD;
+        final expectedByNow = target * duePaydays.length / pocketPaydays.length;
+        double catchUp = (expectedByNow - pocket.currentAmountUSD).clamp(0.0, remaining).toDouble();
+        if (futurePaydays.isEmpty) catchUp = remaining;
+        if (todayFulfilled) catchUp = 0.0; // ya se abonó hoy; lo pendiente pasa a los cobros que faltan
+
+        if (catchUp >= 0.01) {
+          final missed = duePaydays.where((d) => d.isBefore(rangeStart)).toList();
+          final label = missed.isEmpty
+              ? null
+              : "Atrasado: ${missed.length == 1 ? 'cobro del' : 'cobros del'} "
+                  "${missed.map((d) => '${d.day}/${d.month}').join(', ')}";
+          addGoalDeposit(rangeStart, catchUp, isLast: futurePaydays.isEmpty, extraReason: label);
+        }
+
+        if (futurePaydays.isNotEmpty) {
+          final perPayday = (remaining - catchUp) / futurePaydays.length;
+          for (final payday in futurePaydays) {
+            addGoalDeposit(payday, perPayday, isLast: payday == futurePaydays.last);
           }
         }
       } else {
@@ -2199,6 +2296,8 @@ class AppState extends ChangeNotifier {
               ),
             );
             if (targetAccount.currency != CurrencyType.usd) continue;
+            // Ya abonado desde la sugerencia de ese día (el saldo actual lo incluye)
+            if (isPocketSuggestionFulfilled(occ.date, pocket.id)) continue;
 
             double remainingToMeta = pocket.targetAmountUSD > 0
                 ? pocket.targetAmountUSD - simulatedBalance

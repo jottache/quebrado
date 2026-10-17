@@ -168,6 +168,7 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
     Widget quickChip(String label, DateTime target, int targetOffset) {
       final selected = offset == targetOffset;
       return ChoiceChip(
+        key: ValueKey('wizard_week_chip_$targetOffset'),
         label: Text(label),
         selected: selected,
         showCheckmark: false,

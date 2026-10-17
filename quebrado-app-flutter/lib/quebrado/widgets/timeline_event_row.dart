@@ -1022,17 +1022,23 @@ class TimelineEventRow extends StatelessWidget {
                         return;
                       }
 
-                      if (event.associatedTransactionIds != null && event.associatedTransactionIds!.isNotEmpty) {
-                        await appState.confirmManualSaving(
-                          transactionIds: event.associatedTransactionIds!,
-                          pocketId: pocketToDeposit.id,
-                          amountUSD: amt,
-                        );
-                      } else {
-                        await appState.depositToPocket(
-                          id: pocketToDeposit.id,
-                          amountUSD: amt,
-                        );
+                      // Abona y marca la sugerencia de ese día como cumplida (no reaparece)
+                      final ok = await appState.fulfillPocketSuggestion(
+                        date: event.date,
+                        pocketId: pocketToDeposit.id,
+                        amountUSD: amt,
+                        associatedTransactionIds: event.associatedTransactionIds,
+                      );
+                      if (!ok) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("No se pudo realizar el apartado. Revisa tu saldo líquido e inténtalo de nuevo."),
+                              backgroundColor: AppColors.expense,
+                            ),
+                          );
+                        }
+                        return;
                       }
 
                       if (context.mounted) {

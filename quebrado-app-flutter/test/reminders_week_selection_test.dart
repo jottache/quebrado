@@ -147,11 +147,11 @@ void main() {
       expect(state.currentMonday, suggested);
       expect(find.byKey(const ValueKey('wizard_week_range')), findsOneWidget);
 
-      await tester.tap(find.text('Próxima semana'));
+      await tester.tap(find.byKey(const ValueKey('wizard_week_chip_1')));
       await tester.pumpAndSettle();
       expect(state.selectedWeekOffset, 1);
 
-      await tester.tap(find.text('Esta semana'));
+      await tester.tap(find.byKey(const ValueKey('wizard_week_chip_0')));
       await tester.pumpAndSettle();
       expect(state.selectedWeekOffset, 0);
     });
