@@ -9,6 +9,9 @@ class DiarioSupabaseService {
   static final DiarioSupabaseService instance = DiarioSupabaseService._init();
   DiarioSupabaseService._init();
 
+  @visibleForTesting
+  DiarioSupabaseService.forTesting();
+
   SupabaseClient? get client {
     try {
       return Supabase.instance.client;
@@ -22,12 +25,17 @@ class DiarioSupabaseService {
   // ===========================================================================
   // CONTACTS
   // ===========================================================================
+  /// Columnas de contacto SIN avatar_url: las fotos antiguas en base64 pesan hasta ~2 MB
+  /// cada una y hacían que la carga de Diario tardara minutos o fallara.
+  static const String contactColumnsWithoutAvatar =
+      'id,name,nickname,relationship,avatar_color,birthdate,phone,notes,is_favorite,user_id,created_at,updated_at';
+
   Future<List<DiarioContact>> getContacts() async {
     if (!isReady) return _getDefaultContacts();
     try {
       final List response = await client!
           .from('diario_contacts')
-          .select()
+          .select(contactColumnsWithoutAvatar)
           .order('name', ascending: true);
 
       if (response.isEmpty) {
@@ -42,10 +50,74 @@ class DiarioSupabaseService {
     }
   }
 
-  Future<void> saveContact(DiarioContact contact) async {
+  /// Fotos ya alojadas como URL (texto corto): id → url.
+  Future<Map<String, String>> getRemoteAvatarUrls() async {
+    if (!isReady) return {};
+    try {
+      final List response = await client!
+          .from('diario_contacts')
+          .select('id,avatar_url')
+          .like('avatar_url', 'http%');
+      return {
+        for (final row in response)
+          if (row['avatar_url'] != null) row['id'].toString(): row['avatar_url'].toString(),
+      };
+    } catch (e) {
+      debugPrint('Info: no se pudieron cargar las URLs de avatares ($e)');
+      return {};
+    }
+  }
+
+  /// Ids de contactos cuya foto sigue guardada dentro de la tabla (base64 o ruta local).
+  Future<List<String>> getInlineAvatarContactIds() async {
+    if (!isReady) return [];
+    try {
+      final List response = await client!
+          .from('diario_contacts')
+          .select('id')
+          .not('avatar_url', 'is', null)
+          .not('avatar_url', 'like', 'http%');
+      return response.map((row) => row['id'].toString()).toList();
+    } catch (e) {
+      debugPrint('Info: no se pudieron listar avatares embebidos ($e)');
+      return [];
+    }
+  }
+
+  /// Descarga la foto de UN contacto (usado en segundo plano, de a una).
+  Future<String?> getContactAvatar(String contactId) async {
+    if (!isReady) return null;
+    try {
+      final row = await client!
+          .from('diario_contacts')
+          .select('avatar_url')
+          .eq('id', contactId)
+          .maybeSingle();
+      return row?['avatar_url']?.toString();
+    } catch (e) {
+      debugPrint('Info: no se pudo descargar el avatar de $contactId ($e)');
+      return null;
+    }
+  }
+
+  Future<bool> updateContactAvatar(String contactId, String? avatarUrl) async {
+    if (!isReady) return false;
+    try {
+      await client!.from('diario_contacts').update({'avatar_url': avatarUrl}).eq('id', contactId);
+      return true;
+    } catch (e) {
+      debugPrint('Error actualizando avatar en Supabase: $e');
+      return false;
+    }
+  }
+
+  /// [includeAvatar] = false cuando la foto aún no se descargó: así un guardado
+  /// (favorito, nombre, etc.) no la borra en la base de datos.
+  Future<void> saveContact(DiarioContact contact, {bool includeAvatar = true}) async {
     if (!isReady) return;
     try {
       final map = contact.toMap();
+      if (!includeAvatar) map.remove('avatar_url');
       final user = client?.auth.currentUser;
       if (user != null) {
         map['user_id'] = user.id;

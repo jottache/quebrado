@@ -22,9 +22,14 @@ class DiarioSearchResult {
 }
 
 class DiarioState extends ChangeNotifier {
-  final DiarioSupabaseService _service = DiarioSupabaseService.instance;
+  final DiarioSupabaseService _service;
   final MediaStorageService _media = MediaStorageService.instance;
   bool _isMigratingImages = false;
+
+  /// Contactos cuya foto sigue en la tabla (base64) y todavía no se descargó.
+  /// Mientras estén aquí, guardar el contacto no envía avatar_url (no se borra la foto).
+  final Set<String> _avatarPendingIds = {};
+  bool isAvatarPending(String contactId) => _avatarPendingIds.contains(contactId);
   final _uuid = const Uuid();
 
   List<DiarioContact> _contacts = [];
@@ -50,7 +55,7 @@ class DiarioState extends ChangeNotifier {
     notifyListeners();
   }
 
-  DiarioState() {
+  DiarioState({DiarioSupabaseService? service}) : _service = service ?? DiarioSupabaseService.instance {
     loadAll();
   }
 
@@ -60,17 +65,39 @@ class DiarioState extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Cada parte carga por separado: si una consulta falla o tarda, las demás igual se muestran.
+      Future<T> safe<T>(Future<T> future, T fallback, String what) async {
+        try {
+          return await future;
+        } catch (e) {
+          debugPrint('Diario: error cargando $what ($e)');
+          return fallback;
+        }
+      }
+
       final results = await Future.wait([
-        _service.getContacts(),
-        _service.getCategories(),
-        _service.getTemplates(),
-        _service.getEntries(),
+        safe<List<DiarioContact>>(_service.getContacts(), <DiarioContact>[], 'contactos'),
+        safe<List<DiarioCategory>>(_service.getCategories(), <DiarioCategory>[], 'categorías'),
+        safe<List<DiarioTemplate>>(_service.getTemplates(), <DiarioTemplate>[], 'plantillas'),
+        safe<List<DiarioEntry>>(_service.getEntries(), <DiarioEntry>[], 'entradas'),
+        safe<Map<String, String>>(_service.getRemoteAvatarUrls(), <String, String>{}, 'avatares'),
+        safe<List<String>>(_service.getInlineAvatarContactIds(), <String>[], 'avatares pendientes'),
       ]);
 
       _contacts = results[0] as List<DiarioContact>;
       _categories = results[1] as List<DiarioCategory>;
       _templates = results[2] as List<DiarioTemplate>;
       _entries = results[3] as List<DiarioEntry>;
+
+      // Los contactos llegan sin foto: se agregan las que ya son URL y se marcan las pendientes.
+      final remoteAvatars = results[4] as Map<String, String>;
+      for (var i = 0; i < _contacts.length; i++) {
+        final url = remoteAvatars[_contacts[i].id];
+        if (url != null) _contacts[i] = _contacts[i].copyWith(avatarUrl: url);
+      }
+      _avatarPendingIds
+        ..clear()
+        ..addAll(results[5] as List<String>);
 
       // Sanear entradas libres sin modelo que hayan quedado asociadas por error a subcategoría de tallas
       for (int i = 0; i < _entries.length; i++) {
@@ -101,8 +128,8 @@ class DiarioState extends ChangeNotifier {
       notifyListeners();
     }
 
-    // Fotos antiguas en base64 / rutas locales → Supabase Storage (en segundo plano).
-    migrateInlineImages();
+    // Fotos antiguas en base64 / rutas locales → descarga de a una y Supabase Storage (en segundo plano).
+    _hydrateInlineAvatars().then((_) => migrateInlineImages());
   }
 
   // ===========================================================================
@@ -151,7 +178,7 @@ class DiarioState extends ChangeNotifier {
     notifyListeners();
 
     final stored = await _withRemoteAvatar(newContact);
-    await _service.saveContact(stored);
+    await _saveContact(stored);
     return stored;
   }
 
@@ -167,7 +194,7 @@ class DiarioState extends ChangeNotifier {
     _contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     notifyListeners();
     final stored = await _withRemoteAvatar(updated);
-    await _service.saveContact(stored);
+    await _saveContact(stored);
     if (previousAvatar != stored.avatarUrl) await _media.deleteByUrl(previousAvatar);
   }
 
@@ -195,7 +222,7 @@ class DiarioState extends ChangeNotifier {
       );
       _contacts[index] = updated;
       notifyListeners();
-      await _service.saveContact(updated);
+      await _saveContact(updated);
     }
   }
 
@@ -640,6 +667,44 @@ class DiarioState extends ChangeNotifier {
     return updated;
   }
 
+  /// Guarda un contacto sin enviar la foto si todavía no se descargó (si no, se borraría).
+  /// Si el usuario eligió una foto nueva, se envía y deja de estar pendiente.
+  Future<void> _saveContact(DiarioContact contact) async {
+    final pending = _avatarPendingIds.contains(contact.id);
+    if (pending && contact.avatarUrl != null) _avatarPendingIds.remove(contact.id);
+    await _service.saveContact(contact, includeAvatar: !(pending && contact.avatarUrl == null));
+  }
+
+  /// Descarga de a una las fotos que siguen en la tabla, las muestra y las pasa a Storage
+  /// (comprimidas) guardando solo la URL. Tras una vez, la carga de contactos queda liviana.
+  Future<void> _hydrateInlineAvatars() async {
+    for (final contactId in List<String>.from(_avatarPendingIds)) {
+      if (!_avatarPendingIds.contains(contactId)) continue; // el usuario ya cambió la foto
+      final inline = await _service.getContactAvatar(contactId);
+      final index = _contacts.indexWhere((c) => c.id == contactId);
+      if (inline == null || index == -1) {
+        _avatarPendingIds.remove(contactId);
+        continue;
+      }
+
+      String shown = inline;
+      if (_media.isReady && MediaStorageService.needsUpload(inline)) {
+        final url = await _media.ensureRemote(inline, MediaImagePreset.avatar, fallbackToInline: false);
+        if (MediaStorageService.isRemoteUrl(url) && await _service.updateContactAvatar(contactId, url)) {
+          shown = url!;
+        }
+      }
+
+      if (!_avatarPendingIds.contains(contactId)) continue; // cambió mientras se descargaba
+      _avatarPendingIds.remove(contactId);
+      final current = _contacts.indexWhere((c) => c.id == contactId);
+      if (current != -1) {
+        _contacts[current] = _contacts[current].copyWith(avatarUrl: shown);
+        notifyListeners();
+      }
+    }
+  }
+
   /// Migra una sola vez por sesión las fotos guardadas como base64 o rutas locales.
   /// Solo guarda cuando la subida devolvió una URL real, así nunca recomprime
   /// una foto varias veces si Storage no está disponible.
@@ -652,7 +717,7 @@ class DiarioState extends ChangeNotifier {
         if (!MediaStorageService.needsUpload(contact.avatarUrl)) continue;
         final updated = await _withRemoteAvatar(contact, fallbackToInline: false);
         if (MediaStorageService.isRemoteUrl(updated.avatarUrl)) {
-          await _service.saveContact(updated);
+          await _service.updateContactAvatar(updated.id, updated.avatarUrl);
           migrated++;
         }
       }

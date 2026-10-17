@@ -16,8 +16,8 @@ bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month 
 
 Future<AppState> _buildState({required SavingPocket pocket, required RecurringPayment income}) async {
   final app = AppState();
-  // Dejar que termine la carga inicial antes de preparar los datos del escenario
-  await Future<void>.delayed(const Duration(milliseconds: 200));
+  // Esperar a que termine la carga inicial (si no, puede pisar los datos del escenario)
+  await app.loadData();
   app.accounts = [
     Account(id: 'usd', name: 'Efectivo', currency: CurrencyType.usd, balance: 5000, colorHex: '#2FA084', icon: 'creditcard'),
   ];

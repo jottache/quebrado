@@ -33,6 +33,7 @@ void main() {
 
   test('editar el monto de un gasto ajusta el saldo y conserva el resto de los datos', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final cash = _acc('cash', 70); // 100 - 30
     final bank = _acc('bank', 500);
     app.accounts = [cash, bank];
@@ -53,6 +54,7 @@ void main() {
 
   test('cambiar un gasto a ingreso invierte su efecto', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final cash = _acc('cash', 70); // 100 - 30
     app.accounts = [cash];
     final expense = _tx('g1', 30, TransactionType.expense, accountId: 'cash');
@@ -66,6 +68,7 @@ void main() {
 
   test('mover un ingreso a otra cuenta revierte la original y aplica en la nueva', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final cash = _acc('cash', 150); // 100 + 50
     final bank = _acc('bank', 20);
     app.accounts = [cash, bank];
@@ -81,6 +84,7 @@ void main() {
 
   test('editar un movimiento de bolsillo ajusta el saldo del bolsillo', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final pocket = SavingPocket(
       id: 'p1',
       name: 'Viaje',
@@ -101,6 +105,7 @@ void main() {
 
   test('depositar y retirar de un bolsillo no vacía la lista de bolsillos', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final cash = _acc('cash', 1000);
     app.accounts = [cash];
     final pocket = SavingPocket(
@@ -122,6 +127,7 @@ void main() {
 
   test('un cambio de divisa agrega sus dos movimientos sin recargar desde SQLite', () async {
     final app = AppState();
+    await app.loadData(); // que la carga inicial no pise los datos del escenario
     final usd = _acc('usd', 100);
     final ves = _acc('ves', 0, currency: CurrencyType.bsBCV);
     app.accounts = [usd, ves];
