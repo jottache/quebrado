@@ -99,7 +99,7 @@ No aplica.
 
 ## Preguntas abiertas
 - ~~PA-01~~, ~~PA-02~~, ~~PA-03~~: resueltas (ver Decisiones).
-- **PA-04** ¿Se despliega en Vercel cada spec apenas termina, aceptando la transición, o se espera a que las specs 01, 02 y 05 estén listas?
+- ~~PA-04~~ resuelta el 2026-11-17: **no se despliega en Vercel** hasta tener la spec 02 y el primer bloque de la 05 (la persona eligió la opción recomendada).
 
 ## Qué NO entra
 - Corregir el solape de `isMedium` e `isDesktop` (P-23).
@@ -107,7 +107,8 @@ No aplica.
 
 ## Pasos manuales
 - Ninguno en Supabase.
-- La persona aprueba la skill `ortiz-dark-ui` antes de que la usen las specs 02–05.
+- ~~La persona aprueba la skill `ortiz-dark-ui`~~: aprobada por la persona el 2026-11-17.
+- No desplegar en Vercel hasta la spec 02 + primer bloque de la 05 (PA-04).
 
 ## Implementación (2026-11-17, rama `spec-01-tema-oscuro-design-system`)
 **Verificación de criterios**
