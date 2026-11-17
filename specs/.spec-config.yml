@@ -1,0 +1,3 @@
+AutoCreateBranch: true
+BaseBranch: feature/new-app
+BranchPrefix: spec-

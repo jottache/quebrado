@@ -16,6 +16,13 @@ quebrado-app-flutter/android/app/release/
 quebrado-app-flutter/android/build/
 quebrado-app-flutter/Quebrado.apk
 
+# Claude Code: estado local de los hooks y ajustes personales
+.claude/hooks/.last-green
+.claude/hooks/.last-report*
+.claude/hooks/.suite-lock/
+.claude/settings.local.json
+quebrado-app-flutter/coverage/
+
 # Environment variables
 .env
 .env.*

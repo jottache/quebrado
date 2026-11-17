@@ -1,0 +1,27 @@
+# Deuda de tests en rojo que ya fallaban al implantar el sistema agéntico (2026-11-17).
+# Formato: una línea por test  `test/<ruta>.dart::<nombre completo del test>`
+# (nombre tal como lo da `flutter test --reporter json`, grupos incluidos).
+# Las líneas con # son comentarios; la causa va en el comentario de encima.
+#
+# REGLAS: esta lista SOLO BAJA. No se añaden tests nuevos aquí. Si arreglas uno,
+# quítalo (el hook falla si un test de la lista pasa). No se arreglan "de paso":
+# cada uno está registrado en docs/pendientes.md.
+# Los 5 fallan también ejecutando su archivo aislado (no es contaminación entre archivos).
+# Prefijo `~` = INESTABLE: su resultado depende del entorno (no del código), así que puede
+# pasar o fallar sin poner la puerta en rojo. Quitarle el `~` o la línea es la única dirección permitida.
+
+# Pump de MyApp completo: al desmontar quedan Timers pendientes del arranque (servicios/animaciones) → '!timersPending'.
+test/widget_test.dart::App basic smoke test
+
+# Test desactualizado: AppLauncherScreen ahora lee NotasState y el test no lo provee → ProviderNotFoundException.
+test/reminders_pinned_banner_and_sync_test.dart::Sync Button & Quebrado Card Alignment Tests AppLauncherScreen displays sync button and Quebrado card without circular notification border
+
+# Cuentas solo en memoria (debugLocalDbIsSourceOfTruth=false) pero las transacciones se insertan en SQLite → FOREIGN KEY constraint failed; el saldo no cambia.
+test/multi_currency_balance_test.dart::AppState multi-currency transactions update account balance correctly
+
+# Espera la lista vacía, pero la SQLite de tests (.dart_tool/sqflite_common_ffi/databases/quebrado.db) persiste entre ejecuciones y trae destinatarios previos.
+# INESTABLE: en un clon limpio o tras `flutter clean` puede pasar (P-14).
+~test/mobile_payment_recipient_test.dart::AppState mobile payment recipient operations are correct
+
+# Sin mocks de los canales de plataforma (pasteboard, path_provider) → MissingPluginException y la imagen sale null.
+test/diario_clipboard_image_test.dart::Diario Clipboard Image Tests readImageFromClipboard works without exceptions

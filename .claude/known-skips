@@ -1,0 +1,8 @@
+# Tests omitidos (skip) que ya existían al implantar el sistema agéntico (2026-11-17).
+# Formato igual que known-failures: `test/<ruta>.dart::<nombre completo del test>`.
+# REGLAS: esta lista SOLO BAJA. `skip` está prohibido en tests nuevos (CLAUDE.md §6):
+# la puerta se pone en rojo con cualquier test omitido que no esté aquí, y también si
+# uno de estos deja de omitirse (hay que quitarlo de la lista). Registrado en docs/pendientes.md (P-17).
+
+test/manual_income_savings_test.dart::Manual Income Savings Suggestions Generates suggestion for single manual income
+test/manual_income_savings_test.dart::Manual Income Savings Suggestions Consolidates multiple manual incomes on the same day
