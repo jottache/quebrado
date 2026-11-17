@@ -19,7 +19,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'services/supabase_config.dart';
-import 'package:web/web.dart' as web;
+import 'services/web_splash.dart';
 
 void main() async {
   // Ensure Flutter engine is initialized before calling native platforms/services
@@ -69,13 +69,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      try {
-        web.document.getElementById('splash')?.remove();
-        web.document.getElementById('splash-branding')?.remove();
-        web.document.body?.style.background = 'transparent';
-      } catch (_) {}
-    }
+    if (kIsWeb) removeWebSplash();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppState>(create: (_) => AppState()),

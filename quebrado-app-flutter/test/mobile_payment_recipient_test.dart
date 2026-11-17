@@ -5,6 +5,7 @@ import 'package:quebrado_app_flutter/quebrado/models/mobile_payment_recipient.da
 void main() {
   test('AppState mobile payment recipient operations are correct', () async {
     final appState = AppState();
+    await appState.loadData(); // que la carga inicial no pise los datos del escenario
 
     // Verify initially empty
     expect(appState.recipients, isEmpty);

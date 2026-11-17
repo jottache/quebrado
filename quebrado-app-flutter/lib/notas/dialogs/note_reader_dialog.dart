@@ -7,7 +7,9 @@ import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
 import '../widgets/note_block_widget.dart';
 import '../screens/note_editor_screen.dart';
+import '../services/note_document_converter.dart';
 import '../services/note_pdf_service.dart';
+import '../../rich_editor/rich_document_viewer.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/models/diario_entry.dart';
 import '../../diario/dialogs/entry_reader_dialog.dart';
@@ -19,20 +21,13 @@ class NoteReaderDialog extends StatelessWidget {
   final NoteItem? initialNote;
   final String? noteId;
 
-  const NoteReaderDialog({
-    super.key,
-    this.initialNote,
-    this.noteId,
-  }) : assert(initialNote != null || noteId != null);
+  const NoteReaderDialog({super.key, this.initialNote, this.noteId}) : assert(initialNote != null || noteId != null);
 
   static Future<void> show(BuildContext context, {NoteItem? note, String? noteId}) {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => NoteReaderDialog(
-        initialNote: note,
-        noteId: noteId ?? note?.id,
-      ),
+      builder: (_) => NoteReaderDialog(initialNote: note, noteId: noteId ?? note?.id),
     );
   }
 
@@ -40,7 +35,7 @@ class NoteReaderDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final notasState = Provider.of<NotasState>(context);
     final targetId = noteId ?? initialNote!.id;
-    
+
     // Buscar la versión viva de la nota en el estado para reflejar cambios reactivos
     final note = notasState.notes.firstWhere(
       (n) => n.id == targetId,
@@ -66,15 +61,9 @@ class NoteReaderDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
       clipBehavior: Clip.antiAlias,
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 40 : 16,
-        vertical: isDesktop ? 32 : 24,
-      ),
+      insetPadding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 16, vertical: isDesktop ? 32 : 24),
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 720,
-          maxHeight: MediaQuery.of(context).size.height * 0.90,
-        ),
+        constraints: BoxConstraints(maxWidth: 720, maxHeight: MediaQuery.of(context).size.height * 0.90),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -83,118 +72,149 @@ class NoteReaderDialog extends StatelessWidget {
 
             // Contenido con bloques interactivos
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                children: [
-                  // Título principal con emoji
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+              child: Builder(
+                builder: (context) {
+                  final top = <Widget>[
+                    // Título principal con emoji
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(note.emoji, style: const TextStyle(fontSize: 24)),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(note.emoji, style: const TextStyle(fontSize: 24)),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              note.title,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: NotasColors.textPrimary,
-                                letterSpacing: -0.4,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                if (category != null) ...[
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: category.color.withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(category.icon, style: const TextStyle(fontSize: 12)),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          category.name,
-                                          style: TextStyle(
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: category.color,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                ],
-                                Text(
-                                  note.formattedDate,
-                                  style: const TextStyle(fontSize: 11.5, color: NotasColors.textMuted),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                note.title,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: NotasColors.textPrimary,
+                                  letterSpacing: -0.4,
+                                  height: 1.2,
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  if (category != null) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: category.color.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(category.icon, style: const TextStyle(fontSize: 12)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            category.name,
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: category.color,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                  ],
+                                  Text(
+                                    note.formattedDate,
+                                    style: const TextStyle(fontSize: 11.5, color: NotasColors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  // Barra de progreso si tiene tareas
-                  if (note.hasTodos) ...[
+                    // Barra de progreso si tiene tareas
+                    if (note.hasTodos) ...[const SizedBox(height: 18), _buildTodoProgressBar(note)],
+
                     const SizedBox(height: 18),
-                    _buildTodoProgressBar(note),
-                  ],
+                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    const SizedBox(height: 14),
+                  ];
+                  final bottom = <Widget>[
+                    // Sección de Backlinks en Diario
+                    if (backlinks.isNotEmpty) ...[
+                      const SizedBox(height: 28),
+                      _buildBacklinksSection(context, backlinks),
+                    ],
 
-                  const SizedBox(height: 18),
-                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                  const SizedBox(height: 14),
+                    const SizedBox(height: 30),
+                  ];
 
-                  // Lista de bloques
-                  if (note.blocks.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Text(
-                        'Esta nota no tiene contenido.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic),
+                  // Documento enriquecido (notas creadas con el editor nuevo): el visor es
+                  // el scroll y el resto del lector va como encabezado y pie.
+                  if (note.hasRichDocument) {
+                    return RichDocumentViewer(
+                      document: note.document!,
+                      accentColor: NotasColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      header: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: top),
                       ),
-                    )
-                  else
-                    ...note.blocks.map((block) {
-                      return NoteBlockWidget(
-                        key: ValueKey(block.id),
-                        block: block,
-                        isEditable: false,
-                        onToggleTodo: (checked) {
-                          notasState.toggleTodoBlock(note.id, block.id, checked);
-                        },
-                      );
-                    }),
+                      footer: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: bottom),
+                      ),
+                      onTodoToggled: (document) => notasState.updateNoteDocument(
+                        note.id,
+                        document: document.toJson(),
+                        blocks: NoteDocumentConverter.fromDocument(document),
+                        contentText: NoteDocumentConverter.toMarkdown(document),
+                      ),
+                    );
+                  }
 
-                  // Sección de Backlinks en Diario
-                  if (backlinks.isNotEmpty) ...[
-                    const SizedBox(height: 28),
-                    _buildBacklinksSection(context, backlinks),
-                  ],
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    children: [
+                      ...top,
+                      // Lista de bloques (formato anterior)
+                      if (note.blocks.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            'Esta nota no tiene contenido.',
+                            style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic),
+                          ),
+                        )
+                      else
+                        ...note.blocks.map((block) {
+                          return NoteBlockWidget(
+                            key: ValueKey(block.id),
+                            block: block,
+                            isEditable: false,
+                            onToggleTodo: (checked) {
+                              notasState.toggleTodoBlock(note.id, block.id, checked);
+                            },
+                          );
+                        }),
 
-                  const SizedBox(height: 30),
-                ],
+                      ...bottom,
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -216,16 +236,16 @@ class NoteReaderDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(6),
-              ),
+              decoration: BoxDecoration(color: Colors.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.push_pin_rounded, size: 12, color: Colors.amber),
                   SizedBox(width: 4),
-                  Text('Fijada', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber)),
+                  Text(
+                    'Fijada',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
+                  ),
                 ],
               ),
             ),
@@ -265,10 +285,7 @@ class NoteReaderDialog extends StatelessWidget {
             onPressed: () {
               Clipboard.setData(ClipboardData(text: note.toMarkdown()));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Nota copiada en formato Markdown'),
-                  duration: Duration(seconds: 2),
-                ),
+                const SnackBar(content: Text('Nota copiada en formato Markdown'), duration: Duration(seconds: 2)),
               );
             },
           ),
@@ -337,9 +354,7 @@ class NoteReaderDialog extends StatelessWidget {
               value: percent,
               minHeight: 6,
               backgroundColor: const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                percent == 1.0 ? const Color(0xFF10B981) : NotasColors.primary,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(percent == 1.0 ? const Color(0xFF10B981) : NotasColors.primary),
             ),
           ),
         ],
@@ -364,11 +379,7 @@ class NoteReaderDialog extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Mencionada en el Diario (${backlinks.length})',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: NotasColors.textPrimary,
-                ),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: NotasColors.textPrimary),
               ),
             ],
           ),
@@ -399,10 +410,7 @@ class NoteReaderDialog extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      entry.formattedDate,
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
+                    Text(entry.formattedDate, style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     const SizedBox(width: 4),
                     const Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey),
                   ],
@@ -436,10 +444,7 @@ class NoteReaderDialog extends StatelessWidget {
         title: const Text('¿Eliminar esta nota?'),
         content: Text('Estás a punto de eliminar "${note.title}". Esta acción no se puede deshacer.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -453,12 +458,9 @@ class NoteReaderDialog extends StatelessWidget {
       await notasState.deleteNote(note.id);
       if (context.mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nota eliminada'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nota eliminada'), duration: Duration(seconds: 2)));
       }
     }
   }

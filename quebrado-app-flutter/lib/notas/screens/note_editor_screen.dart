@@ -1,28 +1,29 @@
+import 'dart:async';
+
+import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../rich_editor/draft_banner.dart';
+import '../../rich_editor/draft_store.dart';
+import '../../rich_editor/escape_to_close.dart';
+import '../../rich_editor/rich_document_editor.dart';
 import '../models/note_item.dart';
-import '../models/note_block.dart';
 import '../models/note_category.dart';
 import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
-import '../widgets/note_block_widget.dart';
 import '../dialogs/category_manager_dialog.dart';
+import '../services/note_document_converter.dart';
 import '../services/note_pdf_service.dart';
 
-/// Pantalla / Modal de edición de Notas & Acuerdos al estilo Notion.
-/// Permite gestionar bloques interactivos (párrafos, títulos, checklists, desplegables, callouts, divisores).
+/// Pantalla / Modal de edición de Notas & Acuerdos al estilo Notion, con el editor
+/// enriquecido (formato en línea, "/" para bloques) y borrador automático.
 class NoteEditorScreen extends StatefulWidget {
   final NoteItem? note;
   final String? initialCategoryId;
   final bool isModalDialog;
 
-  const NoteEditorScreen({
-    super.key,
-    this.note,
-    this.initialCategoryId,
-    this.isModalDialog = false,
-  });
+  const NoteEditorScreen({super.key, this.note, this.initialCategoryId, this.isModalDialog = false});
 
   static Future<bool?> open(BuildContext context, {NoteItem? note, String? initialCategoryId}) {
     final size = MediaQuery.of(context).size;
@@ -47,19 +48,11 @@ class NoteEditorScreen extends StatefulWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
-                      blurRadius: 32,
-                      offset: const Offset(0, 10),
-                    ),
+                    BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 32, offset: const Offset(0, 10)),
                   ],
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: NoteEditorScreen(
-                  note: note,
-                  initialCategoryId: initialCategoryId,
-                  isModalDialog: true,
-                ),
+                child: NoteEditorScreen(note: note, initialCategoryId: initialCategoryId, isModalDialog: true),
               ),
             ),
           );
@@ -69,14 +62,13 @@ class NoteEditorScreen extends StatefulWidget {
 
     return Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => NoteEditorScreen(
-          note: note,
-          initialCategoryId: initialCategoryId,
-          isModalDialog: false,
-        ),
+        builder: (_) => NoteEditorScreen(note: note, initialCategoryId: initialCategoryId, isModalDialog: false),
       ),
     );
   }
+
+  /// Clave del borrador: uno para "nueva nota" y uno por nota existente.
+  static String draftScopeFor(NoteItem? note) => note == null ? 'nota:new' : 'nota:${note.id}';
 
   @override
   State<NoteEditorScreen> createState() => _NoteEditorScreenState();
@@ -87,339 +79,171 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   late String _selectedEmoji;
   late String _selectedCategoryId;
   late bool _isPinned;
-  late List<NoteBlock> _blocks;
+
+  EditorState? _editorState;
+  StreamSubscription<EditorTransactionValue>? _transactionSub;
+  late final DraftAutosaver _autosaver;
+
+  /// Borrador recuperado al abrir (muestra el aviso con "Descartar").
+  EditorDraft? _restoredDraft;
 
   bool _isSaving = false;
   bool _hasChanges = false;
+  bool _saved = false;
+  ScaffoldMessengerState? _messenger;
 
-  final Map<String, FocusNode> _focusNodes = {};
-  final Map<String, TextEditingController> _controllers = {};
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
 
   final List<String> _emojiOptions = [
-    '📝', '💍', '💡', '📍', '🎯', '🚀', '❤️', '💼',
-    '📚', '🏠', '✈️', '🛒', '🎨', '🔒', '⭐', '🔥',
-    '📌', '🗓️', '🤝', '💰', '🧠', '✨', '⚡', '☕',
+    '📝',
+    '💍',
+    '💡',
+    '📍',
+    '🎯',
+    '🚀',
+    '❤️',
+    '💼',
+    '📚',
+    '🏠',
+    '✈️',
+    '🛒',
+    '🎨',
+    '🔒',
+    '⭐',
+    '🔥',
+    '📌',
+    '🗓️',
+    '🤝',
+    '💰',
+    '🧠',
+    '✨',
+    '⚡',
+    '☕',
   ];
+
+  String get _draftScope => NoteEditorScreen.draftScopeFor(widget.note);
 
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController();
+    _applyNoteValues();
+    _autosaver = DraftAutosaver(scope: _draftScope, collect: _collectDraft);
+    _titleController.addListener(_markChanged);
+    _loadInitialContent();
+  }
+
+  void _applyNoteValues() {
     final n = widget.note;
-    _titleController = TextEditingController(text: n?.title ?? '');
+    _titleController.text = n?.title ?? '';
     _selectedEmoji = n?.emoji ?? '📝';
     _selectedCategoryId = n?.categoryId ?? widget.initialCategoryId ?? NoteCategory.generalCategoryId;
     _isPinned = n?.isPinned ?? false;
+  }
 
-    if (n != null && n.blocks.isNotEmpty) {
-      _blocks = n.blocks.map((b) => b.copyWith()).toList();
-    } else {
-      // Bloque inicial por defecto
-      _blocks = [
-        NoteBlock(
-          id: NoteBlock.generateId(),
-          type: BlockType.paragraph,
-          content: '',
-        ),
-      ];
+  Document _documentFromNote() {
+    final n = widget.note;
+    final doc = n?.richDocument ?? NoteDocumentConverter.toDocument(n?.blocks ?? const []);
+    if (doc.root.children.isEmpty) doc.insert([0], [paragraphNode()]);
+    return doc;
+  }
+
+  Future<void> _loadInitialContent() async {
+    Document document = _documentFromNote();
+    final draft = await DraftStore.instance.load(_draftScope);
+    final note = widget.note;
+    final draftIsNewer = draft != null && (note == null || draft.savedAt.isAfter(note.updatedAt));
+    if (draftIsNewer) {
+      try {
+        final data = draft.data;
+        final restoredDoc = Document.fromJson(Map<String, dynamic>.from(data['document'] as Map));
+        if (restoredDoc.root.children.isEmpty) restoredDoc.insert([0], [paragraphNode()]);
+        document = restoredDoc;
+        _titleController.text = data['title']?.toString() ?? _titleController.text;
+        _selectedEmoji = data['emoji']?.toString() ?? _selectedEmoji;
+        _selectedCategoryId = data['category_id']?.toString() ?? _selectedCategoryId;
+        _isPinned = data['is_pinned'] == true;
+        _restoredDraft = draft;
+        _hasChanges = true;
+      } catch (e) {
+        debugPrint('Notas: borrador ilegible, se ignora ($e)');
+      }
+    } else if (draft != null) {
+      // Borrador más viejo que la nota guardada: ya no sirve
+      unawaited(DraftStore.instance.clear(_draftScope));
     }
+    if (!mounted) return;
+    setState(() => _setEditorState(EditorState(document: document)));
+  }
 
-    _titleController.addListener(_markChanged);
+  void _setEditorState(EditorState state) {
+    _transactionSub?.cancel();
+    disposeEditorStateLater(_editorState);
+    _editorState = state;
+    _transactionSub = state.transactionStream.listen((event) {
+      final (time, transaction, _) = event;
+      if (time == TransactionTime.after && transaction.operations.isNotEmpty) _markChanged();
+    });
+  }
+
+  Map<String, dynamic>? _collectDraft() {
+    final editorState = _editorState;
+    if (!_hasChanges || editorState == null) return null;
+    return {
+      'title': _titleController.text,
+      'emoji': _selectedEmoji,
+      'category_id': _selectedCategoryId,
+      'is_pinned': _isPinned,
+      'document': editorState.document.toJson(),
+    };
   }
 
   void _markChanged() {
-    if (!_hasChanges) {
-      setState(() => _hasChanges = true);
-    }
+    if (_editorState == null) return; // todavía cargando el contenido inicial
+    if (!_hasChanges) setState(() => _hasChanges = true);
+    _autosaver.schedule();
   }
 
-  FocusNode _getFocusNode(String id, {VoidCallback? onEnter}) {
-    var node = _focusNodes[id];
-    if (node == null) {
-      node = FocusNode(debugLabel: 'block_$id');
-      _focusNodes[id] = node;
-    }
-    node.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent &&
-          event.logicalKey == LogicalKeyboardKey.enter &&
-          !HardwareKeyboard.instance.isShiftPressed) {
-        onEnter?.call();
-        return KeyEventResult.handled;
-      }
-      return KeyEventResult.ignored;
-    };
-    return node;
-  }
-
-  TextEditingController _getController(String id, String initialText) {
-    return _controllers.putIfAbsent(id, () {
-      final ctrl = TextEditingController(text: initialText);
-      ctrl.addListener(_markChanged);
-      return ctrl;
+  void _discardDraft() {
+    unawaited(DraftStore.instance.clear(_draftScope));
+    setState(() {
+      _restoredDraft = null;
+      _titleController.removeListener(_markChanged);
+      _applyNoteValues();
+      _titleController.addListener(_markChanged);
+      _hasChanges = false;
+      _setEditorState(EditorState(document: _documentFromNote()));
     });
   }
 
   @override
   void dispose() {
-    for (final node in _focusNodes.values) {
-      node.dispose();
+    // Si se cierra sin guardar (X, atrás o Esc), lo escrito queda como borrador
+    _autosaver.flush();
+    if (_hasChanges && !_saved) {
+      final messenger = _messenger;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDraftSavedSnackBar(messenger, color: NotasColors.primary);
+      });
     }
-    for (final ctrl in _controllers.values) {
-      ctrl.dispose();
-    }
+    _autosaver.dispose();
+    _transactionSub?.cancel();
+    _editorState?.dispose();
     _titleController.dispose();
     super.dispose();
   }
 
-  void _addBlock(BlockType type, {int? atIndex}) {
-    final newBlock = NoteBlock(
-      id: NoteBlock.generateId(),
-      type: type,
-      content: type == BlockType.callout ? 'Nota importante...' : '',
-      calloutIcon: type == BlockType.callout ? '💡' : null,
-      children: type == BlockType.toggle
-          ? [
-              NoteBlock(
-                id: NoteBlock.generateId(),
-                type: BlockType.paragraph,
-                content: '',
-              ),
-            ]
-          : const [],
-    );
-
-    setState(() {
-      if (atIndex != null && atIndex >= 0 && atIndex <= _blocks.length) {
-        _blocks.insert(atIndex, newBlock);
-      } else {
-        _blocks.add(newBlock);
-      }
-      _hasChanges = true;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[newBlock.id]?.requestFocus();
-    });
-  }
-
-  void _handleEnterPressed(int index) {
-    if (index < 0 || index >= _blocks.length) return;
-    final block = _blocks[index];
-    if (block.type == BlockType.toggle) {
-      // Enter en el título del desplegable: inserta el primer elemento dentro y lo enfoca
-      _insertToggleChild(index, -1, BlockType.paragraph);
-      return;
-    }
-
-    BlockType nextType;
-    switch (block.type) {
-      case BlockType.bulletList:
-        nextType = BlockType.bulletList;
-        break;
-      case BlockType.numberedList:
-        nextType = BlockType.numberedList;
-        break;
-      case BlockType.todo:
-        nextType = BlockType.todo;
-        break;
-      case BlockType.heading1:
-      case BlockType.heading2:
-      case BlockType.heading3:
-        nextType = BlockType.paragraph;
-        break;
-      case BlockType.paragraph:
-      default:
-        nextType = BlockType.paragraph;
-        break;
-    }
-    _addBlock(nextType, atIndex: index + 1);
-  }
-
-  void _updateBlockContent(int index, String newContent) {
-    if (index >= 0 && index < _blocks.length) {
-      _blocks[index] = _blocks[index].copyWith(content: newContent);
-      _markChanged();
-    }
-  }
-
-  void _updateBlockType(int index, BlockType newType) {
-    if (index >= 0 && index < _blocks.length) {
-      setState(() {
-        _blocks[index] = _blocks[index].copyWith(
-          type: newType,
-          calloutIcon: newType == BlockType.callout ? '💡' : null,
-          children: newType == BlockType.toggle
-              ? [
-                  NoteBlock(
-                    id: NoteBlock.generateId(),
-                    type: BlockType.paragraph,
-                    content: '',
-                  ),
-                ]
-              : const [],
-        );
-        _hasChanges = true;
-      });
-    }
-  }
-
-  void _deleteBlock(int index) {
-    if (index >= 0 && index < _blocks.length) {
-      final blockId = _blocks[index].id;
-      _focusNodes[blockId]?.dispose();
-      _focusNodes.remove(blockId);
-      _controllers[blockId]?.dispose();
-      _controllers.remove(blockId);
-
-      setState(() {
-        _blocks.removeAt(index);
-        if (_blocks.isEmpty) {
-          final fallback = NoteBlock(
-            id: NoteBlock.generateId(),
-            type: BlockType.paragraph,
-            content: '',
-          );
-          _blocks.add(fallback);
-        }
-        _hasChanges = true;
-      });
-    }
-  }
-
-  // Métodos para elementos dentro de un desplegable (Toggle)
-  void _updateToggleChildContent(int blockIndex, int childIndex, String newContent) {
-    if (blockIndex >= 0 && blockIndex < _blocks.length) {
-      final parent = _blocks[blockIndex];
-      if (childIndex >= 0 && childIndex < parent.children.length) {
-        final newChildren = List<NoteBlock>.from(parent.children);
-        newChildren[childIndex] = newChildren[childIndex].copyWith(content: newContent);
-        _blocks[blockIndex] = parent.copyWith(children: newChildren);
-        _markChanged();
-      }
-    }
-  }
-
-  void _toggleChildTodo(int blockIndex, int childIndex, bool checked) {
-    if (blockIndex >= 0 && blockIndex < _blocks.length) {
-      final parent = _blocks[blockIndex];
-      if (childIndex >= 0 && childIndex < parent.children.length) {
-        final newChildren = List<NoteBlock>.from(parent.children);
-        newChildren[childIndex] = newChildren[childIndex].copyWith(isChecked: checked);
-        setState(() {
-          _blocks[blockIndex] = parent.copyWith(children: newChildren);
-          _hasChanges = true;
-        });
-      }
-    }
-  }
-
-  void _updateToggleChildType(int blockIndex, int childIndex, BlockType newType) {
-    if (blockIndex >= 0 && blockIndex < _blocks.length) {
-      final parent = _blocks[blockIndex];
-      if (childIndex >= 0 && childIndex < parent.children.length) {
-        final newChildren = List<NoteBlock>.from(parent.children);
-        newChildren[childIndex] = newChildren[childIndex].copyWith(
-          type: newType,
-          calloutIcon: newType == BlockType.callout ? '💡' : null,
-        );
-        setState(() {
-          _blocks[blockIndex] = parent.copyWith(children: newChildren);
-          _hasChanges = true;
-        });
-      }
-    }
-  }
-
-  void _deleteToggleChild(int blockIndex, int childIndex) {
-    if (blockIndex >= 0 && blockIndex < _blocks.length) {
-      final parent = _blocks[blockIndex];
-      if (childIndex >= 0 && childIndex < parent.children.length) {
-        final childId = parent.children[childIndex].id;
-        _focusNodes[childId]?.dispose();
-        _focusNodes.remove(childId);
-        _controllers[childId]?.dispose();
-        _controllers.remove(childId);
-
-        final newChildren = List<NoteBlock>.from(parent.children);
-        newChildren.removeAt(childIndex);
-        setState(() {
-          _blocks[blockIndex] = parent.copyWith(children: newChildren);
-          _hasChanges = true;
-        });
-      }
-    }
-  }
-
-  void _insertToggleChild(int blockIndex, int atChildIndex, BlockType type) {
-    if (blockIndex < 0 || blockIndex >= _blocks.length) return;
-    final parent = _blocks[blockIndex];
-    final newChild = NoteBlock(
-      id: NoteBlock.generateId(),
-      type: type,
-      content: type == BlockType.callout ? 'Nota destacada...' : '',
-      calloutIcon: type == BlockType.callout ? '💡' : null,
-      children: type == BlockType.toggle
-          ? [
-              NoteBlock(
-                id: NoteBlock.generateId(),
-                type: BlockType.paragraph,
-                content: '',
-              ),
-            ]
-          : const [],
-    );
-
-    final newChildren = List<NoteBlock>.from(parent.children);
-    final insertIndex = (atChildIndex + 1).clamp(0, newChildren.length);
-    newChildren.insert(insertIndex, newChild);
-
-    setState(() {
-      _blocks[blockIndex] = parent.copyWith(children: newChildren);
-      _hasChanges = true;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[newChild.id]?.requestFocus();
-    });
-  }
-
-  void _handleToggleChildEnter(int blockIndex, int childIndex) {
-    if (blockIndex < 0 || blockIndex >= _blocks.length) return;
-    final parent = _blocks[blockIndex];
-    if (childIndex < 0 || childIndex >= parent.children.length) return;
-    final child = parent.children[childIndex];
-
-    BlockType nextType;
-    switch (child.type) {
-      case BlockType.bulletList:
-        nextType = BlockType.bulletList;
-        break;
-      case BlockType.numberedList:
-        nextType = BlockType.numberedList;
-        break;
-      case BlockType.todo:
-        nextType = BlockType.todo;
-        break;
-      case BlockType.heading1:
-      case BlockType.heading2:
-      case BlockType.heading3:
-        nextType = BlockType.paragraph;
-        break;
-      case BlockType.paragraph:
-      default:
-        nextType = BlockType.paragraph;
-        break;
-    }
-    _insertToggleChild(blockIndex, childIndex, nextType);
-  }
-
   Future<void> _saveNote() async {
+    final editorState = _editorState;
+    if (editorState == null) return;
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor escribe un título para la nota'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('Por favor escribe un título para la nota'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -428,30 +252,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final notasState = Provider.of<NotasState>(context, listen: false);
 
     try {
-      // Sincronizar textos pendientes de los controladores
-      for (int i = 0; i < _blocks.length; i++) {
-        final b = _blocks[i];
-        if (_controllers.containsKey(b.id)) {
-          _blocks[i] = b.copyWith(content: _controllers[b.id]!.text);
-        }
-        if (_blocks[i].children.isNotEmpty) {
-          final updatedChildren = _blocks[i].children.map((c) {
-            if (_controllers.containsKey(c.id)) {
-              return c.copyWith(content: _controllers[c.id]!.text);
-            }
-            return c;
-          }).toList();
-          _blocks[i] = _blocks[i].copyWith(children: updatedChildren);
-        }
-      }
-
-      // Limpiar bloques vacíos excepto si es el único
-      final cleanBlocks = _blocks.where((b) {
-        if (b.type == BlockType.divider) return true;
-        return b.content.trim().isNotEmpty || b.children.isNotEmpty;
-      }).toList();
-
-      final effectiveBlocks = cleanBlocks.isEmpty ? _blocks : cleanBlocks;
+      final document = editorState.document;
+      final documentJson = document.toJson();
+      final blocks = NoteDocumentConverter.fromDocument(document);
+      final contentText = NoteDocumentConverter.toMarkdown(document);
 
       if (widget.note != null) {
         final updated = widget.note!.copyWith(
@@ -459,7 +263,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           emoji: _selectedEmoji,
           categoryId: _selectedCategoryId,
           isPinned: _isPinned,
-          blocks: effectiveBlocks,
+          blocks: blocks,
+          document: documentJson,
+          contentText: contentText,
         );
         await notasState.updateNote(updated);
       } else {
@@ -468,9 +274,13 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           emoji: _selectedEmoji,
           categoryId: _selectedCategoryId,
           isPinned: _isPinned,
-          blocks: effectiveBlocks,
+          blocks: blocks,
+          document: documentJson,
+          contentText: contentText,
         );
       }
+      _saved = true;
+      await _autosaver.discard();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -492,12 +302,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.redAccent));
       }
     } finally {
       if (mounted) {
@@ -506,16 +313,15 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
   }
 
+  String _currentMarkdown() {
+    final editorState = _editorState;
+    final title = _titleController.text.trim().isEmpty ? 'Sin título' : _titleController.text.trim();
+    final body = editorState == null ? '' : NoteDocumentConverter.toMarkdown(editorState.document);
+    return '# $_selectedEmoji $title\n\n$body';
+  }
+
   void _copyMarkdown() {
-    final tempNote = NoteItem(
-      id: widget.note?.id ?? 'temp',
-      title: _titleController.text.trim().isEmpty ? 'Sin título' : _titleController.text.trim(),
-      emoji: _selectedEmoji,
-      categoryId: _selectedCategoryId,
-      blocks: _blocks,
-    );
-    final md = tempNote.toMarkdown();
-    Clipboard.setData(ClipboardData(text: md));
+    Clipboard.setData(ClipboardData(text: _currentMarkdown()));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Row(
@@ -533,165 +339,122 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     );
   }
 
-  Future<bool> _onWillPop() async {
-    if (!_hasChanges) return true;
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('¿Descartar cambios?'),
-        content: const Text('Tienes cambios sin guardar en esta nota. Si sales ahora, se perderán.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Continuar editando'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Descartar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-    return leave ?? false;
+  /// Cerrar (X, Escape, atrás) nunca pierde lo escrito: queda como borrador (ver dispose).
+  void _close() => Navigator.of(context).pop();
+
+  /// Botón Cancelar: cierra y borra el borrador. El aviso permite deshacerlo.
+  Future<void> _cancel() async {
+    final data = _collectDraft();
+    final messenger = _messenger;
+    _saved = true; // no mostrar "Borrador guardado"
+    await _autosaver.discard();
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    if (data != null) {
+      showDraftDiscardedSnackBar(messenger, onUndo: () => DraftStore.instance.save(_draftScope, data));
+    }
+  }
+
+  void _focusEditor() {
+    final editorState = _editorState;
+    if (editorState == null) return;
+    editorState.selection = Selection.collapsed(Position(path: [0]));
   }
 
   @override
   Widget build(BuildContext context) {
     final notasState = Provider.of<NotasState>(context);
     final categories = notasState.categories;
+    final editorState = _editorState;
 
     return PopScope(
-      canPop: !_hasChanges,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (!didPop) {
-          final shouldPop = await _onWillPop();
-          if (shouldPop && mounted) {
-            Navigator.of(context).pop();
-          }
-        }
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) _autosaver.flush();
       },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: _buildAppBar(context, categories),
-        body: Column(
-          children: [
-            // Contenido editable scrolleable
-            Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 820),
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    children: [
-                      // Selector de Categoría y Metadatos
-                      _buildCategoryAndPinBar(categories),
-                      const SizedBox(height: 16),
-
-                      // Emoji + Título Principal
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildEmojiPickerButton(),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: TextField(
-                              controller: _titleController,
-                              textInputAction: TextInputAction.next,
-                              onSubmitted: (_) {
-                                if (_blocks.isNotEmpty) {
-                                  _focusNodes[_blocks[0].id]?.requestFocus();
-                                }
-                              },
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                color: NotasColors.textPrimary,
-                                letterSpacing: -0.5,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'Título de la nota...',
-                                hintStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFFCBD5E1),
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              maxLines: null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      const SizedBox(height: 14),
-
-                      // Lista de Bloques interactivos
-                      ...List.generate(_blocks.length, (index) {
-                        final block = _blocks[index];
-                        final node = _getFocusNode(block.id, onEnter: () => _handleEnterPressed(index));
-                        final ctrl = _getController(block.id, block.content);
-
-                        return NoteBlockWidget(
-                          key: ValueKey(block.id),
-                          block: block,
-                          index: index,
-                          isEditable: true,
-                          controller: ctrl,
-                          focusNode: node,
-                          onContentChanged: (newContent) => _updateBlockContent(index, newContent),
-                          onTypeChanged: (newType) => _updateBlockType(index, newType),
-                          onDelete: () => _deleteBlock(index),
-                          onAddBlockBelowWithType: (type) => _addBlock(type, atIndex: index + 1),
-                          onEnterPressed: () => _handleEnterPressed(index),
-                          // Handlers para elementos dentro de un desplegable
-                          onToggleChildContentChanged: (childIndex, content) =>
-                              _updateToggleChildContent(index, childIndex, content),
-                          onToggleChildTodo: (childIndex, chk) =>
-                              _toggleChildTodo(index, childIndex, chk),
-                          onToggleChildTypeChanged: (childIndex, type) =>
-                              _updateToggleChildType(index, childIndex, type),
-                          onToggleChildDelete: (childIndex) =>
-                              _deleteToggleChild(index, childIndex),
-                          onToggleChildAddBelow: (childIndex, type) =>
-                              _insertToggleChild(index, childIndex, type),
-                          onToggleChildEnter: (childIndex) =>
-                              _handleToggleChildEnter(index, childIndex),
-                          getChildFocusNode: (childId, onEnter) =>
-                              _getFocusNode(childId, onEnter: onEnter),
-                          getChildController: (childId, content) =>
-                              _getController(childId, content),
-                        );
-                      }),
-
-                      const SizedBox(height: 80),
-                    ],
-                  ),
+      child: EscapeToClose(
+        onEscape: _close,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: _buildAppBar(context, categories),
+          body: editorState == null
+              ? const Center(child: CircularProgressIndicator())
+              : RichDocumentEditor(
+                  key: ObjectKey(editorState),
+                  editorState: editorState,
+                  accentColor: NotasColors.primary,
+                  autofocus: widget.note == null && _restoredDraft == null,
+                  onEscape: _close,
+                  header: _buildHeader(categories),
                 ),
-              ),
-            ),
-
-            // Barra inferior con herramientas de inserción rápida de bloques
-            _buildBottomBlockToolbar(),
-          ],
         ),
       ),
     );
   }
 
+  Widget _buildHeader(List<NoteCategory> categories) {
+    final mobile = MediaQuery.of(context).size.width < 840;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(mobile ? 16 : 32, 20, mobile ? 16 : 32, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_restoredDraft != null)
+            DraftRestoredBanner(
+              savedAt: _restoredDraft!.savedAt,
+              accent: NotasColors.primary,
+              onDiscard: _discardDraft,
+              onDismiss: () => setState(() => _restoredDraft = null),
+            ),
+          _buildCategoryAndPinBar(categories),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEmojiPickerButton(),
+              const SizedBox(width: 14),
+              Expanded(
+                child: TextField(
+                  key: const ValueKey('note_title_field'),
+                  controller: _titleController,
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) => _focusEditor(),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: NotasColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'Título de la nota...',
+                    hintStyle: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFFCBD5E1)),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  maxLines: null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
   NoteItem _getCurrentNotePreview() {
+    final editorState = _editorState;
     return NoteItem(
       id: widget.note?.id ?? 'preview',
       title: _titleController.text.trim().isNotEmpty ? _titleController.text.trim() : 'Sin título',
       categoryId: _selectedCategoryId,
       icon: _selectedEmoji,
       colorHex: widget.note?.colorHex ?? '#6366F1',
-      blocks: _blocks,
+      blocks: editorState == null
+          ? (widget.note?.blocks ?? const [])
+          : NoteDocumentConverter.fromDocument(editorState.document),
+      document: editorState?.document.toJson(),
       sharedTag: widget.note?.sharedTag,
       isPinned: _isPinned,
       createdAt: widget.note?.createdAt ?? DateTime.now(),
@@ -705,17 +468,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       elevation: 0,
       scrolledUnderElevation: 1,
       leading: IconButton(
-        icon: Icon(
-          widget.isModalDialog ? Icons.close_rounded : Icons.arrow_back_rounded,
-          color: Colors.black87,
-        ),
+        icon: Icon(widget.isModalDialog ? Icons.close_rounded : Icons.arrow_back_rounded, color: Colors.black87),
         tooltip: widget.isModalDialog ? 'Cerrar modal' : 'Volver',
-        onPressed: () async {
-          final shouldPop = await _onWillPop();
-          if (shouldPop && context.mounted) {
-            Navigator.of(context).pop();
-          }
-        },
+        onPressed: _close,
       ),
       title: Text(
         widget.note != null ? 'Editar Nota' : 'Nueva Nota',
@@ -728,15 +483,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           tooltip: 'Descargar como PDF',
           onPressed: () async {
             final notePreview = _getCurrentNotePreview();
-            final category = categories.firstWhere(
-              (c) => c.id == _selectedCategoryId,
-              orElse: () => categories.first,
-            );
-            await NotePdfService.instance.downloadNotePdf(
-              note: notePreview,
-              category: category,
-              context: context,
-            );
+            final category = categories.firstWhere((c) => c.id == _selectedCategoryId, orElse: () => categories.first);
+            await NotePdfService.instance.downloadNotePdf(note: notePreview, category: category, context: context);
           },
         ),
 
@@ -746,15 +494,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           tooltip: 'Compartir nota',
           onPressed: () async {
             final notePreview = _getCurrentNotePreview();
-            final category = categories.firstWhere(
-              (c) => c.id == _selectedCategoryId,
-              orElse: () => categories.first,
-            );
-            await NotePdfService.showShareModal(
-              context: context,
-              note: notePreview,
-              category: category,
-            );
+            final category = categories.firstWhere((c) => c.id == _selectedCategoryId, orElse: () => categories.first);
+            await NotePdfService.showShareModal(context: context, note: notePreview, category: category);
           },
         ),
 
@@ -764,6 +505,12 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           onPressed: _copyMarkdown,
         ),
         const SizedBox(width: 8),
+        if (widget.isModalDialog)
+          TextButton(
+            key: const ValueKey('note_editor_cancel'),
+            onPressed: _isSaving ? null : _cancel,
+            child: const Text('Cancelar', style: TextStyle(color: Colors.black54)),
+          ),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: FilledButton.icon(
@@ -810,16 +557,18 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             }
           },
           itemBuilder: (ctx) => [
-            ...categories.map((cat) => PopupMenuItem(
-                  value: cat.id,
-                  child: Row(
-                    children: [
-                      Text(cat.icon, style: const TextStyle(fontSize: 16)),
-                      const SizedBox(width: 8),
-                      Text(cat.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                )),
+            ...categories.map(
+              (cat) => PopupMenuItem(
+                value: cat.id,
+                child: Row(
+                  children: [
+                    Text(cat.icon, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(width: 8),
+                    Text(cat.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
             const PopupMenuDivider(),
             const PopupMenuItem(
               value: '__manage__',
@@ -846,11 +595,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 const SizedBox(width: 6),
                 Text(
                   currentCat.name,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                    color: currentCat.color,
-                  ),
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: currentCat.color),
                 ),
                 const SizedBox(width: 4),
                 Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: currentCat.color),
@@ -875,9 +620,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             decoration: BoxDecoration(
               color: _isPinned ? Colors.amber.withOpacity(0.15) : Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _isPinned ? Colors.amber[700]!.withOpacity(0.4) : Colors.transparent,
-              ),
+              border: Border.all(color: _isPinned ? Colors.amber[700]!.withOpacity(0.4) : Colors.transparent),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -951,117 +694,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         ),
         alignment: Alignment.center,
         child: Text(_selectedEmoji, style: const TextStyle(fontSize: 26)),
-      ),
-    );
-  }
-
-  Widget _buildBottomBlockToolbar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            const Text(
-              'Agregar bloque:',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
-            ),
-            const SizedBox(width: 8),
-            _buildToolbarItem(
-              icon: Icons.title_rounded,
-              label: 'H1',
-              onTap: () => _addBlock(BlockType.heading1),
-            ),
-            _buildToolbarItem(
-              icon: Icons.format_size_rounded,
-              label: 'H2',
-              onTap: () => _addBlock(BlockType.heading2),
-            ),
-            _buildToolbarItem(
-              icon: Icons.text_fields_rounded,
-              label: 'H3',
-              onTap: () => _addBlock(BlockType.heading3),
-            ),
-            _buildToolbarItem(
-              icon: Icons.notes_rounded,
-              label: 'Texto',
-              onTap: () => _addBlock(BlockType.paragraph),
-            ),
-            _buildToolbarItem(
-              icon: Icons.check_box_outlined,
-              label: 'Tarea',
-              onTap: () => _addBlock(BlockType.todo),
-            ),
-            _buildToolbarItem(
-              icon: Icons.format_list_bulleted_rounded,
-              label: 'Viñetas',
-              onTap: () => _addBlock(BlockType.bulletList),
-            ),
-            _buildToolbarItem(
-              icon: Icons.format_list_numbered_rounded,
-              label: 'Numerada',
-              onTap: () => _addBlock(BlockType.numberedList),
-            ),
-            _buildToolbarItem(
-              icon: Icons.arrow_right_rounded,
-              label: 'Desplegable',
-              onTap: () => _addBlock(BlockType.toggle),
-            ),
-            _buildToolbarItem(
-              icon: Icons.lightbulb_outline_rounded,
-              label: 'Destacado',
-              onTap: () => _addBlock(BlockType.callout),
-            ),
-            _buildToolbarItem(
-              icon: Icons.horizontal_rule_rounded,
-              label: 'Divisor',
-              onTap: () => _addBlock(BlockType.divider),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildToolbarItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 14, color: const Color(0xFF475569)),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

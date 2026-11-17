@@ -746,6 +746,11 @@ class AppState extends ChangeNotifier {
     return balance > 0 ? balance : 0.0;
   }
 
+  /// Bolívares disponibles hoy (suma de las cuentas en Bs). Los bolsillos son en $.
+  double get liquidBalanceBs => accounts
+      .where((acc) => acc.currency == CurrencyType.bsBCV)
+      .fold(0.0, (sum, acc) => sum + acc.balance);
+
   Future<void> addPocket({
     required String name,
     required double targetAmountUSD,
@@ -1364,6 +1369,15 @@ class AppState extends ChangeNotifier {
   @visibleForTesting
   static bool? debugLocalDbIsSourceOfTruth;
 
+  /// Solo para tests: fija las tasas para que los escenarios no dependan de la tasa guardada.
+  @visibleForTesting
+  void debugSetRates({double? bcv, double? euro, double? parallel}) {
+    if (bcv != null) _bcvRate = bcv;
+    if (euro != null) _euroRate = euro;
+    if (parallel != null) _parallelRate = parallel;
+    _cachedTimelineEvents = null;
+  }
+
   Future<void> updateTransaction(Transaction oldTx, Transaction newTx) async {
     // 1. Revertir el efecto del movimiento original en cuenta y bolsillo (Supabase + SQLite)
     await _revertTransactionImpact(oldTx);
@@ -1822,6 +1836,29 @@ class AppState extends ChangeNotifier {
     super.notifyListeners();
   }
 
+  /// Cuenta que mueve un recurrente en la proyección: la suya, o la primera de su
+  /// moneda (Bs/EUR → cuenta en Bs, $ → cuenta en $) si no tiene o ya no existe.
+  Account? projectionAccountFor(RecurringPayment payment) {
+    if (payment.accountId != null) {
+      for (final a in accounts) {
+        if (a.id == payment.accountId) return a;
+      }
+    }
+    final wanted = payment.currency == CurrencyType.usd ? CurrencyType.usd : CurrencyType.bsBCV;
+    for (final a in accounts) {
+      if (a.currency == wanted) return a;
+    }
+    return null;
+  }
+
+  /// Monto de un recurrente expresado en la moneda de la cuenta que lo paga:
+  /// "Bs fijo" se queda en Bs; "USD/EUR a tasa BCV" en una cuenta en Bs se convierte a Bs.
+  double projectionAmountIn(Account account, RecurringPayment payment, double amount) {
+    if (payment.currency == account.currency) return amount;
+    final usd = convertToUSD(amount: amount, from: payment.currency);
+    return convert(amountUSD: usd, to: account.currency);
+  }
+
   List<TimelineEvent> getTimelineEvents(int daysToProject, {List<SavingPocket> virtualPockets = const [], List<RecurringPayment> virtualPayments = const []}) {
     if (virtualPockets.isEmpty && virtualPayments.isEmpty) {
       if (_cachedTimelineEvents != null && _cachedTimelineDays == daysToProject) {
@@ -2037,30 +2074,21 @@ class AppState extends ChangeNotifier {
                 );
               }
 
-              double displayAmountChange = deficit;
-              if (payment.currency == CurrencyType.bsBCV) {
-                displayAmountChange = deficit * bcvRate;
-              }
-
+              // Los bolsillos son en $: el apartado siempre se muestra en $
               consolidatedDeposits[dateKey] = _VirtualDeposit(
                 pocketId: pId,
                 amountUSD: existing.amountUSD + deficit,
-                amount: existing.amount + displayAmountChange,
-                currency: payment.currency,
+                amount: existing.amount + deficit,
+                currency: CurrencyType.usd,
                 date: depositDate,
                 reasons: existing.reasons,
               );
             } else {
-              double displayAmount = deficit;
-              if (payment.currency == CurrencyType.bsBCV) {
-                displayAmount = deficit * bcvRate;
-              }
-
               consolidatedDeposits[dateKey] = _VirtualDeposit(
                 pocketId: pId,
                 amountUSD: deficit,
-                amount: displayAmount,
-                currency: payment.currency,
+                amount: deficit,
+                currency: CurrencyType.usd,
                 date: depositDate,
                 reasons: {
                   payment.name: _VirtualDepositReason(
@@ -2535,7 +2563,11 @@ class AppState extends ChangeNotifier {
       return getWeight(a).compareTo(getWeight(b));
     });
 
-    // Reset simulation balances
+    // ------------------------------------------------------------------------
+    // Simulación con dos "cajas": $ (cuentas en $ − bolsillos) y Bs (cuentas en Bs).
+    // Los gastos en Bs se pagan con los Bs proyectados; si no alcanzan, se sugiere
+    // vender $ ese mismo día (a tasa BCV) por lo que falta.
+    // ------------------------------------------------------------------------
     Map<String, double> projectedBalances = {
       for (var acc in accounts) acc.id: acc.balance,
     };
@@ -2545,47 +2577,151 @@ class AppState extends ChangeNotifier {
 
     List<TimelineEvent> events = [];
 
+    double totalUSDNow() {
+      double total = 0.0;
+      for (var acc in accounts) {
+        total += convertToUSD(amount: projectedBalances[acc.id] ?? 0.0, from: acc.currency);
+      }
+      return total;
+    }
+
+    double liquidUSDNow() {
+      double usd = 0.0;
+      for (var acc in accounts) {
+        if (acc.currency == CurrencyType.usd) usd += projectedBalances[acc.id] ?? 0.0;
+      }
+      final inPockets = projectedPocketBalances.values.fold(0.0, (sum, v) => sum + v);
+      return usd - inPockets;
+    }
+
+    double bsNow() {
+      double bs = 0.0;
+      for (var acc in accounts) {
+        if (acc.currency == CurrencyType.bsBCV) bs += projectedBalances[acc.id] ?? 0.0;
+      }
+      return bs;
+    }
+
+    String? pocketNameOf(String? pocketId) {
+      if (pocketId == null) return null;
+      for (var p in allPockets) {
+        if (p.id == pocketId) return p.name;
+      }
+      return null;
+    }
+
+    // Gastos del día que se pagan desde cuentas en Bs (para sugerir un solo cambio por día)
+    final Map<DateTime, List<_OccurrenceRaw>> bsExpensesByDay = {};
+    for (var occ in occurrences) {
+      if (occ.payment.type != TransactionType.expense) continue;
+      final acc = projectionAccountFor(occ.payment);
+      if (acc?.currency == CurrencyType.bsBCV) {
+        bsExpensesByDay.putIfAbsent(occ.date, () => []).add(occ);
+      }
+    }
+    final Set<DateTime> exchangeCheckedDays = {};
+
+    void addExchangeIfNeeded(DateTime day) {
+      if (!exchangeCheckedDays.add(day)) return;
+      final dayExpenses = bsExpensesByDay[day];
+      if (dayExpenses == null || dayExpenses.isEmpty || bcvRate <= 0) return;
+
+      // Bs que necesita cada cuenta ese día
+      final Map<String, double> needByAccount = {};
+      for (var occ in dayExpenses) {
+        final acc = projectionAccountFor(occ.payment)!;
+        needByAccount[acc.id] = (needByAccount[acc.id] ?? 0.0) + projectionAmountIn(acc, occ.payment, occ.remainingAmount);
+      }
+      final totalNeed = needByAccount.values.fold(0.0, (s, v) => s + v);
+      final shortfallBs = totalNeed - bsNow();
+      if (shortfallBs < 0.01) return;
+
+      final usdAccounts = accounts.where((a) => a.currency == CurrencyType.usd).toList();
+      if (usdAccounts.isEmpty) return; // sin cuentas en $ no hay de dónde vender
+
+      final rate = bcvRate;
+      final sellUSD = (shortfallBs / rate * 100).ceil() / 100;
+      final receiveBs = sellUSD * rate;
+
+      // Los Bs entran primero a las cuentas que quedarían en negativo
+      double toCredit = receiveBs;
+      String? targetAccountId;
+      for (var entry in needByAccount.entries) {
+        final deficit = entry.value - (projectedBalances[entry.key] ?? 0.0);
+        if (deficit <= 0) continue;
+        final give = deficit < toCredit ? deficit : toCredit;
+        projectedBalances[entry.key] = (projectedBalances[entry.key] ?? 0.0) + give;
+        toCredit -= give;
+        targetAccountId ??= entry.key;
+        if (toCredit <= 0) break;
+      }
+      targetAccountId ??= needByAccount.keys.first;
+      if (toCredit > 0) {
+        projectedBalances[targetAccountId] = (projectedBalances[targetAccountId] ?? 0.0) + toCredit;
+      }
+
+      // Los $ salen de la cuenta en $ con más saldo (si no alcanza, queda en negativo:
+      // es dinero que faltará y se ve en el disponible)
+      usdAccounts.sort((a, b) => (projectedBalances[b.id] ?? 0.0).compareTo(projectedBalances[a.id] ?? 0.0));
+      final source = usdAccounts.first;
+      projectedBalances[source.id] = (projectedBalances[source.id] ?? 0.0) - sellUSD;
+
+      final targetName = accounts.firstWhere((a) => a.id == targetAccountId, orElse: () => accounts.first).name;
+      events.add(
+        TimelineEvent(
+          date: day,
+          title: "Vender \$${sellUSD.toStringAsFixed(2)} para pagar en Bs",
+          amount: sellUSD,
+          amountUSD: sellUSD,
+          currency: CurrencyType.usd,
+          type: TransactionType.expense,
+          accountName: targetName,
+          projectedBalanceUSD: totalUSDNow(),
+          projectedLiquidBalanceUSD: liquidUSDNow(),
+          projectedBsBalance: bsNow(),
+          accountBalances: Map.of(projectedBalances),
+          isExchangeSuggestion: true,
+          exchangeAmountBs: receiveBs,
+          exchangeRate: rate,
+          exchangeSourceAccountId: source.id,
+          exchangeTargetAccountId: targetAccountId,
+          suggestionReasons: [
+            for (final occ in dayExpenses)
+              SuggestionReason(
+                "• ${occ.payment.name}",
+                "Bs. ${projectionAmountIn(projectionAccountFor(occ.payment)!, occ.payment, occ.remainingAmount).toStringAsFixed(2)}",
+              ),
+          ],
+        ),
+      );
+    }
+
     for (var sim in simEvents) {
       if (sim.deposit != null) {
         final dep = sim.deposit!;
-        final pIndex = allPockets.indexWhere((p) => p.id == dep.pocketId);
-        String? pocketName;
-        if (pIndex != -1) {
-          pocketName = allPockets[pIndex].name;
+        final pocketName = pocketNameOf(dep.pocketId);
+        if (pocketName != null) {
           projectedPocketBalances[dep.pocketId] =
               (projectedPocketBalances[dep.pocketId] ?? 0.0) + dep.amountUSD;
         }
-
-        // Calculate consolidated metrics
-        double totalUSD = 0.0;
-        for (var acc in accounts) {
-          final bal = projectedBalances[acc.id] ?? 0.0;
-          if (acc.currency == CurrencyType.usd) {
-            totalUSD += bal;
-          } else {
-            totalUSD += bcvRate > 0 ? bal / bcvRate : 0.0;
-          }
-        }
-
-        double totalPockets = projectedPocketBalances.values.fold(
-          0.0,
-          (sum, val) => sum + val,
-        );
-        double projectedLiquid = totalUSD - totalPockets;
 
         events.add(
           TimelineEvent(
             date: dep.date,
             title: "Apartar para Bolsillo: $pocketName",
             amount: dep.amount,
+            amountUSD: dep.amountUSD,
+            paidInCurrency: CurrencyType.usd, // los bolsillos son en $
             currency: dep.currency,
             type: TransactionType.expense, // Reserved from liquid cash
             pocketName: pocketName,
             pocketId: dep.pocketId,
             accountName: dep.targetExpenseTitle, // Save target reasons here
             suggestionReasons: dep.suggestionReasonsList,
-            projectedBalanceUSD: totalUSD,
-            projectedLiquidBalanceUSD: projectedLiquid,
+            projectedBalanceUSD: totalUSDNow(),
+            projectedLiquidBalanceUSD: liquidUSDNow(),
+            projectedBsBalance: bsNow(),
+            accountBalances: Map.of(projectedBalances),
             isSuggestion: true,
             isLastProvisioning: dep.isLast,
             associatedTransactionIds: dep.associatedTransactionIds,
@@ -2604,49 +2740,25 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        final accId = tx?.accountId ?? payment.accountId ??
-            (payment.currency == CurrencyType.usd ? 'default_usd' : 'default_ves');
-        final accIndex = accounts.indexWhere((acc) => acc.id == accId);
-        String? accountName;
-        if (accIndex != -1) {
-          accountName = accounts[accIndex].name;
-        }
-
-        // Calculate running metrics
-        double totalUSD = 0.0;
-        for (var acc in accounts) {
-          final bal = projectedBalances[acc.id] ?? 0.0;
-          if (acc.currency == CurrencyType.usd) {
-            totalUSD += bal;
-          } else {
-            totalUSD += bcvRate > 0 ? bal / bcvRate : 0.0;
-          }
-        }
-
-        double totalPockets = projectedPocketBalances.values.fold(
-          0.0,
-          (sum, val) => sum + val,
-        );
-        double projectedLiquid = totalUSD - totalPockets;
+        final txAccount = tx == null ? null : accounts.where((a) => a.id == tx!.accountId).firstOrNull;
+        final accountName = (txAccount ?? projectionAccountFor(payment))?.name;
 
         events.add(
           TimelineEvent(
             date: sim.date,
             title: "${payment.name} (Abono Parcial)",
             amount: partial.amount,
+            amountUSD: convertToUSD(amount: partial.amount, from: payment.currency),
+            paidInCurrency: (txAccount ?? projectionAccountFor(payment))?.currency ?? payment.currency,
             currency: payment.currency,
             type: payment.type,
             accountName: accountName,
-            pocketName: () {
-              if (payment.pocketId == null) return null;
-              for (var p in allPockets) {
-                if (p.id == payment.pocketId) return p.name;
-              }
-              return null;
-            }(),
+            pocketName: pocketNameOf(payment.pocketId),
             pocketId: payment.pocketId,
-            projectedBalanceUSD: totalUSD,
-            projectedLiquidBalanceUSD: projectedLiquid,
+            projectedBalanceUSD: totalUSDNow(),
+            projectedLiquidBalanceUSD: liquidUSDNow(),
+            projectedBsBalance: bsNow(),
+            accountBalances: Map.of(projectedBalances),
             isSuggestion: false,
             recurringPaymentId: payment.id,
             isVariable: false,
@@ -2660,115 +2772,52 @@ class AppState extends ChangeNotifier {
         final occ = sim.occurrence!;
         final payment = occ.payment;
         final remainingVal = occ.remainingAmount;
-        final accId =
-            payment.accountId ??
-            (payment.currency == CurrencyType.usd
-                ? 'default_usd'
-                : 'default_ves');
-        final accIndex = accounts.indexWhere((acc) => acc.id == accId);
-        String? accountName;
-        String? pocketName;
+        final acc = projectionAccountFor(payment);
 
-        double amountInAccountCurrency = remainingVal;
-        double amountUSD = remainingVal;
+        // Antes del primer gasto del día: ¿alcanzan los Bs para los gastos en Bs?
+        if (payment.type == TransactionType.expense) addExchangeIfNeeded(occ.date);
 
-        if (accIndex != -1) {
-          final acc = accounts[accIndex];
-          accountName = acc.name;
+        final amountInAccountCurrency = acc == null ? remainingVal : projectionAmountIn(acc, payment, remainingVal);
+        final amountUSD = acc == null
+            ? convertToUSD(amount: remainingVal, from: payment.currency)
+            : convertToUSD(amount: amountInAccountCurrency, from: acc.currency);
+        final pocketName = pocketNameOf(payment.pocketId);
 
-          if (acc.currency == CurrencyType.usd) {
-            // Account is USD
-            if (payment.currency == CurrencyType.usd) {
-              amountInAccountCurrency = remainingVal;
-            } else if (payment.currency == CurrencyType.eur) {
-              amountInAccountCurrency = bcvRate > 0 ? (remainingVal * euroRate) / bcvRate : 0.0;
-            } else {
-              // VES
-              amountInAccountCurrency = bcvRate > 0 ? remainingVal / bcvRate : 0.0;
-            }
-            amountUSD = amountInAccountCurrency;
-          } else {
-            // Account is VES (bsBCV)
-            if (payment.currency == CurrencyType.usd) {
-              amountInAccountCurrency = remainingVal * bcvRate;
-            } else if (payment.currency == CurrencyType.eur) {
-              amountInAccountCurrency = remainingVal * euroRate;
-            } else {
-              // VES
-              amountInAccountCurrency = remainingVal;
-            }
-            amountUSD = bcvRate > 0 ? amountInAccountCurrency / bcvRate : 0.0;
-          }
-        } else {
-          // No account associated
-          if (payment.currency == CurrencyType.bsBCV) {
-            amountUSD = bcvRate > 0 ? remainingVal / bcvRate : 0.0;
-          } else if (payment.currency == CurrencyType.eur) {
-            amountUSD = bcvRate > 0 ? (remainingVal * euroRate) / bcvRate : 0.0;
-          }
-        }
-
-        // Apply to projected balances
         if (payment.type == TransactionType.income) {
-          if (projectedBalances.containsKey(accId)) {
-            projectedBalances[accId] =
-                projectedBalances[accId]! + amountInAccountCurrency;
+          if (acc != null) {
+            projectedBalances[acc.id] = (projectedBalances[acc.id] ?? 0.0) + amountInAccountCurrency;
           }
-          if (payment.pocketId != null) {
-            final pIndex = allPockets.indexWhere((p) => p.id == payment.pocketId);
-            if (pIndex != -1) {
-              pocketName = allPockets[pIndex].name;
-              projectedPocketBalances[payment.pocketId!] =
-                  (projectedPocketBalances[payment.pocketId!] ?? 0.0) +
-                  amountUSD;
-            }
+          if (pocketName != null) {
+            projectedPocketBalances[payment.pocketId!] =
+                (projectedPocketBalances[payment.pocketId!] ?? 0.0) + amountUSD;
           }
         } else {
-          if (projectedBalances.containsKey(accId)) {
-            final curBal = projectedBalances[accId]!;
-            projectedBalances[accId] = curBal - amountInAccountCurrency;
+          if (acc != null) {
+            projectedBalances[acc.id] = (projectedBalances[acc.id] ?? 0.0) - amountInAccountCurrency;
           }
-          if (payment.pocketId != null) {
-            final pIndex = allPockets.indexWhere((p) => p.id == payment.pocketId);
-            if (pIndex != -1) {
-              pocketName = allPockets[pIndex].name;
-              final curPocketBal =
-                  projectedPocketBalances[payment.pocketId!] ?? 0.0;
-              projectedPocketBalances[payment.pocketId!] =
-                  curPocketBal - amountUSD > 0 ? curPocketBal - amountUSD : 0.0;
-            }
+          if (pocketName != null) {
+            final curPocketBal = projectedPocketBalances[payment.pocketId!] ?? 0.0;
+            projectedPocketBalances[payment.pocketId!] =
+                curPocketBal - amountUSD > 0 ? curPocketBal - amountUSD : 0.0;
           }
         }
-
-        // Calculate consolidated metrics
-        double totalUSD = 0.0;
-        for (var acc in accounts) {
-          final bal = projectedBalances[acc.id] ?? 0.0;
-          if (acc.currency == CurrencyType.usd) {
-            totalUSD += bal;
-          } else {
-            totalUSD += bcvRate > 0 ? bal / bcvRate : 0.0;
-          }
-        }
-
-        double totalPockets = projectedPocketBalances.values.fold(
-          0.0,
-          (sum, val) => sum + val,
-        );
-        double projectedLiquid = totalUSD - totalPockets;
 
         events.add(
           TimelineEvent(
             date: occ.date,
             title: payment.name,
             amount: remainingVal,
+            amountUSD: amountUSD,
+            paidInCurrency: acc?.currency ?? (payment.currency == CurrencyType.usd ? CurrencyType.usd : CurrencyType.bsBCV),
             currency: payment.currency,
             type: payment.type,
-            accountName: accountName,
+            accountName: acc?.name,
             pocketName: pocketName,
             pocketId: payment.pocketId,
-            projectedBalanceUSD: totalUSD,
-            projectedLiquidBalanceUSD: projectedLiquid,
+            projectedBalanceUSD: totalUSDNow(),
+            projectedLiquidBalanceUSD: liquidUSDNow(),
+            projectedBsBalance: bsNow(),
+            accountBalances: Map.of(projectedBalances),
             installmentNumber: payment.totalInstallments != null
                 ? occ.installmentNumber
                 : null,

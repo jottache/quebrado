@@ -151,6 +151,7 @@ class NotasState extends ChangeNotifier {
     String? emoji,
     String colorHex = '#6366F1',
     List<NoteBlock> blocks = const [],
+    Map<String, dynamic>? document,
     String? contentText,
     String? sharedTag,
     bool isPinned = false,
@@ -164,6 +165,7 @@ class NotasState extends ChangeNotifier {
       icon: emoji ?? icon,
       colorHex: colorHex,
       blocks: blocks,
+      document: document,
       contentText: contentText,
       sharedTag: sharedTag,
       isPinned: isPinned,
@@ -209,6 +211,27 @@ class NotasState extends ChangeNotifier {
 
   /// Alias de conveniencia
   Future<void> togglePinNote(String noteId) => togglePin(noteId);
+
+  /// Guarda el documento enriquecido de una nota (por ejemplo, al marcar una tarea
+  /// desde el lector). [blocks] y [contentText] son las versiones derivadas.
+  Future<void> updateNoteDocument(
+    String noteId, {
+    required Map<String, dynamic> document,
+    required List<NoteBlock> blocks,
+    required String contentText,
+  }) async {
+    final index = _notes.indexWhere((n) => n.id == noteId);
+    if (index == -1) return;
+    final updated = _notes[index].copyWith(
+      document: document,
+      blocks: blocks,
+      contentText: contentText,
+      updatedAt: DateTime.now(),
+    );
+    _notes[index] = updated;
+    notifyListeners();
+    await _service.saveNote(updated);
+  }
 
   /// Alterna o establece el estado de un checkbox/todo dentro de los bloques de la nota
   Future<void> toggleTodoBlock(String noteId, String blockId, [bool? targetChecked]) async {

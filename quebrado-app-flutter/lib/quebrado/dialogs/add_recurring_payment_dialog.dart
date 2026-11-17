@@ -27,6 +27,10 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
 
   TransactionType _selectedType = TransactionType.expense;
   CurrencyType _selectedCurrency = CurrencyType.usd;
+
+  /// Recurrente viejo guardado en Bs que se convirtió a $ al abrirlo.
+  bool _convertedFromBs = false;
+  double? _legacyMaxAmountUsd;
   SubscriptionFrequency _selectedFrequency = SubscriptionFrequency.monthly;
   DateTime _startDate = DateTime.now();
   NotificationOption _selectedNotification = NotificationOption.none;
@@ -56,7 +60,18 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       _nameController.text = pay.name;
       _amountController.text = pay.amount.toStringAsFixed(2);
       _selectedType = pay.type;
-      _selectedCurrency = pay.currency == CurrencyType.bsBCV ? CurrencyType.usd : pay.currency;
+      _selectedCurrency = pay.currency;
+      if (pay.currency == CurrencyType.bsBCV) {
+        // En Venezuela los pagos en Bs siempre están anclados al dólar: los recurrentes
+        // viejos guardados en Bs se pasan a $ con la tasa BCV de hoy (no con el mismo número).
+        final rate = Provider.of<AppState>(context, listen: false).bcvRate;
+        _selectedCurrency = CurrencyType.usd;
+        _convertedFromBs = rate > 0;
+        if (rate > 0) {
+          _amountController.text = (pay.amount / rate).toStringAsFixed(2);
+          if (pay.maxAmount != null) _legacyMaxAmountUsd = pay.maxAmount! / rate;
+        }
+      }
       _selectedFrequency = pay.frequency;
       _isOnce = pay.frequency == SubscriptionFrequency.once;
       if (_isOnce) {
@@ -74,7 +89,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       _selectedColorHex = pay.colorHex;
       _isVariable = pay.isVariable;
       if (pay.maxAmount != null) {
-        _maxAmountController.text = pay.maxAmount!.toStringAsFixed(2);
+        _maxAmountController.text = (_legacyMaxAmountUsd ?? pay.maxAmount!).toStringAsFixed(2);
       }
       if (pay.totalInstallments != null) {
         _installmentsController.text = pay.totalInstallments.toString();
@@ -108,6 +123,9 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
     final isVariable = _selectedType == TransactionType.income && _isVariable && !_isOnce;
     final maxAmount = isVariable ? (double.tryParse(_maxAmountController.text) ?? 0.0) : null;
     final accountId = _selectedAccountId ?? (appState.accounts.isNotEmpty ? appState.accounts.first.id : null);
+    // En cuentas en $ el recurrente siempre es en $ (Bs y EUR solo tienen sentido en cuentas en Bs)
+    final account = appState.accounts.where((a) => a.id == accountId).firstOrNull;
+    if (account != null && account.currency == CurrencyType.usd) _selectedCurrency = CurrencyType.usd;
     final isFiniteExpense = _expenseType == 'installments';
     final totalInstallments = _isOnce 
         ? 1 
@@ -698,7 +716,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ),
                             ),
                           ] else ...[
-                            // VES account: interactive tabs for USD, VES, EUR
+                            // Cuenta en Bs: monto fijo en Bs, o indexado a USD/EUR (se paga en Bs a la tasa BCV del día)
                             Container(
                               padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -707,58 +725,46 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ),
                               child: Row(
                                 children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => setState(() => _selectedCurrency = CurrencyType.usd),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: _selectedCurrency == CurrencyType.usd
-                                              ? AppColors.nestedTabActiveBg
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          "USD (\$)",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: _selectedCurrency == CurrencyType.usd
-                                                ? AppColors.nestedTabActiveText
-                                                : AppColors.nestedTabInactiveText,
+                                  for (final option in const [
+                                    (CurrencyType.usd, "USD a tasa BCV"),
+                                    (CurrencyType.eur, "EUR a tasa BCV"),
+                                  ])
+                                    Expanded(
+                                      child: GestureDetector(
+                                        key: ValueKey('recurring_currency_${option.$1.name}'),
+                                        onTap: () => setState(() => _selectedCurrency = option.$1),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          decoration: BoxDecoration(
+                                            color: _selectedCurrency == option.$1
+                                                ? AppColors.nestedTabActiveBg
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            option.$2,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              color: _selectedCurrency == option.$1
+                                                  ? AppColors.nestedTabActiveText
+                                                  : AppColors.nestedTabInactiveText,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => setState(() => _selectedCurrency = CurrencyType.eur),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: _selectedCurrency == CurrencyType.eur
-                                              ? AppColors.nestedTabActiveBg
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          "EUR (€)",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: _selectedCurrency == CurrencyType.eur
-                                                ? AppColors.nestedTabActiveText
-                                                : AppColors.nestedTabInactiveText,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                 ],
                               ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              _convertedFromBs
+                                  ? "Este pago estaba guardado en Bs: lo pasamos a dólares con la tasa BCV de hoy. Revisa el monto y guarda."
+                                  : "El monto está en ${_selectedCurrency == CurrencyType.eur ? 'euros' : 'dólares'} y se paga en Bs a la tasa BCV del día.",
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                             ),
                           ],
 

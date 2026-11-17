@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class DiarioEntry {
   final String id;
   final String contactId;
@@ -8,6 +10,13 @@ class DiarioEntry {
   final String? contentText;
   final String? photoUrl;
   final Map<String, dynamic> contentData;
+
+  /// Documento del editor enriquecido (formato, listas, tareas…). Se guarda dentro
+  /// de content_data bajo [richDocumentKey], pero no forma parte de [contentData]
+  /// (que son los campos del modelo). [contentText] sigue siendo su texto plano.
+  final Map<String, dynamic>? richDocument;
+  static const richDocumentKey = 'rich_document';
+
   final List<String> mentionedContactIds;
   final List<String> mentionedNoteIds;
   final bool isPinned;
@@ -24,6 +33,7 @@ class DiarioEntry {
     this.contentText,
     this.photoUrl,
     Map<String, dynamic>? contentData,
+    this.richDocument,
     List<String>? mentionedContactIds,
     List<String>? mentionedNoteIds,
     this.isPinned = false,
@@ -37,6 +47,7 @@ class DiarioEntry {
 
   bool get isTemplateInstance => entryType == 'template_instance' && templateId != null;
   bool get isPersonal => contactId == 'personal' || contactId.isEmpty;
+  bool get hasRichDocument => richDocument != null && richDocument!.isNotEmpty;
   bool get hasPhoto => photoUrl != null && photoUrl!.trim().isNotEmpty;
   bool get hasTitle => title.trim().isNotEmpty;
   bool get hasMentions => mentionedContactIds.isNotEmpty || mentionedNoteIds.isNotEmpty;
@@ -89,6 +100,8 @@ class DiarioEntry {
     String? photoUrl,
     bool clearPhoto = false,
     Map<String, dynamic>? contentData,
+    Map<String, dynamic>? richDocument,
+    bool clearRichDocument = false,
     List<String>? mentionedContactIds,
     List<String>? mentionedNoteIds,
     bool? isPinned,
@@ -105,6 +118,7 @@ class DiarioEntry {
       contentText: clearContentText ? null : (contentText ?? this.contentText),
       photoUrl: clearPhoto ? null : (photoUrl ?? this.photoUrl),
       contentData: contentData ?? this.contentData,
+      richDocument: clearRichDocument ? null : (richDocument ?? this.richDocument),
       mentionedContactIds: mentionedContactIds ?? this.mentionedContactIds,
       mentionedNoteIds: mentionedNoteIds ?? this.mentionedNoteIds,
       isPinned: isPinned ?? this.isPinned,
@@ -131,6 +145,12 @@ class DiarioEntry {
       data['mentioned_note_ids'] = mentionedNoteIds;
     } else {
       data.remove('mentioned_note_ids');
+    }
+
+    if (hasRichDocument) {
+      data[richDocumentKey] = richDocument;
+    } else {
+      data.remove(richDocumentKey);
     }
 
     return {
@@ -175,6 +195,17 @@ class DiarioEntry {
     }
     parsedData.remove('mentioned_note_ids');
 
+    Map<String, dynamic>? parsedDocument;
+    final rawDocument = parsedData.remove(richDocumentKey);
+    if (rawDocument is Map) {
+      parsedDocument = Map<String, dynamic>.from(rawDocument);
+    } else if (rawDocument is String && rawDocument.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawDocument);
+        if (decoded is Map) parsedDocument = Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
+
     return DiarioEntry(
       id: map['id']?.toString() ?? '',
       contactId: map['contact_id']?.toString() ?? '',
@@ -185,6 +216,7 @@ class DiarioEntry {
       contentText: map['content_text']?.toString(),
       photoUrl: photo,
       contentData: parsedData,
+      richDocument: parsedDocument,
       mentionedContactIds: parsedMentions,
       mentionedNoteIds: parsedNoteMentions,
       isPinned: map['is_pinned'] == true,

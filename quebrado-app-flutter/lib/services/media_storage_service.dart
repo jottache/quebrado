@@ -127,34 +127,28 @@ class MediaStorageService {
     }
   }
 
-  /// Redimensiona (lado mayor ≤ [maxSide]) con el decodificador del motor
-  /// —rápido también en web— y codifica a JPEG. La transparencia se aplana sobre blanco.
+  /// Redimensiona (lado mayor ≤ [maxSide]) con el decodificador del motor y codifica a JPEG.
+  /// La transparencia se aplana sobre blanco.
+  ///
+  /// No usa ui.ImageDescriptor: en la versión web de Flutter lanza "ImageDescriptor.width
+  /// is not supported on web" (por eso las fotos nunca se migraban en la app web).
   static Future<Uint8List> compressToJpeg(Uint8List bytes, {required int maxSide, required int quality}) async {
-    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-    final descriptor = await ui.ImageDescriptor.encoded(buffer);
-    final scale = descriptor.width >= descriptor.height
-        ? maxSide / descriptor.width
-        : maxSide / descriptor.height;
-    final targetWidth = scale < 1 ? (descriptor.width * scale).round() : descriptor.width;
-    final targetHeight = scale < 1 ? (descriptor.height * scale).round() : descriptor.height;
+    final (sourceWidth, sourceHeight) = await _imageSize(bytes);
+    final scale = sourceWidth >= sourceHeight ? maxSide / sourceWidth : maxSide / sourceHeight;
+    final targetWidth = scale < 1 ? (sourceWidth * scale).round() : sourceWidth;
+    final targetHeight = scale < 1 ? (sourceHeight * scale).round() : sourceHeight;
 
     // Un JPEG que ya cabe en el tamaño se sube tal cual (sin perder calidad otra vez).
     final isJpeg = bytes.length > 2 && bytes[0] == 0xFF && bytes[1] == 0xD8;
-    if (isJpeg && scale >= 1) {
-      descriptor.dispose();
-      buffer.dispose();
-      return bytes;
-    }
+    if (isJpeg && scale >= 1) return bytes;
 
-    final codec = await descriptor.instantiateCodec(targetWidth: targetWidth, targetHeight: targetHeight);
+    final codec = await ui.instantiateImageCodec(bytes, targetWidth: targetWidth, targetHeight: targetHeight);
     final frame = await codec.getNextFrame();
     final rgba = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
     final width = frame.image.width;
     final height = frame.image.height;
     frame.image.dispose();
     codec.dispose();
-    descriptor.dispose();
-    buffer.dispose();
     if (rgba == null) throw StateError('No se pudo leer la imagen decodificada');
 
     final src = img.Image.fromBytes(
@@ -168,5 +162,19 @@ class MediaStorageService {
     img.fill(flat, color: img.ColorRgb8(255, 255, 255));
     img.compositeImage(flat, src);
     return Uint8List.fromList(img.encodeJpg(flat, quality: quality));
+  }
+
+  /// Ancho y alto de la imagen leyendo solo su encabezado (PNG, JPEG, WebP, GIF…).
+  /// Si el formato no se reconoce, se decodifica una vez con el motor para medirla.
+  static Future<(int, int)> _imageSize(Uint8List bytes) async {
+    final info = img.findDecoderForData(bytes)?.startDecode(bytes);
+    if (info != null && info.width > 0 && info.height > 0) return (info.width, info.height);
+
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    final size = (frame.image.width, frame.image.height);
+    frame.image.dispose();
+    codec.dispose();
+    return size;
   }
 }

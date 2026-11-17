@@ -7,6 +7,8 @@ import '../models/account.dart';
 import '../models/transaction.dart';
 import '../theme/colors.dart';
 import '../widgets/claymorphic_card.dart';
+import 'currency_pill.dart';
+import 'exchange_suggestion_row.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
 import '../dialogs/transfer_bank_dialog.dart';
@@ -537,6 +539,31 @@ class TimelineEventRow extends StatelessWidget {
                           "Cuota ${event.installmentNumber} de ${event.totalInstallments}",
                         ),
 
+                      if (!event.isSuggestion)
+                        Builder(builder: (_) {
+                          final paid = paidCurrencyOf(event);
+                          final texts = projectionAmountTexts(event, appState);
+                          final paidName = paid == CurrencyType.usd ? "Dólares" : (paid == CurrencyType.eur ? "Euros" : "Bolívares");
+                          return Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Row(
+                              children: [
+                                Text("Se paga en", style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText)),
+                                Spacer(),
+                                CurrencyPill(paid),
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    texts.secondary == null ? paidName : "$paidName (${texts.secondary})",
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
                       Divider(height: 24, color: Colors.black.withOpacity(0.08)),
 
                       _buildDetailRow(
@@ -556,6 +583,12 @@ class TimelineEventRow extends StatelessWidget {
                             : AppColors.primary,
                         isBold: true,
                       ),
+                      if (appState.accounts.any((a) => a.currency == CurrencyType.bsBCV))
+                        _buildDetailRow(
+                          "Bolívares proyectados",
+                          formatBs(event.projectedBsBalance),
+                          isBold: true,
+                        ),
                       SizedBox(height: 16),
                       Container(
                         padding: EdgeInsets.all(12),
@@ -1005,7 +1038,7 @@ class TimelineEventRow extends StatelessWidget {
                       final pocketToDeposit = appState.pockets.firstWhere(
                         (p) => p.id == event.pocketId,
                       );
-                      final amt = event.amount;
+                      final amt = event.amountUSD ?? event.amount;
 
                       // 2. Perform deposit check
                       if (appState.liquidBalanceUSD < amt) {
@@ -1116,6 +1149,9 @@ class TimelineEventRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (event.isExchangeSuggestion) {
+      return ExchangeSuggestionRow(event: event, isFirst: isFirst, isLast: isLast);
+    }
     final appState = Provider.of<AppState>(context);
     final allPockets = [...appState.pockets, ...virtualPockets];
     final pocketIndex = event.pocketName != null
@@ -1165,9 +1201,6 @@ class TimelineEventRow extends StatelessWidget {
       );
     }
 
-    final bool showVesConversion =
-        isToday && event.currency == CurrencyType.usd && isVesAccount;
-
     final Color color = event.isSuggestion
         ? (event.recurringPaymentId != null
               ? Color.fromARGB(255, 255, 230, 7)
@@ -1175,19 +1208,20 @@ class TimelineEventRow extends StatelessWidget {
         : (event.isCompletedAbono
             ? AppColors.primary
             : (isIncome ? AppColors.primary : AppColors.expense));
+
+    // Monto en la moneda con la que se paga (p. ej. "−Bs. 15000.00") y a qué está anclado
     final String amountFormatted;
+    String? secondaryAmount;
     if (event.isSuggestion) {
       amountFormatted =
           "➔ ${event.currency.symbol}${event.amount.toStringAsFixed(2)}";
-    } else if (event.isVariable && event.maxAmount != null) {
-      final symbol = event.currency.symbol;
-      amountFormatted =
-          "${isIncome ? '+' : '-'}$symbol${event.amount.toStringAsFixed(2)} - $symbol${event.maxAmount!.toStringAsFixed(2)}";
     } else {
-      final symbol = event.currency.symbol;
-      final baseAmt = "${isIncome ? '+' : '-'}$symbol${event.amount.toStringAsFixed(2)}";
-      amountFormatted = (event.partialAmountPaid > 0 && !event.isCompletedAbono) ? "$baseAmt rest." : baseAmt;
+      final texts = projectionAmountTexts(event, appState);
+      amountFormatted = texts.primary;
+      secondaryAmount = texts.secondary;
     }
+    final bool showVesConversion = secondaryAmount != null;
+    final paidCurrency = paidCurrencyOf(event);
 
     return IntrinsicHeight(
       child: Row(
@@ -1264,19 +1298,30 @@ class TimelineEventRow extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  event.isCompletedAbono
-                                      ? event.title
-                                      : (event.partialAmountPaid > 0
-                                          ? "${event.title} (Abonado)"
-                                          : event.title),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.cardText,
-                                  ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 1, right: 6),
+                                      child: CurrencyPill(paidCurrency),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        event.isCompletedAbono
+                                            ? event.title
+                                            : (event.partialAmountPaid > 0
+                                                ? "${event.title} (Abonado)"
+                                                : event.title),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.cardText,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 SizedBox(height: 6),
                                 Row(
@@ -1330,9 +1375,7 @@ class TimelineEventRow extends StatelessWidget {
                                 Text(
                                   event.isSuggestion
                                       ? "Reserva para: ${event.accountName ?? 'Gastos programados'}"
-                                      : (event.projectedLiquidBalanceUSD >= 0
-                                            ? "Dinero libre: ${formatUSD(event.projectedLiquidBalanceUSD)}"
-                                            : "Faltante: ${formatUSD(-event.projectedLiquidBalanceUSD)}"),
+                                      : projectedBalanceLabel(event),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -1364,9 +1407,7 @@ class TimelineEventRow extends StatelessWidget {
                               if (showVesConversion) ...[
                                 SizedBox(height: 2),
                                 Text(
-                                  event.isVariable && event.maxAmount != null
-                                      ? "≈ ${formatBs(event.amount * appState.bcvRate)} - ${formatBs(event.maxAmount! * appState.bcvRate)}"
-                                      : "≈ ${formatBs(event.amount * appState.bcvRate)}",
+                                  secondaryAmount!,
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,

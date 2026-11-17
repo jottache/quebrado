@@ -10,6 +10,7 @@ import '../theme/colors.dart';
 import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../widgets/timeline_event_row.dart';
+import '../widgets/currency_pill.dart';
 import '../dialogs/purchase_simulation_bottom_sheet.dart';
 import '../services/db_helper.dart';
 import '../dialogs/day_actions_dialog.dart';
@@ -85,10 +86,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
     DatabaseHelper.instance.setSetting('tutorial_timeline_seen', 'true');
   }
 
-  String _selectedType = 'all'; // 'all', 'income', 'expense', 'suggestion'
+  String _selectedType = 'all'; // 'all', 'income', 'expense', 'suggestion', 'exchange'
   final int _selectedDays = 365; // 30, 90, 365
   String? _selectedRecurringId;
   String? _selectedPocketId;
+  String _selectedCurrencyFilter = 'all'; // 'all', 'usd', 'bs': moneda con la que se paga
 
   String _getDateHeader(DateTime date) {
     final now = DateTime.now();
@@ -380,10 +382,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Map<String, int> incomeCounts = {};
     Map<String, double> incomeAmounts = {};
     for (var ev in events) {
-      if (!ev.isSuggestion && ev.type == TransactionType.income) {
-        totalIncomeInPeriod += ev.amount;
+      if (ev.isCashFlow && ev.type == TransactionType.income) {
+        final usd = ev.amountUSD ?? ev.amount;
+        totalIncomeInPeriod += usd;
         incomeCounts[ev.title] = (incomeCounts[ev.title] ?? 0) + 1;
-        incomeAmounts[ev.title] = (incomeAmounts[ev.title] ?? 0.0) + ev.amount;
+        incomeAmounts[ev.title] = (incomeAmounts[ev.title] ?? 0.0) + usd;
       }
     }
 
@@ -406,9 +409,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
       if (ev.isSuggestion &&
           ev.type == TransactionType.expense &&
           ev.pocketName != null) {
-        pocketsNeeded += ev.amount;
+        final usd = ev.amountUSD ?? ev.amount;
+        pocketsNeeded += usd;
         pocketReserves[ev.pocketName!] =
-            (pocketReserves[ev.pocketName!] ?? 0.0) + ev.amount;
+            (pocketReserves[ev.pocketName!] ?? 0.0) + usd;
       }
     }
 
@@ -424,11 +428,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Map<String, int> expenseCounts = {};
     Map<String, double> expenseAmounts = {};
     for (var ev in events) {
-      if (!ev.isSuggestion && ev.type == TransactionType.expense) {
-        recurringExpensesNeeded += ev.amount;
+      if (ev.isCashFlow && ev.type == TransactionType.expense) {
+        final usd = ev.amountUSD ?? ev.amount;
+        recurringExpensesNeeded += usd;
         expenseCounts[ev.title] = (expenseCounts[ev.title] ?? 0) + 1;
         expenseAmounts[ev.title] =
-            (expenseAmounts[ev.title] ?? 0.0) + ev.amount;
+            (expenseAmounts[ev.title] ?? 0.0) + usd;
       }
     }
 
@@ -856,49 +861,38 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Map<String, DateTime> minDates = {};
     Map<String, String> minReasons = {};
 
+    // Saldo mínimo de cada cuenta según el motor (incluye los cambios $→Bs sugeridos)
     for (var ev in events) {
-      if (ev.isSuggestion) continue;
-
-      if (ev.recurringPaymentId != null) {
-        final paymentIndex = appState.recurringPayments.indexWhere(
-          (p) => p.id == ev.recurringPaymentId,
-        );
-        if (paymentIndex != -1) {
-          final payment = appState.recurringPayments[paymentIndex];
-          final accId =
-              payment.accountId ??
-              (payment.currency == CurrencyType.usd
-                  ? 'default_usd'
-                  : 'default_ves');
-          final accIndex = accounts.indexWhere((a) => a.id == accId);
-          if (accIndex != -1) {
-            final acc = accounts[accIndex];
-            double amountInAccCurrency = ev.amount;
-            if (payment.currency != acc.currency) {
-              if (payment.currency == CurrencyType.usd) {
-                amountInAccCurrency = ev.amount * bcvRate;
-              } else {
-                amountInAccCurrency = bcvRate > 0 ? ev.amount / bcvRate : 0.0;
-              }
-            }
-
-            if (ev.type == TransactionType.income) {
-              tempBalances[accId] =
-                  (tempBalances[accId] ?? 0.0) + amountInAccCurrency;
-            } else {
-              tempBalances[accId] =
-                  (tempBalances[accId] ?? 0.0) - amountInAccCurrency;
-            }
-
-            if (tempBalances[accId]! < minBalances[accId]!) {
-              minBalances[accId] = tempBalances[accId]!;
-              minDates[accId] = ev.date;
-              minReasons[accId] = ev.title;
-            }
-          }
+      final balances = ev.accountBalances;
+      if (balances == null) continue;
+      for (final acc in accounts) {
+        final bal = balances[acc.id];
+        if (bal == null) continue;
+        if (bal < minBalances[acc.id]!) {
+          minBalances[acc.id] = bal;
+          minDates[acc.id] = ev.date;
+          minReasons[acc.id] = ev.title;
         }
       }
     }
+
+    // Bolívares de los próximos 30 días
+    final bsAccountNames = accounts.where((a) => a.currency == CurrencyType.bsBCV).map((a) => a.name).toSet();
+    double bsNeeded = 0.0;
+    double bsIncoming = 0.0;
+    for (var ev in events) {
+      if (!ev.isCashFlow) continue;
+      final paidInBs = ev.currency == CurrencyType.bsBCV || bsAccountNames.contains(ev.accountName);
+      if (!paidInBs) continue;
+      final bs = ev.currency == CurrencyType.bsBCV ? ev.amount : (ev.amountUSD ?? 0.0) * bcvRate;
+      if (ev.type == TransactionType.expense) {
+        bsNeeded += bs;
+      } else {
+        bsIncoming += bs;
+      }
+    }
+    final exchangeEvents = events.where((ev) => ev.isExchangeSuggestion).toList();
+    final totalToSellUSD = exchangeEvents.fold(0.0, (sum, ev) => sum + ev.amount);
 
     final deficitAccounts = accounts
         .where((acc) => minBalances[acc.id]! < 0)
@@ -917,7 +911,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     // Analyze Cash Flow Periods (Pre-Cobro and Post-Cobro)
     TimelineEvent? firstIncomeEvent;
     for (var ev in events) {
-      if (ev.type == TransactionType.income && !ev.isSuggestion) {
+      if (ev.type == TransactionType.income && ev.isCashFlow) {
         firstIncomeEvent = ev;
         break;
       }
@@ -930,17 +924,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
           .where(
             (ev) =>
                 ev.type == TransactionType.expense &&
-                !ev.isSuggestion &&
+                ev.isCashFlow &&
                 ev.date.isBefore(firstIncomeEvent!.date),
           )
           .toList();
 
       for (var ev in preCobroExpenses) {
-        double amtUSD = ev.amount;
-        if (ev.currency == CurrencyType.bsBCV) {
-          amtUSD = bcvRate > 0 ? ev.amount / bcvRate : 0.0;
-        }
-        totalPreCobroExpensesUSD += amtUSD;
+        totalPreCobroExpensesUSD += ev.amountUSD ?? appState.convertToUSD(amount: ev.amount, from: ev.currency);
       }
     }
 
@@ -1345,6 +1335,44 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   SizedBox(height: 20),
                 ],
 
+                if (bsNeeded > 0 || exchangeEvents.isNotEmpty) ...[
+                  Text(
+                    "Bolívares (30 Días)",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    key: ValueKey('projection_bs_summary'),
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Gastos en Bs: Bs. ${bsNeeded.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                        Text("Ingresos en Bs: Bs. ${bsIncoming.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                        Text("Bs disponibles hoy: Bs. ${appState.liquidBalanceBs.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                        SizedBox(height: 6),
+                        Text(
+                          exchangeEvents.isEmpty
+                              ? "Tus Bs alcanzan: no necesitas vender dólares."
+                              : "Tendrás que vender \$${totalToSellUSD.toStringAsFixed(2)} en total:",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                        ),
+                        ...exchangeEvents.map((ev) => Text(
+                              "• ${formatDate(ev.date)}: \$${ev.amount.toStringAsFixed(2)} → Bs. ${(ev.exchangeAmountBs ?? 0).toStringAsFixed(2)}",
+                              style: TextStyle(fontSize: 12, color: AppColors.cardText),
+                            )),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
+
                 Text(
                   "Retenciones Proyectadas para Bolsillos (30 Días)",
                   style: TextStyle(
@@ -1568,10 +1596,41 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
+              SizedBox(width: 8),
+              _buildFilterChip(
+                label: "Cambios \$→Bs",
+                selected: _selectedType == 'exchange',
+                onTap: () => setState(() {
+                  _selectedType = 'exchange';
+                  _selectedRecurringId = null;
+                  _selectedPocketId = null;
+                }),
+              ),
             ],
           ),
         ),
         
+        // Filtro por moneda de pago
+        SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              Text("Moneda:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardSubtitleText)),
+              SizedBox(width: 8),
+              for (final option in const [('all', 'Todas'), ('usd', 'Dólares \$'), ('bs', 'Bolívares Bs')]) ...[
+                _buildFilterChip(
+                  label: option.$2,
+                  selected: _selectedCurrencyFilter == option.$1,
+                  onTap: () => setState(() => _selectedCurrencyFilter = option.$1),
+                ),
+                SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ),
+
         // Secondary filter row
         if (_selectedType == 'income' || _selectedType == 'expense') ...[
           SizedBox(height: 10),
@@ -1684,7 +1743,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     final filteredEvents = events.where((event) {
       if (_selectedType == 'all') return true;
       if (_selectedType == 'income') {
-        final matchesType = event.type == TransactionType.income && !event.isSuggestion;
+        final matchesType = event.type == TransactionType.income && event.isCashFlow;
         if (!matchesType) return false;
         if (_selectedRecurringId != null) {
           return event.recurringPaymentId == _selectedRecurringId;
@@ -1692,7 +1751,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         return true;
       }
       if (_selectedType == 'expense') {
-        final matchesType = event.type == TransactionType.expense && !event.isSuggestion;
+        final matchesType = event.type == TransactionType.expense && event.isCashFlow;
         if (!matchesType) return false;
         if (_selectedRecurringId != null) {
           return event.recurringPaymentId == _selectedRecurringId;
@@ -1706,7 +1765,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
         }
         return true;
       }
+      if (_selectedType == 'exchange') return event.isExchangeSuggestion;
       return true;
+    }).where((event) {
+      // Moneda: los cambios $→Bs aparecen en ambas
+      if (_selectedCurrencyFilter == 'all' || event.isExchangeSuggestion) return true;
+      final paid = paidCurrencyOf(event);
+      return _selectedCurrencyFilter == 'usd' ? paid == CurrencyType.usd : paid != CurrencyType.usd;
     }).toList();
 
     // Build grouped list items
@@ -1726,8 +1791,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
     double dayExpenseEurConvertedUsd = 0;
     
     double dayPocketUSD = 0;
+    double dayExchangeUSD = 0;
+    double dayExchangeBs = 0;
     double finalBalanceUSD = 0;
     double finalLiquidBalanceUSD = 0;
+    double finalBsBalance = 0;
 
     for (int i = 0; i < filteredEvents.length; i++) {
       final event = filteredEvents[i];
@@ -1747,8 +1815,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
             expenseNativeEur: dayExpenseNativeEur,
             expenseEurConvertedUsd: dayExpenseEurConvertedUsd,
             pocketUSD: dayPocketUSD,
+            exchangeUSD: dayExchangeUSD,
+            exchangeBs: dayExchangeBs,
             finalBalanceUSD: finalBalanceUSD,
             finalLiquidBalanceUSD: finalLiquidBalanceUSD,
+            finalBsBalance: finalBsBalance,
           ));
         }
 
@@ -1769,10 +1840,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
         dayExpenseEurConvertedUsd = 0;
         
         dayPocketUSD = 0;
+        dayExchangeUSD = 0;
+        dayExchangeBs = 0;
       }
 
       finalBalanceUSD = event.projectedBalanceUSD;
       finalLiquidBalanceUSD = event.projectedLiquidBalanceUSD;
+      finalBsBalance = event.projectedBsBalance;
+
+      // Cambio de divisa sugerido: no es ingreso ni gasto
+      if (event.isExchangeSuggestion) {
+        dayExchangeUSD += event.amount;
+        dayExchangeBs += event.exchangeAmountBs ?? 0.0;
+        listItems.add(event);
+        continue;
+      }
 
       double amountNativeUSD = 0.0;
       double amountNativeBs = 0.0;
@@ -1789,15 +1871,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
         } catch (_) {}
       }
 
-      // 1. Calculate the amount in USD based on the event's original currency.
-      double eventAmountInUSD = 0.0;
-      if (event.currency == CurrencyType.usd) {
-        eventAmountInUSD = event.amount;
-      } else if (event.currency == CurrencyType.bsBCV) {
-        eventAmountInUSD = appState.bcvRate > 0 ? event.amount / appState.bcvRate : 0.0;
-      } else if (event.currency == CurrencyType.eur) {
-        eventAmountInUSD = appState.euroRate > 0 ? event.amount / appState.euroRate : 0.0;
-      }
+      // 1. Monto del evento en $ (el motor ya lo calcula según la moneda y la cuenta)
+      final double eventAmountInUSD =
+          event.amountUSD ?? appState.convertToUSD(amount: event.amount, from: event.currency);
 
       // 2. Allocate it to the correct target bucket based on targetCurrency.
       if (targetCurrency == CurrencyType.usd) {
@@ -1843,8 +1919,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
         expenseNativeEur: dayExpenseNativeEur,
         expenseEurConvertedUsd: dayExpenseEurConvertedUsd,
         pocketUSD: dayPocketUSD,
+        exchangeUSD: dayExchangeUSD,
+        exchangeBs: dayExchangeBs,
         finalBalanceUSD: finalBalanceUSD,
         finalLiquidBalanceUSD: finalLiquidBalanceUSD,
+        finalBsBalance: finalBsBalance,
       ));
     }
 
@@ -2242,6 +2321,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           SizedBox(height: 6),
                         ],
 
+                        if (item.exchangeUSD > 0) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Vender \$ (sugerido):", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                              Text("\$${item.exchangeUSD.toStringAsFixed(2)} → Bs. ${item.exchangeBs.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                        ],
                         if (item.pocketUSD > 0) ...[
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2267,7 +2356,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text("Dinero Libre Final:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
-                            Text("\$${item.finalLiquidBalanceUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                            Text(
+                              "\$${item.finalLiquidBalanceUSD.toStringAsFixed(2)}"
+                              "${item.finalBsBalance.abs() >= 0.01 ? ' · Bs. ${item.finalBsBalance.toStringAsFixed(2)}' : ''}",
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary),
+                            ),
                           ],
                         ),
                       ],

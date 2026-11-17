@@ -9,6 +9,8 @@ import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
 import '../screens/entry_editor_dialog.dart';
 import '../widgets/mention_text_field.dart';
+import '../../rich_editor/plain_text.dart';
+import '../../rich_editor/rich_document_viewer.dart';
 import '../../notas/notas.dart';
 
 /// Abre el visor de nota en modo lectura:
@@ -297,11 +299,8 @@ class EntryReaderDialog extends StatelessWidget {
 
           // Scrollable Reading Content
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Builder(builder: (context) {
+              final top = <Widget>[
                   // Timestamp
                   Row(
                     children: [
@@ -498,6 +497,35 @@ class EntryReaderDialog extends StatelessWidget {
                     ),
                   ],
 
+              ];
+
+              // Documento enriquecido (entradas escritas con el editor nuevo): el visor
+              // es el scroll y los datos de la entrada van como encabezado.
+              if (currentEntry.hasRichDocument) {
+                return RichDocumentViewer(
+                  document: currentEntry.richDocument!,
+                  accentColor: DiarioColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  header: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: top),
+                  ),
+                  footer: const SizedBox(height: 32),
+                  onTodoToggled: (document) => state.updateEntry(
+                    currentEntry.copyWith(
+                      richDocument: document.toJson(),
+                      contentText: documentToPlainText(document),
+                    ),
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...top,
                   // Main Content Text (Reading Mode con menciones interactivas)
                   if (currentEntry.contentText != null && currentEntry.contentText!.trim().isNotEmpty) ...[
                     Text.rich(
@@ -533,9 +561,10 @@ class EntryReaderDialog extends StatelessWidget {
                       ),
                     ),
                   ],
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            }),
           ),
         ],
       ),

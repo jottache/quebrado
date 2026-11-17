@@ -510,6 +510,57 @@ Para proteger la integridad de la información del usuario:
 
 ---
 
+## 6B. Ánimo (Submódulo de Diario Jottache · migración 013)
+
+Registro de estados de ánimo propios y del **ánimo percibido** de los contactos. Vive en `lib/diario/` (`AnimoState`, `AnimoSupabaseService`) y se aplica con `supabase/013_animo_schema.sql`. Plan completo en `ANIMO_PLAN.md`.
+
+### 6B.1 Diagrama Entidad-Relación (ERD)
+
+```mermaid
+erDiagram
+    DIARIO_CONTACTS ||--o{ MOOD_LOGS : "ánimo percibido (contact_id)"
+    DIARIO_ENTRIES |o--o{ MOOD_LOGS : "entrada asociada (diario_entry_id)"
+    MOOD_TAGS }o--o{ MOOD_LOGS : "contexto (tag_ids[])"
+    ROLES }o--o{ MOOD_LOGS : "rol Covey (role_ids[])"
+
+    MOOD_LOGS {
+        text id PK
+        uuid user_id FK
+        text contact_id "NULL = yo"
+        text perspective "self | observed | told"
+        text kind "momentary | daily"
+        smallint valence "-2..2"
+        smallint energy "1..5 opcional"
+        text_array emotions
+        text_array tag_ids
+        text_array role_ids
+        text_array mentioned_contact_ids
+        text note
+        text diario_entry_id
+        text source "manual | checkin | agent | diario_entry"
+        timestamptz logged_at
+        date log_date "fecha local"
+    }
+    MOOD_TAGS {
+        text id PK "mtag_* = sistema"
+        uuid user_id FK
+        text name
+        text emoji
+        text group_key
+        boolean is_system
+        boolean archived
+    }
+```
+
+### 6B.2 Reglas
+1. **Sujeto:** `contact_id` NULL ⇔ `perspective = 'self'`; con contacto ⇔ `observed` o `told` (CHECK en BD, normalizado también en `MoodLog`).
+2. **Valor del día:** si existe un registro `daily` manda ese; si no, el promedio de los `momentary`. Un solo `daily` por sujeto y día (índice único parcial). La misma regla usa la vista `mood_daily_summary`.
+3. **Sin FKs, limpieza por triggers:** borrar un contacto elimina su ánimo percibido y lo quita de `mentioned_contact_ids`; borrar una entrada desvincula `diario_entry_id`; borrar un rol o una etiqueta los quita de los arrays.
+4. **Catálogo de emociones fijo** (`mood_catalog.dart`, 32 claves en 4 cuadrantes). Las claves se guardan en `emotions[]` y no deben cambiar.
+5. **Sincronización:** escritura optimista en `AnimoState`; si Supabase falla, la operación queda en la cola local (`settings` → `animo_pending_ops`) y se reintenta al cargar.
+
+---
+
 ## 7. Estrategia de Sincronización, Respaldos y Migraciones
 
 ### 7.1 Respaldos Locales JSON (`BackupService`)
@@ -532,6 +583,11 @@ Este script limpia ordenadamente las tablas dependientes en cascada y reinserta:
 6. `rate_history`
 7. `recurring_payments` y sus confirmaciones
 8. `market_stores`, `market_products`, `market_trips`, `market_items`, `market_shopping_lists`
+
+### 7.2b Carga inicial liviana (copias de seguridad y fotos)
+1. **Copias fuera del arranque:** `SupabaseService.loadSettings()` excluye en el servidor las claves pesadas `backup_snapshots` (~9 MB) y `backup_metadata`. Esas claves se leen una por una con `loadSettingValue()` solo en la pantalla de Respaldos o en el respaldo automático.
+2. **Respaldo automático diario:** se ejecuta 20 s después de la carga. Si `backup_metadata.last_auto_backup_date` ya es hoy, termina sin descargar las copias. La exportación baja las tablas globales una sola vez y en paralelo; el formato del JSON no cambia.
+3. **Fotos en Supabase Storage (migración 014, bucket público `diario-media`):** los avatares (`avatars/`, 512 px) y las fotos de entradas (`entries/`, 1600 px) se comprimen a JPEG con `MediaStorageService` y en la tabla se guarda solo la URL pública. Las fotos antiguas en base64 o en rutas locales se migran solas al cargar Diario (`DiarioState.migrateInlineImages`). Al reemplazar o eliminar una foto, se borra su archivo del bucket.
 
 ### 7.3 Índices de Rendimiento Globales
 - **Índices GIN:** Aplicados sobre columnas `JSONB` (`diario_entries.content_data`, `notas.blocks`) para posibilitar búsquedas instantáneas sobre campos dinámicos sin importar cuántos atributos cree el usuario.

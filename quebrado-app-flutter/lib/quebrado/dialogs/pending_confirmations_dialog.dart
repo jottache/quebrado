@@ -142,6 +142,17 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       final double deficit = item['deficit'];
 
       final sourceAccounts = appState.accounts.where((a) => a.id != targetAccount.id && a.balance > 0).toList();
+      // Primero otra cuenta de la misma moneda que alcance (no hace falta cambiar divisa);
+      // luego las cuentas en $ con más saldo (vender dólares); al final el resto.
+      int rank(Account a) {
+        if (a.currency == targetAccount.currency && a.balance >= deficit) return 0;
+        if (a.currency == CurrencyType.usd && targetAccount.currency == CurrencyType.bsBCV) return 1;
+        return 2;
+      }
+      sourceAccounts.sort((a, b) {
+        final byRank = rank(a).compareTo(rank(b));
+        return byRank != 0 ? byRank : b.balance.compareTo(a.balance);
+      });
 
       if (sourceAccounts.isEmpty) {
         // Show warning but let them confirm if they want to allow negative balance
@@ -179,6 +190,23 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
           final double sourceAmount = result["sourceAmount"];
           final double targetAmount = result["targetAmount"];
           final double activeRate = result["rate"];
+
+          // Vender $ → Bs (o comprar $ con Bs): se registra como "Cambio de Divisa"
+          final isUsdToBs = source.currency == CurrencyType.usd && targetAccount.currency == CurrencyType.bsBCV;
+          final isBsToUsd = source.currency == CurrencyType.bsBCV && targetAccount.currency == CurrencyType.usd;
+          if (isUsdToBs || isBsToUsd) {
+            await appState.exchangeCurrency(
+              usdAccountId: isUsdToBs ? source.id : targetAccount.id,
+              vesAccountId: isUsdToBs ? targetAccount.id : source.id,
+              amountUSD: isUsdToBs ? sourceAmount : targetAmount,
+              exchangeRate: activeRate,
+              isVenta: isUsdToBs,
+              note: isUsdToBs
+                  ? "Venta de \$ para pagos en Bs (${targetAccount.name})"
+                  : "Compra de \$ para pagos en ${targetAccount.name}",
+            );
+            continue;
+          }
 
           // 1. Register expense transaction in source account
           final sourceNote = "Transferencia a ${targetAccount.name} para cubrir déficit de cobros de hoy";
@@ -2111,7 +2139,8 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
   void initState() {
     super.initState();
     selectedSource = widget.sourceAccounts.first;
-    selectedRateType = 'parallel'; // default to parallel/P2P
+    // Vender $ para pagar en Bs: tasa BCV por defecto (la misma que usa la proyección)
+    selectedRateType = 'bcv';
     customRateController = TextEditingController(text: widget.appState.bcvRate.toStringAsFixed(2));
     customAmountController = TextEditingController();
     _updateDefaultAmount();

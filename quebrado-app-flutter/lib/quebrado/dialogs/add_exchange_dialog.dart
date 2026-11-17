@@ -13,7 +13,22 @@ import '../models/recurring_payment.dart';
 class AddExchangeBottomSheet extends StatefulWidget {
   final String? initialAccountId;
 
-  const AddExchangeBottomSheet({super.key, this.initialAccountId});
+  /// Prellenado desde un cambio sugerido de la proyección (vender $ para pagar en Bs).
+  final String? initialUsdAccountId;
+  final String? initialVesAccountId;
+  final double? initialAmountUSD;
+  final double? initialRate;
+  final String? initialNote;
+
+  const AddExchangeBottomSheet({
+    super.key,
+    this.initialAccountId,
+    this.initialUsdAccountId,
+    this.initialVesAccountId,
+    this.initialAmountUSD,
+    this.initialRate,
+    this.initialNote,
+  });
 
   @override
   State<AddExchangeBottomSheet> createState() => _AddExchangeBottomSheetState();
@@ -51,6 +66,22 @@ class _AddExchangeBottomSheetState extends State<AddExchangeBottomSheet> {
         _selectedVesAccountId = initAccId;
         _isVenta = false;
       }
+    }
+
+    // Cambio sugerido por la proyección: venta de $ a Bs con todo prellenado
+    if (widget.initialAmountUSD != null) {
+      _isVenta = true;
+      _amountController.text = widget.initialAmountUSD!.toStringAsFixed(2);
+    }
+    if (widget.initialRate != null && widget.initialRate! > 0) {
+      _rateController.text = widget.initialRate!.toStringAsFixed(2);
+    }
+    if (widget.initialNote != null) _noteController.text = widget.initialNote!;
+    if (widget.initialUsdAccountId != null && usdAccounts.any((a) => a.id == widget.initialUsdAccountId)) {
+      _selectedUsdAccountId = widget.initialUsdAccountId;
+    }
+    if (widget.initialVesAccountId != null && vesAccounts.any((a) => a.id == widget.initialVesAccountId)) {
+      _selectedVesAccountId = widget.initialVesAccountId;
     }
 
     if (_selectedUsdAccountId == null && usdAccounts.isNotEmpty) {

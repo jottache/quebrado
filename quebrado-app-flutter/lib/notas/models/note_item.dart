@@ -1,3 +1,5 @@
+import 'package:appflowy_editor/appflowy_editor.dart' show Document;
+import '../services/note_document_converter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'note_block.dart';
@@ -10,6 +12,11 @@ class NoteItem {
   final String icon;
   final String colorHex;
   final List<NoteBlock> blocks;
+
+  /// Documento del editor enriquecido (AppFlowy, JSON). Si existe, es la fuente de
+  /// verdad del contenido; [blocks] se mantiene como versión simplificada para el
+  /// lector clásico, el PDF y la compatibilidad con versiones anteriores.
+  final Map<String, dynamic>? document;
   final String? contentText;
   final bool isPinned;
   final bool isArchived;
@@ -25,6 +32,7 @@ class NoteItem {
     String icon = '📝',
     this.colorHex = '#6366F1',
     this.blocks = const [],
+    this.document,
     this.contentText,
     this.isPinned = false,
     this.isArchived = false,
@@ -91,11 +99,29 @@ class NoteItem {
 
   bool get hasTodos => todoProgress.total > 0;
 
+  bool get hasRichDocument => document != null && document!.isNotEmpty;
+
+  /// Documento del editor enriquecido, o null si la nota es del formato anterior
+  /// (o el documento guardado no se puede leer).
+  Document? get richDocument {
+    if (!hasRichDocument) return null;
+    try {
+      return Document.fromJson(document!);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Genera representación completa en Markdown
   String toMarkdown() {
     final buffer = StringBuffer();
     if (title.isNotEmpty) {
       buffer.writeln('# $icon $title\n');
+    }
+    final doc = richDocument;
+    if (doc != null) {
+      buffer.write(NoteDocumentConverter.toMarkdown(doc));
+      return buffer.toString();
     }
     for (final b in blocks) {
       buffer.write(b.toMarkdown());
@@ -113,6 +139,8 @@ class NoteItem {
     String? emoji,
     String? colorHex,
     List<NoteBlock>? blocks,
+    Map<String, dynamic>? document,
+    bool clearDocument = false,
     String? contentText,
     bool? isPinned,
     bool? isArchived,
@@ -129,6 +157,7 @@ class NoteItem {
       icon: emoji ?? icon ?? this.icon,
       colorHex: colorHex ?? this.colorHex,
       blocks: blocks ?? this.blocks,
+      document: clearDocument ? null : (document ?? this.document),
       contentText: contentText ?? this.contentText,
       isPinned: isPinned ?? this.isPinned,
       isArchived: isArchived ?? this.isArchived,
@@ -147,6 +176,7 @@ class NoteItem {
       'icon': icon,
       'color_hex': colorHex,
       'blocks': jsonEncode(blocks.map((b) => b.toMap()).toList()),
+      if (document != null) 'document': jsonEncode(document),
       'content_text': contentText ?? toMarkdown(),
       'is_pinned': isPinned ? 1 : 0,
       'is_archived': isArchived ? 1 : 0,
@@ -165,6 +195,7 @@ class NoteItem {
       'icon': icon,
       'color_hex': colorHex,
       'blocks': blocks.map((b) => b.toMap()).toList(),
+      if (document != null) 'document': document,
       'content_text': contentText ?? toMarkdown(),
       'is_pinned': isPinned,
       'is_archived': isArchived,
@@ -194,6 +225,17 @@ class NoteItem {
       } catch (_) {}
     }
 
+    Map<String, dynamic>? parsedDocument;
+    final rawDocument = map['document'];
+    if (rawDocument is Map) {
+      parsedDocument = Map<String, dynamic>.from(rawDocument);
+    } else if (rawDocument is String && rawDocument.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawDocument);
+        if (decoded is Map) parsedDocument = Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
+
     return NoteItem(
       id: map['id']?.toString() ?? '',
       userId: map['user_id']?.toString(),
@@ -202,6 +244,7 @@ class NoteItem {
       icon: map['icon']?.toString() ?? '📝',
       colorHex: map['color_hex']?.toString() ?? '#6366F1',
       blocks: parsedBlocks,
+      document: parsedDocument,
       contentText: map['content_text']?.toString(),
       isPinned: map['is_pinned'] == true || map['is_pinned'] == 1,
       isArchived: map['is_archived'] == true || map['is_archived'] == 1,

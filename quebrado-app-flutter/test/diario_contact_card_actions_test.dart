@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:quebrado_app_flutter/notas/notas.dart';
+import 'package:quebrado_app_flutter/rich_editor/draft_store.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_contact.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_entry.dart';
 import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
@@ -9,8 +11,30 @@ import 'package:quebrado_app_flutter/diario/screens/contact_detail_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/entry_editor_dialog.dart';
 import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 
+class _MemoryDraftBackend implements DraftBackend {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String? value) async =>
+      (value == null || value.isEmpty) ? values.remove(key) : values[key] = value;
+}
+
+/// El editor enriquecido tiene un cursor que parpadea y carga sus textos de forma
+/// asíncrona: pumpAndSettle nunca terminaría.
+Future<void> settleFrames(WidgetTester tester) async {
+  await tester.pump();
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => DraftStore.instance = DraftStore(backend: _MemoryDraftBackend()));
 
   const dummyAvatar =
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
@@ -28,8 +52,11 @@ void main() {
       await state.updateContact(targetContact);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: DiarioHomeScreen(),
           ),
@@ -41,7 +68,7 @@ void main() {
 
       if (find.text('Contactos').evaluate().isNotEmpty) {
         await tester.tap(find.text('Contactos'));
-        await tester.pumpAndSettle();
+        await settleFrames(tester);
       }
 
       // Verify contact name and nickname are rendered in list
@@ -77,8 +104,11 @@ void main() {
       await state.updateContact(targetContact);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: DiarioHomeScreen(),
           ),
@@ -90,7 +120,7 @@ void main() {
 
       if (find.text('Contactos').evaluate().isNotEmpty) {
         await tester.tap(find.text('Contactos'));
-        await tester.pumpAndSettle();
+        await settleFrames(tester);
       }
 
       // Find the avatar ClipOval inside row
@@ -130,6 +160,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
             ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
           ],
           child: MaterialApp(

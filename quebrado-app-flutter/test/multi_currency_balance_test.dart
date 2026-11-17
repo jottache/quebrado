@@ -5,8 +5,14 @@ import 'package:quebrado_app_flutter/quebrado/models/account.dart';
 import 'package:quebrado_app_flutter/quebrado/models/currency_type.dart';
 
 void main() {
+  // Estos tests validan cálculos de saldos en memoria (modo web/Supabase, el que usa la app).
+  // Sin esto, la recarga desde la SQLite de pruebas reemplaza las cuentas del escenario.
+  setUp(() => AppState.debugLocalDbIsSourceOfTruth = false);
+  tearDown(() => AppState.debugLocalDbIsSourceOfTruth = null);
+
   test('AppState multi-currency transactions update account balance correctly', () async {
     final appState = AppState();
+    await appState.loadData(); // que la carga inicial no pise los datos del escenario
 
     // 1. Setup a VES account with starting balance 10000.0 Bs.
     final accVES = Account(
@@ -84,6 +90,7 @@ void main() {
 
   test('AppState VES transaction on USD account converts correctly', () async {
     final appState = AppState();
+    await appState.loadData(); // que la carga inicial no pise los datos del escenario
 
     // Setup a USD account with starting balance 500.0 USD.
     final accUSD = Account(
@@ -123,6 +130,7 @@ void main() {
 
   test('AppState account balance supports negative values and reverts correctly without clamping', () async {
     final appState = AppState();
+    await appState.loadData(); // que la carga inicial no pise los datos del escenario
 
     // Setup USD account with $50.0
     final accUSD = Account(

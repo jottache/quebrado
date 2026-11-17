@@ -108,15 +108,37 @@ class NotasSupabaseService {
     }
   }
 
+  /// true si la columna `document` (migración 016) todavía no existe en Supabase.
+  bool _documentColumnMissing = false;
+
   Future<void> saveNote(NoteItem note) async {
     if (!isReady) return;
+    final map = note.toSupabaseMap();
+    final user = client?.auth.currentUser;
+    if (user != null) {
+      map['user_id'] = user.id;
+    }
+    if (_documentColumnMissing) map.remove('document');
+
     try {
-      final map = note.toSupabaseMap();
-      final user = client?.auth.currentUser;
-      if (user != null) {
-        map['user_id'] = user.id;
-      }
       await client!.from('notas').upsert(map, onConflict: 'id');
+    } on PostgrestException catch (e) {
+      // Sin la migración 016 no existe `document`: se guarda igual en el formato anterior
+      // (blocks + content_text) para no perder la nota.
+      final missingColumn = map.containsKey('document') &&
+          (e.code == 'PGRST204' || e.message.contains('document'));
+      if (!missingColumn) {
+        debugPrint('Error guardando nota en Supabase: $e');
+        return;
+      }
+      _documentColumnMissing = true;
+      debugPrint('Notas: falta la columna "document" (ejecuta supabase/016_notas_documento_enriquecido.sql). Guardando sin formato enriquecido.');
+      map.remove('document');
+      try {
+        await client!.from('notas').upsert(map, onConflict: 'id');
+      } catch (e2) {
+        debugPrint('Error guardando nota en Supabase: $e2');
+      }
     } catch (e) {
       debugPrint('Error guardando nota en Supabase: $e');
     }

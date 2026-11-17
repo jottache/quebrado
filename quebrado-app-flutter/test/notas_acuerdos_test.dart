@@ -4,9 +4,22 @@ import 'package:provider/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrado_app_flutter/diario/diario.dart';
 import 'package:quebrado_app_flutter/notas/notas.dart';
+import 'package:quebrado_app_flutter/rich_editor/draft_store.dart';
+
+class _MemoryDraftBackend implements DraftBackend {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String? value) async =>
+      (value == null || value.isEmpty) ? values.remove(key) : values[key] = value;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => DraftStore.instance = DraftStore(backend: _MemoryDraftBackend()));
 
   group('Notas & Acuerdos Models & State Tests', () {
     test('NoteCategory serializes and deserializes properly', () {
@@ -201,9 +214,14 @@ void main() {
         ),
       );
 
-      // Abrir el editor en desktop
+      // Abrir el editor en desktop (el cursor del editor parpadea: no usar pumpAndSettle)
       await tester.tap(find.text('Crear Nota'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.getSize(find.byType(NoteEditorScreen)), const Size(1080, 720));
 
       // Debe abrir un Dialog
       expect(find.byType(Dialog), findsOneWidget);
@@ -265,141 +283,8 @@ void main() {
       expect(addBelowCalled, isTrue);
       expect(addedType, equals(BlockType.todo));
     });
-
-    testWidgets('Pressing enter in H1 block creates a paragraph below', (tester) async {
-      tester.view.physicalSize = const Size(1200, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final notasState = NotasState();
-      final initialNote = NoteItem(
-        id: 'test_note_enter',
-        title: 'Mi Acuerdo',
-        blocks: [
-          NoteBlock(id: 'h1_block', type: BlockType.heading1, content: 'Regla 1'),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: notasState,
-          child: MaterialApp(
-            home: NoteEditorScreen(note: initialNote),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Debe haber inicialmente 1 bloque (el H1)
-      expect(find.text('Regla 1'), findsOneWidget);
-
-      // Enfocar el campo de texto del H1
-      await tester.tap(find.text('Regla 1'));
-      await tester.pumpAndSettle();
-
-      // Simular submit / enter en el TextFormField del H1
-      await tester.testTextInput.receiveAction(TextInputAction.next);
-      await tester.pumpAndSettle();
-
-      // Debe haberse agregado un nuevo bloque de tipo párrafo (con hintText 'Escribe algo...')
-      expect(find.text('Escribe algo...'), findsOneWidget);
-    });
-
-    testWidgets('Pressing enter in todo block creates another todo block below', (tester) async {
-      tester.view.physicalSize = const Size(1200, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final notasState = NotasState();
-      final initialNote = NoteItem(
-        id: 'test_note_enter_todo',
-        title: 'Checklist',
-        blocks: [
-          NoteBlock(id: 'todo_1', type: BlockType.todo, content: 'Pagar arriendo'),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: notasState,
-          child: MaterialApp(
-            home: NoteEditorScreen(note: initialNote),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Pagar arriendo'), findsOneWidget);
-
-      // Simular Enter en el todo
-      await tester.testTextInput.receiveAction(TextInputAction.next);
-      await tester.pumpAndSettle();
-
-      // Debe haber ahora 2 tareas (la primera con texto y la segunda vacía con hintText 'Tarea pendiente...')
-      expect(find.text('Tarea pendiente...'), findsOneWidget);
-    });
-
-    testWidgets('Toggle supports children of all types and enter continues inside toggle', (tester) async {
-      tester.view.physicalSize = const Size(1200, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final notasState = NotasState();
-      final initialNote = NoteItem(
-        id: 'test_note_toggle',
-        title: 'Acuerdo con Desplegable',
-        blocks: [
-          NoteBlock(
-            id: 'toggle_block_1',
-            type: BlockType.toggle,
-            content: 'Sección Desplegable',
-            children: [
-              NoteBlock(
-                id: 'toggle_child_1',
-                type: BlockType.bulletList,
-                content: 'Primer punto dentro del desplegable',
-              ),
-            ],
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: notasState,
-          child: MaterialApp(
-            home: NoteEditorScreen(note: initialNote),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Debe mostrar el título del desplegable y su hijo
-      expect(find.text('Sección Desplegable'), findsOneWidget);
-      expect(find.text('Primer punto dentro del desplegable'), findsOneWidget);
-
-      // Debe mostrar el botón para agregar elemento dentro del desplegable
-      expect(find.text('Agregar dentro'), findsOneWidget);
-
-      // Enfocar el hijo bullet list y presionar enter
-      await tester.tap(find.text('Primer punto dentro del desplegable'));
-      await tester.pumpAndSettle();
-
-      await tester.testTextInput.receiveAction(TextInputAction.next);
-      await tester.pumpAndSettle();
-
-      // Debe haber creado otro elemento de lista con viñetas dentro del desplegable
-      expect(find.text('Elemento de lista...'), findsWidgets);
-    });
+    // Enter en títulos, tareas y desplegables: ahora lo maneja el editor enriquecido
+    // (ver test/rich_editor_blocks_test.dart y test/rich_editor_screens_test.dart).
   });
 }
 

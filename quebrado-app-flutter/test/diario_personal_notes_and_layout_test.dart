@@ -1,6 +1,9 @@
+import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:quebrado_app_flutter/notas/notas.dart';
+import 'package:quebrado_app_flutter/rich_editor/draft_store.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_contact.dart';
 import 'package:quebrado_app_flutter/diario/models/diario_entry.dart';
 import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
@@ -8,12 +11,35 @@ import 'package:quebrado_app_flutter/diario/screens/diario_home_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/entry_editor_dialog.dart';
 import 'package:quebrado_app_flutter/diario/widgets/personal_notes_view.dart';
 import 'package:quebrado_app_flutter/diario/dialogs/entry_reader_dialog.dart';
+import 'package:quebrado_app_flutter/diario/dialogs/quick_note_dialog.dart';
 import 'package:quebrado_app_flutter/diario/screens/diario_search_screen.dart';
 import 'package:quebrado_app_flutter/diario/screens/template_manager_screen.dart';
 import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 
+class _MemoryDraftBackend implements DraftBackend {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String? value) async =>
+      (value == null || value.isEmpty) ? values.remove(key) : values[key] = value;
+}
+
+/// El editor enriquecido tiene un cursor que parpadea y carga sus textos de forma
+/// asíncrona: pumpAndSettle nunca terminaría.
+Future<void> settleFrames(WidgetTester tester) async {
+  await tester.pump();
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => DraftStore.instance = DraftStore(backend: _MemoryDraftBackend()));
 
   group('Diario Personal Notes and Responsive Layout Tests', () {
     testWidgets('DiarioState creates and filters personal entries properly', (tester) async {
@@ -47,8 +73,11 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: DiarioHomeScreen(),
           ),
@@ -77,7 +106,7 @@ void main() {
 
       // Switch to Contactos tab
       await tester.tap(find.text('Contactos'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Now Directory of Contacts is visible and FAB is 'Nuevo Contacto'
       expect(find.text('Directorio de Personas'), findsOneWidget);
@@ -99,8 +128,11 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: DiarioHomeScreen(),
           ),
@@ -125,8 +157,11 @@ void main() {
       await state.loadAll();
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: EntryEditorDialog(
@@ -138,7 +173,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Header indicates personal note
       expect(find.text('Nueva Nota Personal'), findsOneWidget);
@@ -153,8 +188,11 @@ void main() {
       await state.loadAll();
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: PersonalNotesView(),
@@ -163,7 +201,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Check both buttons exist
       expect(find.text('Nota Rápida'), findsOneWidget);
@@ -171,12 +209,13 @@ void main() {
 
       // Tap 'Nota Rápida'
       await tester.tap(find.text('Nota Rápida'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
-      // Quick note dialog is shown
-      expect(find.byType(TextField), findsWidgets);
-      expect(find.text('Registrar Nota'), findsOneWidget);
-      expect(find.text('Grabar por voz mientras hablas'), findsOneWidget);
+      // Se abre la nota rápida con el editor enriquecido y el botón de dictado
+      expect(find.byType(QuickNoteDialog), findsOneWidget);
+      expect(find.byType(AppFlowyEditor), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick_note_save')), findsOneWidget);
+      expect(find.byKey(const ValueKey('diario_dictation_button')), findsOneWidget);
     });
 
     testWidgets('Tapping a contact in Desktop column renders ContactDetailScreen embedded and returns to directory on back', (tester) async {
@@ -191,6 +230,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
             ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
           ],
           child: const MaterialApp(
@@ -209,14 +249,14 @@ void main() {
       final contactFinder = find.text(contactToTap.name).last;
       await tester.ensureVisible(contactFinder);
       await tester.tap(contactFinder);
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Now ContactDetailScreen is rendered embedded in the same column
       expect(find.byTooltip('Volver a contactos'), findsOneWidget);
 
       // Tap back button
       await tester.tap(find.byTooltip('Volver a contactos'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // We are back at the directory list
       expect(find.text('Directorio de Personas'), findsOneWidget);
@@ -248,8 +288,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: PersonalNotesView(),
@@ -258,11 +301,11 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Tap on note
       await tester.tap(find.text('Nota de Prueba Lectura'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Check EntryReaderDialog opened with reading view elements
       expect(find.byType(EntryReaderDialog), findsOneWidget);
@@ -294,26 +337,29 @@ void main() {
       );
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<DiarioState>.value(
-          value: state,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
+          ],
           child: const MaterialApp(
             home: DiarioSearchScreen(),
           ),
         ),
       );
 
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Type query in search
       await tester.enterText(find.byType(TextField), 'frutas frescas');
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Check search result displays "Nota Personal"
       expect(find.text('Nota Personal'), findsWidgets);
 
       // Tap the result item
       await tester.tap(find.text('Nota Secreta Personal'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Check reader is opened
       expect(find.byType(EntryReaderDialog), findsOneWidget);
@@ -331,6 +377,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider<DiarioState>.value(value: state),
+            ChangeNotifierProvider<NotasState>(create: (_) => NotasState()),
             ChangeNotifierProvider<HabitosState>.value(value: HabitosState()),
           ],
           child: const MaterialApp(
@@ -339,11 +386,11 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Tap search icon in AppBar
       await tester.tap(find.byTooltip('Búsqueda Global'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Drawer is open with DiarioSearchScreen
       expect(find.byType(Drawer), findsOneWidget);
@@ -351,12 +398,12 @@ void main() {
 
       // Close drawer
       await tester.tap(find.byTooltip('Cerrar'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
       expect(find.byType(Drawer), findsNothing);
 
       // Tap templates icon in AppBar
       await tester.tap(find.byTooltip('Modelos Reutilizables'));
-      await tester.pumpAndSettle();
+      await settleFrames(tester);
 
       // Drawer is open with TemplateManagerScreen
       expect(find.byType(Drawer), findsOneWidget);

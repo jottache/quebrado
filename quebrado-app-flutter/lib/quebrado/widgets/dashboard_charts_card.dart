@@ -233,6 +233,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       } else if (isFuture) {
         // Projected only (all projections count as recurring)
         for (var e in events) {
+          if (e.isExchangeSuggestion) continue; // cambio $→Bs: no es ingreso ni gasto
           if (e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
               e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             final amt = _convertToDisplayCurrency(e.amount, e.currency, appState.bcvRate, appState);
@@ -271,6 +272,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
         }
 
         for (var e in events) {
+
+          if (e.isExchangeSuggestion) continue; // cambio $→Bs: no es ingreso ni gasto
           if (e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
               e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {
             // Check if projection is strictly after today
@@ -561,6 +564,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     // 2. Process projected occurrences for rest of month
     final events = appState.getTimelineEvents(31);
     for (var e in events) {
+      if (e.isExchangeSuggestion) continue; // cambio $→Bs: no es ingreso ni gasto
       if (e.type == TransactionType.expense &&
           e.date.isAfter(monthStart.subtract(Duration(seconds: 1))) &&
           e.date.isBefore(monthEnd.add(Duration(seconds: 1)))) {

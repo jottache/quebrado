@@ -12,9 +12,14 @@ class TimelineDaySummaryEvent {
   final double expenseEurConvertedUsd;
   
   final double pocketUSD;
+
+  /// Cambios de divisa sugeridos del día (dólares vendidos → Bs recibidos).
+  final double exchangeUSD;
+  final double exchangeBs;
   
   final double finalBalanceUSD;
   final double finalLiquidBalanceUSD;
+  final double finalBsBalance;
 
   TimelineDaySummaryEvent({
     required this.incomeNativeUSD,
@@ -28,7 +33,10 @@ class TimelineDaySummaryEvent {
     required this.expenseNativeEur,
     required this.expenseEurConvertedUsd,
     required this.pocketUSD,
+    this.exchangeUSD = 0.0,
+    this.exchangeBs = 0.0,
     required this.finalBalanceUSD,
     required this.finalLiquidBalanceUSD,
+    this.finalBsBalance = 0.0,
   });
 }
