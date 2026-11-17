@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'quebrado/quebrado.dart';
 import 'diario/diario.dart';
 import 'habitos/habitos.dart';
@@ -10,7 +9,7 @@ import 'agente/agente.dart';
 import 'services/notification_manager.dart';
 import 'screens/app_launcher_screen.dart';
 import 'widgets/responsive_suite_scaffold.dart';
-import 'theme/colors.dart';
+import 'theme/ortiz_theme.dart';
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
@@ -85,40 +84,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'OrtizApp',
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              useMaterial3: true,
-              textTheme: GoogleFonts.josefinSansTextTheme(ThemeData.light().textTheme),
-              scaffoldBackgroundColor: AppColors.background,
-              iconButtonTheme: IconButtonThemeData(
-                style: IconButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  backgroundColor: AppColors.primary.withOpacity(0.12),
-                ),
-              ),
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: AppColors.primary,
-                surface: AppColors.background,
-              ),
-              appBarTheme: AppBarTheme(
-                centerTitle: true,
-                iconTheme: IconThemeData(color: AppColors.primary),
-                actionsIconTheme: IconThemeData(color: AppColors.primary),
-                titleTextStyle: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              pageTransitionsTheme: PageTransitionsTheme(
-                builders: {
-                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-                  TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-                },
-              ),
-            ),
+            theme: OrtizTheme.dark,
             home: const ResponsiveSuiteScaffold(
               mobileBody: AppLauncherScreen(),
             ),

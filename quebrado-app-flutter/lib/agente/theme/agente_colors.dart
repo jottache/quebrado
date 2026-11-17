@@ -1,30 +1,43 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/ortiz_tokens.dart';
+
+/// Colores del Agente (spec 01, paso 6).
+///
+/// El Agente es Ortiz, cuya identidad es el acento de la suite: el primario
+/// sale de `OrtizPalette.accent` y los neutrales de `OrtizPalette`. Solo
+/// quedan hex propios en los estados «pensando» y «herramienta», que no tienen
+/// token con el mismo significado (recalibrados para fondo oscuro).
 class AgenteColors {
-  // Primary & Accents
-  static const Color primary = Color(0xFF6366F1); // Modern Deep Indigo
-  static const Color primaryLight = Color(0xFFEEF2FF);
-  static const Color primaryDark = Color(0xFF4F46E5);
-  
+  // Primario: acento de la suite (Ortiz).
+  static const Color primary = OrtizPalette.accent;
+  // Fondo de elemento activo o destacado (avatares, chips, cabeceras): el
+  // acento lavado, para que se lea como «de Ortiz» y no como gris neutro.
+  static const Color primaryLight = OrtizPalette.accentTint;
+  // Texto o icono sobre `primaryLight`: en oscuro es el propio acento.
+  static const Color primaryDark = OrtizPalette.accent;
+
   // Neutral & Surfaces
-  static const Color background = Color(0xFFF8F9FD);
-  static const Color surface = Colors.white;
-  static const Color cardBorder = Color(0xFFE2E8F0);
-  
-  // Message bubbles
-  static const Color userBubble = Color(0xFF6366F1);
-  static const Color userText = Colors.white;
-  static const Color botBubble = Color(0xFFF1F5F9);
-  static const Color botText = Color(0xFF1E293B);
-  
+  static const Color background = OrtizPalette.bg;
+  static const Color surface = OrtizPalette.surface;
+  static const Color cardBorder = OrtizPalette.line;
+
+  // Message bubbles: usuario sobre `surfaceHigh`; bot sobre `surface`.
+  static const Color userBubble = OrtizPalette.surfaceHigh;
+  static const Color userText = OrtizPalette.fg;
+  static const Color botBubble = OrtizPalette.surface;
+  static const Color botText = OrtizPalette.fg;
+
   // Artifact Accents
-  static const Color artifactBg = Color(0xFFF8FAFC);
-  static const Color artifactBorder = Color(0xFFCBD5E1);
-  static const Color artifactHeader = Color(0xFF0F172A);
-  
-  // Status Colors
-  static const Color thinking = Color(0xFF8B5CF6);
-  static const Color toolExec = Color(0xFF0EA5E9);
-  static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
+  static const Color artifactBg = OrtizPalette.surface;
+  static const Color artifactBorder = OrtizPalette.line;
+  static const Color artifactHeader = OrtizPalette.fg;
+
+  // Status Colors. `thinking` y `toolExec` son hex propios (no hay token con
+  // ese significado); se usan como texto, así que su contraste sobre
+  // `OrtizPalette.bg` es ≥ 4,5:1.
+  static const Color thinking = Color(0xFFC3A6FF); // violeta, 9,3:1
+  static const Color toolExec = Color(0xFF6EC8F0); // celeste, 10,2:1
+  static const Color success = OrtizPalette.ok;
+  static const Color error = OrtizPalette.bad;
 }

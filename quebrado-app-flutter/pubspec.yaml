@@ -65,6 +65,7 @@ dependencies:
   intl: ^0.20.3
   pdf: ^3.12.0
   printing: ^5.13.1
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:
@@ -106,25 +107,33 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  # Fuentes de la suite (spec 01, C2), empaquetadas para no descargarlas en
+  # tiempo de ejecución (CA-05). TTF estáticos por peso, licencia OFL (el
+  # OFL.txt de cada familia está junto a sus archivos). Los nombres de familia
+  # deben coincidir con `OrtizType` (lo comprueba test/theme/ortiz_type_test.dart).
+  fonts:
+    - family: Bricolage
+      fonts:
+        - asset: assets/fonts/bricolage/BricolageGrotesque-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/bricolage/BricolageGrotesque-Bold.ttf
+          weight: 700
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/manrope/Manrope-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/manrope/Manrope-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/manrope/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/manrope/Manrope-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/jetbrainsmono/JetBrainsMono-Medium.ttf
+          weight: 500
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -134,8 +143,8 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
 
 flutter_native_splash:
-  color: "#EEEEEE"
+  color: "#110E12"
   image: "assets/images/quebrado/logo_quebrado.png"
   android_12:
     image: "assets/images/app_icon_foreground.png"
-    color: "#EEEEEE"
+    color: "#110E12"

@@ -1,39 +1,65 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/ortiz_tokens.dart';
+import '../../theme/suite_apps.dart';
+
+/// Colores de Notas (spec 01, paso 6).
+///
+/// El primario y sus variantes salen de `SuiteAppColors.notas`; los neutrales,
+/// de `OrtizPalette`. Solo quedan hex propios en los acentos de categoría, que
+/// no tienen token con el mismo significado (recalibrados para fondo oscuro).
 class NotasColors {
-  // Primario: Índigo elegante, ideal para un cuaderno digital profesional
-  static const Color primary = Color(0xFF6366F1);
-  static const Color primaryLight = Color(0xFFEEF2FF);
-  static const Color primaryDark = Color(0xFF4F46E5);
+  // Máscaras para derivar fondos y bordes lavados como constantes de
+  // compilación (mismo método que `SuiteAppColors`).
+  static const int _rgb = 0x00FFFFFF;
+  static const int _tint = SuiteAppColors.tintAlpha << 24;
+  static const int _border = SuiteAppColors.borderAlpha << 24;
 
-  // Acentos temáticos por categoría
-  static const Color acuerdosPink = Color(0xFFEC4899);
-  static const Color acuerdosPinkLight = Color(0xFFFDF2F8);
+  // Primario: color de la app Notas.
+  static const Color primary = SuiteAppColors.notas;
+  static const Color primaryLight = SuiteAppColors.notasTint;
+  // En oscuro la variante «fuerte» (texto o icono sobre `primaryLight`) es el
+  // propio color de la app.
+  static const Color primaryDark = SuiteAppColors.notas;
 
-  static const Color ideasAmber = Color(0xFFF59E0B);
-  static const Color ideasAmberLight = Color(0xFFFFFBEB);
+  // Acentos temáticos por categoría. Hex propios: no hay token con este
+  // significado. Contraste sobre `OrtizPalette.bg` ≥ 4,5:1 (aptos para texto).
+  static const int _acuerdosPinkArgb = 0xFFF48FB8; // 8,6:1
+  static const Color acuerdosPink = Color(_acuerdosPinkArgb);
+  static const Color acuerdosPinkLight =
+      Color((_acuerdosPinkArgb & _rgb) | _tint);
 
-  static const Color datosGreen = Color(0xFF10B981);
-  static const Color datosGreenLight = Color(0xFFECFDF5);
+  static const int _ideasAmberArgb = 0xFFF5C26B; // 11,7:1
+  static const Color ideasAmber = Color(_ideasAmberArgb);
+  static const Color ideasAmberLight = Color((_ideasAmberArgb & _rgb) | _tint);
+
+  static const int _datosGreenArgb = 0xFF72D4A8; // 10,7:1
+  static const Color datosGreen = Color(_datosGreenArgb);
+  static const Color datosGreenLight = Color((_datosGreenArgb & _rgb) | _tint);
 
   // Superficies y bordes
-  static const Color background = Color(0xFFF8FAFC);
-  static const Color cardSurface = Colors.white;
-  static const Color cardBorder = Color(0xFFE2E8F0);
-  static const Color surfaceHover = Color(0xFFF1F5F9);
+  static const Color background = OrtizPalette.bg;
+  static const Color cardSurface = OrtizPalette.surface;
+  static const Color cardBorder = OrtizPalette.line;
+  static const Color surfaceHover = OrtizPalette.surfaceHigh;
 
-  // Textos
-  static const Color textPrimary = Color(0xFF0F172A);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
+  // Textos. `textMuted` se usa en texto legible (metadatos, tareas hechas):
+  // por eso es `muted` y no `faint`.
+  static const Color textPrimary = OrtizPalette.fg;
+  static const Color textSecondary = OrtizPalette.muted;
+  static const Color textMuted = OrtizPalette.muted;
 
-  // Callouts
-  static const Color calloutInfoBg = Color(0xFFF0FDF4);
-  static const Color calloutInfoBorder = Color(0xFF86EFAC);
+  // Callouts: fondo lavado (alpha bajo) y borde con alpha medio.
+  // Info conserva el verde de «datos»; aviso usa el token `warn`; rosa, el de
+  // «acuerdos».
+  static const Color calloutInfoBg = datosGreenLight;
+  static const Color calloutInfoBorder =
+      Color((_datosGreenArgb & _rgb) | _border);
 
-  static const Color calloutWarnBg = Color(0xFFFFFBEB);
-  static const Color calloutWarnBorder = Color(0xFFFDE68A);
+  static const Color calloutWarnBg = OrtizPalette.warnTint;
+  static const Color calloutWarnBorder = OrtizPalette.warnBorder;
 
-  static const Color calloutPinkBg = Color(0xFFFDF2F8);
-  static const Color calloutPinkBorder = Color(0xFFFBCFE8);
+  static const Color calloutPinkBg = acuerdosPinkLight;
+  static const Color calloutPinkBorder =
+      Color((_acuerdosPinkArgb & _rgb) | _border);
 }

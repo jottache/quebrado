@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'responsive_breakpoints.dart';
+import '../theme/ortiz_space.dart';
+import '../theme/ortiz_tokens.dart';
 
 /// Helper universal para abrir BottomSheets en móvil y Drawer/Side-Sheets en Desktop/Web.
 Future<T?> showResponsiveSheet<T>({
@@ -38,10 +40,10 @@ Future<T?> showResponsiveSheet<T>({
             width: desktopWidth.clamp(380.0, MediaQuery.of(context).size.width * 0.9),
             height: MediaQuery.of(context).size.height,
             decoration: const BoxDecoration(
-              color: Color(0xFFF9FAFB),
+              color: OrtizPalette.surface,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               ),
               boxShadow: [
                 BoxShadow(
@@ -53,8 +55,8 @@ Future<T?> showResponsiveSheet<T>({
             ),
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               ),
               child: PopScope(
                 canPop: false,
@@ -257,15 +259,8 @@ class _ResponsiveHorizontalScrollState extends State<ResponsiveHorizontalScroll>
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.92),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(color: Colors.grey[200]!),
+        color: OrtizPalette.surfaceHigh,
+        border: Border.all(color: OrtizPalette.line),
       ),
       child: Material(
         color: Colors.transparent,
@@ -278,7 +273,7 @@ class _ResponsiveHorizontalScrollState extends State<ResponsiveHorizontalScroll>
             child: Icon(
               icon,
               size: 22,
-              color: const Color(0xFF1F6F5F),
+              color: OrtizPalette.fg,
             ),
           ),
         ),

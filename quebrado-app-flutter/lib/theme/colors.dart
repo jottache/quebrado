@@ -1,65 +1,93 @@
+// Colores de la suite y de Quebrado (spec 01, paso 4).
+//
+// `AppColors` ya no define hex propios: lee los tokens de `OrtizPalette`
+// (`ortiz_tokens.dart`). Se conservan todos los nombres públicos para no romper
+// a sus ≈ 400 usuarios. `creationColors` (los colores que la persona elige al
+// crear) también salen de los tokens; los ya guardados como hex no cambian.
 import 'package:flutter/material.dart';
 
-class AppColors {
-  // --- USER PALETTE CONFIGURATION ---
-  // Modify these hex codes to test new color palettes.
-  static Color primary = Color(0xFF1F6F5F);       // Dark teal-green (First bar)
-  static Color secondary = Color(0xFF2FA084);     // Medium teal-green (Second bar)
-  static Color accent = Color(0xFF6FCF97);        // Light green (Third bar)
-  static const Color background = Color(0xFFEEEEEE);    // Very light grey (Fourth bar)
+import 'ortiz_tokens.dart';
+import 'suite_apps.dart';
 
-  // Update theme colors dynamically
-  static void updateThemeColor(Color newPrimary) {
-    primary = newPrimary;
-    final hsl = HSLColor.fromColor(newPrimary);
-    secondary = hsl.withLightness((hsl.lightness + 0.1).clamp(0.0, 1.0)).toColor();
-    accent = hsl.withLightness((hsl.lightness + 0.25).clamp(0.0, 1.0)).toColor();
+abstract final class AppColors {
+  // --- COLORES PRINCIPALES ---
+  // PA-01: el color del libro ya no cambia el color principal de la app.
+  // El acento de la suite es siempre el coral de `OrtizPalette.accent`.
+  static const Color primary = OrtizPalette.accent;
+
+  /// Segundo acento (pestañas anidadas, botones secundarios, distintivo VES).
+  /// Antes era el principal aclarado; la paleta oscura tiene un único acento.
+  static const Color secondary = OrtizPalette.accent;
+
+  /// Acento de gráficos: serie de ingresos puntuales del flujo de caja, junto
+  /// a `primary` (ingresos recurrentes). Se usa el token de ingreso para que
+  /// la serie se distinga del coral y conserve su sentido.
+  static const Color accent = OrtizPalette.income;
+
+  static const Color background = OrtizPalette.bg;
+
+  /// Color del libro activo. Solo lo usan el selector de libro y su indicador
+  /// (PA-01). Hasta que se carga un libro vale el acento de la suite.
+  static Color bookColor = OrtizPalette.accent;
+
+  /// Guarda el color del libro activo. Mantiene la firma histórica (la llama
+  /// `AppState` al cambiar de libro) pero ya no altera `primary`.
+  static void updateThemeColor(Color newBookColor) {
+    bookColor = newBookColor;
   }
 
-  // --- GLOBAL CARD STYLING ---
-  static const Color cardBackground = Colors.white;
-  static const Color cardText = Colors.black87;
-  static const Color cardSubtitleText = Colors.black54;
-  static const Color cardBorderColor = Color(0xFFE0E0E0); // Light grey border color
-  static const double cardBorderWidth = 1.0; // 1.0 px border width
+  // --- TARJETAS ---
+  static const Color cardBackground = OrtizPalette.surface;
+  static const Color cardText = OrtizPalette.fg;
+  static const Color cardSubtitleText = OrtizPalette.muted;
+  static const Color cardBorderColor = OrtizPalette.line;
+  static const double cardBorderWidth = 1.0;
 
-  // Dynamic helper for alternating card colors
-  static Color getAlternateCardColor(int index) {
-    // To restore alternating colors, change this to:
-    // return index % 3 == 0 ? primary : (index % 3 == 1 ? secondary : accent);
-    return cardBackground;
-  }
+  /// Color de la tarjeta en la posición [index]. Hoy todas usan el mismo fondo.
+  static Color getAlternateCardColor(int index) => cardBackground;
 
-  // --- TABS STYLING ---
-  // Main tabs (outside cards)
-  static Color get mainTabActiveBg => primary;
-  static const Color mainTabActiveText = Colors.white;
-  static const Color mainTabInactiveText = Colors.black54;
-  static const Color mainTabTrackBg = Color(0x0D000000); // Colors.black.withOpacity(0.05)
-  
-  // Nested tabs (inside cards)
-  static const Color nestedTabTrackBg = Color(0x0D000000); // Colors.black.withOpacity(0.05)
-  static Color get nestedTabActiveBg => secondary;
-  static const Color nestedTabActiveText = Colors.white;
-  static const Color nestedTabInactiveText = Colors.black54;
+  // --- PESTAÑAS ---
+  // Pestañas principales (fuera de tarjetas).
+  static const Color mainTabActiveBg = OrtizPalette.accent;
+  static const Color mainTabActiveText = OrtizPalette.onAccent;
+  static const Color mainTabInactiveText = OrtizPalette.muted;
+  static const Color mainTabTrackBg = OrtizPalette.surfaceHigh;
 
-  // --- DERIVED UI COLORS ---
-  static Color get cardBorder => cardBorderColor;
-  static Color get dialogBg => background;
-  
-  // Semantic Colors
-  static const Color income = Color(0xFF5F8575);        // Sage green for incomes (positive)
-  static const Color expense = Color(0xFFC84E4E);       // Red/coral for expenses (negative)
+  // Pestañas anidadas (dentro de tarjetas).
+  static const Color nestedTabTrackBg = OrtizPalette.surfaceHigh;
+  static const Color nestedTabActiveBg = secondary;
+  static const Color nestedTabActiveText = OrtizPalette.onAccent;
+  static const Color nestedTabInactiveText = OrtizPalette.muted;
 
-  // Centralized colors for pockets and subscriptions creation
-  static List<String> creationColors = [
-    "#1F6F5F", // primary (Dark teal-green)
-    "#2FA084", // secondary (Medium teal-green)
-    "#6FCF97", // accent (Light green)
-    "#5F8575", // income (Sage green)
-    "#3B6B7B", // Slate/Steel blue
-    "#7C8B64", // Olive
-    "#D4A373", // Sand
-    "#C84E4E", // expense (Red/coral)
+  // --- DERIVADOS ---
+  static const Color cardBorder = cardBorderColor;
+  static const Color dialogBg = OrtizPalette.surface;
+
+  // --- SEMÁNTICOS ---
+  static const Color income = OrtizPalette.income;
+  static const Color expense = OrtizPalette.expense;
+
+  // Paleta que la persona elige al crear libros, cuentas, categorías,
+  // bolsillos y pagos recurrentes (decisión de la persona, 2026-11-17).
+  // Solo afecta a lo que se cree desde ahora: lo ya guardado conserva su hex
+  // (los selectores muestran su color aunque no esté en esta lista).
+  // Orden con significado: [0] es el color por defecto de libros y categorías
+  // y [1] el de cuentas, bolsillos y pagos recurrentes.
+  static final List<String> creationColors = [
+    for (final c in const [
+      OrtizPalette.accent, // coral
+      SuiteAppColors.finanzas, // dorado
+      SuiteAppColors.habitos, // cielo
+      SuiteAppColors.recordatorios, // lavanda
+      SuiteAppColors.diario, // rosa
+      OrtizPalette.ok, // menta
+      OrtizPalette.warn, // ámbar
+      SuiteAppColors.notas, // crema
+    ])
+      _hex(c),
   ];
+
+  /// `#RRGGBB` en mayúsculas, el formato con que se guardan los colores.
+  static String _hex(Color c) =>
+      '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 }

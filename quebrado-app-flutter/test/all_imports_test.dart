@@ -204,11 +204,17 @@ import 'package:quebrado_app_flutter/services/supabase_service.dart' as i194;
 import 'package:quebrado_app_flutter/services/web_splash.dart' as i195;
 import 'package:quebrado_app_flutter/services/web_splash_stub.dart' as i196;
 import 'package:quebrado_app_flutter/theme/colors.dart' as i197;
-import 'package:quebrado_app_flutter/viewmodels/app_state.dart' as i198;
-import 'package:quebrado_app_flutter/widgets/desktop_command_center_view.dart' as i199;
-import 'package:quebrado_app_flutter/widgets/responsive_breakpoints.dart' as i200;
-import 'package:quebrado_app_flutter/widgets/responsive_sheet_helper.dart' as i201;
-import 'package:quebrado_app_flutter/widgets/responsive_suite_scaffold.dart' as i202;
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart' as i198;
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart' as i199;
+import 'package:quebrado_app_flutter/theme/ortiz_theme.dart' as i200;
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart' as i201;
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart' as i202;
+import 'package:quebrado_app_flutter/theme/suite_apps.dart' as i203;
+import 'package:quebrado_app_flutter/viewmodels/app_state.dart' as i204;
+import 'package:quebrado_app_flutter/widgets/desktop_command_center_view.dart' as i205;
+import 'package:quebrado_app_flutter/widgets/responsive_breakpoints.dart' as i206;
+import 'package:quebrado_app_flutter/widgets/responsive_sheet_helper.dart' as i207;
+import 'package:quebrado_app_flutter/widgets/responsive_suite_scaffold.dart' as i208;
 
 const _importados = <String>[
   'agente/agente.dart',
@@ -409,6 +415,12 @@ const _importados = <String>[
   'services/web_splash.dart',
   'services/web_splash_stub.dart',
   'theme/colors.dart',
+  'theme/ortiz_motion.dart',
+  'theme/ortiz_space.dart',
+  'theme/ortiz_theme.dart',
+  'theme/ortiz_tokens.dart',
+  'theme/ortiz_type.dart',
+  'theme/suite_apps.dart',
   'viewmodels/app_state.dart',
   'widgets/desktop_command_center_view.dart',
   'widgets/responsive_breakpoints.dart',
