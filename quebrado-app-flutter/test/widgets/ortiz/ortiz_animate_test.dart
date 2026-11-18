@@ -82,6 +82,86 @@ void main() {
         OrtizMotion.stagger * 2);
   });
 
+  group('en una lista perezosa con scroll', () {
+    final controller = ScrollController();
+    tearDownAll(controller.dispose);
+
+    Future<void> pumpLista(WidgetTester tester) => pumpApp(
+          tester,
+          ListView.builder(
+            controller: controller,
+            itemCount: 200,
+            itemExtent: 60,
+            itemBuilder: (context, i) => ortizStaggered(context, i, Text('Fila $i')),
+          ),
+          window: WindowClass.compact,
+          settle: false,
+        );
+
+    testWidgets('las filas de la primera vista entran escalonadas', (tester) async {
+      await pumpLista(tester);
+      // Primer cuadro: la fila 1 aún espera su retraso.
+      expect(_opacidad(tester, 'Fila 1'), 0);
+      await tester.pumpAndSettle();
+      expect(_opacidad(tester, 'Fila 1'), 1);
+    });
+
+    testWidgets('al bajar y volver a subir no se repite la animación', (tester) async {
+      await pumpLista(tester);
+      await tester.pumpAndSettle();
+
+      // Bajar: las filas nuevas salen ya visibles, sin esperar retraso.
+      controller.jumpTo(60 * 100);
+      await tester.pump();
+      expect(find.text('Fila 0'), findsNothing); // la fila 0 se destruyó
+      expect(_opacidad(tester, 'Fila 101'), 1);
+      expect(tester.hasRunningAnimations, isFalse);
+
+      // Subir: la fila 0 se vuelve a crear y no repite la entrada.
+      controller.jumpTo(0);
+      await tester.pump();
+      expect(_opacidad(tester, 'Fila 0'), 1);
+      expect(_opacidad(tester, 'Fila 3'), 1);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+
+    testWidgets('un scroll rápido a mitad de la entrada no deja la lista animando',
+        (tester) async {
+      await pumpLista(tester);
+      // Nada más abrir, antes de que acabe la entrada: las filas de arriba se
+      // destruyen a mitad de su animación.
+      await tester.pump(const Duration(milliseconds: 10));
+      controller.jumpTo(60 * 100);
+      await tester.pumpAndSettle();
+      expect(_opacidad(tester, 'Fila 101'), 1);
+
+      // La ventana quedó cerrada: al volver arriba nada se anima.
+      controller.jumpTo(0);
+      await tester.pump();
+      expect(_opacidad(tester, 'Fila 0'), 1);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+
+    testWidgets('una lista nueva vuelve a tener su entrada', (tester) async {
+      await pumpLista(tester);
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      // Otro Scrollable (la pantalla se abrió de nuevo): anima otra vez.
+      await pumpApp(
+        tester,
+        ListView.builder(
+          itemCount: 20,
+          itemBuilder: (context, i) => ortizStaggered(context, i, Text('Otra $i')),
+        ),
+        settle: false,
+      );
+      expect(_opacidad(tester, 'Otra 1'), 0);
+      await tester.pumpAndSettle();
+      expect(_opacidad(tester, 'Otra 1'), 1);
+    });
+  });
+
   testWidgets('montar y desmontar sin avanzar el reloj no deja Timers pendientes', (tester) async {
     // Antes (con flutter_animate) cualquier entrada dejaba un `Future.delayed`
     // vivo y el test fallaba con «A Timer is still pending…».

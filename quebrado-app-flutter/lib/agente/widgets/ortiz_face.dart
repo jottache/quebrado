@@ -281,6 +281,31 @@ double ortizBlinkScale(Duration sinceBlink) {
   return 1 - (1 - _blinkMinScale) * math.sin(math.pi * p);
 }
 
+/// Suavizado del seguimiento del cursor (§2.4): cada nuevo destino arranca
+/// desde donde va la mirada y llega en `OrtizMotion.base`. Trabaja en
+/// dirección normalizada (|v| ≤ 1); la cara la pasa a unidades al pintar.
+/// Antes el punto de partida se guardaba ya en unidades y se volvía a
+/// multiplicar en cada movimiento del ratón: la mirada salía disparada.
+@visibleForTesting
+class OrtizFollowEase {
+  Offset _from = Offset.zero;
+  Offset _to = Offset.zero;
+  Duration _since = Duration.zero;
+
+  /// Dirección de la mirada en el instante [now].
+  Offset at(Duration now) {
+    final p = _seconds(now - _since) / _seconds(OrtizMotion.base);
+    return Offset.lerp(_from, _to, _ease(p))!;
+  }
+
+  /// Nuevo destino [to] a partir del instante [now].
+  void retarget(Offset to, Duration now) {
+    _from = at(now);
+    _to = to;
+    _since = now;
+  }
+}
+
 /// Renderizador vectorial «Pantalla». Un solo ticker por cara; se pausa
 /// fuera de pantalla con `TickerMode`.
 class _VectorOrtizFace extends StatefulWidget {
@@ -320,9 +345,7 @@ class _VectorOrtizFaceState extends State<_VectorOrtizFace>
   Duration? _blinkStart;
 
   // Seguimiento del cursor, suavizado en OrtizMotion.base.
-  Offset _followFrom = Offset.zero;
-  Offset _followTo = Offset.zero;
-  Duration _followSince = Duration.zero;
+  final OrtizFollowEase _followEase = OrtizFollowEase();
 
   Duration get _t => _now + _phase;
 
@@ -376,9 +399,7 @@ class _VectorOrtizFaceState extends State<_VectorOrtizFace>
 
   void _onFollow() {
     if (_reduced) return;
-    _followFrom = _currentFollow();
-    _followTo = widget.follow.value;
-    _followSince = _now;
+    _followEase.retarget(widget.follow.value, _now);
   }
 
   double _progress(Duration since, Duration d) =>
@@ -386,8 +407,7 @@ class _VectorOrtizFaceState extends State<_VectorOrtizFace>
 
   Offset _currentFollow() {
     if (_reduced) return Offset.zero;
-    final p = _ease(_progress(_followSince, OrtizMotion.base));
-    return Offset.lerp(_followFrom, _followTo, p)! * _U.follow;
+    return _followEase.at(_now) * _U.follow;
   }
 
   Offset _currentLook([OrtizMood? mood]) {

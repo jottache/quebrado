@@ -109,6 +109,40 @@ void main() {
     });
   });
 
+  group('OrtizFollowEase', () {
+    test('llega al destino en OrtizMotion.base, pasando por en medio', () {
+      final ease = OrtizFollowEase()..retarget(const Offset(1, 0), Duration.zero);
+      expect(ease.at(Duration.zero), Offset.zero);
+      final mid = ease.at(_part(OrtizMotion.base, 0.5)).dx;
+      expect(mid, inExclusiveRange(0, 1));
+      expect(ease.at(OrtizMotion.base), const Offset(1, 0));
+    });
+
+    test('muchos movimientos seguidos del ratón no hacen que la mirada se dispare',
+        () {
+      // Regresión: el punto de partida se guardaba ya multiplicado por el
+      // desplazamiento máximo y crecía ×6 en cada evento del ratón.
+      final ease = OrtizFollowEase();
+      var now = Duration.zero;
+      for (var i = 0; i < 200; i++) {
+        ease.retarget(Offset(i.isEven ? 1 : -1, 0.5), now);
+        now += const Duration(milliseconds: 4);
+        expect(ease.at(now).distance, lessThanOrEqualTo(1.2));
+      }
+      final rest = ease.at(now + OrtizMotion.base);
+      expect(rest.dx, closeTo(-1, 1e-9));
+      expect(rest.dy, closeTo(0.5, 1e-9));
+    });
+
+    test('un nuevo destino arranca desde donde va la mirada', () {
+      final ease = OrtizFollowEase()..retarget(const Offset(1, 0), Duration.zero);
+      final half = _part(OrtizMotion.base, 0.5);
+      final there = ease.at(half);
+      ease.retarget(const Offset(-1, 0), half);
+      expect(ease.at(half), there);
+    });
+  });
+
   group('OrtizFace', () {
     for (final window in [WindowClass.compact, WindowClass.expanded]) {
       testWidgets('dibuja los cuatro ánimos a 32 y a 96 sin excepciones (${window.name})',
