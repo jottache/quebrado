@@ -1,6 +1,6 @@
 # 04 — Resumen del día
 
-- **Estado:** Borrador <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 02 (inicio, chip y panel derecho)
 - **Fecha:** 2026-11-17
 - **Módulo(s):** agente (lee de quebrado, diario, habitos y recordatorios)

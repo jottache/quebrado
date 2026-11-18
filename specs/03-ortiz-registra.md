@@ -1,6 +1,6 @@
 # 03 — Ortiz registra por ti
 
-- **Estado:** Borrador <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 02 (aviso, «Ver» y rutas). Las herramientas se pueden empezar en paralelo.
 - **Fecha:** 2026-11-17
 - **Módulo(s):** agente, quebrado, diario, habitos, recordatorios, notas

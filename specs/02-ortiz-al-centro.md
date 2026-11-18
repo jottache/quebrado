@@ -1,6 +1,6 @@
 # 02 — Ortiz al centro: inicio, navegación, URLs, acciones rápidas y cara
 
-- **Estado:** Borrador <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 01
 - **Fecha:** 2026-11-17
 - **Módulo(s):** suite (`screens/`, `widgets/`), agente
