@@ -74,7 +74,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Agente Ortiz',
+                  'Ortiz',
                   style: TextStyle(
                     fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.w900,
@@ -92,7 +92,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: AgenteColors.primary),
-            tooltip: 'Ajustes del Agente',
+            tooltip: 'Ajustes de Ortiz',
             onPressed: () {
               showDialog(
                 context: context,

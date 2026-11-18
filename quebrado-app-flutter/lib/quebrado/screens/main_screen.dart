@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
+import '../../widgets/suite_router.dart' show SuiteRoutes;
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
 import '../services/notification_manager.dart';
@@ -75,8 +77,11 @@ class _MainScreenState extends State<MainScreen> {
       }
       if (!mounted) return;
 
-      // 5. Show confirmations dialog
-      if (appState.pendingPaymentsToday.isNotEmpty) {
+      // 5. Show confirmations dialog (salvo si la URL `/finanzas/pagos` ya
+      // la abrió: no se duplica).
+      final openedByRoute =
+          GoRouter.maybeOf(context)?.state.uri.path == SuiteRoutes.pagos;
+      if (appState.pendingPaymentsToday.isNotEmpty && !openedByRoute) {
         showResponsiveSheet(
           context: context,
           builder: (context) => PendingConfirmationsBottomSheet(),

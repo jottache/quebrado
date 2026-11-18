@@ -2,7 +2,7 @@
 
 > Estado técnico exacto de cada pieza. Se actualiza **cada vez** que cambian `CLAUDE.md`, algo de `.claude/` o `.mcp.json` (lo exige `docs-sync.sh`). La explicación para personas está en `guia-sistema-agentico.md`.
 
-**Última actualización:** 2026-11-17 — implantación inicial, adaptada del proyecto hermano (Flutter + Supabase + Odoo). Diferencias: sin `odoo-bridge` ni chequeos de Odoo/Edge Functions; `ui-designer` pasa a ser `ui-ux-designer` (diseño de flujos y experiencia además de lo visual); rama base `feature/new-app`; se añade `.claude/known-failures` porque la suite tenía 5 tests en rojo al empezar.
+**Última actualización:** 2026-11-18 — spec 02: `known-failures` baja a 2 (ver Historial). Implantación inicial (2026-11-17), adaptada del proyecto hermano (Flutter + Supabase + Odoo). Diferencias: sin `odoo-bridge` ni chequeos de Odoo/Edge Functions; `ui-designer` pasa a ser `ui-ux-designer` (diseño de flujos y experiencia además de lo visual); rama base `feature/new-app`; se añade `.claude/known-failures` porque la suite tenía 5 tests en rojo al empezar.
 
 ## Agentes (`.claude/agents/`)
 
@@ -47,7 +47,7 @@ Auxiliares: `lib-json.sh` (lectura de JSON con python3), `suite-green.sh` ("verd
 | Archivo | Valor | Regla |
 | --- | --- | --- |
 | `.claude/coverage-threshold` | 31.3 (% de líneas de `lib/`, con `all_imports_test`) | solo sube |
-| `.claude/known-failures` | 4 tests (widget_test, reminders_pinned_banner_and_sync, multi_currency_balance, `~`mobile_payment_recipient (inestable, P-14)) con su causa; diario_clipboard_image se quitó el 2026-11-17 (spec 01) porque ya pasa | solo baja (P-10 en `docs/pendientes.md`) |
+| `.claude/known-failures` | 2 tests (multi_currency_balance, `~`mobile_payment_recipient (inestable, P-14)) con su causa; diario_clipboard_image se quitó el 2026-11-17 (spec 01) porque ya pasa, el de `AppLauncherScreen` (reminders_pinned_banner_and_sync) el 2026-11-18 (spec 02) porque se borró el launcher y el smoke de `widget_test` el 2026-11-18 (spec 02) porque ya pasa | solo baja (P-10 en `docs/pendientes.md`) |
 | `.claude/known-skips` | 2 tests de `manual_income_savings_test.dart` | solo baja; todo `skip` nuevo = rojo (P-17) |
 
 ## Infraestructura de tests (`quebrado-app-flutter/test/`)
@@ -58,7 +58,7 @@ Auxiliares: `lib-json.sh` (lectura de JSON con python3), `suite-green.sh` ("verd
 | `helpers/fake_supabase.dart` (+ `fake_supabase_test.dart`, 8 casos) | activo; `stubRest`/`stubRpc`/`pgError`; petición sin stub falla en tearDown; en `testWidgets` usar `tester.runAsync`; los servicios existentes no son inyectables (P-11) |
 | `helpers/rows/diario_contact_row.dart` | activo (factory de ejemplo) |
 | `contract/supabase_contract_test.dart` | activo; deuda congelada: 8 tablas sin documentar (P-15); falla si la deuda crece o si un elemento ya se resolvió |
-| `all_imports_test.dart` + `tool/generate_all_imports_test.sh` | activo; 209 archivos (excluye `clipboard_image_web.dart` y `web_splash_web.dart`) |
+| `all_imports_test.dart` + `tool/generate_all_imports_test.sh` | activo; 233 archivos (excluye los archivos solo-web: `clipboard_image_web.dart`, `web_splash_web.dart`, `suite_lock_store_web.dart`) |
 
 ## Límites conocidos de los guards
 
@@ -87,4 +87,5 @@ Auxiliares: `lib-json.sh` (lectura de JSON con python3), `suite-green.sh` ("verd
 | 2026-11-17 | Ronda 1 del `revisor`: la puerta exige el evento `done`, congela skips (`known-skips`), admite inestables (`~`), cerrojo y borrado del lcov viejo; `pump_app` con el tema completo; `FakeSupabase` verifica antes del dispose; `--check` en el generador. |
 | 2026-11-17 | Ronda 2 del `revisor`: APROBADO. Menores corregidos: limpieza atómica del cerrojo (también sin pid tras 1 min), `KNOWN_SKIPS_FILE` en la huella, caso de fallo de carga oculto en el test del parser. |
 | 2026-11-17 | Spec 01, paso 7: skill `ortiz-dark-ui`, `docs/design-system.md` v2, tokens `OrtizSpace`/`OrtizRadius` en `lib/theme/ortiz_space.dart`. |
+| 2026-11-18 | Spec 02: `.claude/known-failures` baja a 2 (se quitan el test de `AppLauncherScreen`, borrado con el launcher, y el smoke de `widget_test`, que ya pasa). `all_imports_test` con 233 archivos. |
 | 2026-11-17 | Spec 05: skill `ortiz-dark-ui` actualizada (componentes de `lib/widgets/ortiz/`, entradas con `ortizStaggered` y no `flutter_animate`); guardián `test/contract/no_hardcoded_styles_test.dart` + `no_hardcoded_styles_debt.txt` (deuda de estilos escritos a mano que solo baja); script `tool/codemod_tokens.py` (lo ejecuta la persona: `guard-bash` bloquea scripts que escriben código). |

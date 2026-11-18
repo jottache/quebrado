@@ -32,6 +32,9 @@ class HabitosState extends ChangeNotifier {
   String get todayKey => _formatDate(DateTime.now());
   bool get isViewingToday => selectedDateKey == todayKey;
 
+  /// Clave `yyyy-MM-dd` de [date] (la que usan los registros de hábitos).
+  String dateKeyOf(DateTime date) => _formatDate(date);
+
   String get activeFilter => _activeFilter;
   String? get selectedStackId => _selectedStackId;
   String? get selectedContactId => _selectedContactId;
@@ -183,6 +186,52 @@ class HabitosState extends ChangeNotifier {
     if (day.isBefore(created) || day.isAfter(DateTime(now.year, now.month, now.day))) return false;
     return !isRelapseLog(habit, getLog(habit.id, key));
   }
+
+  /// ¿[habit] está programado para [date]? (spec 02, Q2/Q4: la hoja «Marcar
+  /// hábitos de hoy» respeta días específicos y metas semanales).
+  ///
+  /// Ningún editor escribe todavía `frequencyPayload`, así que la regla es la
+  /// más literal posible y, si falta el dato, el hábito se muestra:
+  /// - `daily`: todos los días.
+  /// - `customDays`: solo si `date.weekday` (1 = lunes … 7 = domingo) está en
+  ///   `frequencyPayload['days']`. Sin lista de días válida → todos los días.
+  /// - `weeklyTarget`: mientras la semana (lunes a domingo) lleve menos días
+  ///   cumplidos *antes* de [date] que `frequencyPayload['times_per_week']`.
+  ///   Si ya se cumplió [date], sigue programado (para poder desmarcarlo).
+  ///   Sin meta válida (> 0) → todos los días.
+  bool isScheduledOn(HabitModel habit, DateTime date) {
+    final payload = habit.frequencyPayload;
+    switch (habit.frequencyType) {
+      case HabitFrequencyType.daily:
+        return true;
+      case HabitFrequencyType.customDays:
+        final raw = payload['days'];
+        if (raw is! List) return true;
+        final days = raw
+            .map((d) => d is num ? d.toInt() : int.tryParse(d.toString()))
+            .whereType<int>()
+            .where((d) => d >= DateTime.monday && d <= DateTime.sunday)
+            .toSet();
+        if (days.isEmpty) return true;
+        return days.contains(date.weekday);
+      case HabitFrequencyType.weeklyTarget:
+        final raw = payload['times_per_week'];
+        final target = raw is num ? raw.toInt() : int.tryParse('${raw ?? ''}');
+        if (target == null || target <= 0) return true;
+        if (isCompleted(habit.id, _formatDate(date))) return true;
+        var done = 0;
+        for (var i = 1; i < date.weekday; i++) {
+          final previous = DateTime(date.year, date.month, date.day - i);
+          if (isCompleted(habit.id, _formatDate(previous))) done++;
+        }
+        return done < target;
+    }
+  }
+
+  /// Hábitos buenos (no archivados, no `isNegative`) programados para [date],
+  /// en su orden actual. Los malos hábitos se registran en Hábitos.
+  List<HabitModel> goodHabitsScheduledOn(DateTime date) =>
+      allHabits.where((h) => !h.isNegative && isScheduledOn(h, date)).toList();
 
   /// Estado de cada día de los últimos [days] días (el último es hoy).
   List<HabitDayStatus> getDayStatuses(String habitId, {required int days}) {
@@ -369,10 +418,13 @@ class HabitosState extends ChangeNotifier {
   // ===========================================================================
   // OPTIMISTIC MUTATIONS (IN-MEMORY FIRST + BACKGROUND SYNC)
   // ===========================================================================
-  Future<void> toggleHabitCompletion(String habitId) async {
+  /// Marca o desmarca [habitId] en [dateKey] (por defecto, la fecha seleccionada
+  /// en Hábitos). Pasar [dateKey] no cambia la fecha seleccionada: lo usa la
+  /// hoja «Marcar hábitos de hoy» para marcar hoy sin mover la vista de Hábitos.
+  Future<void> toggleHabitCompletion(String habitId, {String? dateKey}) async {
     HapticFeedback.lightImpact();
 
-    final dateKey = selectedDateKey;
+    dateKey ??= selectedDateKey;
     final habit = _habits.firstWhere((h) => h.id == habitId);
 
     // Si es un contador infinito, presionar el check suma 1 toque
@@ -501,7 +553,12 @@ class HabitosState extends ChangeNotifier {
     await _service.saveHabit(updated);
   }
 
-  Future<void> addHabit({
+  /// Crea un hábito y devuelve el modelo guardado. El hábito queda en
+  /// [habits] antes del primer `await` (antes de guardar en el servicio), así
+  /// que quien no espera el guardado puede buscarlo por [id] (si lo pasa;
+  /// si no, se genera uno).
+  Future<HabitModel> addHabit({
+    String? id,
     required String title,
     String? description,
     String icon = 'terminal',
@@ -514,7 +571,7 @@ class HabitosState extends ChangeNotifier {
     String? contactId,
   }) async {
     final habit = HabitModel(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       title: title.trim(),
       description: description?.trim(),
       icon: icon,
@@ -532,6 +589,7 @@ class HabitosState extends ChangeNotifier {
     notifyListeners();
 
     await _service.saveHabit(habit);
+    return habit;
   }
 
   Future<void> updateHabit(HabitModel habit) async {

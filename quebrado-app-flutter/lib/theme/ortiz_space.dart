@@ -55,6 +55,24 @@ abstract final class OrtizSize {
 
   /// Ancho máximo de un texto centrado (estado vacío) en ventanas anchas.
   static const double readableWidth = 420;
+
+  // --- Shell de la suite (spec 02, docs/design/ortiz-home.md) ---
+  /// Riel de apps fijo a la izquierda (≥ 840) / en ventanas expandidas.
+  static const double railWidth = 210;
+  static const double railWidthExpanded = 240;
+
+  /// Panel «Hoy» a la derecha del inicio (se muestra desde 1200 px).
+  static const double todayPanelWidth = 320;
+  static const double todayPanelWidthExpanded = 380;
+
+  /// Columna de lectura del chat de Ortiz.
+  static const double chatMaxWidth = 720;
+
+  /// Paleta de comandos (`Ctrl/⌘+K`).
+  static const double paletteMaxWidth = 560;
+
+  /// Cara de Ortiz en el saludo del chat vacío.
+  static const double faceHero = 96;
 }
 
 /// Radios de esquina por tipo de elemento.

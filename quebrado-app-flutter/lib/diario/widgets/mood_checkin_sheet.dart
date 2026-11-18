@@ -19,7 +19,8 @@ import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Abre el formulario completo de ánimo (crear o editar).
 /// - [contactId] null → ánimo propio; con valor → ánimo percibido de ese contacto.
 /// - [existing] → edita un registro existente.
-Future<void> showMoodCheckinSheet(
+/// Devuelve el registro guardado (con su id), o null si se cierra sin guardar.
+Future<MoodLog?> showMoodCheckinSheet(
   BuildContext context, {
   MoodLog? existing,
   String? contactId,
@@ -27,7 +28,7 @@ Future<void> showMoodCheckinSheet(
   DateTime? initialDate,
   MoodSource source = MoodSource.manual,
 }) {
-  return showResponsiveSheet(
+  return showResponsiveSheet<MoodLog>(
     context: context,
     desktopWidth: 520,
     builder: (_) => MoodCheckinSheet(
@@ -234,8 +235,9 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
     final mentioned = <String>{...?_diarioState?.extractMentionedContactIds(note)}..remove(widget.contactId);
 
     final existing = widget.existing;
+    final MoodLog saved;
     if (existing != null) {
-      await animo.updateLog(existing.copyWith(
+      saved = await animo.updateLog(existing.copyWith(
         valence: valence,
         perspective: _perspective,
         kind: _isDaily ? MoodKind.daily : MoodKind.momentary,
@@ -250,7 +252,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
         loggedAt: _loggedAt,
       ));
     } else {
-      await animo.addLog(
+      saved = await animo.addLog(
         valence: valence,
         contactId: widget.contactId,
         perspective: _perspective,
@@ -267,7 +269,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
     }
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(saved);
   }
 
   // ===========================================================================

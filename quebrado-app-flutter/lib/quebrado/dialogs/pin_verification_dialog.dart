@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import '../services/pin_attempt_limiter.dart';
 import '../theme/colors.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
@@ -10,11 +13,15 @@ class PinVerificationDialog extends StatefulWidget {
   final String title;
   final String subtitle;
 
+  /// Límite de intentos compartido (A6). Por defecto, [PinAttemptLimiter.instance].
+  final PinAttemptLimiter? limiter;
+
   const PinVerificationDialog({
     super.key,
     required this.correctPin,
     this.title = "Confirmar Acción",
     this.subtitle = "Ingresa tu PIN de seguridad de 4 dígitos para continuar",
+    this.limiter,
   });
 
   @override
@@ -24,8 +31,47 @@ class PinVerificationDialog extends StatefulWidget {
 class _PinVerificationDialogState extends State<PinVerificationDialog> {
   String _inputPin = "";
   String? _errorMessage;
+  Timer? _lockoutTicker;
+
+  PinAttemptLimiter get _limiter => widget.limiter ?? PinAttemptLimiter.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_limiter.isLockedOut) _startLockoutTicker();
+  }
+
+  @override
+  void dispose() {
+    _lockoutTicker?.cancel();
+    super.dispose();
+  }
+
+  /// Segundos que faltan, redondeados hacia arriba (30, no 31, al empezar).
+  String _lockoutMessage() {
+    final seconds = (_limiter.remainingLockout.inMilliseconds / 1000).ceil();
+    return "Demasiados intentos. Espera $seconds s.";
+  }
+
+  /// Refresca la cuenta atrás cada segundo mientras dure la espera.
+  void _startLockoutTicker() {
+    _lockoutTicker?.cancel();
+    _errorMessage = _lockoutMessage();
+    _lockoutTicker = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() {
+        if (_limiter.isLockedOut) {
+          _errorMessage = _lockoutMessage();
+        } else {
+          _errorMessage = null;
+          timer.cancel();
+        }
+      });
+    });
+  }
 
   void _onNumberTap(int val) {
+    if (_limiter.isLockedOut) return;
     if (_inputPin.length < 4) {
       setState(() {
         _inputPin += val.toString();
@@ -49,11 +95,20 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
 
   void _verifyPin() {
     if (_inputPin == widget.correctPin) {
+      _limiter.registerSuccess();
       Navigator.of(context).pop(true);
     } else {
+      _limiter.registerFailure();
       setState(() {
         _inputPin = "";
-        _errorMessage = "PIN incorrecto. Inténtalo de nuevo.";
+        if (_limiter.isLockedOut) {
+          _startLockoutTicker();
+        } else {
+          final left = _limiter.attemptsLeft;
+          _errorMessage = left == 1
+              ? "PIN incorrecto. Te queda 1 intento."
+              : "PIN incorrecto. Te quedan $left intentos.";
+        }
       });
     }
   }

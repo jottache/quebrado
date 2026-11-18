@@ -14,6 +14,7 @@ import 'diario_search_screen.dart';
 import '../widgets/diario_image_helper.dart';
 import '../widgets/personal_notes_view.dart';
 import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/suite_menu_button.dart';
 
 import '../../widgets/ortiz/ortiz.dart';
 
@@ -165,10 +166,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
         backgroundColor: DiarioColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: SuiteMenuButton.leading(context),
         title: Row(
           children: [
             Container(

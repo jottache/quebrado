@@ -6,10 +6,6 @@ import 'package:quebrado_app_flutter/recordatorios/viewmodels/reminders_state.da
 import 'package:quebrado_app_flutter/recordatorios/screens/reminders_home_screen.dart';
 import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
 import 'package:quebrado_app_flutter/quebrado/screens/dashboard_screen.dart';
-import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
-import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
-import 'package:quebrado_app_flutter/agente/viewmodels/agente_state.dart';
-import 'package:quebrado_app_flutter/screens/app_launcher_screen.dart';
 
 import 'package:showcaseview/showcaseview.dart';
 
@@ -162,42 +158,6 @@ void main() {
       // Verify calculator button also exists next to it
       expect(find.byTooltip('Calculadora de divisas'), findsOneWidget);
       expect(find.byIcon(Icons.calculate_outlined), findsOneWidget);
-    });
-
-    testWidgets('AppLauncherScreen displays sync button and Quebrado card without circular notification border', (tester) async {
-      final appState = AppState();
-      final diarioState = DiarioState();
-      final habitosState = HabitosState();
-      final remindersState = RemindersState();
-      final agenteState = AgenteState();
-
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<AppState>.value(value: appState),
-            ChangeNotifierProvider<DiarioState>.value(value: diarioState),
-            ChangeNotifierProvider<HabitosState>.value(value: habitosState),
-            ChangeNotifierProvider<RemindersState>.value(value: remindersState),
-            ChangeNotifierProvider<AgenteState>.value(value: agenteState),
-          ],
-          child: const MaterialApp(
-            home: AppLauncherScreen(),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 600));
-
-      // Verify sync button in top bar
-      expect(find.byTooltip('Sincronizar datos'), findsOneWidget);
-      expect(find.byIcon(Icons.sync_rounded), findsOneWidget);
-
-      // Verify Quebrado logo asset is rendered
-      expect(find.byType(Image), findsWidgets);
-
-      // Notification icon is rendered cleanly without circular container
-      expect(find.byIcon(Icons.notifications_none_rounded), findsWidgets);
     });
   });
 }

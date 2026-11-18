@@ -205,7 +205,8 @@ class AnimoState extends ChangeNotifier {
     return log;
   }
 
-  Future<void> updateLog(MoodLog updated) async {
+  /// Actualiza un registro y devuelve el guardado (normalizado).
+  Future<MoodLog> updateLog(MoodLog updated) async {
     final normalized = updated.copyWith(
       emotions: _limitEmotions(updated.emotions),
       loggedAt: _clampToNow(updated.loggedAt),
@@ -220,6 +221,7 @@ class AnimoState extends ChangeNotifier {
     _sortLogs();
     notifyListeners();
     await _persist(normalized);
+    return normalized;
   }
 
   /// Elimina y devuelve el registro borrado (para "Deshacer").

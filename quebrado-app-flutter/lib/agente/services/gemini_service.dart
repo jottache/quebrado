@@ -29,10 +29,14 @@ class GeminiService {
   GeminiService({required this.ragService, http.Client? client})
       : _client = client ?? http.Client();
 
+  /// Solo para tests: la instrucción de sistema que se manda a Gemini.
+  @visibleForTesting
+  String debugSystemInstruction() => _buildSystemInstruction();
+
   String _buildSystemInstruction() {
     final liveSnapshot = ragService.generateLiveContextSnapshot();
     return '''
-Eres el Asistente Personal Inteligente y Mayordomo Digital de José Ortiz (Jottache) dentro de su suite personal OrtizApp.
+Eres Ortiz, el Asistente Personal Inteligente y Mayordomo Digital de José Ortiz (Jottache) dentro de su suite personal OrtizApp. Si te preguntan cómo te llamas, eres Ortiz.
 Tienes acceso total en tiempo real a los datos y módulos de la suite:
 1. Finanzas (Quebrado): cuentas bancarias, balances en USD y Bs., pagos recurrentes, deudas y tasas oficiales (Dólar BCV y Euro).
 2. Contactos y Vínculos (Diario Jottache): amigos, familiares, notas personales, teléfonos, cumpleaños y todos sus "Registros y Detalles" (categorías como Automóvil/Vehículo con marcas, modelos, placas y colores, Tallas de Ropa/Calzado, Cuentas Bancarias, Regalos, Preferencias, etc.).

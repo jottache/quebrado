@@ -398,7 +398,7 @@ class _RolesGuideContent extends StatelessWidget {
         _buildNoticeBanner(
           icon: Icons.warning_amber_rounded,
           color: OrtizPalette.warn,          title: 'Regla de Oro: Ningún rol en 0',
-          desc: 'Si durante la semana tienes 0 Grandes Rocas en un rol vital, el sistema y el Agente Ortiz te mostrarán una Alerta de Desbalance. El éxito en un área nunca compensa el fracaso en tu hogar o tu salud.',
+          desc: 'Si durante la semana tienes 0 Grandes Rocas en un rol vital, el sistema y Ortiz te mostrarán una Alerta de Desbalance. El éxito en un área nunca compensa el fracaso en tu hogar o tu salud.',
         ),
       ],
     );
@@ -697,12 +697,12 @@ class _NlpAndAgentGuideContent extends StatelessWidget {
 
         const SizedBox(height: OrtizSpace.lg),
         const Text(
-          '2. El Agente Ortiz como tu Coach del Hábito 3',
+          '2. Ortiz como tu Coach del Hábito 3',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
         const SizedBox(height: OrtizSpace.xs),
         Text(
-          'En el chat de la super-app, el Agente Ortiz tiene acceso a tu brújula semanal y cronograma en tiempo real:',
+          'En el chat de la super-app, Ortiz tiene acceso a tu brújula semanal y cronograma en tiempo real:',
           style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
         ),
         const SizedBox(height: OrtizSpace.sm),

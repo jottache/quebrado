@@ -1,6 +1,6 @@
 # 05 — Nuevo estilo en cada app
 
-- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Implementado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 01 (la 02 solo para el paso final: retirar el launcher). Decisión de la persona del 2026-11-17: la 05 va antes que la 02, en una rama apilada sobre `spec-01-tema-oscuro-design-system`.
 - **Fecha:** 2026-11-17
 - **Módulo(s):** agente, diario, recordatorios, habitos, notas, quebrado, rich_editor y suite
@@ -116,7 +116,7 @@ No aplica.
 - Revisión visual de la persona al terminar cada app.
 
 ## Implementación (2026-11-17, rama `spec-05-nuevo-estilo-apps`, apilada sobre `spec-01-tema-oscuro-design-system`)
-**Estado real:** implementada salvo el **paso 8** (retirar launcher, hub y command center), que espera a la spec 02 por diseño. Se cierra la spec 05 cuando la 02 borre esas vistas.
+**Estado real:** implementada. El **paso 8** (retirar launcher, hub y command center) se hizo el 2026-11-18 en la rama `spec-02-ortiz-al-centro`, al borrar la spec 02 esas vistas (sin interruptor, PA-05 de la 02). Queda abierta solo la revisión visual de CA-03 (P-49).
 
 **Verificación de criterios**
 | CA | Resultado | Evidencia |
@@ -125,7 +125,7 @@ No aplica.
 | CA-02 | CUMPLE | `test/contract/no_hardcoded_styles_test.dart` con `no_hardcoded_styles_debt.txt` vacío (0 en 0 archivos); el guardián cuenta colores `Color(0x…)`, `Color.fromARGB/RGBO`, `Colors.*`, `fontSize`, `EdgeInsets`, separadores, radios, tamaños de icono y `withOpacity`. Fuera del alcance: tokens y las 3 vistas de la spec 02. |
 | CA-03 | NO VERIFICABLE (aún) | Revisión visual con capturas sin terminar → P-49. El `revisor` dio por buena la lógica (sin cambios en los diálogos de dinero). |
 | CA-04 | CUMPLE | `ortizStaggered` (controlador propio, sin Timers) en 14 pantallas; con reducir movimiento devuelve el hijo sin animar (`test/widgets/ortiz/ortiz_animate_test.dart`). |
-| CA-05 | PENDIENTE | Paso 8, tras la spec 02. |
+| CA-05 | CUMPLE (2026-11-18, con la spec 02) | `grep` de `AppLauncherScreen`, `DesktopCommandCenter`, `LauncherActionHub` y `DockedLauncherChat` en `lib/`: 0. `SuiteRoutes.home = '/'` abre `OrtizHomeScreen` (`test/widgets/suite_router_test.dart` «sin URL abre el inicio»). |
 | CA-06 | CUMPLE | Puerta verde: analyze 0/0, 549+ tests (4 fallos conocidos), cobertura 33,74 % ≥ 31,3 %. |
 | CA-07 | CUMPLE | `SlideToConfirmButton`/`useSlideToConfirm` no aparecen en `lib/`; test en `test/quebrado/viewmodels/app_state_test.dart`. |
 

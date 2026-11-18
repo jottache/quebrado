@@ -12,20 +12,56 @@ Future<T?> showResponsiveSheet<T>({
   double desktopWidth = 480,
   String? title,
 }) {
+  // Mismo Navigator que antes: la hoja inferior usa el más cercano
+  // (`showModalBottomSheet`) y el panel lateral, el raíz (`showGeneralDialog`).
   final isDesktop = ResponsiveBreakpoints.isDesktop(context);
-
-  if (!isDesktop) {
-    return showModalBottomSheet<T>(
+  return Navigator.of(context, rootNavigator: isDesktop).push<T>(
+    buildResponsiveSheetRoute<T>(
       context: context,
+      builder: builder,
       isScrollControlled: isScrollControlled,
       backgroundColor: backgroundColor,
+      desktopWidth: desktopWidth,
+    ),
+  );
+}
+
+/// Ruta que abre [showResponsiveSheet]: hoja inferior en `< 840` y panel
+/// lateral derecho en `≥ 840`. Con [sidePanelOnDesktop] en `false` es siempre
+/// una hoja inferior (como `showModalBottomSheet`).
+///
+/// La usan también las rutas de detalle del router (`SuiteSheetPage`), que
+/// pasan la propia `Page` como [settings].
+Route<T> buildResponsiveSheetRoute<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool isScrollControlled = true,
+  Color backgroundColor = Colors.transparent,
+  double desktopWidth = 480,
+  bool sidePanelOnDesktop = true,
+  RouteSettings? settings,
+}) {
+  final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+
+  if (!isDesktop || !sidePanelOnDesktop) {
+    // Lo mismo que construye `showModalBottomSheet`.
+    final navigator = Navigator.of(context);
+    final localizations = MaterialLocalizations.of(context);
+    return ModalBottomSheetRoute<T>(
       builder: builder,
+      capturedThemes: InheritedTheme.capture(from: context, to: navigator.context),
+      isScrollControlled: isScrollControlled,
+      barrierLabel: localizations.scrimLabel,
+      barrierOnTapHint: localizations.scrimOnTapHint(localizations.bottomSheetLabel),
+      backgroundColor: backgroundColor,
+      modalBarrierColor: Theme.of(context).bottomSheetTheme.modalBarrierColor,
+      settings: settings,
     );
   }
 
   // En Desktop: Abrir como un Drawer / Side Panel deslizante desde la derecha o modal flotante optimizado
-  return showGeneralDialog<T>(
-    context: context,
+  return RawDialogRoute<T>(
+    settings: settings,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: OrtizPalette.bg.withValues(alpha: 0.6),
@@ -69,9 +105,12 @@ Future<T?> showResponsiveSheet<T>({
                 child: Navigator(
                   key: nestedNavKey,
                   observers: [
-                    _SheetNavigatorObserver(() {
+                    // Al cerrarse la hoja se reenvía su resultado (p. ej. el
+                    // registro guardado) a quien la abrió, igual que en móvil.
+                    _SheetNavigatorObserver((result) {
+                      if (!dialogContext.mounted) return;
                       if (Navigator.of(dialogContext).canPop()) {
-                        Navigator.of(dialogContext).pop();
+                        Navigator.of(dialogContext).pop(result);
                       }
                     }),
                   ],
@@ -100,7 +139,7 @@ Future<T?> showResponsiveSheet<T>({
 }
 
 class _SheetNavigatorObserver extends NavigatorObserver {
-  final VoidCallback onEmpty;
+  final void Function(Object? result) onEmpty;
   int _routeCount = 0;
 
   _SheetNavigatorObserver(this.onEmpty);
@@ -114,7 +153,8 @@ class _SheetNavigatorObserver extends NavigatorObserver {
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _routeCount--;
     if (_routeCount <= 0) {
-      onEmpty();
+      // `popped` ya trae el valor con el que se cerró la última ruta.
+      route.popped.then(onEmpty);
     }
   }
 
@@ -122,7 +162,7 @@ class _SheetNavigatorObserver extends NavigatorObserver {
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _routeCount--;
     if (_routeCount <= 0) {
-      onEmpty();
+      onEmpty(null);
     }
   }
 }

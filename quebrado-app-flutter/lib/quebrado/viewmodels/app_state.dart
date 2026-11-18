@@ -99,6 +99,11 @@ class AppState extends ChangeNotifier {
     return _cachedAccounts[profileId] ?? [];
   }
 
+  /// Movimientos en memoria por libro (id del libro → movimientos), solo
+  /// lectura. Con Supabase se precargan todos los libros; en local, solo los
+  /// ya abiertos en esta sesión. Lo usa la búsqueda por id de las rutas.
+  Map<String, List<Transaction>> get transactionsByBook => Map.unmodifiable(_cachedTransactions);
+
   List<Map<String, String>> _profiles = [];
   List<Map<String, String>> get profiles => _profiles;
 
@@ -120,6 +125,13 @@ class AppState extends ChangeNotifier {
   CurrencyType get selectedCurrency => _selectedCurrency;
   bool get useBiometrics => _useBiometrics;
   bool get usePinSecurity => _usePinSecurity;
+
+  bool _securitySettingsConfirmed = false;
+
+  /// True si [usePinSecurity] y [useBiometrics] se leyeron de verdad (o los
+  /// cambió la persona). Si es false valen sus valores por defecto y la suite
+  /// cierra ante la duda (auditoría spec 02, A1).
+  bool get securitySettingsConfirmed => _securitySettingsConfirmed;
 
   double get totalBalanceUSD {
     double total = 0.0;
@@ -197,14 +209,7 @@ class AppState extends ChangeNotifier {
           SupabaseService.instance.getPartials(),
         ]);
 
-        final spSettings = results[0] as Map<String, String>;
-        if (spSettings.containsKey('bcvRate')) _bcvRate = double.tryParse(spSettings['bcvRate']!) ?? _bcvRate;
-        if (spSettings.containsKey('parallelRate')) _parallelRate = double.tryParse(spSettings['parallelRate']!) ?? _parallelRate;
-        if (spSettings.containsKey('euroRate')) _euroRate = double.tryParse(spSettings['euroRate']!) ?? _euroRate;
-        if (spSettings.containsKey('selectedCurrency')) _selectedCurrency = CurrencyType.fromString(spSettings['selectedCurrency']!);
-        if (spSettings.containsKey('useBiometrics')) _useBiometrics = spSettings['useBiometrics'] == 'true';
-        _loadStringSet(spSettings[fulfilledSuggestionsSettingKey], _fulfilledPocketSuggestions);
-        _loadStringSet(spSettings['manual_savings_confirmed'], _manualSavingsConfirmed);
+        applyRemoteSettings(results[0] as Map<String, String>);
 
         final spProfiles = results[1] as List<Map<String, String>>;
         if (spProfiles.isNotEmpty) {
@@ -297,6 +302,8 @@ class AppState extends ChangeNotifier {
 
         final pinSecurityVal = await DatabaseHelper.instance.getSetting('usePinSecurity');
         if (pinSecurityVal != null) _usePinSecurity = pinSecurityVal == 'true';
+        // La lectura local no falla en silencio: si llegó aquí, los valores son reales.
+        _securitySettingsConfirmed = true;
 
         pockets = await DatabaseHelper.instance.getPockets();
         categories = await DatabaseHelper.instance.getCategories();
@@ -352,6 +359,25 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       if (kDebugMode) print("Error loading database settings: $e");
     }
+  }
+
+  /// Aplica los ajustes leídos de la tabla `settings` de Supabase. Las claves
+  /// ausentes conservan su valor actual.
+  @visibleForTesting
+  void applyRemoteSettings(Map<String, String> spSettings) {
+    if (spSettings.containsKey('bcvRate')) _bcvRate = double.tryParse(spSettings['bcvRate']!) ?? _bcvRate;
+    if (spSettings.containsKey('parallelRate')) _parallelRate = double.tryParse(spSettings['parallelRate']!) ?? _parallelRate;
+    if (spSettings.containsKey('euroRate')) _euroRate = double.tryParse(spSettings['euroRate']!) ?? _euroRate;
+    if (spSettings.containsKey('selectedCurrency')) _selectedCurrency = CurrencyType.fromString(spSettings['selectedCurrency']!);
+    if (spSettings.containsKey('useBiometrics')) _useBiometrics = spSettings['useBiometrics'] == 'true';
+    // Se guarda en Supabase con `setUsePinSecurity`; sin esto, «PIN activado»
+    // se perdía al recargar (rutas.md §0 y §10, P-04).
+    if (spSettings.containsKey('usePinSecurity')) _usePinSecurity = spSettings['usePinSecurity'] == 'true';
+    if (spSettings.containsKey('useBiometrics') || spSettings.containsKey('usePinSecurity')) {
+      _securitySettingsConfirmed = true;
+    }
+    _loadStringSet(spSettings[fulfilledSuggestionsSettingKey], _fulfilledPocketSuggestions);
+    _loadStringSet(spSettings['manual_savings_confirmed'], _manualSavingsConfirmed);
   }
 
   Future<void> _ensureDefaultAccountsForActiveProfile() async {
@@ -413,7 +439,11 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> setUseBiometrics(bool value) async {
+    // Quien activa la seguridad ya está dentro de la app: cuenta como
+    // verificado hoy, para que el candado no le pida el PIN en el acto.
+    if (value) onSecurityVerified?.call();
     _useBiometrics = value;
+    _securitySettingsConfirmed = true;
     if (!kIsWeb) {
       await DatabaseHelper.instance.setSetting('useBiometrics', _useBiometrics.toString());
     }
@@ -424,7 +454,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> setUsePinSecurity(bool value) async {
+    // Igual que en [setUseBiometrics]: activarla desde dentro no re-bloquea.
+    if (value) onSecurityVerified?.call();
     _usePinSecurity = value;
+    _securitySettingsConfirmed = true;
     if (!kIsWeb) {
       await DatabaseHelper.instance.setSetting('usePinSecurity', _usePinSecurity.toString());
     }
@@ -434,24 +467,46 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Solo para tests: devuelve el PIN sin leer los metadatos de respaldo (E/S).
+  @visibleForTesting
+  Future<String> Function()? debugSecurityPinLoader;
+
   Future<String> getSecurityPin() async {
+    final loader = debugSecurityPinLoader;
+    if (loader != null) return loader();
     final metadata = await loadBackupMetadata();
     return (metadata['security_pin'] as String?)?.isNotEmpty == true
         ? metadata['security_pin']!
         : '1234';
   }
 
+  /// Se llama cada vez que la persona confirma su identidad (PIN o biometría).
+  /// La suite lo usa para marcar el día como desbloqueado. Lo conecta `main.dart`.
+  VoidCallback? onSecurityVerified;
+
+  /// Devuelve true si la suite ya se desbloqueó hoy: entonces no se vuelve a
+  /// pedir el PIN para ninguna operación (rutas.md §10, P-04 revisada el
+  /// 2026-11-18: «una vez ingresado se puede hacer todo tipo de operaciones»).
+  /// Lo conecta `main.dart` con `SuiteLock.isUnlocked`.
+  bool Function()? isSessionUnlocked;
+
   Future<bool> verifySecurityAuth(
     BuildContext context, {
     String reason = "Confirma tu identidad para registrar esta transacción",
+    String title = "Confirmar Transacción",
   }) async {
+    if (isSessionUnlocked?.call() == true) return true;
+
     // 1. Biometrics if enabled and supported on native mobile platform
     if (_useBiometrics && !kIsWeb) {
       try {
         final canAuth = await BiometricService.canAuthenticate();
         if (canAuth) {
           final authenticated = await BiometricService.authenticate(reason: reason);
-          if (authenticated) return true;
+          if (authenticated) {
+            onSecurityVerified?.call();
+            return true;
+          }
           if (!_usePinSecurity) return false;
         }
       } catch (_) {}
@@ -465,10 +520,11 @@ class AppState extends ChangeNotifier {
         context: context,
         builder: (context) => PinVerificationDialog(
           correctPin: pin,
-          title: "Confirmar Transacción",
+          title: title,
           subtitle: reason,
         ),
       );
+      if (result == true) onSecurityVerified?.call();
       return result == true;
     }
 
@@ -3398,6 +3454,9 @@ class AppState extends ChangeNotifier {
     double? customExchangeRate,
     String? customNote,
     String? overrideAccountId,
+    // Recibe el movimiento registrado (solo si [actualAmount] > 0), para que
+    // quien confirma pueda devolverlo (acciones rápidas, «Ver»).
+    void Function(Transaction transaction)? onTransactionRecorded,
   }) async {
     final dateToConfirm = occurrenceDate ?? DateTime.now();
     final today = dateToConfirm.copyWith(
@@ -3451,6 +3510,7 @@ class AppState extends ChangeNotifier {
       );
 
       await addTransaction(newTx);
+      onTransactionRecorded?.call(newTx);
     }
 
     // Insert confirmation record

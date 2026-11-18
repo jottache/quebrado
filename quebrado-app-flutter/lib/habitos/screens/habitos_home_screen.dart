@@ -11,6 +11,7 @@ import 'habitos_metrics_screen.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/widgets/diario_image_helper.dart';
 import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/suite_menu_button.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
@@ -143,12 +144,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         backgroundColor: HabitosColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: isDesktop
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md, color: HabitosColors.textPrimary),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+        leading: SuiteMenuButton.leading(context, color: HabitosColors.textPrimary),
         title: Row(
           children: [
             Container(

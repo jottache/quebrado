@@ -64,7 +64,7 @@ class _AgenteSettingsDialogState extends State<AgenteSettingsDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Ajustes del Agente IA',
+                          'Ajustes de Ortiz',
                           style: TextStyle(
                             fontSize: OrtizFontSize.title,
                             fontWeight: FontWeight.w900,
@@ -182,7 +182,7 @@ class _AgenteSettingsDialogState extends State<AgenteSettingsDialog> {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Ajustes del Agente guardados correctamente.'),
+                      content: Text('Ajustes de Ortiz guardados.'),
                     ),
                   );
                 },

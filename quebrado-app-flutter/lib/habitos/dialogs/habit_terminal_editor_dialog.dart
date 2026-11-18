@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../models/habit_model.dart';
 import '../viewmodels/habitos_state.dart';
 import '../theme/habitos_terminal_theme.dart';
@@ -78,8 +79,14 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         ? (_unitController.text.trim().isNotEmpty ? _unitController.text.trim() : 'veces')
         : (_selectedType == HabitType.timer ? 'min' : null);
 
+    // El hábito guardado se devuelve al cerrar (acciones rápidas, «Ver»). El
+    // guardado sigue sin esperarse, como antes: addHabit lo añade a la lista
+    // antes de su primer await.
+    final HabitModel saved;
     if (widget.habit == null) {
+      final id = const Uuid().v4();
       state.addHabit(
+        id: id,
         title: _titleController.text.trim(),
         description: _descController.text.trim().isNotEmpty ? _descController.text.trim() : null,
         type: _selectedType,
@@ -89,28 +96,28 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         stackGroupId: _selectedStackId,
         contactId: contactId,
       );
+      saved = state.habits.firstWhere((h) => h.id == id);
     } else {
       final desc = _descController.text.trim();
 
-      state.updateHabit(
-        widget.habit!.copyWith(
-          title: _titleController.text.trim(),
-          description: desc.isNotEmpty ? desc : null,
-          clearDescription: desc.isEmpty,
-          type: _selectedType,
-          isNegative: _isNegative,
-          targetValue: targetVal,
-          unit: unit,
-          clearUnit: unit == null || unit.isEmpty,
-          stackGroupId: _selectedStackId,
-          clearStackGroupId: _selectedStackId == null,
-          contactId: contactId,
-          clearContactId: contactId == null,
-        ),
+      saved = widget.habit!.copyWith(
+        title: _titleController.text.trim(),
+        description: desc.isNotEmpty ? desc : null,
+        clearDescription: desc.isEmpty,
+        type: _selectedType,
+        isNegative: _isNegative,
+        targetValue: targetVal,
+        unit: unit,
+        clearUnit: unit == null || unit.isEmpty,
+        stackGroupId: _selectedStackId,
+        clearStackGroupId: _selectedStackId == null,
+        contactId: contactId,
+        clearContactId: contactId == null,
       );
+      state.updateHabit(saved);
     }
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(saved);
   }
 
   @override

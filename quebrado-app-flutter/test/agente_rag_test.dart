@@ -14,7 +14,7 @@ import 'package:quebrado_app_flutter/quebrado/models/account.dart';
 import 'package:quebrado_app_flutter/quebrado/models/recurring_payment.dart';
 
 void main() {
-  group('Agente Ortiz Models Tests', () {
+  group('Ortiz Models Tests', () {
     test('ChatArtifactModel serializes and deserializes correctly', () {
       final artifact = ChatArtifactModel(
         sessionId: 'session-123',

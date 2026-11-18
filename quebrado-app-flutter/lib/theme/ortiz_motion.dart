@@ -11,6 +11,7 @@ abstract final class OrtizMotion {
   static const Duration base = Duration(milliseconds: 320); // entradas, hojas
   static const Duration slow = Duration(milliseconds: 450); // transiciones grandes
   static const Duration stagger = Duration(milliseconds: 60); // entre elementos
+  static const Duration celebrate = Duration(milliseconds: 1800); // Ortiz «happy» tras guardar
 
   /// Curva de salida suave (rápida al empezar, se posa al final).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);

@@ -15,6 +15,7 @@ import '../../rich_editor/rich_document_editor.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_notice.dart';
 /// Editor de entradas de Diario (registro de un contacto o nota personal).
 /// Ocupa el 90 % de la pantalla en escritorio, usa el editor enriquecido
 /// (formato, listas, "/" para bloques, @ contactos, # notas) y guarda borrador.
@@ -29,6 +30,10 @@ class EntryEditorDialog extends StatefulWidget {
     this.categoryId,
     this.entry,
   });
+
+  /// Aviso cuando la entrada no se pudo guardar (foto o conexión).
+  static const String saveErrorNotice =
+      'No pude guardar la entrada. Revisa tu conexión e inténtalo de nuevo.';
 
   /// Un borrador por entrada existente, y uno por contacto + sección para las nuevas.
   static String draftScopeFor({DiarioEntry? entry, String? contactId, String? categoryId}) {
@@ -53,6 +58,13 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
 
   /// Móvil: sección "Detalles" (modelo, fecha, foto…) desplegada.
   bool _detailsExpanded = false;
+
+  /// Guardado en curso: evita que un doble toque cree dos entradas.
+  bool _saving = false;
+
+  /// Id reservado para la entrada nueva; se reutiliza si el guardado falla y
+  /// se reintenta (el upsert no duplica).
+  String? _newEntryId;
 
   @override
   String get draftScope => EntryEditorDialog.draftScopeFor(
@@ -210,7 +222,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
   }
 
   Future<void> _save() async {
-    if (editorState == null) return;
+    if (_saving || editorState == null) return;
     for (final entry in _controllers.entries) {
       _formData[entry.key] = entry.value.text.trim();
     }
@@ -244,9 +256,29 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       return;
     }
 
-    await stopDictation();
-    if (!mounted) return;
+    // Desde aquí hay esperas: un segundo toque no debe guardar otra vez.
+    setState(() => _saving = true);
+    var closed = false;
+    try {
+      await stopDictation();
+      if (!mounted) return;
+      final saved = await _persist(state, title: title, text: text);
+      await discardDraftAfterSave();
+      if (mounted) {
+        closed = true;
+        Navigator.of(context).pop(saved);
+      }
+    } catch (e) {
+      debugPrint('Diario: no se pudo guardar la entrada ($e)');
+      if (mounted) showOrtizNotice(context, EntryEditorDialog.saveErrorNotice);
+    } finally {
+      if (mounted && !closed) setState(() => _saving = false);
+    }
+  }
 
+  /// Crea o actualiza la entrada y devuelve la guardada (con su id, para que
+  /// quien abrió el editor pueda mostrar «Ver» y navegar a ella).
+  Future<DiarioEntry> _persist(DiarioState state, {required String title, required String text}) async {
     final hasTemplate = _selectedTemplateId != null && _selectedTemplateId!.isNotEmpty;
     final effectiveContactId = widget.entry?.contactId ?? widget.contactId ?? 'personal';
     final effectiveCategoryId = widget.entry?.categoryId ?? widget.categoryId ?? 'cat_notas_personales';
@@ -255,8 +287,10 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
     final noteMentionsList = text.isNotEmpty ? state.extractMentionedNoteIds(text, notasState.notes) : <String>[];
     final document = text.isNotEmpty ? documentJson : null;
 
+    final DiarioEntry saved;
     if (widget.entry == null) {
-      state.addEntry(
+      saved = await state.addEntry(
+        id: _newEntryId ??= state.newEntryId(),
         contactId: effectiveContactId,
         categoryId: effectiveCategoryId,
         templateId: _selectedTemplateId,
@@ -272,7 +306,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
         createdAt: _selectedDate,
       );
     } else {
-      state.updateEntry(
+      saved = await state.updateEntry(
         widget.entry!.copyWith(
           templateId: _selectedTemplateId,
           clearTemplate: !hasTemplate,
@@ -292,9 +326,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
         ),
       );
     }
-
-    await discardDraftAfterSave();
-    if (mounted) Navigator.of(context).pop();
+    return saved;
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -432,12 +464,21 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
           const SizedBox(width: OrtizSpace.xs),
           ElevatedButton.icon(
             key: const ValueKey('diario_entry_save'),
-            onPressed: _save,
-            icon: const Icon(Icons.save_rounded, size: OrtizIconSize.md),
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox.square(
+                    key: ValueKey('diario_entry_saving'),
+                    dimension: OrtizIconSize.md,
+                    child: CircularProgressIndicator(strokeWidth: OrtizStroke.focus, color: OrtizPalette.onAccent),
+                  )
+                : const Icon(Icons.save_rounded, size: OrtizIconSize.md),
             label: Text(desktop ? (isEditing ? 'Guardar Cambios' : 'Registrar Entrada') : 'Guardar'),
             style: ElevatedButton.styleFrom(
               backgroundColor: DiarioColors.primary,
               foregroundColor: OrtizPalette.onAccent,
+              // Mientras guarda sigue en su color, con el indicador en lugar del icono.
+              disabledBackgroundColor: DiarioColors.primary,
+              disabledForegroundColor: OrtizPalette.onAccent,
               padding: EdgeInsets.symmetric(horizontal: desktop ? OrtizSpace.xl : OrtizSpace.md, vertical: OrtizSpace.md),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               elevation: 0,

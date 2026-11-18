@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +9,7 @@ import '../models/agente_prompt_model.dart';
 import '../services/gemini_service.dart';
 import '../services/suite_rag_service.dart';
 import '../services/agente_supabase_service.dart';
+import '../widgets/ortiz_face.dart' show OrtizMood;
 import '../../quebrado/viewmodels/app_state.dart';
 import '../../quebrado/services/db_helper.dart';
 import '../../diario/viewmodels/diario_state.dart';
@@ -27,11 +29,20 @@ class AgenteState extends ChangeNotifier {
 
   bool _isGenerating = false;
   String _statusMessage = '';
-  bool _isLauncherChatExpanded = false;
   bool _isInitialized = false;
 
-  AgenteState({bool autoInit = true, AgenteSupabaseService? supabaseService})
-      : _supabaseService = supabaseService ?? AgenteSupabaseService() {
+  /// Cuánto dura la alegría de Ortiz tras [celebrate] (spec 02).
+  static const Duration celebrateDuration = Duration(milliseconds: 1800);
+  Timer? _celebrateTimer;
+
+  /// [geminiService] solo se inyecta en tests; en la app lo crea
+  /// [updateDependencies].
+  AgenteState({
+    bool autoInit = true,
+    AgenteSupabaseService? supabaseService,
+    @visibleForTesting GeminiService? geminiService,
+  })  : _supabaseService = supabaseService ?? AgenteSupabaseService(),
+        _geminiService = geminiService {
     if (autoInit) {
       _init();
     } else {
@@ -47,14 +58,38 @@ class AgenteState extends ChangeNotifier {
   List<AgentePromptModel> get quickPrompts => List.unmodifiable(_quickPrompts);
   bool get isGenerating => _isGenerating;
   String get statusMessage => _statusMessage;
-  bool get isLauncherChatExpanded => _isLauncherChatExpanded;
   bool get isInitialized => _isInitialized;
 
-  void setLauncherChatExpanded(bool expanded) {
-    if (_isLauncherChatExpanded != expanded) {
-      _isLauncherChatExpanded = expanded;
-      notifyListeners();
+  /// Ánimo de la cara de Ortiz (docs/design/ortiz-face.md §2.6): pensando
+  /// mientras genera sin texto todavía; hablando cuando ya llega la
+  /// respuesta; contento tras [celebrate] (solo gana al reposo); en reposo en
+  /// otro caso.
+  OrtizMood get ortizMood {
+    if (_isGenerating) {
+      final last = _messages.isEmpty ? null : _messages.last;
+      return last != null && last.isModel && last.content.isNotEmpty
+          ? OrtizMood.talking
+          : OrtizMood.thinking;
     }
+    return _celebrateTimer != null ? OrtizMood.happy : OrtizMood.idle;
+  }
+
+  /// Pone a Ortiz contento durante [celebrateDuration] (p. ej., al guardar
+  /// algo) y luego vuelve al ánimo que toque.
+  void celebrate() {
+    _celebrateTimer?.cancel();
+    _celebrateTimer = Timer(celebrateDuration, () {
+      _celebrateTimer = null;
+      notifyListeners();
+    });
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _celebrateTimer?.cancel();
+    _celebrateTimer = null;
+    super.dispose();
   }
 
   void _init() async {

@@ -47,6 +47,51 @@ void main() {
     expect(deco!.color, OrtizPalette.surface);
   });
 
+  for (final window in [WindowClass.compact, WindowClass.expanded]) {
+    testWidgets('devuelve a quien la abrió el valor con que se cierra la hoja (${window.name})',
+        (tester) async {
+      late Future<String?> result;
+      await pumpApp(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => result = showResponsiveSheet<String>(
+              context: context,
+              builder: (sheetContext) => Column(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop('guardado-1'),
+                    child: const Text('guardar'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text('cerrar'),
+                  ),
+                ],
+              ),
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+        window: window,
+      );
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('guardar'));
+      await tester.pumpAndSettle();
+      expect(await result, 'guardado-1');
+      expect(find.text('guardar'), findsNothing);
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('cerrar'));
+      await tester.pumpAndSettle();
+      expect(await result, isNull);
+      expect(find.text('cerrar'), findsNothing);
+    });
+  }
+
   testWidgets('en compact abre una hoja inferior, no el panel lateral', (tester) async {
     await pumpApp(tester, _opener(), window: WindowClass.compact);
 

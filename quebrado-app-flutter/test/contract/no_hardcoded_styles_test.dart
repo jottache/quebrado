@@ -18,7 +18,7 @@
 // Al cerrar la spec 05 la deuda queda vacía.
 //
 // Fuera de alcance: los tokens (`lib/theme/`, `lib/*/theme/`,
-// `rich_editor_colors.dart`) y las pantallas que la spec 02 reemplaza.
+// `rich_editor_colors.dart`).
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -26,9 +26,6 @@ import 'package:flutter_test/flutter_test.dart';
 const _debtPath = 'test/contract/no_hardcoded_styles_debt.txt';
 
 const _excludedFiles = {
-  'lib/screens/app_launcher_screen.dart',
-  'lib/screens/launcher_action_hub_view.dart',
-  'lib/widgets/desktop_command_center_view.dart',
   'lib/rich_editor/rich_editor_colors.dart',
 };
 

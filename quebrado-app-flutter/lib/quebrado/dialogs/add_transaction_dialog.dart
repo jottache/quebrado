@@ -48,11 +48,17 @@ class AddTransactionBottomSheet extends StatefulWidget {
   final String? initialAccountId;
   final Transaction? editingTransaction;
 
+  /// Si muestra el diálogo de éxito de Finanzas al guardar. Las acciones
+  /// rápidas de la suite lo apagan: ya avisan con «✓ … · Ver» (spec 02, C8;
+  /// decisión de la persona del 2026-11-18, PQ-01).
+  final bool showSuccessDialog;
+
   const AddTransactionBottomSheet({
     super.key,
     this.initialType = TransactionType.income,
     this.initialAccountId,
     this.editingTransaction,
+    this.showSuccessDialog = true,
   });
 
   @override
@@ -398,9 +404,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
     } else {
       appState.addTransaction(newTx);
     }
-    
-    navigator.pop();
 
+    // Devuelve el movimiento guardado: su id se genera aquí y se conserva
+    // tal cual en Supabase y en SQLite, así que ya es el definitivo.
+    navigator.pop(newTx);
+
+    if (!widget.showSuccessDialog) return;
     showDialog(
       context: navigator.context,
       barrierDismissible: false,

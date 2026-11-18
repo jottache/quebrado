@@ -147,7 +147,7 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Agente Ortiz',
+                          'Ortiz',
                           style: TextStyle(
                             fontSize: OrtizFontSize.titleSm,
                             fontWeight: FontWeight.w900,
@@ -285,7 +285,7 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                               onSubmitted: (text) => _submitPrompt(agenteState, text),
                               style: const TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.fg),
                               decoration: const InputDecoration(
-                                hintText: 'Pregúntale al Agente Ortiz...',
+                                hintText: 'Pregúntale a Ortiz...',
                                 hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.body),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -338,7 +338,7 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
           ),
           const SizedBox(height: OrtizSpace.lg),
           const Text(
-            '¡Hola, José! Soy tu Agente Ortiz',
+            '¡Hola, José! Soy Ortiz',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.w900, color: OrtizPalette.fg),
           ),

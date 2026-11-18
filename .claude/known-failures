@@ -10,12 +10,6 @@
 # Prefijo `~` = INESTABLE: su resultado depende del entorno (no del código), así que puede
 # pasar o fallar sin poner la puerta en rojo. Quitarle el `~` o la línea es la única dirección permitida.
 
-# Pump de MyApp completo: al desmontar quedan Timers pendientes del arranque (servicios/animaciones) → '!timersPending'.
-test/widget_test.dart::App basic smoke test
-
-# Test desactualizado: AppLauncherScreen ahora lee NotasState y el test no lo provee → ProviderNotFoundException.
-test/reminders_pinned_banner_and_sync_test.dart::Sync Button & Quebrado Card Alignment Tests AppLauncherScreen displays sync button and Quebrado card without circular notification border
-
 # Cuentas solo en memoria (debugLocalDbIsSourceOfTruth=false) pero las transacciones se insertan en SQLite → FOREIGN KEY constraint failed; el saldo no cambia.
 test/multi_currency_balance_test.dart::AppState multi-currency transactions update account balance correctly
 
@@ -24,3 +18,5 @@ test/multi_currency_balance_test.dart::AppState multi-currency transactions upda
 ~test/mobile_payment_recipient_test.dart::AppState mobile payment recipient operations are correct
 
 # (2026-11-17, spec 01) Quitado: test/diario_clipboard_image_test.dart::…readImageFromClipboard… ahora pasa.
+# (2026-11-18, spec 02) Quitado: test/widget_test.dart::App basic smoke test ahora pasa. Lo más probable: con el
+# bloqueo diario, la primera carga espera a los ajustes antes de montar el chat, así que no quedan sus Timers.
