@@ -11,6 +11,14 @@ import '../widgets/artifact_card_view.dart';
 import '../widgets/agente_chat_bottom_sheet.dart';
 import 'chat_conversation_screen.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+/// Margen inferior de las listas para que el botón flotante no tape la última fila.
+const double _fabClearance = OrtizSize.minTouch + OrtizSpace.xxxl;
+
 class AgenteHomeScreen extends StatefulWidget {
   const AgenteHomeScreen({super.key});
 
@@ -49,34 +57,33 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     return Scaffold(
       backgroundColor: AgenteColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(OrtizSpace.sm),
               decoration: BoxDecoration(
                 color: AgenteColors.primaryLight,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
-              child: const Icon(Icons.auto_awesome_rounded, color: AgenteColors.primary, size: 20),
+              child: const Icon(Icons.auto_awesome_rounded, color: AgenteColors.primary, size: OrtizIconSize.md),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Agente Ortiz',
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 Text(
                   'CHATS, ARTEFACTOS & ATAJOS',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AgenteColors.primary),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AgenteColors.primary),
                 ),
               ],
             ),
@@ -93,26 +100,26 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
               );
             },
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
         ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: AgenteColors.primary,
-          unselectedLabelColor: Colors.grey[500],
+          unselectedLabelColor: OrtizPalette.muted,
           indicatorColor: AgenteColors.primary,
           indicatorWeight: 3,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
           tabs: [
             Tab(
-              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: OrtizIconSize.md),
               text: 'Charlas (${sessions.length})',
             ),
             Tab(
-              icon: const Icon(Icons.inventory_2_outlined, size: 18),
+              icon: const Icon(Icons.inventory_2_outlined, size: OrtizIconSize.md),
               text: 'Artefactos (${agenteState.allArtifacts.length})',
             ),
             Tab(
-              icon: const Icon(Icons.bolt_rounded, size: 18),
+              icon: const Icon(Icons.bolt_rounded, size: OrtizIconSize.md),
               text: 'Prompts (${prompts.length})',
             ),
           ],
@@ -139,8 +146,8 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
       floatingActionButton: _tabController.index == 2
           ? FloatingActionButton.extended(
               backgroundColor: AgenteColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_rounded, size: 20),
+              foregroundColor: OrtizPalette.onAccent,
+              icon: const Icon(Icons.add_rounded, size: OrtizIconSize.md),
               label: const Text('Nuevo Prompt', style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () async {
                 final newPrompt = await PromptEditorDialog.show(context);
@@ -151,8 +158,8 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
             )
           : FloatingActionButton.extended(
               backgroundColor: AgenteColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_comment_rounded, size: 20),
+              foregroundColor: OrtizPalette.onAccent,
+              icon: const Icon(Icons.add_comment_rounded, size: OrtizIconSize.md),
               label: const Text('Nueva Charla', style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () async {
                 await agenteState.startNewSession();
@@ -168,102 +175,65 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     final sessions = agenteState.sessions;
 
     if (sessions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline_rounded, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            const Text(
-              'No hay conversaciones guardadas',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Inicia una nueva charla para interactuar con tu asistente.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
+      return const OrtizEmptyState(
+        icon: Icons.chat_bubble_outline_rounded,
+        title: 'No hay conversaciones guardadas',
+        message: 'Inicia una nueva charla para interactuar con tu asistente.',
       );
     }
 
+    // Filas sin tarjeta; la charla activa va sobre `surfaceHigh`.
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
       itemCount: sessions.length,
       itemBuilder: (context, index) {
         final session = sessions[index];
         final isSelected = agenteState.currentSession?.id == session.id;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? AgenteColors.primary : AgenteColors.cardBorder,
-              width: isSelected ? 1.5 : 1,
+        return OrtizListRow(
+          selected: isSelected,
+          leading: Container(
+            width: OrtizSize.minTouch - OrtizSpace.sm,
+            height: OrtizSize.minTouch - OrtizSpace.sm,
+            decoration: BoxDecoration(
+              color: isSelected ? AgenteColors.primary : AgenteColors.primaryLight,
+              shape: BoxShape.circle,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              size: OrtizIconSize.md,
+              color: isSelected ? OrtizPalette.onAccent : AgenteColors.primary,
+            ),
+          ),
+          title: session.title,
+          subtitle: '${session.messageCount} mensajes • ${_formatDate(session.updatedAt)}',
+          trailing: PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
+            tooltip: 'Opciones de la charla',
+            onSelected: (val) {
+              if (val == 'delete') {
+                agenteState.deleteSession(session.id);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline_rounded, size: OrtizIconSize.md, color: OrtizPalette.bad),
+                    SizedBox(width: OrtizSpace.sm),
+                    Text('Eliminar charla', style: TextStyle(color: OrtizPalette.bad)),
+                  ],
+                ),
               ),
             ],
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected ? AgenteColors.primary : AgenteColors.primaryLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                size: 20,
-                color: isSelected ? Colors.white : AgenteColors.primary,
-              ),
-            ),
-            title: Text(
-              session.title,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              '${session.messageCount} mensajes • ${_formatDate(session.updatedAt)}',
-              style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
-            ),
-            trailing: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, size: 18),
-              onSelected: (val) {
-                if (val == 'delete') {
-                  agenteState.deleteSession(session.id);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Eliminar charla', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            onTap: () async {
-              await agenteState.selectSession(session.id);
-              if (context.mounted) {
-                AgenteChatBottomSheet.show(context, autoFocus: false);
-              }
-            },
-          ),
+          onTap: () async {
+            await agenteState.selectSession(session.id);
+            if (context.mounted) {
+              AgenteChatBottomSheet.show(context, autoFocus: false);
+            }
+          },
         );
       },
     );
@@ -275,11 +245,10 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         // Filter Chips Bar
         Container(
           height: 48,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          color: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
             children: [
               _buildFilterChip('Todos', null),
               _buildFilterChip('Finanzas', ArtifactType.financialSummary),
@@ -294,26 +263,13 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         // Artifacts Grid / List
         Expanded(
           child: artifacts.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'No hay artefactos generados',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Los cálculos y tablas generados en el chat aparecerán aquí.',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
+              ? const OrtizEmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'No hay artefactos generados',
+                  message: 'Los cálculos y tablas generados en el chat aparecerán aquí.',
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                  padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
                   itemCount: artifacts.length,
                   itemBuilder: (context, index) {
                     return ArtifactCardView(artifact: artifacts[index]);
@@ -328,7 +284,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     final isSelected = _filterType == type;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: OrtizSpace.sm),
       child: FilterChip(
         label: Text(label),
         selected: isSelected,
@@ -336,12 +292,12 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         selectedColor: AgenteColors.primaryLight,
         checkmarkColor: AgenteColors.primary,
         labelStyle: TextStyle(
-          fontSize: 11.5,
+          fontSize: OrtizFontSize.caption,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          color: isSelected ? AgenteColors.primaryDark : Colors.grey[800],
+          color: isSelected ? AgenteColors.primaryDark : OrtizPalette.fg,
         ),
-        backgroundColor: Colors.grey[100],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: OrtizPalette.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
       ),
     );
   }
@@ -358,51 +314,26 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
     final prompts = agenteState.quickPrompts;
 
     if (prompts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: BoxDecoration(
-                  color: AgenteColors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.bolt_rounded, size: 36, color: AgenteColors.primary),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Sin Prompts Rápidos',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.black87),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Los prompts que crees aquí aparecerán directamente en la barra flotante del launcher para consultar con un solo toque.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('Crear Primer Prompt', style: TextStyle(fontWeight: FontWeight.w800)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AgenteColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: () async {
-                  final newPrompt = await PromptEditorDialog.show(context);
-                  if (newPrompt != null) {
-                    agenteState.saveQuickPrompt(newPrompt);
-                  }
-                },
-              ),
-            ],
+      return OrtizEmptyState(
+        icon: Icons.bolt_rounded,
+        title: 'Sin Prompts Rápidos',
+        message:
+            'Los prompts que crees aquí aparecerán directamente en la barra flotante del launcher para consultar con un solo toque.',
+        action: ElevatedButton.icon(
+          icon: const Icon(Icons.add_rounded, size: OrtizIconSize.md),
+          label: const Text('Crear Primer Prompt', style: TextStyle(fontWeight: FontWeight.w800)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AgenteColors.primary,
+            foregroundColor: OrtizPalette.onAccent,
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
           ),
+          onPressed: () async {
+            final newPrompt = await PromptEditorDialog.show(context);
+            if (newPrompt != null) {
+              agenteState.saveQuickPrompt(newPrompt);
+            }
+          },
         ),
       );
     }
@@ -412,21 +343,21 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
       children: [
         // Banner explicativo
         Container(
-          margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.sm),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
           decoration: BoxDecoration(
             color: AgenteColors.primaryLight,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AgenteColors.primary.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
+            border: Border.all(color: AgenteColors.primary.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline_rounded, size: 18, color: AgenteColors.primary),
-              const SizedBox(width: 10),
+              const Icon(Icons.info_outline_rounded, size: OrtizIconSize.md, color: AgenteColors.primary),
+              const SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Text(
                   'Estos ${prompts.length} prompts se muestran en la barra inferior del launcher para consultas instantáneas.',
-                  style: const TextStyle(fontSize: 12, color: AgenteColors.primaryDark, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: AgenteColors.primaryDark, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -436,44 +367,35 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
         // Lista de prompts reordenables
         Expanded(
           child: ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xs, OrtizSpace.lg, _fabClearance),
             itemCount: prompts.length,
             onReorder: (oldIndex, newIndex) {
               agenteState.reorderQuickPrompts(oldIndex, newIndex);
             },
             itemBuilder: (context, index) {
               final prompt = prompts[index];
-              return Container(
+              // Fila sin tarjeta, separada por una línea fina (`line`).
+              return DecoratedBox(
                 key: ValueKey(prompt.id),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: OrtizPalette.line, width: OrtizStroke.hairline)),
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+                  contentPadding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.sm, OrtizSpace.sm, OrtizSpace.sm),
                   leading: Container(
-                    width: 36,
-                    height: 36,
+                    width: OrtizIconSize.xl + OrtizSpace.xs,
+                    height: OrtizIconSize.xl + OrtizSpace.xs,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizPalette.surfaceHigh,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Center(
                       child: Text(
                         '#${index + 1}',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF64748B),
+                          color: OrtizPalette.muted,
                         ),
                       ),
                     ),
@@ -481,26 +403,26 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                   title: Text(
                     prompt.text,
                     style: const TextStyle(
-                      fontSize: 13.5,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                      color: OrtizPalette.fg,
                     ),
                   ),
                   subtitle: prompt.label != null
                       ? Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding: const EdgeInsets.only(top: OrtizSpace.xs),
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
                                 color: AgenteColors.primaryLight,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Text(
                                 prompt.label!,
                                 style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w800,
                                   color: AgenteColors.primary,
                                 ),
@@ -514,7 +436,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                     children: [
                       // Botón Probar
                       IconButton(
-                        icon: const Icon(Icons.play_arrow_rounded, color: AgenteColors.primary, size: 22),
+                        icon: const Icon(Icons.play_arrow_rounded, color: AgenteColors.primary, size: OrtizIconSize.lg),
                         tooltip: 'Probar en chat',
                         onPressed: () {
                           AgenteChatBottomSheet.show(context, initialPrompt: prompt.text);
@@ -522,7 +444,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                       ),
                       // Menú de opciones (Editar / Borrar)
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert_rounded, size: 18, color: Colors.grey),
+                        icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                         onSelected: (value) async {
                           if (value == 'edit') {
                             final edited = await PromptEditorDialog.show(context, prompt: prompt);
@@ -533,7 +455,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
                                 title: const Text('¿Eliminar prompt?', style: TextStyle(fontWeight: FontWeight.w900)),
                                 content: Text('Se eliminará "${prompt.text}" de los accesos rápidos del launcher.'),
                                 actions: [
@@ -543,7 +465,7 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                                   ),
                                   TextButton(
                                     onPressed: () => Navigator.of(ctx).pop(true),
-                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    style: TextButton.styleFrom(foregroundColor: OrtizPalette.bad),
                                     child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold)),
                                   ),
                                 ],
@@ -559,8 +481,8 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit_outlined, size: 16),
-                                SizedBox(width: 8),
+                                Icon(Icons.edit_outlined, size: OrtizIconSize.sm),
+                                SizedBox(width: OrtizSpace.sm),
                                 Text('Editar'),
                               ],
                             ),
@@ -569,15 +491,15 @@ class _AgenteHomeScreenState extends State<AgenteHomeScreen> with SingleTickerPr
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: OrtizPalette.bad),
+                                SizedBox(width: OrtizSpace.sm),
+                                Text('Eliminar', style: TextStyle(color: OrtizPalette.bad)),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const Icon(Icons.drag_indicator_rounded, color: Colors.black26, size: 20),
+                      const Icon(Icons.drag_indicator_rounded, color: OrtizPalette.muted, size: OrtizIconSize.md),
                     ],
                   ),
                 ),

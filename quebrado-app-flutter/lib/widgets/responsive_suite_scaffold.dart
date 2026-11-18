@@ -18,6 +18,10 @@ import '../screens/launcher_action_hub_view.dart';
 import '../screens/app_launcher_screen.dart';
 import 'desktop_command_center_view.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
 enum SuiteModule {
   commandCenter,
   quebrado,
@@ -74,10 +78,10 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
           ),
 
           // Divisor vertical
-          VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: Colors.grey[200],
+          const VerticalDivider(
+            width: OrtizStroke.hairline,
+            thickness: OrtizStroke.hairline,
+            color: OrtizPalette.line,
           ),
 
           // Área de contenido principal con estado persistente
@@ -86,7 +90,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
               children: [
                 // TopBar de Utilidades Desktop (Buscador, Sincronización, Calculadora, Tasas)
                 _buildDesktopTopBar(context),
-                Divider(height: 1, thickness: 1, color: Colors.grey[200]),
+                const Divider(height: OrtizStroke.hairline, thickness: OrtizStroke.hairline, color: OrtizPalette.line),
 
                 // Vista activa
                 Expanded(
@@ -103,8 +107,9 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
   Widget _buildDesktopSidebar(BuildContext context, double width) {
     final appState = Provider.of<AppState>(context);
 
+    // El menú lateral flota sobre `surface`.
     return Container(
-      color: Colors.white,
+      color: OrtizPalette.surface,
       child: SafeArea(
         right: false,
         child: Column(
@@ -112,39 +117,28 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
           children: [
             // Header del Sidebar
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.lg),
               child: Row(
                 children: [
                   Container(
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1F6F5F), Color(0xFF114B40)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1F6F5F).withOpacity(0.30),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      color: OrtizPalette.accent,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: const Center(
                       child: Text(
                         "O",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: OrtizPalette.onAccent,
                           fontWeight: FontWeight.w900,
-                          fontSize: 20,
+                          fontSize: OrtizFontSize.title,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,18 +146,18 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                         Text(
                           "OrtizApp",
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: OrtizFontSize.titleSm,
                             fontWeight: FontWeight.w900,
-                            color: Colors.black87,
+                            color: OrtizPalette.fg,
                             letterSpacing: -0.4,
                           ),
                         ),
                         Text(
                           "SUITE DESKTOP",
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1F6F5F),
+                            color: OrtizPalette.muted,
                             letterSpacing: 0.8,
                           ),
                         ),
@@ -174,31 +168,31 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
               ),
             ),
 
-            Divider(height: 1, thickness: 1, color: Colors.grey[150]),
-            const SizedBox(height: 12),
+            const Divider(height: OrtizStroke.hairline, thickness: OrtizStroke.hairline, color: OrtizPalette.line),
+            const SizedBox(height: OrtizSpace.md),
 
             // Items de Navegación
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
                 children: [
                   _buildNavItem(
                     module: SuiteModule.commandCenter,
                     icon: Icons.dashboard_customize_rounded,
                     label: "Command Center",
                     shortcut: "⌘1",
-                    color: const Color(0xFF1F6F5F),
+                    color: OrtizPalette.accent,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.quebrado,
                     icon: Icons.account_balance_wallet_rounded,
                     label: "Quebrado",
                     shortcut: "⌘2",
-                    color: const Color(0xFF1F6F5F),
+                    color: SuiteAppColors.finanzas,
                   ),
                   if (_currentModule == SuiteModule.quebrado) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: OrtizSpace.xxs),
                     _buildSubNavItem(
                       label: "Dashboard",
                       icon: Icons.grid_view_rounded,
@@ -239,9 +233,9 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                         appState.setTabIndex(3);
                       },
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: OrtizSpace.xs),
                   ],
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.recordatorios,
                     icon: Icons.check_circle_outline_rounded,
@@ -249,7 +243,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     shortcut: "⌘3",
                     color: RemindersColors.primary,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.habitos,
                     icon: Icons.local_fire_department_rounded,
@@ -257,7 +251,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     shortcut: "⌘4",
                     color: HabitosColors.primary,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.diario,
                     icon: Icons.auto_stories_rounded,
@@ -265,7 +259,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     shortcut: "⌘5",
                     color: DiarioColors.primary,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.agente,
                     icon: Icons.auto_awesome_rounded,
@@ -273,7 +267,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     shortcut: "⌘6",
                     color: AgenteColors.primary,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: OrtizSpace.xs),
                   _buildNavItem(
                     module: SuiteModule.notas,
                     icon: Icons.edit_note_rounded,
@@ -284,7 +278,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
           ],
         ),
       ),
@@ -299,38 +293,36 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
     required VoidCallback onTap,
   }) {
     final isSelected = tabIndex == currentTabIndex;
-    const activeColor = Color(0xFF1F6F5F);
+    const activeColor = SuiteAppColors.finanzas;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 14, top: 2, bottom: 2),
+      padding: const EdgeInsets.only(left: OrtizSpace.md, top: OrtizSpace.xxs, bottom: OrtizSpace.xxs),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
+            // Lo activo va sobre `surfaceHigh`; el color de la app marca el icono.
             decoration: BoxDecoration(
-              color: isSelected ? activeColor.withOpacity(0.12) : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              border: isSelected
-                  ? Border.all(color: activeColor.withOpacity(0.35), width: 1.0)
-                  : Border.all(color: Colors.transparent, width: 1.0),
+              color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
             ),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  size: 16,
-                  color: isSelected ? activeColor : Colors.grey[600],
+                  size: OrtizIconSize.sm,
+                  color: isSelected ? activeColor : OrtizPalette.muted,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: OrtizSpace.sm),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    color: isSelected ? activeColor : Colors.black87,
+                    color: isSelected ? OrtizPalette.fg : OrtizPalette.muted,
                   ),
                 ),
               ],
@@ -354,40 +346,38 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _selectModule(module),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+          // Lo activo va sobre `surfaceHigh`; el color de la app marca el icono.
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.12) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: isSelected
-                ? Border.all(color: color.withOpacity(0.35), width: 1.2)
-                : Border.all(color: Colors.transparent, width: 1.2),
+            color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
           ),
           child: Row(
             children: [
               Icon(
                 icon,
-                size: 20,
-                color: isSelected ? color : Colors.grey[700],
+                size: OrtizIconSize.md,
+                color: isSelected ? color : OrtizPalette.muted,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    color: isSelected ? color : Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
               ),
               Text(
                 shortcut,
-                style: TextStyle(
-                  fontSize: 10.5,
+                style: const TextStyle(
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? color.withOpacity(0.8) : Colors.grey[400],
+                  color: OrtizPalette.muted,
                 ),
               ),
             ],
@@ -409,8 +399,8 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
     return Container(
       height: 64,
       width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      color: OrtizPalette.bg,
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -427,34 +417,33 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                       Text(
                         _getModuleTitle(_currentModule),
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: OrtizFontSize.titleSm,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black87,
+                          color: OrtizPalette.fg,
                           letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: OrtizSpace.lg),
                       // Ticker de Tasas BCV / Euro Oficial
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF7F9FA),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey[200]!),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                          border: Border.all(color: OrtizPalette.line),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.trending_up_rounded, size: 16, color: Color(0xFF10B981)),
-                            const SizedBox(width: 8),
+                            const Icon(Icons.trending_up_rounded, size: OrtizIconSize.sm, color: OrtizPalette.ok),
+                            const SizedBox(width: OrtizSpace.sm),
                             Text(
                               "BCV: Bs. $bcv",
-                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.black87),
+                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.fg),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: OrtizSpace.md),
                             Text(
                               "Euro Oficial: Bs. $eur",
-                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.grey[750]),
+                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                             ),
                           ],
                         ),
@@ -462,7 +451,7 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                     ],
                   ),
 
-                  const SizedBox(width: 20),
+                  const SizedBox(width: OrtizSpace.xl),
 
                   // Botones de acción directa a la derecha
                   Row(
@@ -471,10 +460,10 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                       if (_currentModule == SuiteModule.commandCenter) ...[
                         FilledButton.icon(
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF1F6F5F),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            backgroundColor: OrtizPalette.accent,
+                            foregroundColor: OrtizPalette.onAccent,
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                           ),
                           onPressed: () {
                             showResponsiveSheet(
@@ -484,20 +473,20 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.add_rounded, size: 17),
+                          icon: const Icon(Icons.add_rounded, size: OrtizIconSize.sm),
                           label: const Text(
                             "Nuevo Gasto",
-                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: OrtizSpace.sm),
 
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: RemindersColors.primary,
-                            side: const BorderSide(color: RemindersColors.primary, width: 1.2),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            side: const BorderSide(color: RemindersColors.primary, width: OrtizStroke.hairline),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                           ),
                           onPressed: () {
                             showDialog(
@@ -505,21 +494,21 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                               builder: (_) => const ReminderEditorDialog(),
                             );
                           },
-                          icon: const Icon(Icons.alarm_add_rounded, size: 17),
+                          icon: const Icon(Icons.alarm_add_rounded, size: OrtizIconSize.sm),
                           label: const Text(
                             "Recordatorio",
-                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: OrtizSpace.sm),
                       ],
 
                       IconButton(
                         icon: const Icon(Icons.calculate_outlined),
                         tooltip: "Calculadora de divisas",
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFFF3F4F6),
-                          foregroundColor: Colors.black87,
+                          backgroundColor: OrtizPalette.surfaceHigh,
+                          foregroundColor: OrtizPalette.fg,
                         ),
                         onPressed: () {
                           showResponsiveSheet(
@@ -528,14 +517,14 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                           );
                         },
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: OrtizSpace.sm),
 
                       IconButton(
                         icon: const Icon(Icons.sync_rounded),
                         tooltip: "Sincronizar todos los datos",
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFFF3F4F6),
-                          foregroundColor: const Color(0xFF1F6F5F),
+                          backgroundColor: OrtizPalette.surfaceHigh,
+                          foregroundColor: OrtizPalette.fg,
                         ),
                         onPressed: () async {
                           final notasState = Provider.of<NotasState>(context, listen: false);
@@ -556,8 +545,11 @@ class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Suite sincronizada correctamente"),
-                                backgroundColor: Color(0xFF10B981),
+                                content: Text(
+                                  "Suite sincronizada correctamente",
+                                  style: TextStyle(color: OrtizPalette.onAccent),
+                                ),
+                                backgroundColor: OrtizPalette.ok,
                               ),
                             );
                           }

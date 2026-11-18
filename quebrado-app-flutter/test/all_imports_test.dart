@@ -87,134 +87,142 @@ import 'package:quebrado_app_flutter/notas/services/notas_supabase_service.dart'
 import 'package:quebrado_app_flutter/notas/services/note_document_converter.dart' as i78;
 import 'package:quebrado_app_flutter/notas/services/note_pdf_service.dart' as i79;
 import 'package:quebrado_app_flutter/notas/theme/notas_colors.dart' as i80;
-import 'package:quebrado_app_flutter/notas/viewmodels/notas_state.dart' as i81;
-import 'package:quebrado_app_flutter/notas/widgets/note_block_widget.dart' as i82;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_account_dialog.dart' as i83;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_action_selection_sheet.dart' as i84;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_category_dialog.dart' as i85;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_exchange_dialog.dart' as i86;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_recurring_payment_dialog.dart' as i87;
-import 'package:quebrado_app_flutter/quebrado/dialogs/add_transaction_dialog.dart' as i88;
-import 'package:quebrado_app_flutter/quebrado/dialogs/book_selector_dialog.dart' as i89;
-import 'package:quebrado_app_flutter/quebrado/dialogs/calculator_dialog.dart' as i90;
-import 'package:quebrado_app_flutter/quebrado/dialogs/cross_profile_transfer_dialog.dart' as i91;
-import 'package:quebrado_app_flutter/quebrado/dialogs/day_actions_dialog.dart' as i92;
-import 'package:quebrado_app_flutter/quebrado/dialogs/partial_payment_dialog.dart' as i93;
-import 'package:quebrado_app_flutter/quebrado/dialogs/pending_confirmations_dialog.dart' as i94;
-import 'package:quebrado_app_flutter/quebrado/dialogs/pin_setup_bottom_sheet.dart' as i95;
-import 'package:quebrado_app_flutter/quebrado/dialogs/pin_verification_dialog.dart' as i96;
-import 'package:quebrado_app_flutter/quebrado/dialogs/pocket_details_bottom_sheet.dart' as i97;
-import 'package:quebrado_app_flutter/quebrado/dialogs/purchase_simulation_bottom_sheet.dart' as i98;
-import 'package:quebrado_app_flutter/quebrado/dialogs/super_app_hub_sheet.dart' as i99;
-import 'package:quebrado_app_flutter/quebrado/dialogs/transaction_detail_dialog.dart' as i100;
-import 'package:quebrado_app_flutter/quebrado/dialogs/transfer_bank_dialog.dart' as i101;
-import 'package:quebrado_app_flutter/quebrado/models/account.dart' as i102;
-import 'package:quebrado_app_flutter/quebrado/models/currency_type.dart' as i103;
-import 'package:quebrado_app_flutter/quebrado/models/exchange_rate_record.dart' as i104;
-import 'package:quebrado_app_flutter/quebrado/models/market_item.dart' as i105;
-import 'package:quebrado_app_flutter/quebrado/models/market_product.dart' as i106;
-import 'package:quebrado_app_flutter/quebrado/models/market_shopping_list.dart' as i107;
-import 'package:quebrado_app_flutter/quebrado/models/market_shopping_list_item.dart' as i108;
-import 'package:quebrado_app_flutter/quebrado/models/market_store.dart' as i109;
-import 'package:quebrado_app_flutter/quebrado/models/market_trip.dart' as i110;
-import 'package:quebrado_app_flutter/quebrado/models/mobile_payment_recipient.dart' as i111;
-import 'package:quebrado_app_flutter/quebrado/models/recurring_payment.dart' as i112;
-import 'package:quebrado_app_flutter/quebrado/models/recurring_payment_partial.dart' as i113;
-import 'package:quebrado_app_flutter/quebrado/models/saving_pocket.dart' as i114;
-import 'package:quebrado_app_flutter/quebrado/models/timeline_day_summary.dart' as i115;
-import 'package:quebrado_app_flutter/quebrado/models/timeline_event.dart' as i116;
-import 'package:quebrado_app_flutter/quebrado/models/transaction.dart' as i117;
-import 'package:quebrado_app_flutter/quebrado/models/transaction_category.dart' as i118;
-import 'package:quebrado_app_flutter/quebrado/quebrado.dart' as i119;
-import 'package:quebrado_app_flutter/quebrado/screens/account_management_screen.dart' as i120;
-import 'package:quebrado_app_flutter/quebrado/screens/backup_management_screen.dart' as i121;
-import 'package:quebrado_app_flutter/quebrado/screens/category_management_screen.dart' as i122;
-import 'package:quebrado_app_flutter/quebrado/screens/dashboard_screen.dart' as i123;
-import 'package:quebrado_app_flutter/quebrado/screens/main_screen.dart' as i124;
-import 'package:quebrado_app_flutter/quebrado/screens/market_screen.dart' as i125;
-import 'package:quebrado_app_flutter/quebrado/screens/market_shopping_list_screen.dart' as i126;
-import 'package:quebrado_app_flutter/quebrado/screens/market_trip_screen.dart' as i127;
-import 'package:quebrado_app_flutter/quebrado/screens/market_trip_store_screen.dart' as i128;
-import 'package:quebrado_app_flutter/quebrado/screens/mobile_payment_recipient_screen.dart' as i129;
-import 'package:quebrado_app_flutter/quebrado/screens/pockets_screen.dart' as i130;
-import 'package:quebrado_app_flutter/quebrado/screens/rates_history_screen.dart' as i131;
-import 'package:quebrado_app_flutter/quebrado/screens/settings_screen.dart' as i132;
-import 'package:quebrado_app_flutter/quebrado/screens/timeline_screen.dart' as i133;
-import 'package:quebrado_app_flutter/quebrado/screens/transactions_history_screen.dart' as i134;
-import 'package:quebrado_app_flutter/quebrado/services/backup_service.dart' as i135;
-import 'package:quebrado_app_flutter/quebrado/services/bcv_predictor.dart' as i136;
-import 'package:quebrado_app_flutter/quebrado/services/biometric_service.dart' as i137;
-import 'package:quebrado_app_flutter/quebrado/services/db_helper.dart' as i138;
-import 'package:quebrado_app_flutter/quebrado/services/notification_manager.dart' as i139;
-import 'package:quebrado_app_flutter/quebrado/services/rate_service.dart' as i140;
-import 'package:quebrado_app_flutter/quebrado/services/supabase_config.dart' as i141;
-import 'package:quebrado_app_flutter/quebrado/services/supabase_service.dart' as i142;
-import 'package:quebrado_app_flutter/quebrado/theme/colors.dart' as i143;
-import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart' as i144;
-import 'package:quebrado_app_flutter/quebrado/widgets/add_market_item_bottom_sheet.dart' as i145;
-import 'package:quebrado_app_flutter/quebrado/widgets/add_market_product_bottom_sheet.dart' as i146;
-import 'package:quebrado_app_flutter/quebrado/widgets/add_market_store_bottom_sheet.dart' as i147;
-import 'package:quebrado_app_flutter/quebrado/widgets/add_shopping_list_item_bottom_sheet.dart' as i148;
-import 'package:quebrado_app_flutter/quebrado/widgets/animated_progress_bar.dart' as i149;
-import 'package:quebrado_app_flutter/quebrado/widgets/claymorphic_background.dart' as i150;
-import 'package:quebrado_app_flutter/quebrado/widgets/claymorphic_card.dart' as i151;
+import 'package:quebrado_app_flutter/notas/theme/notas_pdf_palette.dart' as i81;
+import 'package:quebrado_app_flutter/notas/viewmodels/notas_state.dart' as i82;
+import 'package:quebrado_app_flutter/notas/widgets/note_block_widget.dart' as i83;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_account_dialog.dart' as i84;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_action_selection_sheet.dart' as i85;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_category_dialog.dart' as i86;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_exchange_dialog.dart' as i87;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_recurring_payment_dialog.dart' as i88;
+import 'package:quebrado_app_flutter/quebrado/dialogs/add_transaction_dialog.dart' as i89;
+import 'package:quebrado_app_flutter/quebrado/dialogs/book_selector_dialog.dart' as i90;
+import 'package:quebrado_app_flutter/quebrado/dialogs/calculator_dialog.dart' as i91;
+import 'package:quebrado_app_flutter/quebrado/dialogs/cross_profile_transfer_dialog.dart' as i92;
+import 'package:quebrado_app_flutter/quebrado/dialogs/day_actions_dialog.dart' as i93;
+import 'package:quebrado_app_flutter/quebrado/dialogs/partial_payment_dialog.dart' as i94;
+import 'package:quebrado_app_flutter/quebrado/dialogs/pending_confirmations_dialog.dart' as i95;
+import 'package:quebrado_app_flutter/quebrado/dialogs/pin_setup_bottom_sheet.dart' as i96;
+import 'package:quebrado_app_flutter/quebrado/dialogs/pin_verification_dialog.dart' as i97;
+import 'package:quebrado_app_flutter/quebrado/dialogs/pocket_details_bottom_sheet.dart' as i98;
+import 'package:quebrado_app_flutter/quebrado/dialogs/purchase_simulation_bottom_sheet.dart' as i99;
+import 'package:quebrado_app_flutter/quebrado/dialogs/super_app_hub_sheet.dart' as i100;
+import 'package:quebrado_app_flutter/quebrado/dialogs/transaction_detail_dialog.dart' as i101;
+import 'package:quebrado_app_flutter/quebrado/dialogs/transfer_bank_dialog.dart' as i102;
+import 'package:quebrado_app_flutter/quebrado/models/account.dart' as i103;
+import 'package:quebrado_app_flutter/quebrado/models/currency_type.dart' as i104;
+import 'package:quebrado_app_flutter/quebrado/models/exchange_rate_record.dart' as i105;
+import 'package:quebrado_app_flutter/quebrado/models/market_item.dart' as i106;
+import 'package:quebrado_app_flutter/quebrado/models/market_product.dart' as i107;
+import 'package:quebrado_app_flutter/quebrado/models/market_shopping_list.dart' as i108;
+import 'package:quebrado_app_flutter/quebrado/models/market_shopping_list_item.dart' as i109;
+import 'package:quebrado_app_flutter/quebrado/models/market_store.dart' as i110;
+import 'package:quebrado_app_flutter/quebrado/models/market_trip.dart' as i111;
+import 'package:quebrado_app_flutter/quebrado/models/mobile_payment_recipient.dart' as i112;
+import 'package:quebrado_app_flutter/quebrado/models/recurring_payment.dart' as i113;
+import 'package:quebrado_app_flutter/quebrado/models/recurring_payment_partial.dart' as i114;
+import 'package:quebrado_app_flutter/quebrado/models/saving_pocket.dart' as i115;
+import 'package:quebrado_app_flutter/quebrado/models/timeline_day_summary.dart' as i116;
+import 'package:quebrado_app_flutter/quebrado/models/timeline_event.dart' as i117;
+import 'package:quebrado_app_flutter/quebrado/models/transaction.dart' as i118;
+import 'package:quebrado_app_flutter/quebrado/models/transaction_category.dart' as i119;
+import 'package:quebrado_app_flutter/quebrado/quebrado.dart' as i120;
+import 'package:quebrado_app_flutter/quebrado/screens/account_management_screen.dart' as i121;
+import 'package:quebrado_app_flutter/quebrado/screens/backup_management_screen.dart' as i122;
+import 'package:quebrado_app_flutter/quebrado/screens/category_management_screen.dart' as i123;
+import 'package:quebrado_app_flutter/quebrado/screens/dashboard_screen.dart' as i124;
+import 'package:quebrado_app_flutter/quebrado/screens/main_screen.dart' as i125;
+import 'package:quebrado_app_flutter/quebrado/screens/market_screen.dart' as i126;
+import 'package:quebrado_app_flutter/quebrado/screens/market_shopping_list_screen.dart' as i127;
+import 'package:quebrado_app_flutter/quebrado/screens/market_trip_screen.dart' as i128;
+import 'package:quebrado_app_flutter/quebrado/screens/market_trip_store_screen.dart' as i129;
+import 'package:quebrado_app_flutter/quebrado/screens/mobile_payment_recipient_screen.dart' as i130;
+import 'package:quebrado_app_flutter/quebrado/screens/pockets_screen.dart' as i131;
+import 'package:quebrado_app_flutter/quebrado/screens/rates_history_screen.dart' as i132;
+import 'package:quebrado_app_flutter/quebrado/screens/settings_screen.dart' as i133;
+import 'package:quebrado_app_flutter/quebrado/screens/timeline_screen.dart' as i134;
+import 'package:quebrado_app_flutter/quebrado/screens/transactions_history_screen.dart' as i135;
+import 'package:quebrado_app_flutter/quebrado/services/backup_service.dart' as i136;
+import 'package:quebrado_app_flutter/quebrado/services/bcv_predictor.dart' as i137;
+import 'package:quebrado_app_flutter/quebrado/services/biometric_service.dart' as i138;
+import 'package:quebrado_app_flutter/quebrado/services/db_helper.dart' as i139;
+import 'package:quebrado_app_flutter/quebrado/services/notification_manager.dart' as i140;
+import 'package:quebrado_app_flutter/quebrado/services/rate_service.dart' as i141;
+import 'package:quebrado_app_flutter/quebrado/services/supabase_config.dart' as i142;
+import 'package:quebrado_app_flutter/quebrado/services/supabase_service.dart' as i143;
+import 'package:quebrado_app_flutter/quebrado/theme/colors.dart' as i144;
+import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart' as i145;
+import 'package:quebrado_app_flutter/quebrado/widgets/add_market_item_bottom_sheet.dart' as i146;
+import 'package:quebrado_app_flutter/quebrado/widgets/add_market_product_bottom_sheet.dart' as i147;
+import 'package:quebrado_app_flutter/quebrado/widgets/add_market_store_bottom_sheet.dart' as i148;
+import 'package:quebrado_app_flutter/quebrado/widgets/add_shopping_list_item_bottom_sheet.dart' as i149;
+import 'package:quebrado_app_flutter/quebrado/widgets/animated_progress_bar.dart' as i150;
+import 'package:quebrado_app_flutter/quebrado/widgets/claymorphic_background.dart' as i151;
 import 'package:quebrado_app_flutter/quebrado/widgets/currency_pill.dart' as i152;
 import 'package:quebrado_app_flutter/quebrado/widgets/dashboard_charts_card.dart' as i153;
 import 'package:quebrado_app_flutter/quebrado/widgets/exchange_suggestion_row.dart' as i154;
 import 'package:quebrado_app_flutter/quebrado/widgets/helpers.dart' as i155;
 import 'package:quebrado_app_flutter/quebrado/widgets/pocket_card.dart' as i156;
 import 'package:quebrado_app_flutter/quebrado/widgets/product_details_bottom_sheet.dart' as i157;
-import 'package:quebrado_app_flutter/quebrado/widgets/slide_to_confirm_button.dart' as i158;
-import 'package:quebrado_app_flutter/quebrado/widgets/timeline_event_row.dart' as i159;
-import 'package:quebrado_app_flutter/recordatorios/dialogs/command_palette_dialog.dart' as i160;
-import 'package:quebrado_app_flutter/recordatorios/dialogs/covey_guide_dialog.dart' as i161;
-import 'package:quebrado_app_flutter/recordatorios/dialogs/reminder_editor_dialog.dart' as i162;
-import 'package:quebrado_app_flutter/recordatorios/dialogs/role_manager_dialog.dart' as i163;
-import 'package:quebrado_app_flutter/recordatorios/dialogs/sunday_planning_wizard_dialog.dart' as i164;
-import 'package:quebrado_app_flutter/recordatorios/models/covey_quadrant.dart' as i165;
-import 'package:quebrado_app_flutter/recordatorios/models/reminder_model.dart' as i166;
-import 'package:quebrado_app_flutter/recordatorios/models/role_model.dart' as i167;
-import 'package:quebrado_app_flutter/recordatorios/models/weekly_plan_model.dart' as i168;
-import 'package:quebrado_app_flutter/recordatorios/recordatorios.dart' as i169;
-import 'package:quebrado_app_flutter/recordatorios/screens/reminders_home_screen.dart' as i170;
-import 'package:quebrado_app_flutter/recordatorios/services/nlp_parser.dart' as i171;
-import 'package:quebrado_app_flutter/recordatorios/services/reminders_supabase_service.dart' as i172;
-import 'package:quebrado_app_flutter/recordatorios/theme/reminders_colors.dart' as i173;
-import 'package:quebrado_app_flutter/recordatorios/viewmodels/reminders_state.dart' as i174;
-import 'package:quebrado_app_flutter/recordatorios/widgets/covey_matrix_view.dart' as i175;
-import 'package:quebrado_app_flutter/recordatorios/widgets/weekly_schedule_view.dart' as i176;
-import 'package:quebrado_app_flutter/rich_editor/block_menu.dart' as i177;
-import 'package:quebrado_app_flutter/rich_editor/custom_blocks.dart' as i178;
-import 'package:quebrado_app_flutter/rich_editor/dictation.dart' as i179;
-import 'package:quebrado_app_flutter/rich_editor/draft_banner.dart' as i180;
-import 'package:quebrado_app_flutter/rich_editor/draft_store.dart' as i181;
-import 'package:quebrado_app_flutter/rich_editor/escape_to_close.dart' as i182;
-import 'package:quebrado_app_flutter/rich_editor/format_toolbar.dart' as i183;
-import 'package:quebrado_app_flutter/rich_editor/mentions.dart' as i184;
-import 'package:quebrado_app_flutter/rich_editor/plain_text.dart' as i185;
-import 'package:quebrado_app_flutter/rich_editor/rich_document_editor.dart' as i186;
-import 'package:quebrado_app_flutter/rich_editor/rich_document_viewer.dart' as i187;
-import 'package:quebrado_app_flutter/rich_editor/rich_editor_colors.dart' as i188;
-import 'package:quebrado_app_flutter/screens/app_launcher_screen.dart' as i189;
-import 'package:quebrado_app_flutter/screens/launcher_action_hub_view.dart' as i190;
-import 'package:quebrado_app_flutter/services/media_storage_service.dart' as i191;
-import 'package:quebrado_app_flutter/services/notification_manager.dart' as i192;
-import 'package:quebrado_app_flutter/services/supabase_config.dart' as i193;
-import 'package:quebrado_app_flutter/services/supabase_service.dart' as i194;
-import 'package:quebrado_app_flutter/services/web_splash.dart' as i195;
-import 'package:quebrado_app_flutter/services/web_splash_stub.dart' as i196;
-import 'package:quebrado_app_flutter/theme/colors.dart' as i197;
-import 'package:quebrado_app_flutter/theme/ortiz_motion.dart' as i198;
-import 'package:quebrado_app_flutter/theme/ortiz_space.dart' as i199;
-import 'package:quebrado_app_flutter/theme/ortiz_theme.dart' as i200;
-import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart' as i201;
-import 'package:quebrado_app_flutter/theme/ortiz_type.dart' as i202;
-import 'package:quebrado_app_flutter/theme/suite_apps.dart' as i203;
-import 'package:quebrado_app_flutter/viewmodels/app_state.dart' as i204;
-import 'package:quebrado_app_flutter/widgets/desktop_command_center_view.dart' as i205;
-import 'package:quebrado_app_flutter/widgets/responsive_breakpoints.dart' as i206;
-import 'package:quebrado_app_flutter/widgets/responsive_sheet_helper.dart' as i207;
-import 'package:quebrado_app_flutter/widgets/responsive_suite_scaffold.dart' as i208;
+import 'package:quebrado_app_flutter/quebrado/widgets/timeline_event_row.dart' as i158;
+import 'package:quebrado_app_flutter/recordatorios/dialogs/command_palette_dialog.dart' as i159;
+import 'package:quebrado_app_flutter/recordatorios/dialogs/covey_guide_dialog.dart' as i160;
+import 'package:quebrado_app_flutter/recordatorios/dialogs/reminder_editor_dialog.dart' as i161;
+import 'package:quebrado_app_flutter/recordatorios/dialogs/role_manager_dialog.dart' as i162;
+import 'package:quebrado_app_flutter/recordatorios/dialogs/sunday_planning_wizard_dialog.dart' as i163;
+import 'package:quebrado_app_flutter/recordatorios/models/covey_quadrant.dart' as i164;
+import 'package:quebrado_app_flutter/recordatorios/models/reminder_model.dart' as i165;
+import 'package:quebrado_app_flutter/recordatorios/models/role_model.dart' as i166;
+import 'package:quebrado_app_flutter/recordatorios/models/weekly_plan_model.dart' as i167;
+import 'package:quebrado_app_flutter/recordatorios/recordatorios.dart' as i168;
+import 'package:quebrado_app_flutter/recordatorios/screens/reminders_home_screen.dart' as i169;
+import 'package:quebrado_app_flutter/recordatorios/services/nlp_parser.dart' as i170;
+import 'package:quebrado_app_flutter/recordatorios/services/reminders_supabase_service.dart' as i171;
+import 'package:quebrado_app_flutter/recordatorios/theme/reminders_colors.dart' as i172;
+import 'package:quebrado_app_flutter/recordatorios/viewmodels/reminders_state.dart' as i173;
+import 'package:quebrado_app_flutter/recordatorios/widgets/covey_matrix_view.dart' as i174;
+import 'package:quebrado_app_flutter/recordatorios/widgets/weekly_schedule_view.dart' as i175;
+import 'package:quebrado_app_flutter/rich_editor/block_menu.dart' as i176;
+import 'package:quebrado_app_flutter/rich_editor/custom_blocks.dart' as i177;
+import 'package:quebrado_app_flutter/rich_editor/dictation.dart' as i178;
+import 'package:quebrado_app_flutter/rich_editor/draft_banner.dart' as i179;
+import 'package:quebrado_app_flutter/rich_editor/draft_store.dart' as i180;
+import 'package:quebrado_app_flutter/rich_editor/escape_to_close.dart' as i181;
+import 'package:quebrado_app_flutter/rich_editor/format_toolbar.dart' as i182;
+import 'package:quebrado_app_flutter/rich_editor/mentions.dart' as i183;
+import 'package:quebrado_app_flutter/rich_editor/plain_text.dart' as i184;
+import 'package:quebrado_app_flutter/rich_editor/rich_document_editor.dart' as i185;
+import 'package:quebrado_app_flutter/rich_editor/rich_document_viewer.dart' as i186;
+import 'package:quebrado_app_flutter/rich_editor/rich_editor_colors.dart' as i187;
+import 'package:quebrado_app_flutter/screens/app_launcher_screen.dart' as i188;
+import 'package:quebrado_app_flutter/screens/launcher_action_hub_view.dart' as i189;
+import 'package:quebrado_app_flutter/services/media_storage_service.dart' as i190;
+import 'package:quebrado_app_flutter/services/notification_manager.dart' as i191;
+import 'package:quebrado_app_flutter/services/supabase_config.dart' as i192;
+import 'package:quebrado_app_flutter/services/supabase_service.dart' as i193;
+import 'package:quebrado_app_flutter/services/web_splash.dart' as i194;
+import 'package:quebrado_app_flutter/services/web_splash_stub.dart' as i195;
+import 'package:quebrado_app_flutter/theme/colors.dart' as i196;
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart' as i197;
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart' as i198;
+import 'package:quebrado_app_flutter/theme/ortiz_theme.dart' as i199;
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart' as i200;
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart' as i201;
+import 'package:quebrado_app_flutter/theme/suite_apps.dart' as i202;
+import 'package:quebrado_app_flutter/viewmodels/app_state.dart' as i203;
+import 'package:quebrado_app_flutter/widgets/desktop_command_center_view.dart' as i204;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart' as i205;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_amount.dart' as i206;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_animate.dart' as i207;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_empty_state.dart' as i208;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_list_row.dart' as i209;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_notice.dart' as i210;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_pill.dart' as i211;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_progress.dart' as i212;
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_section.dart' as i213;
+import 'package:quebrado_app_flutter/widgets/responsive_breakpoints.dart' as i214;
+import 'package:quebrado_app_flutter/widgets/responsive_sheet_helper.dart' as i215;
+import 'package:quebrado_app_flutter/widgets/responsive_suite_scaffold.dart' as i216;
 
 const _importados = <String>[
   'agente/agente.dart',
@@ -298,6 +306,7 @@ const _importados = <String>[
   'notas/services/note_document_converter.dart',
   'notas/services/note_pdf_service.dart',
   'notas/theme/notas_colors.dart',
+  'notas/theme/notas_pdf_palette.dart',
   'notas/viewmodels/notas_state.dart',
   'notas/widgets/note_block_widget.dart',
   'quebrado/dialogs/add_account_dialog.dart',
@@ -368,14 +377,12 @@ const _importados = <String>[
   'quebrado/widgets/add_shopping_list_item_bottom_sheet.dart',
   'quebrado/widgets/animated_progress_bar.dart',
   'quebrado/widgets/claymorphic_background.dart',
-  'quebrado/widgets/claymorphic_card.dart',
   'quebrado/widgets/currency_pill.dart',
   'quebrado/widgets/dashboard_charts_card.dart',
   'quebrado/widgets/exchange_suggestion_row.dart',
   'quebrado/widgets/helpers.dart',
   'quebrado/widgets/pocket_card.dart',
   'quebrado/widgets/product_details_bottom_sheet.dart',
-  'quebrado/widgets/slide_to_confirm_button.dart',
   'quebrado/widgets/timeline_event_row.dart',
   'recordatorios/dialogs/command_palette_dialog.dart',
   'recordatorios/dialogs/covey_guide_dialog.dart',
@@ -423,6 +430,15 @@ const _importados = <String>[
   'theme/suite_apps.dart',
   'viewmodels/app_state.dart',
   'widgets/desktop_command_center_view.dart',
+  'widgets/ortiz/ortiz.dart',
+  'widgets/ortiz/ortiz_amount.dart',
+  'widgets/ortiz/ortiz_animate.dart',
+  'widgets/ortiz/ortiz_empty_state.dart',
+  'widgets/ortiz/ortiz_list_row.dart',
+  'widgets/ortiz/ortiz_notice.dart',
+  'widgets/ortiz/ortiz_pill.dart',
+  'widgets/ortiz/ortiz_progress.dart',
+  'widgets/ortiz/ortiz_section.dart',
   'widgets/responsive_breakpoints.dart',
   'widgets/responsive_sheet_helper.dart',
   'widgets/responsive_suite_scaffold.dart',

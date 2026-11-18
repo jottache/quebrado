@@ -13,6 +13,9 @@ import '../../recordatorios/models/role_model.dart';
 import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Abre el formulario completo de ánimo (crear o editar).
 /// - [contactId] null → ánimo propio; con valor → ánimo percibido de ese contacto.
 /// - [existing] → edita un registro existente.
@@ -281,7 +284,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.92),
       decoration: const BoxDecoration(
         color: DiarioColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Column(
@@ -290,13 +293,13 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
           _buildHeader(),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, OrtizSpace.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildValenceSelector(),
                   if (!_isSelf) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: OrtizSpace.md),
                     _buildPerspectiveToggle(),
                   ],
                   if (_valence != null) ...[
@@ -315,7 +318,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
                     if (roles.isNotEmpty) _buildRolesSection(roles),
                     _sectionTitle('Nota', optional: true),
                     _buildNoteField(),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: OrtizSpace.sm),
                     _buildOptions(),
                   ],
                 ],
@@ -333,15 +336,15 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
         ? 'Editar registro'
         : (_isSelf ? '¿Cómo te sientes?' : '¿Cómo viste a $_subjectName?');
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 8, 4),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.sm, OrtizSpace.sm, OrtizSpace.xs),
       child: Column(
         children: [
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(color: DiarioColors.cardBorder, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(color: DiarioColors.cardBorder, borderRadius: BorderRadius.circular(OrtizRadius.chip)),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.sm),
           Row(
             children: [
               Expanded(
@@ -350,12 +353,12 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                      style: const TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                     ),
                     if (!_isSelf)
                       const Text(
                         'Ánimo percibido · es tu percepción, no su auto-reporte',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
                       ),
                   ],
                 ),
@@ -374,17 +377,17 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
 
   Widget _sectionTitle(String text, {bool optional = false, String? trailing}) {
     return Padding(
-      padding: const EdgeInsets.only(top: 18, bottom: 8),
+      padding: const EdgeInsets.only(top: OrtizSpace.lg, bottom: OrtizSpace.sm),
       child: Row(
         children: [
-          Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary)),
+          Text(text, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary)),
           if (optional) ...[
-            const SizedBox(width: 6),
-            const Text('opcional', style: TextStyle(fontSize: 11, color: DiarioColors.textMuted, fontWeight: FontWeight.w600)),
+            const SizedBox(width: OrtizSpace.xs),
+            const Text('opcional', style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textMuted, fontWeight: FontWeight.w600)),
           ],
           const Spacer(),
           if (trailing != null)
-            Text(trailing, style: const TextStyle(fontSize: 11, color: DiarioColors.textMuted, fontWeight: FontWeight.w700)),
+            Text(trailing, style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textMuted, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -392,12 +395,8 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
 
   Widget _buildValenceSelector() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
+      // Sin tarjeta (spec 05): la fila de emojis va directamente sobre la hoja.
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md, horizontal: OrtizSpace.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: MoodCatalog.valences.map((meta) {
@@ -405,15 +404,15 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
           return Expanded(
             child: InkWell(
               key: ValueKey('mood_sheet_valence_${meta.value}'),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               onTap: () => setState(() => _valence = meta.value),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
+                padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
                   color: isSelected ? meta.lightColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(OrtizRadius.block),
                   border: Border.all(color: isSelected ? meta.color : Colors.transparent, width: 1.5),
                 ),
                 child: Column(
@@ -421,15 +420,15 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
                     AnimatedScale(
                       scale: isSelected ? 1.18 : 1.0,
                       duration: const Duration(milliseconds: 180),
-                      child: Text(meta.emoji, style: const TextStyle(fontSize: 30)),
+                      child: Text(meta.emoji, style: const TextStyle(fontSize: OrtizFontSize.displayLg)),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: OrtizSpace.xs),
                     Text(
                       meta.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: OrtizFontSize.caption,
                         fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                         color: isSelected ? DiarioColors.textPrimary : DiarioColors.textSecondary,
                       ),
@@ -449,12 +448,12 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       segments: const [
         ButtonSegment(
           value: MoodPerspective.observed,
-          icon: Icon(Icons.visibility_outlined, size: 16),
+          icon: Icon(Icons.visibility_outlined, size: OrtizIconSize.sm),
           label: Text('Lo noté yo'),
         ),
         ButtonSegment(
           value: MoodPerspective.told,
-          icon: Icon(Icons.chat_bubble_outline_rounded, size: 16),
+          icon: Icon(Icons.chat_bubble_outline_rounded, size: OrtizIconSize.sm),
           label: Text('Me lo contó'),
         ),
       ],
@@ -464,7 +463,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       style: SegmentedButton.styleFrom(
         selectedBackgroundColor: DiarioColors.primaryLight,
         selectedForegroundColor: DiarioColors.primary,
-        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
       ),
     );
   }
@@ -474,18 +473,19 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       children: List.generate(5, (i) {
         final level = i + 1;
         final isSelected = _energy == level;
+        final isLast = level == 5;
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(right: i == 4 ? 0 : 6),
+            padding: EdgeInsets.only(right: isLast ? 0 : OrtizSpace.sm),
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
               onTap: () => setState(() => _energy = isSelected ? null : level),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: isSelected ? DiarioColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: isSelected ? DiarioColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder),
                 ),
                 child: Column(
@@ -497,21 +497,21 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
                         (_) => Container(
                           width: 4,
                           height: 10,
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.white : DiarioColors.primary.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(1),
+                            color: isSelected ? OrtizPalette.onAccent : DiarioColors.primaryBorder,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: OrtizSpace.xs),
                     Text(
                       MoodCatalog.energyLabel(level),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: OrtizFontSize.caption,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : DiarioColors.textSecondary,
+                        color: isSelected ? OrtizPalette.onAccent : DiarioColors.textSecondary,
                       ),
                     ),
                   ],
@@ -536,10 +536,10 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       children: [
         for (final group in order) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 6, top: 4),
+            padding: const EdgeInsets.only(bottom: OrtizSpace.xs, top: OrtizSpace.xs),
             child: Text(
               MoodTag.groupLabel(group),
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary),
+              style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary),
             ),
           ),
           Wrap(
@@ -547,15 +547,15 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
             runSpacing: 6,
             children: grouped[group]!.map((tag) => _tagChip(tag)).toList(),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.sm),
         ],
         ActionChip(
-          avatar: const Icon(Icons.add_rounded, size: 16, color: DiarioColors.primary),
+          avatar: const Icon(Icons.add_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
           label: const Text('Nueva etiqueta'),
-          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: DiarioColors.primary),
+          labelStyle: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: DiarioColors.primary),
           backgroundColor: DiarioColors.primaryLight,
           side: BorderSide.none,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
           onPressed: () => _createTag(animo),
         ),
       ],
@@ -573,7 +573,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
 
     // En contactos el contexto es secundario: colapsado.
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: OrtizSpace.sm),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
@@ -582,7 +582,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
           initiallyExpanded: _tagIds.isNotEmpty,
           title: Text(
             _tagIds.isEmpty ? 'Agregar contexto (opcional)' : 'Contexto · ${_tagIds.length}',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
           ),
           children: [content],
         ),
@@ -598,14 +598,14 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
       showCheckmark: false,
       onSelected: (v) => setState(() => v ? _tagIds.add(tag.id) : _tagIds.remove(tag.id)),
       selectedColor: DiarioColors.primary,
-      backgroundColor: Colors.white,
+      backgroundColor: OrtizPalette.surface,
       labelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: OrtizFontSize.bodySm,
         fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-        color: isSelected ? Colors.white : DiarioColors.textPrimary,
+        color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         side: BorderSide(color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder),
       ),
       visualDensity: VisualDensity.compact,
@@ -623,21 +623,21 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
           children: roles.map((role) {
             final isSelected = _roleIds.contains(role.id);
             return FilterChip(
-              avatar: Icon(role.iconData, size: 15, color: isSelected ? Colors.white : role.color),
+              avatar: Icon(role.iconData, size: OrtizIconSize.sm, color: isSelected ? OrtizPalette.onAccent : role.color),
               label: Text(role.name),
               selected: isSelected,
               showCheckmark: false,
               onSelected: (v) => setState(() => v ? _roleIds.add(role.id) : _roleIds.remove(role.id)),
               selectedColor: role.color,
-              backgroundColor: Colors.white,
+              backgroundColor: OrtizPalette.surface,
               labelStyle: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: isSelected ? role.color : role.color.withOpacity(0.35)),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
+                side: BorderSide(color: isSelected ? role.color : role.color.withValues(alpha: 0.35)),
               ),
               visualDensity: VisualDensity.compact,
             );
@@ -651,14 +651,13 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
     final contacts = _diarioState?.contacts ?? const [];
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         border: Border.all(
           color: _isListening ? DiarioColors.primary : DiarioColors.cardBorder,
           width: _isListening ? 1.5 : 1.0,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.xs, OrtizSpace.xs, OrtizSpace.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -673,7 +672,7 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
                     ? '¿Qué pasó? Menciona personas con @...'
                     : '¿Qué notaste? ¿Qué te contó?',
                 border: InputBorder.none,
-                hintStyle: const TextStyle(fontSize: 13, color: DiarioColors.textMuted),
+                hintStyle: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textMuted),
               ),
             ),
           ),
@@ -695,13 +694,8 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
     final isNow = now.difference(_loggedAt).inMinutes.abs() < 2;
     final dateLabel = isNow ? 'Ahora' : _formatDateTime(_loggedAt);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
-      child: Column(
+    // Sin tarjeta (spec 05): opciones como filas sobre la hoja, separadas por línea.
+    return Column(
         children: [
           SwitchListTile.adaptive(
             value: _isDaily,
@@ -710,23 +704,22 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
             dense: true,
             title: Text(
               _isSelf ? 'Es mi balance del día' : 'Es el balance de su día',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
             ),
             subtitle: const Text(
               'Si lo marcas, cuenta como el valor del día',
-              style: TextStyle(fontSize: 11),
+              style: TextStyle(fontSize: OrtizFontSize.caption),
             ),
           ),
           const Divider(height: 1),
           ListTile(
             dense: true,
             leading: const Icon(Icons.schedule_rounded, color: DiarioColors.primary),
-            title: const Text('¿Fue en otro momento?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+            title: const Text('¿Fue en otro momento?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm)),
             trailing: Text(dateLabel, style: const TextStyle(fontWeight: FontWeight.w700, color: DiarioColors.textSecondary)),
             onTap: _pickDateTime,
           ),
         ],
-      ),
     );
   }
 
@@ -735,9 +728,9 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+        padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.sm, OrtizSpace.xl, OrtizSpace.md),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: OrtizPalette.surface,
           border: Border(top: BorderSide(color: DiarioColors.cardBorder)),
         ),
         child: SizedBox(
@@ -747,12 +740,12 @@ class _MoodCheckinSheetState extends State<MoodCheckinSheet> {
             onPressed: canSave ? _save : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: DiarioColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              foregroundColor: OrtizPalette.onAccent,
+              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
             ),
             icon: _isSaving
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: OrtizPalette.onAccent))
                 : const Icon(Icons.check_rounded),
             label: Text(
               _valence == null ? 'Elige cómo te sientes' : (_isEditing ? 'Guardar cambios' : 'Guardar'),

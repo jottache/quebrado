@@ -50,4 +50,25 @@ class RemindersColors {
   static const Color overdue = OrtizPalette.bad; // Vencido
   static const Color snoozed = OrtizPalette.warn; // Pospuesto
   static const Color completed = OrtizPalette.ok; // Completado
+
+  // Cuadrantes de Covey (spec 05). Se usan como texto e indicador: los cuatro
+  // superan 4,5:1 sobre `bg`. El fondo suave y el borde de cada cuadrante se
+  // derivan de estos con `SuiteAppColors.tintAlpha`/`borderAlpha`.
+  /// C1 Urgente e importante (crisis): rojo de la suite.
+  static const Color quadrantUrgentImportant = OrtizPalette.bad;
+
+  /// C2 Importante, no urgente (el foco): verde de la suite.
+  static const Color quadrantImportantNotUrgent = OrtizPalette.ok;
+
+  /// C3 Urgente, no importante (interrupciones): ámbar de la suite.
+  static const Color quadrantUrgentNotImportant = OrtizPalette.warn;
+
+  /// C4 Ni urgente ni importante (desperdicio): gris `muted`.
+  static const Color quadrantNotUrgentNotImportant = OrtizPalette.muted;
+
+  // Roles vitales.
+  /// Color de un rol cuyo `color_hex` no se puede leer. Es el mismo azul del
+  /// `colorHex` por defecto de `RoleModel` ('#3B82F6', dato guardado), que
+  /// sobre `bg` da ≈ 5,2:1.
+  static const Color roleDefault = Color(0xFF3B82F6);
 }

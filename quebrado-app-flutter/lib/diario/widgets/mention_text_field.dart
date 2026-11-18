@@ -7,6 +7,10 @@ import 'diario_image_helper.dart';
 import '../../notas/models/note_item.dart';
 import '../../notas/theme/notas_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
 /// Controlador de texto que resalta en tiempo real:
 /// 1. Menciones a contactos (@Nombre) con color primario del Diario.
 /// 2. Menciones a Notas & Acuerdos (#TituloNota) con color primario de Notas.
@@ -30,18 +34,18 @@ class MentionTextEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    final effectiveStyle = style ?? const TextStyle(fontSize: 14, color: DiarioColors.textPrimary);
+    final effectiveStyle = style ?? const TextStyle(fontSize: OrtizFontSize.body, color: DiarioColors.textPrimary);
     final mentionStyle = customMentionStyle ??
         effectiveStyle.copyWith(
           color: DiarioColors.primary,
           fontWeight: FontWeight.w800,
-          backgroundColor: DiarioColors.primaryLight.withOpacity(0.55),
+          backgroundColor: DiarioColors.primaryLight,
         );
     final noteStyle = customNoteMentionStyle ??
         effectiveStyle.copyWith(
           color: NotasColors.primary,
           fontWeight: FontWeight.w800,
-          backgroundColor: NotasColors.primaryLight.withOpacity(0.65),
+          backgroundColor: NotasColors.primaryLight,
         );
 
     final rawText = text;
@@ -217,18 +221,18 @@ class MentionTextSpanHelper {
         baseStyle.copyWith(
           color: DiarioColors.primary,
           fontWeight: FontWeight.w900,
-          backgroundColor: DiarioColors.primaryLight.withOpacity(0.7),
+          backgroundColor: DiarioColors.primaryLight,
           decoration: TextDecoration.underline,
-          decorationColor: DiarioColors.primary.withOpacity(0.4),
+          decorationColor: DiarioColors.primaryBorder,
         );
 
     final effectiveNoteStyle = noteMentionStyle ??
         baseStyle.copyWith(
           color: NotasColors.primary,
           fontWeight: FontWeight.w900,
-          backgroundColor: NotasColors.primaryLight.withOpacity(0.8),
+          backgroundColor: NotasColors.primaryLight,
           decoration: TextDecoration.underline,
-          decorationColor: NotasColors.primary.withOpacity(0.4),
+          decorationColor: SuiteAppColors.notasBorder,
         );
 
     final contactPatterns = _buildMentionPatterns(contacts);
@@ -753,39 +757,38 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
             child: FocusScope(
               canRequestFocus: false,
               child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(16),
-                color: Colors.white,
+                elevation: 0,
+                borderRadius: BorderRadius.circular(OrtizRadius.block),
+                color: OrtizPalette.surface,
                 surfaceTintColor: Colors.transparent,
-                shadowColor: Colors.black.withOpacity(0.18),
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 250),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: primaryColor.withOpacity(0.25), width: 1.2),
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
+                    border: Border.all(color: primaryColor.withValues(alpha: 0.25), width: 1.2),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                         decoration: BoxDecoration(
                           color: primaryLight,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.block)),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               isNoteMode ? Icons.tag_rounded : Icons.alternate_email_rounded,
-                              size: 14,
+                              size: OrtizIconSize.xs,
                               color: primaryColor,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: OrtizSpace.xs),
                             Text(
                               isNoteMode ? 'Mencionar nota o acuerdo' : 'Mencionar contacto',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w800,
                                 color: primaryColor,
                                 letterSpacing: 0.3,
@@ -796,7 +799,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                               count == 1
                                   ? '1 coincidencia • ↵ elegir'
                                   : '$count sugerencias • ↑↓ / ↵',
-                              style: TextStyle(fontSize: 10, color: primaryColor, fontWeight: FontWeight.w600),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, color: primaryColor, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -804,7 +807,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                       Flexible(
                         child: ListView.separated(
                           controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                           shrinkWrap: true,
                           itemCount: count,
                           separatorBuilder: (_, __) => const Divider(height: 1, indent: 48, color: DiarioColors.cardBorder),
@@ -825,15 +828,15 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                   onTapDown: (_) => _selectNote(note),
                                   child: InkWell(
                                     onTap: () => _selectNote(note),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                     child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                      margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
+                                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                                       decoration: BoxDecoration(
-                                        color: isSelected ? primaryLight.withOpacity(0.7) : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        color: isSelected ? primaryLight.withValues(alpha: 0.7) : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         border: isSelected
-                                            ? Border.all(color: primaryColor.withOpacity(0.35), width: 1)
+                                            ? Border.all(color: primaryColor.withValues(alpha: 0.35), width: 1)
                                             : null,
                                       ),
                                       child: Row(
@@ -843,17 +846,17 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                             height: 32,
                                             decoration: BoxDecoration(
                                               color: primaryLight,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                             ),
                                             alignment: Alignment.center,
-                                            child: Text(note.emoji, style: const TextStyle(fontSize: 16)),
+                                            child: Text(note.emoji, style: const TextStyle(fontSize: OrtizFontSize.titleSm)),
                                           ),
-                                          const SizedBox(width: 10),
+                                          const SizedBox(width: OrtizSpace.sm),
                                           Expanded(
                                             child: Text(
                                               note.title,
                                               style: TextStyle(
-                                                fontSize: 13,
+                                                fontSize: OrtizFontSize.bodySm,
                                                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
                                                 color: isSelected ? primaryColor : DiarioColors.textPrimary,
                                               ),
@@ -862,23 +865,23 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                           ),
                                           if (isSelected)
                                             Container(
-                                              margin: const EdgeInsets.only(left: 6),
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              margin: const EdgeInsets.only(left: OrtizSpace.xs),
+                                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                               decoration: BoxDecoration(
                                                 color: primaryColor,
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                               ),
                                               child: const Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  Icon(Icons.keyboard_return_rounded, size: 10, color: Colors.white),
-                                                  SizedBox(width: 3),
+                                                  Icon(Icons.keyboard_return_rounded, size: OrtizIconSize.xs, color: OrtizPalette.onAccent),
+                                                  SizedBox(width: OrtizSpace.xxs),
                                                   Text(
                                                     'Enter',
                                                     style: TextStyle(
-                                                      fontSize: 9,
+                                                      fontSize: OrtizFontSize.micro,
                                                       fontWeight: FontWeight.w700,
-                                                      color: Colors.white,
+                                                      color: OrtizPalette.onAccent,
                                                     ),
                                                   ),
                                                 ],
@@ -905,15 +908,15 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                 onTapDown: (_) => _selectContact(c),
                                 child: InkWell(
                                   onTap: () => _selectContact(c),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
+                                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? primaryLight.withOpacity(0.7) : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: isSelected ? primaryLight.withValues(alpha: 0.7) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       border: isSelected
-                                          ? Border.all(color: primaryColor.withOpacity(0.35), width: 1)
+                                          ? Border.all(color: primaryColor.withValues(alpha: 0.35), width: 1)
                                           : null,
                                     ),
                                     child: Row(
@@ -922,7 +925,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                           width: 32,
                                           height: 32,
                                           decoration: BoxDecoration(
-                                            color: isSelected ? primaryColor.withOpacity(0.18) : primaryLight,
+                                            color: isSelected ? primaryColor.withValues(alpha: 0.18) : primaryLight,
                                             shape: BoxShape.circle,
                                           ),
                                           alignment: Alignment.center,
@@ -938,13 +941,13 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                               : Text(
                                                   c.initials,
                                                   style: TextStyle(
-                                                    fontSize: 12,
+                                                    fontSize: OrtizFontSize.bodySm,
                                                     fontWeight: FontWeight.w900,
                                                     color: primaryColor,
                                                   ),
                                                 ),
                                         ),
-                                        const SizedBox(width: 10),
+                                        const SizedBox(width: OrtizSpace.sm),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -953,7 +956,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                               Text(
                                                 c.name,
                                                 style: TextStyle(
-                                                  fontSize: 13,
+                                                  fontSize: OrtizFontSize.bodySm,
                                                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
                                                   color: isSelected ? primaryColor : DiarioColors.textPrimary,
                                                 ),
@@ -963,7 +966,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                                 Text(
                                                   '"${c.nickname}"',
                                                   style: const TextStyle(
-                                                    fontSize: 11,
+                                                    fontSize: OrtizFontSize.caption,
                                                     fontStyle: FontStyle.italic,
                                                     color: DiarioColors.textSecondary,
                                                   ),
@@ -973,15 +976,15 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                         ),
                                         if (c.relationship != null && c.relationship!.isNotEmpty)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                                             decoration: BoxDecoration(
                                               color: DiarioColors.surfaceHover,
-                                              borderRadius: BorderRadius.circular(6),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                             ),
                                             child: Text(
                                               c.relationship!,
                                               style: const TextStyle(
-                                                fontSize: 10,
+                                                fontSize: OrtizFontSize.caption,
                                                 fontWeight: FontWeight.w600,
                                                 color: DiarioColors.textSecondary,
                                               ),
@@ -989,23 +992,23 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
                                           ),
                                         if (isSelected)
                                           Container(
-                                            margin: const EdgeInsets.only(left: 6),
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            margin: const EdgeInsets.only(left: OrtizSpace.xs),
+                                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                             decoration: BoxDecoration(
                                               color: primaryColor,
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                             ),
                                             child: const Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.keyboard_return_rounded, size: 10, color: Colors.white),
-                                                SizedBox(width: 3),
+                                                Icon(Icons.keyboard_return_rounded, size: OrtizIconSize.xs, color: OrtizPalette.onAccent),
+                                                SizedBox(width: OrtizSpace.xxs),
                                                 Text(
                                                   'Enter',
                                                   style: TextStyle(
-                                                    fontSize: 9,
+                                                    fontSize: OrtizFontSize.micro,
                                                     fontWeight: FontWeight.w700,
-                                                    color: Colors.white,
+                                                    color: OrtizPalette.onAccent,
                                                   ),
                                                 ),
                                               ],
@@ -1044,7 +1047,7 @@ class _MentionAutocompleteFieldState extends State<MentionAutocompleteField> {
         decoration: widget.decoration ??
             InputDecoration(
               hintText: 'Escribe algo (@ para contactos, # para notas)...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
               fillColor: DiarioColors.background,
             ),

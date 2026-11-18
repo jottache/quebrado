@@ -7,6 +7,10 @@ import '../widgets/diario_rich_editing.dart';
 import '../../notas/notas.dart';
 import '../../rich_editor/rich_document_editor.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Nota personal rápida: editor enriquecido a pantalla grande, dictado por voz,
 /// menciones (@ personas, # notas) y borrador automático.
 class QuickNoteDialog extends StatefulWidget {
@@ -122,30 +126,36 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> with DiarioRichEditin
     return DiarioEditorFrame(
       onEscape: closeKeepingDraft,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        // El marco (`DiarioEditorFrame`) pone el fondo: `bg` o `surface`.
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(desktop ? 20 : 8, 12, desktop ? 16 : 8, 12),
+                padding: EdgeInsets.fromLTRB(
+                  desktop ? OrtizSpace.xl : OrtizSpace.sm,
+                  OrtizSpace.md,
+                  desktop ? OrtizSpace.lg : OrtizSpace.sm,
+                  OrtizSpace.md,
+                ),
                 child: Row(
                   children: [
                     if (!desktop)
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 22),
+                        icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg),
                         tooltip: 'Cerrar (se guarda como borrador)',
                         onPressed: closeKeepingDraft,
                       ),
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(OrtizSpace.sm),
                       decoration: BoxDecoration(
                         color: DiarioColors.primaryLight,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
-                      child: const Icon(Icons.bolt_rounded, color: DiarioColors.primary, size: 22),
+                      child: const Icon(Icons.bolt_rounded, color: DiarioColors.primary, size: OrtizIconSize.lg),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: OrtizSpace.md),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +163,7 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> with DiarioRichEditin
                           Text(
                             'Nota Rápida',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: OrtizFontSize.title,
                               fontWeight: FontWeight.w900,
                               color: DiarioColors.textPrimary,
                               letterSpacing: -0.3,
@@ -161,47 +171,50 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> with DiarioRichEditin
                           ),
                           Text(
                             'Guarda una idea o pensamiento al instante',
-                            style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary, fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, fontWeight: FontWeight.w500),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
                     buildDictationButton(compact: !desktop),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: OrtizSpace.sm),
                     if (desktop)
                       TextButton(
                         key: const ValueKey('quick_note_cancel'),
                         onPressed: cancelAndDiscardDraft,
                         child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
                       ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: OrtizSpace.xs),
                     ElevatedButton.icon(
                       key: const ValueKey('quick_note_save'),
                       onPressed: _isSaving ? null : _saveQuickNote,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: DiarioColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: OrtizPalette.onAccent,
                         elevation: 0,
-                        padding: EdgeInsets.symmetric(horizontal: desktop ? 18 : 12, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: desktop ? OrtizSpace.lg : OrtizSpace.md,
+                          vertical: OrtizSpace.md,
+                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                       ),
                       icon: _isSaving
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(color: OrtizPalette.onAccent, strokeWidth: 2),
                             )
-                          : const Icon(Icons.check_rounded, size: 18),
+                          : const Icon(Icons.check_rounded, size: OrtizIconSize.md),
                       label: Text(
                         _isSaving ? 'Guardando...' : (desktop ? 'Registrar Nota' : 'Guardar'),
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
                     if (desktop) ...[
-                      const SizedBox(width: 4),
+                      const SizedBox(width: OrtizSpace.xs),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 22, color: DiarioColors.textMuted),
+                        icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg, color: DiarioColors.textMuted),
                         tooltip: 'Cerrar (se guarda como borrador)',
                         onPressed: closeKeepingDraft,
                       ),
@@ -222,28 +235,28 @@ class _QuickNoteDialogState extends State<QuickNoteDialog> with DiarioRichEditin
                         autofocus: !widget.autoStartVoice,
                         placeholder: '¿Qué estás pensando? Escribe (@ personas, # notas, / bloques) o dicta…',
                         header: Padding(
-                          padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 4),
+                          padding: EdgeInsets.fromLTRB(horizontal, OrtizSpace.lg, horizontal, OrtizSpace.xs),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               ?banner,
                               if (isListening)
                                 Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+                                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                   decoration: BoxDecoration(
                                     color: DiarioColors.rose.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                     border: Border.all(color: DiarioColors.rose.withValues(alpha: 0.35)),
                                   ),
                                   child: const Row(
                                     children: [
-                                      Icon(Icons.fiber_manual_record_rounded, size: 10, color: DiarioColors.rose),
-                                      SizedBox(width: 8),
+                                      Icon(Icons.fiber_manual_record_rounded, size: OrtizIconSize.xs, color: DiarioColors.rose),
+                                      SizedBox(width: OrtizSpace.sm),
                                       Expanded(
                                         child: Text(
                                           'Escuchando… lo que digas se escribe donde está el cursor.',
-                                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: DiarioColors.rose),
+                                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: DiarioColors.rose),
                                         ),
                                       ),
                                     ],

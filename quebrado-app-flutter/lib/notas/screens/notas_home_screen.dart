@@ -9,6 +9,11 @@ import '../dialogs/note_reader_dialog.dart';
 import '../services/note_pdf_service.dart';
 import 'note_editor_screen.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
 /// Pantalla principal de la mini-app Notas & Acuerdos.
 /// Integra filtros por categoría, búsqueda instantánea, notas fijadas,
 /// progreso visual de tareas y diseño responsivo para móvil y escritorio.
@@ -60,8 +65,9 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           );
         },
         backgroundColor: NotasColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.edit_note_rounded, size: 22),
+        // Texto sobre el color de la app: `onAccent` (P-30).
+        foregroundColor: OrtizPalette.onAccent,
+        icon: const Icon(Icons.edit_note_rounded, size: OrtizIconSize.lg),
         label: const Text('Nueva Nota', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: RefreshIndicator(
@@ -90,7 +96,7 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, NotasState notasState) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: NotasColors.background,
       elevation: 0,
       scrolledUnderElevation: 1,
       title: const Column(
@@ -99,16 +105,16 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           Text(
             'Notas & Acuerdos',
             style: TextStyle(
-              fontSize: 19,
+              fontSize: OrtizFontSize.title,
               fontWeight: FontWeight.w900,
-              color: Colors.black87,
+              color: OrtizPalette.fg,
               letterSpacing: -0.4,
             ),
           ),
           Text(
             'Acuerdos, ideas, direcciones y notas flexibles',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: OrtizFontSize.caption,
               fontWeight: FontWeight.w600,
               color: NotasColors.primary,
             ),
@@ -119,7 +125,7 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
         IconButton(
           icon: Icon(_isSearching ? Icons.search_off_rounded : Icons.search_rounded),
           tooltip: _isSearching ? 'Cerrar búsqueda' : 'Buscar notas',
-          color: Colors.black54,
+          color: OrtizPalette.muted,
           onPressed: () {
             setState(() {
               _isSearching = !_isSearching;
@@ -133,13 +139,13 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
         IconButton(
           icon: const Icon(Icons.folder_open_rounded),
           tooltip: 'Gestionar categorías',
-          color: Colors.black54,
+          color: OrtizPalette.muted,
           onPressed: () => CategoryManagerDialog.show(context),
         ),
         IconButton(
           icon: const Icon(Icons.sync_rounded),
           tooltip: 'Sincronizar',
-          color: Colors.black54,
+          color: OrtizPalette.muted,
           onPressed: () async {
             await notasState.loadNotes();
             if (context.mounted) {
@@ -152,26 +158,25 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
             }
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: OrtizSpace.sm),
       ],
     );
   }
 
   Widget _buildSearchBar(NotasState notasState) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, 0, OrtizSpace.lg, OrtizSpace.md),
       child: TextField(
         controller: _searchController,
         autofocus: true,
         onChanged: notasState.setSearchQuery,
         decoration: InputDecoration(
           hintText: 'Buscar en títulos y contenido...',
-          hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Colors.grey),
+          hintStyle: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
+          prefixIcon: const Icon(Icons.search_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 18, color: Colors.grey),
+                  icon: const Icon(Icons.clear_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                   onPressed: () {
                     _searchController.clear();
                     notasState.setSearchQuery('');
@@ -179,11 +184,61 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
                 )
               : null,
           filled: true,
-          fillColor: const Color(0xFFF1F5F9),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          fillColor: OrtizPalette.surfaceHigh,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field), borderSide: BorderSide.none),
+          contentPadding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           isDense: true,
         ),
+      ),
+    );
+  }
+
+  /// Píldora de filtro. Lo activo va sobre `surfaceHigh` con borde de color
+  /// (de la app o de la categoría) y texto `fg`.
+  Widget _filterChip({
+    required bool isSelected,
+    required Color color,
+    required Widget? avatar,
+    required String label,
+    required int count,
+    required Color countColor,
+    required Color countBg,
+    required ValueChanged<bool> onSelected,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: OrtizSpace.sm),
+      child: FilterChip(
+        selected: isSelected,
+        avatar: avatar,
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
+            const SizedBox(width: OrtizSpace.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
+              decoration: BoxDecoration(
+                color: countBg,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: OrtizFontSize.caption,
+                  fontWeight: FontWeight.bold,
+                  color: countColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        onSelected: onSelected,
+        backgroundColor: OrtizPalette.bg,
+        selectedColor: OrtizPalette.surfaceHigh,
+        labelStyle: TextStyle(color: isSelected ? OrtizPalette.fg : OrtizPalette.muted),
+        side: BorderSide(color: isSelected ? color : OrtizPalette.line),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+        showCheckmark: false,
       ),
     );
   }
@@ -191,57 +246,25 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
   Widget _buildCategoryFilterBar(NotasState notasState, List<NoteCategory> categories) {
     final selectedCatId = notasState.selectedCategoryId;
 
-    return Container(
+    return SizedBox(
       height: 52,
-      color: Colors.white,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
         itemCount: categories.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             // Píldora "Todas"
             final isSelected = selectedCatId == null;
-            final totalCount = notasState.notes.length;
-
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                selected: isSelected,
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Todas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white.withOpacity(0.3) : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '$totalCount',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                onSelected: (_) => notasState.setSelectedCategory(null),
-                backgroundColor: const Color(0xFFF8FAFC),
-                selectedColor: NotasColors.primary,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : const Color(0xFF334155),
-                ),
-                side: BorderSide(
-                  color: isSelected ? NotasColors.primary : const Color(0xFFE2E8F0),
-                ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                showCheckmark: false,
-              ),
+            return _filterChip(
+              isSelected: isSelected,
+              color: NotasColors.primary,
+              avatar: null,
+              label: 'Todas',
+              count: notasState.notes.length,
+              countColor: OrtizPalette.fg,
+              countBg: isSelected ? NotasColors.primaryLight : OrtizPalette.surfaceHigh,
+              onSelected: (_) => notasState.setSelectedCategory(null),
             );
           }
 
@@ -249,48 +272,36 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           final isSelected = selectedCatId == cat.id;
           final catCount = notasState.notes.where((n) => n.categoryId == cat.id).length;
 
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              selected: isSelected,
-              avatar: Text(cat.icon, style: const TextStyle(fontSize: 14)),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.white.withOpacity(0.3) : cat.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$catCount',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : cat.color,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              onSelected: (_) => notasState.setSelectedCategory(isSelected ? null : cat.id),
-              backgroundColor: Colors.white,
-              selectedColor: cat.color,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF334155),
-              ),
-              side: BorderSide(
-                color: isSelected ? cat.color : const Color(0xFFE2E8F0),
-              ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              showCheckmark: false,
-            ),
+          return _filterChip(
+            isSelected: isSelected,
+            color: cat.color,
+            avatar: Text(cat.icon, style: const TextStyle(fontSize: OrtizFontSize.body)),
+            label: cat.name,
+            count: catCount,
+            countColor: cat.color,
+            countBg: cat.color.withValues(alpha: 0.12),
+            onSelected: (_) => notasState.setSelectedCategory(isSelected ? null : cat.id),
           );
         },
       ),
+    );
+  }
+
+  Widget _sectionLabel(IconData icon, Color iconColor, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: OrtizIconSize.xs, color: iconColor),
+        const SizedBox(width: OrtizSpace.xs),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: OrtizFontSize.caption,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            color: OrtizPalette.muted,
+          ),
+        ),
+      ],
     );
   }
 
@@ -303,53 +314,25 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
   ) {
     return ListView(
       padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 24 : 14,
-        vertical: 16,
+        horizontal: isDesktop ? OrtizSpace.xxl : OrtizSpace.md,
+        vertical: OrtizSpace.lg,
       ),
       children: [
         // Sección Notas Fijadas
         if (pinnedNotes.isNotEmpty) ...[
-          const Row(
-            children: [
-              Icon(Icons.push_pin_rounded, size: 14, color: Colors.amber),
-              SizedBox(width: 6),
-              Text(
-                'FIJADAS',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildResponsiveGrid(context, notasState, pinnedNotes, isDesktop),
-          const SizedBox(height: 24),
+          _sectionLabel(Icons.push_pin_rounded, OrtizPalette.warn, 'FIJADAS'),
+          const SizedBox(height: OrtizSpace.sm),
+          _buildResponsiveGrid(context, notasState, pinnedNotes, isDesktop, 0),
+          const SizedBox(height: OrtizSpace.xxl),
         ],
 
         // Sección Otras Notas
         if (otherNotes.isNotEmpty) ...[
           if (pinnedNotes.isNotEmpty) ...[
-            const Row(
-              children: [
-                Icon(Icons.notes_rounded, size: 14, color: Color(0xFF64748B)),
-                SizedBox(width: 6),
-                Text(
-                  'OTRAS NOTAS',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+            _sectionLabel(Icons.notes_rounded, OrtizPalette.muted, 'OTRAS NOTAS'),
+            const SizedBox(height: OrtizSpace.sm),
           ],
-          _buildResponsiveGrid(context, notasState, otherNotes, isDesktop),
+          _buildResponsiveGrid(context, notasState, otherNotes, isDesktop, pinnedNotes.length),
         ],
 
         const SizedBox(height: 90),
@@ -357,42 +340,49 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
     );
   }
 
+  /// [indexOffset]: posición de la primera nota en la lista completa, para
+  /// que la entrada escalonada siga el orden visual.
   Widget _buildResponsiveGrid(
     BuildContext context,
     NotasState notasState,
     List<NoteItem> notes,
     bool isDesktop,
+    int indexOffset,
   ) {
     if (isDesktop) {
       return LayoutBuilder(
         builder: (context, constraints) {
           final crossAxisCount = constraints.maxWidth >= 1100 ? 3 : 2;
+          const gap = OrtizSpace.md;
+          final itemWidth = (constraints.maxWidth - (crossAxisCount - 1) * gap) / crossAxisCount;
           return Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            children: notes.map((note) {
-              final itemWidth = (constraints.maxWidth - (crossAxisCount - 1) * 14) / crossAxisCount;
-              return SizedBox(
-                width: itemWidth,
-                child: _buildNoteCard(context, notasState, note),
-              );
-            }).toList(),
+            spacing: gap,
+            runSpacing: gap,
+            children: [
+              for (var i = 0; i < notes.length; i++)
+                SizedBox(
+                  width: itemWidth,
+                  child: ortizStaggered(context, indexOffset + i, _buildNoteItem(context, notasState, notes[i])),
+                ),
+            ],
           );
         },
       );
     }
 
     return Column(
-      children: notes.map((note) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildNoteCard(context, notasState, note),
-        );
-      }).toList(),
+      children: [
+        for (var i = 0; i < notes.length; i++) ...[
+          if (i > 0) const Divider(height: 1),
+          ortizStaggered(context, indexOffset + i, _buildNoteItem(context, notasState, notes[i])),
+        ],
+      ],
     );
   }
 
-  Widget _buildNoteCard(BuildContext context, NotasState notasState, NoteItem note) {
+  /// Nota sobre el fondo, sin tarjeta: al pasar el puntero o tocar se marca
+  /// con `surfaceHigh`.
+  Widget _buildNoteItem(BuildContext context, NotasState notasState, NoteItem note) {
     final cat = notasState.categories.firstWhere(
       (c) => c.id == note.categoryId,
       orElse: () => NoteCategory.defaultCategories().first,
@@ -405,22 +395,14 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
         .map((b) => b.content)
         .join(' • ');
 
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: note.isPinned ? Colors.amber.withOpacity(0.5) : const Color(0xFFE2E8F0),
-          width: note.isPinned ? 1.5 : 1,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
+    return Material(
+      type: MaterialType.transparency,
       child: InkWell(
         onTap: () => NoteReaderDialog.show(context, note: note),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
+        hoverColor: OrtizPalette.surfaceHigh,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -428,20 +410,20 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
-                      color: cat.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(6),
+                      color: cat.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(cat.icon, style: const TextStyle(fontSize: 11)),
-                        const SizedBox(width: 4),
+                        Text(cat.icon, style: const TextStyle(fontSize: OrtizFontSize.caption)),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           cat.name,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.bold,
                             color: cat.color,
                           ),
@@ -452,25 +434,25 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
                   const Spacer(),
                   if (note.isPinned)
                     const Padding(
-                      padding: EdgeInsets.only(right: 6),
-                      child: Icon(Icons.push_pin_rounded, size: 14, color: Colors.amber),
+                      padding: EdgeInsets.only(right: OrtizSpace.xs),
+                      child: Icon(Icons.push_pin_rounded, size: OrtizIconSize.xs, color: OrtizPalette.warn),
                     ),
                   _buildCardPopupMenu(context, notasState, note),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
 
               // Emoji + Título
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(note.emoji, style: const TextStyle(fontSize: 20)),
-                  const SizedBox(width: 8),
+                  Text(note.emoji, style: const TextStyle(fontSize: OrtizFontSize.title)),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       note.title,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: OrtizFontSize.titleSm,
                         fontWeight: FontWeight.w800,
                         color: NotasColors.textPrimary,
                         height: 1.25,
@@ -484,12 +466,12 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
 
               // Previsualización de texto si existe
               if (previewText.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: OrtizSpace.sm),
                 Text(
                   previewText,
                   style: const TextStyle(
-                    fontSize: 12.5,
-                    color: Color(0xFF64748B),
+                    fontSize: OrtizFontSize.bodySm,
+                    color: OrtizPalette.muted,
                     height: 1.35,
                   ),
                   maxLines: 2,
@@ -499,23 +481,23 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
 
               // Barra de progreso de Tareas si tiene todos
               if (note.hasTodos) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 _buildMiniTodoProgress(note),
               ],
 
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
 
-              // Fecha en pie de tarjeta
+              // Fecha y número de bloques
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     note.formattedDate,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                   ),
                   Text(
                     '${note.blocks.length} ${note.blocks.length == 1 ? 'bloque' : 'bloques'}',
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                   ),
                 ],
               ),
@@ -531,55 +513,38 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
     final total = progress.total;
     final completed = progress.completed;
     final percent = total > 0 ? (completed / total) : 0.0;
+    final color = percent == 1.0 ? OrtizPalette.ok : NotasColors.primary;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '$completed de $total tareas',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-              ),
-              Text(
-                '${(percent * 100).toInt()}%',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: percent == 1.0 ? const Color(0xFF10B981) : NotasColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: percent,
-              minHeight: 4,
-              backgroundColor: const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                percent == 1.0 ? const Color(0xFF10B981) : NotasColors.primary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$completed de $total tareas',
+              style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
+            ),
+            Text(
+              '${(percent * 100).toInt()}%',
+              style: TextStyle(
+                fontSize: OrtizFontSize.caption,
+                fontWeight: FontWeight.w800,
+                color: color,
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: OrtizSpace.xs),
+        OrtizProgressBar(value: percent, color: color, semanticsLabel: 'Tareas completadas'),
+      ],
     );
   }
 
   Widget _buildCardPopupMenu(BuildContext context, NotasState notasState, NoteItem note) {
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
-      icon: const Icon(Icons.more_vert_rounded, size: 18, color: Colors.grey),
+      icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
       onSelected: (val) async {
         final category = notasState.getCategoryById(note.categoryId);
         switch (val) {
@@ -607,7 +572,7 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
             final confirmed = await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
                 title: const Text('¿Eliminar nota?'),
                 content: Text('Estás a punto de eliminar "${note.title}".'),
                 actions: [
@@ -616,9 +581,12 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
                     child: const Text('Cancelar'),
                   ),
                   FilledButton(
-                    style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: OrtizPalette.bad,
+                      foregroundColor: OrtizPalette.onAccent,
+                    ),
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                    child: const Text('Eliminar', style: TextStyle(color: OrtizPalette.onAccent)),
                   ),
                 ],
               ),
@@ -634,9 +602,13 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           value: 'pin',
           child: Row(
             children: [
-              Icon(note.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: 16, color: Colors.grey),
-              const SizedBox(width: 8),
-              Text(note.isPinned ? 'Desfijar' : 'Fijar al inicio', style: const TextStyle(fontSize: 13)),
+              Icon(
+                note.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+                size: OrtizIconSize.sm,
+                color: OrtizPalette.muted,
+              ),
+              const SizedBox(width: OrtizSpace.sm),
+              Text(note.isPinned ? 'Desfijar' : 'Fijar al inicio', style: const TextStyle(fontSize: OrtizFontSize.bodySm)),
             ],
           ),
         ),
@@ -644,9 +616,9 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
-              SizedBox(width: 8),
-              Text('Editar', style: TextStyle(fontSize: 13)),
+              Icon(Icons.edit_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+              SizedBox(width: OrtizSpace.sm),
+              Text('Editar', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
             ],
           ),
         ),
@@ -654,9 +626,9 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           value: 'pdf',
           child: Row(
             children: [
-              Icon(Icons.picture_as_pdf_outlined, size: 16, color: Colors.grey),
-              SizedBox(width: 8),
-              Text('Descargar PDF', style: TextStyle(fontSize: 13)),
+              Icon(Icons.picture_as_pdf_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+              SizedBox(width: OrtizSpace.sm),
+              Text('Descargar PDF', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
             ],
           ),
         ),
@@ -664,9 +636,9 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           value: 'share',
           child: Row(
             children: [
-              Icon(Icons.share_outlined, size: 16, color: Colors.grey),
-              SizedBox(width: 8),
-              Text('Compartir', style: TextStyle(fontSize: 13)),
+              Icon(Icons.share_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+              SizedBox(width: OrtizSpace.sm),
+              Text('Compartir', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
             ],
           ),
         ),
@@ -674,9 +646,9 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
-              SizedBox(width: 8),
-              Text('Eliminar', style: TextStyle(fontSize: 13, color: Colors.redAccent)),
+              Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: OrtizPalette.bad),
+              SizedBox(width: OrtizSpace.sm),
+              Text('Eliminar', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.bad)),
             ],
           ),
         ),
@@ -687,37 +659,37 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
   Widget _buildEmptyState(BuildContext context, NotasState notasState) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(OrtizSpace.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 80,
               height: 80,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: NotasColors.primaryLight,
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.note_alt_outlined, size: 40, color: NotasColors.primary),
+                child: Icon(Icons.note_alt_outlined, size: OrtizIconSize.xxl, color: NotasColors.primary),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: OrtizSpace.lg),
             Text(
               _searchController.text.isNotEmpty
                   ? 'No se encontraron notas'
                   : 'No hay notas en esta categoría',
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              style: const TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: OrtizPalette.fg),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: OrtizSpace.sm),
             Text(
               _searchController.text.isNotEmpty
                   ? 'Prueba con otra palabra clave o limpia el filtro de búsqueda'
                   : 'Empieza registrando acuerdos de pareja, ideas de proyectos o notas útiles',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: OrtizSpace.xl),
             FilledButton.icon(
               onPressed: () {
                 if (_searchController.text.isNotEmpty) {
@@ -730,16 +702,19 @@ class _NotasHomeScreenState extends State<NotasHomeScreen> {
                   );
                 }
               },
-              icon: Icon(_searchController.text.isNotEmpty ? Icons.clear_rounded : Icons.add_rounded, size: 18),
+              icon: Icon(
+                _searchController.text.isNotEmpty ? Icons.clear_rounded : Icons.add_rounded,
+                size: OrtizIconSize.md,
+              ),
               label: Text(
                 _searchController.text.isNotEmpty ? 'Limpiar búsqueda' : 'Crear primera nota',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(
                 backgroundColor: NotasColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: OrtizPalette.onAccent,
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
             ),
           ],

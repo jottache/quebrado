@@ -1,0 +1,3 @@
+# Deuda de valores de estilo escritos a mano (spec 05). SOLO BAJA.
+# Generado por test/contract/no_hardcoded_styles_test.dart con UPDATE_STYLE_DEBT=1.
+# Total: 0 en 0 archivos.

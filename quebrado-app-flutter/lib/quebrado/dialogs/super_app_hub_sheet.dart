@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
-import '../widgets/claymorphic_card.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 enum SuperAppModule {
   finances,
@@ -19,18 +24,18 @@ class SuperAppHubBottomSheet extends StatelessWidget {
     final activeModule = appState.activeSuperAppModule;
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: 16.0,
-        bottom: 36.0,
+      padding: const EdgeInsets.only(
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: OrtizSpace.lg,
+        bottom: OrtizSpace.xxxl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -42,68 +47,53 @@ class SuperAppHubBottomSheet extends StatelessWidget {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
           ),
-          SizedBox(height: 18),
+          const SizedBox(height: OrtizSpace.lg),
 
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Super App Hub",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black87,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    "Selecciona el módulo que deseas utilizar",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              const Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.cloud_done_rounded, size: 14, color: AppColors.primary),
-                    SizedBox(width: 4),
                     Text(
-                      "Supabase",
+                      "Super App Hub",
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        fontSize: OrtizFontSize.title,
+                        fontWeight: FontWeight.w900,
+                        color: OrtizPalette.fg,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    SizedBox(height: OrtizSpace.xxs),
+                    Text(
+                      "Selecciona el módulo que deseas utilizar",
+                      style: TextStyle(
+                        fontSize: OrtizFontSize.bodySm,
+                        color: OrtizPalette.muted,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
+              const OrtizPill(
+                label: "Supabase",
+                icon: Icons.cloud_done_rounded,
+                color: AppColors.primary,
+              ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: OrtizSpace.xl),
 
-          // Module Grid / List
-          _buildModuleCard(
+          // Módulos: filas sin tarjeta; el activo, sobre `surfaceHigh`.
+          _buildModuleRow(
             context,
             title: "Finanzas & Presupuesto",
             subtitle: "Cuentas, balances, bolsas de ahorro y proyecciones",
@@ -116,14 +106,14 @@ class SuperAppHubBottomSheet extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.xs),
 
-          _buildModuleCard(
+          _buildModuleRow(
             context,
             title: "Mercado & Compras",
             subtitle: "Sesiones de mercado en vivo, listas y comparador",
             icon: Icons.shopping_cart_rounded,
-            color: Color(0xFFE67E22),
+            color: SuiteAppColors.finanzas,
             isActive: activeModule == SuperAppModule.market,
             onTap: () {
               appState.setActiveSuperAppModule(SuperAppModule.market);
@@ -131,76 +121,41 @@ class SuperAppHubBottomSheet extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.xs),
 
-          _buildModuleCard(
+          _buildModuleRow(
             context,
             title: "Asistente Personal IA",
             subtitle: "Chatbot conectado a Gemini para consultar tus datos",
             icon: Icons.auto_awesome_rounded,
-            color: Color(0xFF8E44AD),
+            color: SuiteAppColors.recordatorios,
             isActive: activeModule == SuperAppModule.assistant,
             badgeText: "Próximamente",
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text("El módulo de Asistente IA se habilitará en la siguiente fase."),
                   duration: Duration(seconds: 2),
                 ),
               );
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.sm),
+          const Divider(),
+          const SizedBox(height: OrtizSpace.sm),
 
           // Slot para el próximo módulo que el usuario tiene en mente
-          Container(
-            padding: EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!, width: 1.5, style: BorderStyle.solid),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.add_rounded, color: Colors.grey[500], size: 24),
-                ),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Próximo Módulo",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      Text(
-                        "Listo para conectar tu siguiente idea",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          const OrtizListRow(
+            leading: Icon(Icons.add_rounded),
+            title: "Próximo Módulo",
+            subtitle: "Listo para conectar tu siguiente idea",
           ),
         ],
       ),
     );
   }
 
-  Widget _buildModuleCard(
+  Widget _buildModuleRow(
     BuildContext context, {
     required String title,
     required String subtitle,
@@ -210,85 +165,25 @@ class SuperAppHubBottomSheet extends StatelessWidget {
     String? badgeText,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    final Widget trailing;
+    if (badgeText != null) {
+      trailing = OrtizPill(label: badgeText, color: color);
+    } else if (isActive) {
+      trailing = Icon(Icons.check_rounded, color: color, size: OrtizIconSize.md);
+    } else {
+      trailing = const Icon(
+        Icons.chevron_right_rounded,
+        color: OrtizPalette.muted,
+        size: OrtizIconSize.md,
+      );
+    }
+    return OrtizListRow(
+      leading: Icon(icon, color: color, size: OrtizIconSize.lg),
+      title: title,
+      subtitle: subtitle,
+      selected: isActive,
+      trailing: trailing,
       onTap: onTap,
-      child: ClaymorphicCard(
-        cornerRadius: 20,
-        backgroundColor: isActive ? color.withOpacity(0.06) : Colors.white,
-        padding: EdgeInsets.all(14.0),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: color, size: 26),
-            ),
-            SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      if (badgeText != null) ...[
-                        SizedBox(width: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[600],
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (isActive)
-              Container(
-                padding: EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.check, color: Colors.white, size: 14),
-              )
-            else
-              Icon(Icons.chevron_right_rounded, color: Colors.grey[400], size: 22),
-          ],
-        ),
-      ),
     );
   }
 }

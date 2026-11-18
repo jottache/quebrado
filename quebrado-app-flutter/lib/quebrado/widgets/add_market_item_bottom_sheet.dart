@@ -11,6 +11,10 @@ import '../../widgets/responsive_sheet_helper.dart';
 import '../widgets/add_market_store_bottom_sheet.dart';
 import '../widgets/helpers.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class AddMarketItemBottomSheet extends StatefulWidget {
   final String tripId;
   final String? initialStoreId;
@@ -249,14 +253,14 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          color: OrtizPalette.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
         ),
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: bottomInset > 0 ? bottomInset + 16 : 32,
+          left: OrtizSpace.lg,
+          right: OrtizSpace.lg,
+          top: OrtizSpace.lg,
+          bottom: bottomInset > 0 ? bottomInset + OrtizSpace.lg : OrtizSpace.xxxl,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -268,40 +272,40 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
+                    color: OrtizPalette.faint,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Text(
                 "Añadir al Mercado",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               
               if (widget.pendingItem != null) ...[
                 Text(
                   "Producto",
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   widget.pendingItem!.name,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
               ] else ...[
                 Text(
                   "Nombre del producto",
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Autocomplete<MarketProduct>(
                   displayStringForOption: (option) => option.name,
                   optionsBuilder: (TextEditingValue textEditingValue) {
@@ -336,16 +340,16 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                       focusNode: focusNode,
                       decoration: InputDecoration(
                         hintText: "Ej. Cartón de Huevos",
-                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                        contentPadding: EdgeInsets.all(12),
+                        hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                        contentPadding: EdgeInsets.all(OrtizSpace.md),
                         filled: true,
-                        fillColor: Colors.grey[100],
+                        fillColor: OrtizPalette.surfaceHigh,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                     );
                   },
                   optionsViewBuilder: (context, onSelected, options) {
@@ -353,7 +357,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                       alignment: Alignment.topLeft,
                       child: Material(
                         elevation: 4,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                         child: Container(
                           width: MediaQuery.of(context).size.width - 32,
                           constraints: BoxConstraints(maxHeight: 200),
@@ -363,8 +367,8 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                             itemBuilder: (context, index) {
                               final option = options.elementAt(index);
                               return ListTile(
-                                title: Text(option.name, style: TextStyle(fontSize: 13)),
-                                subtitle: Text(option.category, style: TextStyle(fontSize: 11)),
+                                title: Text(option.name, style: TextStyle(fontSize: OrtizFontSize.bodySm)),
+                                subtitle: Text(option.category, style: TextStyle(fontSize: OrtizFontSize.caption)),
                                 onTap: () => onSelected(option),
                               );
                             },
@@ -374,41 +378,41 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                     );
                   },
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
               ],
               
               if (widget.pendingItem != null) ...[
                 Text(
                   "Categoría",
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   widget.pendingItem!.category,
-                  style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                  style: TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.fg),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
               ] else ...[
                 Text(
                   "Categoría",
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 DropdownButtonFormField<String>(
                   value: _selectedCategory,
                   hint: Text("Seleccionar Categoría"),
                   isExpanded: true,
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                     filled: true,
-                    fillColor: Colors.grey[100],
+                    fillColor: OrtizPalette.surfaceHigh,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  dropdownColor: Colors.white,
-                  style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                  dropdownColor: OrtizPalette.surface,
+                  style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                   items: _categories.map((cat) {
                     return DropdownMenuItem(
                       value: cat,
@@ -421,15 +425,15 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                     });
                   },
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
               ],
               
               if (!widget.forceStore) ...[
                 Text(
                   "Establecimiento",
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Row(
                   children: [
                     Expanded(
@@ -438,16 +442,16 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                         hint: Text("Seleccionar"),
                         isExpanded: true,
                         decoration: InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: OrtizPalette.surfaceHigh,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        dropdownColor: Colors.white,
-                        style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                        dropdownColor: OrtizPalette.surface,
+                        style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                         items: appState.marketStores.map((store) {
                           return DropdownMenuItem(
                             value: store.id,
@@ -461,15 +465,15 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                         },
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: OrtizSpace.sm),
                     IconButton(
-                      icon: Icon(Icons.add_circle, color: AppColors.primary, size: 40),
+                      icon: Icon(Icons.add_circle, color: AppColors.primary, size: OrtizIconSize.xl),
                       padding: EdgeInsets.zero,
                       onPressed: _showAddStoreDialog,
                     )
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
               ],
               
               Row(
@@ -480,58 +484,58 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                       children: [
                         Text(
                           "Cantidad",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         TextField(
                           controller: _quantityController,
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
                             hintText: "1",
-                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                            contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: OrtizPalette.surfaceHigh,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide.none,
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide(color: AppColors.primary, width: 2),
                             ),
                           ),
-                          style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                          style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Unidad",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         DropdownButtonFormField<String>(
                           value: _selectedUnit,
                           hint: Text("Unidad"),
                           isExpanded: true,
                           decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: OrtizPalette.surfaceHigh,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          dropdownColor: Colors.white,
-                          style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                          dropdownColor: OrtizPalette.surface,
+                          style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                           items: _units.map((u) {
                             return DropdownMenuItem(
                               value: u,
@@ -551,7 +555,7 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               
               Row(
                 children: [
@@ -561,102 +565,102 @@ class _AddMarketItemBottomSheetState extends State<AddMarketItemBottomSheet> {
                       children: [
                         Text(
                           "Precio (\$)",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         TextField(
                           controller: _priceUsdController,
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
                             hintText: "0.00 \$",
-                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                            contentPadding: EdgeInsets.all(12),
+                            hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                            contentPadding: EdgeInsets.all(OrtizSpace.md),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: OrtizPalette.surfaceHigh,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Precio (Bs)",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         TextField(
                           controller: _priceVesController,
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
                             hintText: "0.00 Bs.",
-                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                            contentPadding: EdgeInsets.all(12),
+                            hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                            contentPadding: EdgeInsets.all(OrtizSpace.md),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: OrtizPalette.surfaceHigh,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               
               Text(
                 "Tasa de cambio usada",
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: OrtizSpace.xs),
               TextField(
                 controller: _rateController,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [CommaTextInputFormatter()],
                 decoration: InputDecoration(
                   hintText: "0.00",
-                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                  contentPadding: EdgeInsets.all(12),
+                  hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                  contentPadding: EdgeInsets.all(OrtizSpace.md),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: OrtizPalette.surfaceHigh,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               
               ElevatedButton(
                 onPressed: _saveItem,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                 ),
                 child: Text(
                   "Guardar Producto",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: OrtizPalette.onAccent,
                   ),
                 ),
               ),

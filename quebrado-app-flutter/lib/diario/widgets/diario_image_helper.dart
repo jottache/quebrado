@@ -9,6 +9,9 @@ import 'package:path/path.dart' as p;
 import '../theme/diario_colors.dart';
 import 'clipboard_image_helper.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class DiarioImageHelper {
   static final ImagePicker _picker = ImagePicker();
 
@@ -16,13 +19,13 @@ class DiarioImageHelper {
   static Future<String?> pickAvatarWithSourceModal(BuildContext context, {bool hasExistingAvatar = false}) async {
     final String? action = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: OrtizPalette.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -32,27 +35,27 @@ class DiarioImageHelper {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    color: OrtizPalette.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               const Text(
                 'Foto del Contacto',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: OrtizFontSize.titleSm,
                   fontWeight: FontWeight.w900,
                   color: DiarioColors.textPrimary,
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: OrtizSpace.xs),
               const Text(
                 'Selecciona o pega una foto para identificar a tu contacto',
-                style: TextStyle(fontSize: 13, color: DiarioColors.textSecondary),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: OrtizSpace.lg),
               Row(
                 children: [
                   Expanded(
@@ -64,7 +67,7 @@ class DiarioImageHelper {
                       actionValue: 'gallery',
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: _buildActionCard(
                       context: ctx,
@@ -76,16 +79,16 @@ class DiarioImageHelper {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               InkWell(
                 onTap: () => Navigator.of(ctx).pop('paste'),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(OrtizRadius.block),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
                   decoration: BoxDecoration(
-                    color: DiarioColors.primaryLight.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: DiarioColors.primary.withOpacity(0.3), width: 1.2),
+                    color: DiarioColors.primaryLight.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
+                    border: Border.all(color: DiarioColors.primary.withValues(alpha: 0.3), width: 1.2),
                   ),
                   child: Row(
                     children: [
@@ -96,9 +99,9 @@ class DiarioImageHelper {
                           color: DiarioColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
+                        child: const Icon(Icons.content_paste_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: OrtizSpace.md),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,48 +109,47 @@ class DiarioImageHelper {
                             Text(
                               'Pegar del Portapapeles',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.w800,
                                 color: DiarioColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            SizedBox(height: OrtizSpace.xxs),
                             Text(
                               'Usa una imagen copiada en tu equipo (Cmd+V)',
-                              style: TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textSecondary),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: OrtizIconSize.xs, color: DiarioColors.textSecondary),
                     ],
                   ),
                 ),
               ),
               if (hasExistingAvatar) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 InkWell(
                   onTap: () => Navigator.of(ctx).pop('remove'),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.red.withOpacity(0.2)),
+                      color: OrtizPalette.badTint,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
-                        SizedBox(width: 8),
+                        Icon(Icons.delete_outline_rounded, color: OrtizPalette.bad, size: OrtizIconSize.md),
+                        SizedBox(width: OrtizSpace.sm),
                         Text(
                           'Eliminar Foto de Perfil',
                           style: TextStyle(
-                            color: Colors.red,
+                            color: OrtizPalette.bad,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                           ),
                         ),
                       ],
@@ -185,16 +187,16 @@ class DiarioImageHelper {
             SnackBar(
               content: const Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: Colors.white, size: 18),
-                  SizedBox(width: 8),
+                  // El aviso usa el fondo del tema (`fg`): el icono va en `bg`.
+                  Icon(Icons.info_outline_rounded, color: OrtizPalette.bg, size: OrtizIconSize.md),
+                  SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text('No hay ninguna imagen copiada en el portapapeles.'),
                   ),
                 ],
               ),
-              backgroundColor: Colors.grey[850],
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               duration: const Duration(seconds: 3),
             ),
           );
@@ -208,14 +210,14 @@ class DiarioImageHelper {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-                const SizedBox(width: 8),
+                const Icon(Icons.check_circle_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(child: Text(successMessage)),
               ],
             ),
             backgroundColor: DiarioColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -227,7 +229,7 @@ class DiarioImageHelper {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al leer imagen del portapapeles: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: OrtizPalette.bad,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -269,12 +271,12 @@ class DiarioImageHelper {
   }) {
     return InkWell(
       onTap: () => Navigator.of(context).pop(actionValue),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(OrtizRadius.block),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.lg),
         decoration: BoxDecoration(
           color: DiarioColors.background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           border: Border.all(color: DiarioColors.cardBorder, width: 1.2),
         ),
         child: Column(
@@ -286,21 +288,21 @@ class DiarioImageHelper {
                 color: DiarioColors.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: DiarioColors.primary, size: 24),
+              child: Icon(icon, color: DiarioColors.primary, size: OrtizIconSize.lg),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: OrtizFontSize.body,
                 fontWeight: FontWeight.w800,
                 color: DiarioColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: OrtizSpace.xxs),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+              style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -339,13 +341,13 @@ class DiarioImageHelper {
   static Future<String?> pickImageWithSourceModal(BuildContext context) async {
     final String? action = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: OrtizPalette.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -355,27 +357,27 @@ class DiarioImageHelper {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    color: OrtizPalette.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               const Text(
                 'Agregar Foto al Registro',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: OrtizFontSize.titleSm,
                   fontWeight: FontWeight.w900,
                   color: DiarioColors.textPrimary,
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: OrtizSpace.xs),
               const Text(
                 'Elige cómo deseas adjuntar la fotografía',
-                style: TextStyle(fontSize: 13, color: DiarioColors.textSecondary),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: OrtizSpace.lg),
               Row(
                 children: [
                   Expanded(
@@ -387,7 +389,7 @@ class DiarioImageHelper {
                       actionValue: 'camera',
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: _buildActionCard(
                       context: ctx,
@@ -399,16 +401,16 @@ class DiarioImageHelper {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               InkWell(
                 onTap: () => Navigator.of(ctx).pop('paste'),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(OrtizRadius.block),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
                   decoration: BoxDecoration(
-                    color: DiarioColors.primaryLight.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: DiarioColors.primary.withOpacity(0.3), width: 1.2),
+                    color: DiarioColors.primaryLight.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
+                    border: Border.all(color: DiarioColors.primary.withValues(alpha: 0.3), width: 1.2),
                   ),
                   child: Row(
                     children: [
@@ -419,9 +421,9 @@ class DiarioImageHelper {
                           color: DiarioColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
+                        child: const Icon(Icons.content_paste_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: OrtizSpace.md),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,20 +431,20 @@ class DiarioImageHelper {
                             Text(
                               'Pegar del Portapapeles',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.w800,
                                 color: DiarioColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            SizedBox(height: OrtizSpace.xxs),
                             Text(
                               'Adjunta una imagen que tengas copiada (Cmd+V)',
-                              style: TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textSecondary),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: OrtizIconSize.xs, color: DiarioColors.textSecondary),
                     ],
                   ),
                 ),
@@ -470,12 +472,12 @@ class DiarioImageHelper {
   }) {
     return InkWell(
       onTap: () => Navigator.of(context).pop(source),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(OrtizRadius.block),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.lg),
         decoration: BoxDecoration(
           color: DiarioColors.background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           border: Border.all(color: DiarioColors.cardBorder, width: 1.2),
         ),
         child: Column(
@@ -487,21 +489,21 @@ class DiarioImageHelper {
                 color: DiarioColors.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: DiarioColors.primary, size: 24),
+              child: Icon(icon, color: DiarioColors.primary, size: OrtizIconSize.lg),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: OrtizFontSize.body,
                 fontWeight: FontWeight.w800,
                 color: DiarioColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: OrtizSpace.xxs),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+              style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -595,7 +597,7 @@ class DiarioImageHelper {
           return Container(
             width: width,
             height: height,
-            color: Colors.grey[100],
+            color: OrtizPalette.surfaceHigh,
             child: const Center(
               child: SizedBox(
                 width: 24,
@@ -637,9 +639,9 @@ class DiarioImageHelper {
     return Container(
       width: width,
       height: height,
-      color: Colors.grey[100],
+      color: OrtizPalette.surfaceHigh,
       alignment: Alignment.center,
-      child: Icon(Icons.broken_image_rounded, size: 28, color: Colors.grey[400]),
+      child: const Icon(Icons.broken_image_rounded, size: OrtizIconSize.xl, color: OrtizPalette.muted),
     );
   }
 
@@ -648,14 +650,14 @@ class DiarioImageHelper {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (ctx) => Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: OrtizPalette.bg,
           appBar: AppBar(
-            backgroundColor: Colors.black.withOpacity(0.7),
+            backgroundColor: OrtizPalette.bg.withValues(alpha: 0.7),
             elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: const IconThemeData(color: OrtizPalette.fg),
             title: Text(
               title ?? 'Fotografía del Registro',
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: OrtizPalette.fg, fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold),
             ),
           ),
           body: Center(

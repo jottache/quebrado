@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class BookSelectorBottomSheet extends StatefulWidget {
   const BookSelectorBottomSheet({super.key});
 
@@ -29,7 +33,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
         builder: (context, setState) {
           return AlertDialog(
             backgroundColor: AppColors.dialogBg,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
             title: Text(
               "Nueva Contabilidad",
               style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
@@ -43,18 +47,18 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                   autofocus: true,
                   decoration: InputDecoration(
                     hintText: "Ej. Mi Negocio",
-                    hintStyle: TextStyle(color: Colors.grey),
+                    hintStyle: const TextStyle(color: OrtizPalette.muted),
                     enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
                     focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
                   ),
                   style: TextStyle(color: AppColors.cardText),
                 ),
-                const SizedBox(height: 16),
-                Text("Color Principal", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText)),
-                const SizedBox(height: 8),
+                const SizedBox(height: OrtizSpace.lg),
+                Text("Color Principal", style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                const SizedBox(height: OrtizSpace.sm),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: OrtizSpace.sm,
+                  runSpacing: OrtizSpace.sm,
                   children: AppColors.creationColors.map((colorHex) {
                     final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
                     final isSelected = selectedColor == colorHex;
@@ -68,7 +72,9 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                           shape: BoxShape.circle,
                           border: isSelected ? Border.all(color: AppColors.cardText, width: 2) : null,
                         ),
-                        child: isSelected ? Icon(Icons.check, color: Colors.white, size: 18) : null,
+                        child: isSelected
+                            ? const Icon(Icons.check, color: OrtizPalette.onAccent, size: OrtizIconSize.sm)
+                            : null,
                       ),
                     );
                   }).toList(),
@@ -78,7 +84,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+                child: const Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -106,9 +112,9 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 ),
-                child: Text("Crear", style: TextStyle(color: Colors.white)),
+                child: const Text("Crear", style: TextStyle(color: OrtizPalette.onAccent)),
               ),
             ],
           );
@@ -127,7 +133,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
         builder: (context, setState) {
           return AlertDialog(
             backgroundColor: AppColors.dialogBg,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
             title: Text(
               "Editar Contabilidad",
               style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cardText),
@@ -145,12 +151,12 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                   ),
                   style: TextStyle(color: AppColors.cardText),
                 ),
-                const SizedBox(height: 16),
-                Text("Color Principal", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText)),
-                const SizedBox(height: 8),
+                const SizedBox(height: OrtizSpace.lg),
+                Text("Color Principal", style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                const SizedBox(height: OrtizSpace.sm),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: OrtizSpace.sm,
+                  runSpacing: OrtizSpace.sm,
                   children: AppColors.creationColors.map((colorHex) {
                     final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
                     final isSelected = selectedColor == colorHex;
@@ -164,7 +170,9 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                           shape: BoxShape.circle,
                           border: isSelected ? Border.all(color: AppColors.cardText, width: 2) : null,
                         ),
-                        child: isSelected ? Icon(Icons.check, color: Colors.white, size: 18) : null,
+                        child: isSelected
+                            ? const Icon(Icons.check, color: OrtizPalette.onAccent, size: OrtizIconSize.sm)
+                            : null,
                       ),
                     );
                   }).toList(),
@@ -174,7 +182,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+                child: const Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -186,9 +194,9 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 ),
-                child: Text("Guardar", style: TextStyle(color: Colors.white)),
+                child: const Text("Guardar", style: TextStyle(color: OrtizPalette.onAccent)),
               ),
             ],
           );
@@ -202,19 +210,19 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.dialogBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
         title: Text(
           "¿Eliminar Contabilidad?",
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.expense),
         ),
         content: Text(
           "¿Estás seguro de que deseas eliminar el libro '$name'? Se borrarán de forma PERMANENTE todas sus cuentas, transacciones y configuraciones registradas. Esta acción no se puede deshacer.",
-          style: TextStyle(color: AppColors.cardText, fontSize: 13, height: 1.4),
+          style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            child: const Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -243,9 +251,9 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.expense,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
-            child: Text("Eliminar", style: TextStyle(color: Colors.white)),
+            child: const Text("Eliminar", style: TextStyle(color: OrtizPalette.onAccent)),
           ),
         ],
       ),
@@ -264,11 +272,11 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(OrtizSpace.xl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -279,32 +287,32 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(OrtizSpace.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.menu_book_rounded,
                     color: AppColors.primary,
-                    size: 20,
+                    size: OrtizIconSize.md,
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Libros de Contabilidad",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
                     ),
@@ -312,16 +320,16 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Text(
               "Cada libro funciona de forma aislada. Puedes tener un libro para tus finanzas personales y otro independiente para los gastos de tu negocio.",
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 height: 1.4,
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             
             // List of books
             Flexible(
@@ -335,9 +343,11 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                   final profileColor = profile['color'] ?? '';
                   final isActive = appState.activeDbName == profileId;
 
+                  // Fila sin tarjeta: el libro activo va sobre `surfaceHigh`.
                   return Padding(
-                    padding: EdgeInsets.only(bottom: 12.0),
-                    child: GestureDetector(
+                    padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       onTap: isActive
                           ? null
                           : () async {
@@ -354,15 +364,11 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                                 );
                               }
                             },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Ink(
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isActive ? AppColors.primary : AppColors.cardBorderColor,
-                            width: isActive ? 2.0 : AppColors.cardBorderWidth,
-                          ),
+                          color: isActive ? OrtizPalette.surfaceHigh : Colors.transparent,
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                         child: Row(
                           children: [
@@ -370,17 +376,17 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               isActive
                                   ? Icons.check_circle_rounded
                                   : Icons.circle_outlined,
-                              color: isActive ? AppColors.primary : Colors.grey,
-                              size: 20,
+                              color: isActive ? AppColors.primary : OrtizPalette.muted,
+                              size: OrtizIconSize.md,
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: OrtizSpace.md),
                             Expanded(
                               child: Text(
                                 profileName,
                                 style: TextStyle(
                                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                                   color: AppColors.cardText,
-                                  fontSize: 14,
+                                  fontSize: OrtizFontSize.body,
                                 ),
                               ),
                             ),
@@ -388,7 +394,7 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                               Container(
                                 width: 40,
                                 height: 40,
-                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
@@ -400,18 +406,20 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
                                     decoration: BoxDecoration(
                                       color: profileColor.isNotEmpty 
                                           ? Color(int.parse(profileColor.replaceFirst('#', '0xFF'))) 
-                                          : const Color(0xFF1F6F5F),
+                                          : AppColors.primary,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.edit_rounded, size: 18, color: Colors.grey),
+                                tooltip: "Editar",
+                                icon: const Icon(Icons.edit_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                                 onPressed: () => _showRenameBookDialog(context, appState, profileId, profileName, profileColor),
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete_outline_rounded, size: 18, color: Colors.grey),
+                                tooltip: "Eliminar",
+                                icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                                 onPressed: () => _confirmDeleteBook(context, appState, profileId, profileName),
                               ),
                             ],
@@ -424,18 +432,18 @@ class _BookSelectorBottomSheetState extends State<BookSelectorBottomSheet> {
               ),
             ),
             
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             ElevatedButton.icon(
               onPressed: () => _showCreateBookDialog(context, appState),
-              icon: Icon(Icons.add_rounded, color: Colors.white, size: 20),
-              label: Text(
+              icon: const Icon(Icons.add_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+              label: const Text(
                 "Crear nueva contabilidad",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
                 elevation: 0,
               ),
             ),

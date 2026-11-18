@@ -10,8 +10,11 @@ import '../models/transaction.dart';
 import '../theme/colors.dart';
 import '../widgets/timeline_event_row.dart';
 import '../widgets/helpers.dart';
-import '../widgets/claymorphic_card.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class PurchaseSimulationBottomSheet extends StatefulWidget {
   const PurchaseSimulationBottomSheet({super.key});
 
@@ -297,21 +300,21 @@ class _PurchaseSimulationBottomSheetState
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             strokeWidth: 3.5,
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
           Text(
             "Realizando simulación de compra para",
             style: TextStyle(
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
               color: AppColors.cardSubtitleText,
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 6),
+          SizedBox(height: OrtizSpace.xs),
           Text(
             _nameController.text.trim(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: OrtizFontSize.titleSm,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
             ),
@@ -327,12 +330,12 @@ class _PurchaseSimulationBottomSheetState
       child: GestureDetector(
         onTap: () => setState(() => _priority = val),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
           decoration: BoxDecoration(
-            color: isSelected ? themeColor : themeColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? themeColor : themeColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
             border: Border.all(
-              color: isSelected ? themeColor : themeColor.withOpacity(0.15),
+              color: isSelected ? themeColor : themeColor.withValues(alpha: 0.15),
               width: 1.5,
             ),
           ),
@@ -340,9 +343,9 @@ class _PurchaseSimulationBottomSheetState
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : themeColor,
+              color: isSelected ? OrtizPalette.onAccent : themeColor,
             ),
           ),
         ),
@@ -356,10 +359,9 @@ class _PurchaseSimulationBottomSheetState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClaymorphicCard(
-            cornerRadius: 24,
-            padding: EdgeInsets.all(20.0),
-            child: Column(
+          OrtizSection(
+            children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -368,49 +370,49 @@ class _PurchaseSimulationBottomSheetState
                       child: GestureDetector(
                         onTap: () => setState(() => _isInstallments = false),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           decoration: BoxDecoration(
                             color: !_isInstallments
                                 ? AppColors.primary
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
+                                : OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                           child: Center(
                             child: Text(
                               "Ahorro",
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
                                 color: !_isInstallments
-                                    ? Colors.white
-                                    : Colors.grey[600],
+                                    ? OrtizPalette.onAccent
+                                    : OrtizPalette.muted,
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: GestureDetector(
                         onTap: () => setState(() => _isInstallments = true),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           decoration: BoxDecoration(
                             color: _isInstallments
                                 ? AppColors.primary
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
+                                : OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                           child: Center(
                             child: Text(
                               "Cashea",
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
                                 color: _isInstallments
-                                    ? Colors.white
-                                    : Colors.grey[600],
+                                    ? OrtizPalette.onAccent
+                                    : OrtizPalette.muted,
                               ),
                             ),
                           ),
@@ -419,33 +421,33 @@ class _PurchaseSimulationBottomSheetState
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 Text(
                   "INFORMACIÓN DE LA SIMULACIÓN",
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w900,
                     color: AppColors.cardSubtitleText,
                     letterSpacing: 1.0,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
                     hintText: "Nombre (ej. PlayStation 5)",
-                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                    contentPadding: EdgeInsets.all(14),
+                    hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                    contentPadding: EdgeInsets.all(OrtizSpace.md),
                     filled: true,
-                    fillColor: Colors.grey[100],
+                    fillColor: OrtizPalette.surfaceHigh,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       borderSide: BorderSide.none,
                     ),
                     errorText: _nameError,
                   ),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     color: AppColors.cardText,
                   ),
                   onChanged: (_) {
@@ -454,7 +456,7 @@ class _PurchaseSimulationBottomSheetState
                     }
                   },
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -470,20 +472,20 @@ class _PurchaseSimulationBottomSheetState
                               ? "Monto total del producto"
                               : "Monto del producto",
                           hintStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 13,
+                            color: OrtizPalette.muted,
+                            fontSize: OrtizFontSize.bodySm,
                           ),
-                          contentPadding: EdgeInsets.all(14),
+                          contentPadding: EdgeInsets.all(OrtizSpace.md),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: OrtizPalette.surfaceHigh,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                             borderSide: BorderSide.none,
                           ),
                           errorText: _amountError,
                         ),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: OrtizFontSize.body,
                           color: AppColors.cardText,
                         ),
                         onChanged: (_) {
@@ -493,24 +495,24 @@ class _PurchaseSimulationBottomSheetState
                         },
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       flex: 2,
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
+                          horizontal: OrtizSpace.md,
+                          vertical: OrtizSpace.xxs,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
+                          color: OrtizPalette.surfaceHigh,
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<CurrencyType>(
                             value: _currency,
                             isExpanded: true,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: OrtizFontSize.body,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.bold,
                             ),
@@ -530,7 +532,7 @@ class _PurchaseSimulationBottomSheetState
                   ],
                 ),
                 if (_isInstallments) ...[
-                  SizedBox(height: 12),
+                  SizedBox(height: OrtizSpace.md),
                   TextField(
                     controller: _casheaInitialController,
                     keyboardType: TextInputType.numberWithOptions(
@@ -539,20 +541,20 @@ class _PurchaseSimulationBottomSheetState
                     decoration: InputDecoration(
                       hintText: "Monto inicial (Cuota inicial)",
                       hintStyle: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 13,
+                        color: OrtizPalette.muted,
+                        fontSize: OrtizFontSize.bodySm,
                       ),
-                      contentPadding: EdgeInsets.all(14),
+                      contentPadding: EdgeInsets.all(OrtizSpace.md),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: OrtizPalette.surfaceHigh,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                         borderSide: BorderSide.none,
                       ),
                       errorText: _casheaInitialError,
                     ),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       color: AppColors.cardText,
                     ),
                     onChanged: (_) {
@@ -561,43 +563,38 @@ class _PurchaseSimulationBottomSheetState
                       }
                     },
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: OrtizSpace.lg),
                   Text(
                     "NÚMERO DE CUOTAS CASHEA",
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardSubtitleText,
                       letterSpacing: 1.0,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: OrtizSpace.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [3, 6, 12].map((count) {
                       final isSelected = _installmentsCount == count;
                       return Expanded(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4.0),
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
                           child: GestureDetector(
                             onTap: () =>
                                 setState(() => _installmentsCount = count),
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? Color.fromARGB(255, 255, 230, 7)
-                                    : Colors.grey[100],
-                                borderRadius: BorderRadius.circular(12),
+                                    ? OrtizPalette.warn
+                                    : OrtizPalette.surfaceHigh,
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 border: isSelected
                                     ? Border.all(
-                                        color: Color.fromARGB(
-                                          255,
-                                          220,
-                                          200,
-                                          0,
-                                        ),
-                                        width: 1.5,
+                                        color: AppColors.casheaBrand,
+                                        width: OrtizStroke.focus,
                                       )
                                     : null,
                               ),
@@ -605,11 +602,11 @@ class _PurchaseSimulationBottomSheetState
                                 child: Text(
                                   "$count Cuotas",
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: isSelected
-                                        ? Colors.black87
-                                        : Colors.grey[700],
+                                        ? OrtizPalette.fg
+                                        : OrtizPalette.muted,
                                   ),
                                 ),
                               ),
@@ -619,40 +616,30 @@ class _PurchaseSimulationBottomSheetState
                       );
                     }).toList(),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: OrtizSpace.md),
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(OrtizSpace.md),
                     decoration: BoxDecoration(
-                      color: Color.fromARGB(
-                        255,
-                        255,
-                        230,
-                        7,
-                      ).withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.casheaBrand.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       border: Border.all(
-                        color: Color.fromARGB(
-                          255,
-                          255,
-                          230,
-                          7,
-                        ).withOpacity(0.3),
+                        color: AppColors.casheaBrand.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.info_outline_rounded,
-                          color: Color.fromARGB(255, 180, 160, 0),
-                          size: 18,
+                          color: OrtizPalette.warn,
+                          size: OrtizIconSize.sm,
                         ),
-                        SizedBox(width: 8),
+                        SizedBox(width: OrtizSpace.sm),
                         Expanded(
                           child: Text(
                             "Frecuencia fija: Cada 14 días (Modelo catorcenal de Cashea)",
                             style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.black87,
+                              fontSize: OrtizFontSize.caption,
+                              color: OrtizPalette.fg,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -662,28 +649,28 @@ class _PurchaseSimulationBottomSheetState
                   ),
                 ],
                 if (!_isInstallments) ...[
-                  SizedBox(height: 16),
+                  SizedBox(height: OrtizSpace.lg),
                   Text(
                     "PRIORIDAD DE AHORRO",
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardSubtitleText,
                       letterSpacing: 1.0,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: OrtizSpace.sm),
                   Row(
                     children: [
-                      _buildPriorityButton(1, "Alta", Colors.red[400]!),
-                      SizedBox(width: 8),
-                      _buildPriorityButton(2, "Media", Colors.orange[400]!),
-                      SizedBox(width: 8),
-                      _buildPriorityButton(3, "Baja", Colors.blue[400]!),
+                      _buildPriorityButton(1, "Alta", OrtizPalette.bad),
+                      SizedBox(width: OrtizSpace.sm),
+                      _buildPriorityButton(2, "Media", OrtizPalette.warn),
+                      SizedBox(width: OrtizSpace.sm),
+                      _buildPriorityButton(3, "Baja", OrtizPalette.ok),
                     ],
                   ),
                 ],
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -692,7 +679,7 @@ class _PurchaseSimulationBottomSheetState
                           ? "Fecha de Compra"
                           : "Fecha Límite Estimada",
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.bold,
                         color: AppColors.cardText,
                       ),
@@ -704,11 +691,11 @@ class _PurchaseSimulationBottomSheetState
                             backgroundColor: AppColors.nestedTabTrackBg,
                             foregroundColor: AppColors.primary,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             padding: EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
+                              horizontal: OrtizSpace.md,
+                              vertical: OrtizSpace.sm,
                             ),
                           ),
                           onPressed: () async {
@@ -737,7 +724,7 @@ class _PurchaseSimulationBottomSheetState
                                 : "Seleccionar fecha",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                             ),
                           ),
                         ),
@@ -747,17 +734,18 @@ class _PurchaseSimulationBottomSheetState
                 ),
                 if (_dateError != null)
                   Padding(
-                    padding: EdgeInsets.only(top: 6.0, left: 4.0),
+                    padding: EdgeInsets.only(top: OrtizSpace.xs, left: OrtizSpace.xs),
                     child: Text(
                       _dateError!,
                       style: TextStyle(
                         color: AppColors.expense,
-                        fontSize: 11,
+                        fontSize: OrtizFontSize.caption,
                       ),
                     ),
                   ),
               ],
             ),
+            ],
           ),
         ],
       ),
@@ -863,29 +851,29 @@ class _PurchaseSimulationBottomSheetState
             // Warnings / Recommendations
             if (!_isFeasible)
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                  color: OrtizPalette.warn.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                  border: Border.all(color: OrtizPalette.warn.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.orange,
-                      size: 20,
+                      color: OrtizPalette.warn,
+                      size: OrtizIconSize.md,
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         _isInstallments
                             ? "Con tu flujo actual, no es viable pagar las cuotas de esta compra. El saldo líquido proyectado quedaría en negativo en al menos una de las fechas de pago."
                             : "Con tu flujo actual, no es viable realizar esta compra para el ${_simulatedPocket?.targetDate != null ? formatDate(_simulatedPocket!.targetDate!) : ''}. La app extenderá automáticamente los ahorros hasta el ${_viableDate != null ? formatDate(_viableDate!) : 'futuro'}.",
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange[800],
+                          fontSize: OrtizFontSize.bodySm,
+                          color: OrtizPalette.warn,
                           height: 1.4,
                         ),
                       ),
@@ -895,29 +883,29 @@ class _PurchaseSimulationBottomSheetState
               )
             else
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.2)),
+                  color: OrtizPalette.ok.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                  border: Border.all(color: OrtizPalette.ok.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.check_circle_outline_rounded,
-                      color: Colors.green,
-                      size: 20,
+                      color: OrtizPalette.ok,
+                      size: OrtizIconSize.md,
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         _isInstallments
                             ? "¡Es viable! Tu flujo de caja actual soporta el pago de estas cuotas."
                             : "¡Es viable! Tu flujo de caja actual soporta esta meta de ahorro para la fecha indicada.",
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green,
+                          fontSize: OrtizFontSize.bodySm,
+                          color: OrtizPalette.ok,
                           height: 1.4,
                         ),
                       ),
@@ -926,13 +914,13 @@ class _PurchaseSimulationBottomSheetState
                 ),
               ),
 
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Toggle Filter: "Solo Simulación" is first, "Timeline Completo" is second!
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
+                color: OrtizPalette.surfaceHigh,
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: Row(
                 children: [
@@ -943,32 +931,24 @@ class _PurchaseSimulationBottomSheetState
                         _currentScrollSuggestionIndex = 0;
                       }),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                         decoration: BoxDecoration(
                           color: !_showFullTimeline
-                              ? Colors.white
+                              ? OrtizPalette.line
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: !_showFullTimeline
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                         child: Center(
                           child: Text(
                             "Solo Simulación (${simulatedSuggestions.length})",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: !_showFullTimeline
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               color: !_showFullTimeline
                                   ? AppColors.primary
-                                  : Colors.grey[600],
+                                  : OrtizPalette.muted,
                             ),
                           ),
                         ),
@@ -982,32 +962,24 @@ class _PurchaseSimulationBottomSheetState
                         _currentScrollSuggestionIndex = 0;
                       }),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                         decoration: BoxDecoration(
                           color: _showFullTimeline
-                              ? Colors.white
+                              ? OrtizPalette.line
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: _showFullTimeline
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                         child: Center(
                           child: Text(
                             "Timeline Completo",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: _showFullTimeline
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               color: _showFullTimeline
                                   ? AppColors.primary
-                                  : Colors.grey[600],
+                                  : OrtizPalette.muted,
                             ),
                           ),
                         ),
@@ -1018,7 +990,7 @@ class _PurchaseSimulationBottomSheetState
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Timeline List
             Expanded(
@@ -1026,13 +998,15 @@ class _PurchaseSimulationBottomSheetState
                   ? Center(
                       child: Text(
                         "No hay sugerencias que mostrar.",
-                        style: TextStyle(color: Colors.grey[500]),
+                        style: TextStyle(color: OrtizPalette.muted),
                       ),
                     )
                   : ListView.builder(
                       controller: _scrollController,
                       padding: EdgeInsets.only(
-                        bottom: _showFullTimeline ? 80 : 20,
+                        bottom: _showFullTimeline
+                            ? OrtizSize.minTouch + OrtizSpace.xxxl
+                            : OrtizSpace.xl,
                       ),
                       physics: BouncingScrollPhysics(),
                       itemCount: listItems.length,
@@ -1041,9 +1015,9 @@ class _PurchaseSimulationBottomSheetState
                         if (item is String) {
                           return Padding(
                             padding: EdgeInsets.only(
-                              top: 20.0,
-                              bottom: 8.0,
-                              left: 4.0,
+                              top: OrtizSpace.xl,
+                              bottom: OrtizSpace.sm,
+                              left: OrtizSpace.xs,
                             ),
                             child: Row(
                               children: [
@@ -1055,11 +1029,11 @@ class _PurchaseSimulationBottomSheetState
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: OrtizSpace.sm),
                                 Text(
                                   item,
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.primary,
                                     letterSpacing: 0.5,
@@ -1088,7 +1062,7 @@ class _PurchaseSimulationBottomSheetState
         // Scroll button centered at the bottom of the list!
         if (simulatedSuggestions.isNotEmpty && _showFullTimeline)
           Positioned(
-            bottom: 16,
+            bottom: OrtizSpace.lg,
             left: 0,
             right: 0,
             child: Center(
@@ -1096,34 +1070,27 @@ class _PurchaseSimulationBottomSheetState
                 onTap: () => _scrollToNextSuggestion(appState, listItems),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+                    horizontal: OrtizSpace.lg,
+                    vertical: OrtizSpace.sm,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: Colors.white,
-                        size: 20,
+                        color: OrtizPalette.onAccent,
+                        size: OrtizIconSize.md,
                       ),
-                      SizedBox(width: 6),
+                      SizedBox(width: OrtizSpace.xs),
                       Text(
                         "Ir a sugerencia (${_currentScrollSuggestionIndex + 1}/${simulatedSuggestions.length})",
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
+                          color: OrtizPalette.onAccent,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1145,15 +1112,15 @@ class _PurchaseSimulationBottomSheetState
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: 0.9,
@@ -1166,12 +1133,12 @@ class _PurchaseSimulationBottomSheetState
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.faint,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -1182,9 +1149,9 @@ class _PurchaseSimulationBottomSheetState
                       ? "Simulación"
                       : (_isLoading ? "Simulando..." : "Simular"),
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 if (!_isLoading)
@@ -1194,7 +1161,7 @@ class _PurchaseSimulationBottomSheetState
                   ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Body
             Expanded(
@@ -1217,7 +1184,7 @@ class _PurchaseSimulationBottomSheetState
                           : _buildFormFields(appState)),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Action Buttons at the bottom
             if (!_isLoading) ...[
@@ -1227,31 +1194,31 @@ class _PurchaseSimulationBottomSheetState
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                         ),
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           "Cancelar",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: OrtizPalette.muted,
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          foregroundColor: OrtizPalette.onAccent,
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                           elevation: 0,
                         ),
@@ -1259,7 +1226,7 @@ class _PurchaseSimulationBottomSheetState
                         child: Text(
                           "Simular",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1273,31 +1240,31 @@ class _PurchaseSimulationBottomSheetState
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                         ),
                         onPressed: () => setState(() => _isSimulated = false),
                         child: Text(
                           "Volver a configurar",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          foregroundColor: OrtizPalette.onAccent,
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                           elevation: 0,
                         ),
@@ -1305,7 +1272,7 @@ class _PurchaseSimulationBottomSheetState
                         child: Text(
                           "Cerrar",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

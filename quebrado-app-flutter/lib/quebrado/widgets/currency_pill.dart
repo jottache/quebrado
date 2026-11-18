@@ -5,10 +5,18 @@ import '../models/transaction.dart';
 import '../viewmodels/app_state.dart';
 import 'helpers.dart';
 
+import 'package:quebrado_app_flutter/theme/colors.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
 /// Colores fijos por moneda en la proyección, para reconocerlas de un vistazo.
-const Color usdCurrencyColor = Color(0xFF16A34A); // verde
-const Color bsCurrencyColor = Color(0xFFD97706); // ámbar
-const Color eurCurrencyColor = Color(0xFF2563EB); // azul
+/// Viven en `AppColors` (calibrados para el tema oscuro, P-39).
+const Color usdCurrencyColor = AppColors.currencyUsd; // verde
+const Color bsCurrencyColor = AppColors.currencyBs; // ámbar
+const Color eurCurrencyColor = AppColors.currencyEur; // azul
 
 Color currencyColor(CurrencyType currency) {
   switch (currency) {
@@ -40,20 +48,28 @@ class CurrencyPill extends StatelessWidget {
 
   const CurrencyPill(this.currency, {super.key, this.to});
 
+  /// Opacidad del borde: la de los `xxxBorder` de la suite.
+  static const double _borderOpacity = SuiteAppColors.borderAlpha / 255;
+
   @override
   Widget build(BuildContext context) {
+    final t = OrtizTokens.of(context);
     Widget part(CurrencyType c) => Text(
           currencyShortLabel(c),
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: currencyColor(c), height: 1.1),
+          style: OrtizType.caption.copyWith(
+            fontWeight: FontWeight.w900,
+            color: currencyColor(c),
+            height: 1.1,
+          ),
         );
     final color = currencyColor(to ?? currency);
     return Container(
       key: ValueKey('currency_pill_${currency.name}${to != null ? '_${to!.name}' : ''}'),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.45)),
+        color: OrtizPill.backgroundFor(color),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+        border: Border.all(color: color.withValues(alpha: _borderOpacity)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -61,8 +77,8 @@ class CurrencyPill extends StatelessWidget {
           part(currency),
           if (to != null) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.grey[600]),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
+              child: Icon(Icons.arrow_forward_rounded, size: OrtizIconSize.xs, color: t.muted),
             ),
             part(to!),
           ],

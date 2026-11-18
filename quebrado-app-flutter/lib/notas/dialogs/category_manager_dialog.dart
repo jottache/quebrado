@@ -4,6 +4,10 @@ import '../models/note_category.dart';
 import '../theme/notas_colors.dart';
 import '../viewmodels/notas_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Diálogo para administrar categorías de Notas & Acuerdos.
 /// Permite crear nuevas categorías, editarlas y eliminarlas de forma segura.
 /// Si se elimina una categoría con notas, éstas se reasignan automáticamente
@@ -29,23 +33,14 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
 
   final TextEditingController _nameController = TextEditingController();
   String _selectedIcon = '📁';
-  Color _selectedColor = const Color(0xFF6366F1);
+  Color _selectedColor = NotasColors.categoryDefault;
 
   final List<String> _availableIcons = [
     '📁', '💍', '💡', '📍', '📝', '🎯', '🚀', '❤️',
     '💼', '📚', '🏠', '✈️', '🛒', '🎨', '🔒', '⭐',
   ];
 
-  final List<Color> _availableColors = const [
-    Color(0xFFE11D48), // Rose / Acuerdos
-    Color(0xFFD97706), // Amber / Ideas
-    Color(0xFF2563EB), // Blue / Direcciones
-    Color(0xFF059669), // Emerald
-    Color(0xFF7C3AED), // Violet
-    Color(0xFF0D9488), // Teal
-    Color(0xFFEA580C), // Orange
-    Color(0xFF64748B), // Slate / General
-  ];
+  final List<Color> _availableColors = NotasColors.categoryPalette;
 
   @override
   void dispose() {
@@ -111,15 +106,15 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-            const SizedBox(width: 10),
+            const Icon(Icons.warning_amber_rounded, color: OrtizPalette.warn, size: OrtizIconSize.lg),
+            const SizedBox(width: OrtizSpace.sm),
             const Expanded(
               child: Text(
                 '¿Eliminar categoría?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.title),
               ),
             ),
           ],
@@ -130,26 +125,26 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
           children: [
             Text(
               'Estás a punto de eliminar "${category.name}".',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.body),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             if (noteCount > 0)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                  color: OrtizPalette.surfaceHigh,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                  border: Border.all(color: OrtizPalette.line),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: Colors.blue, size: 20),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.info_outline_rounded, color: NotasColors.primary, size: OrtizIconSize.md),
+                    const SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         'Esta categoría tiene $noteCount notas asociadas. Ninguna nota se perderá: se moverán automáticamente a la categoría "General".',
-                        style: const TextStyle(fontSize: 12.5, color: Colors.black87, height: 1.3),
+                        style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.fg, height: 1.3),
                       ),
                     ),
                   ],
@@ -158,22 +153,23 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
             else
               const Text(
                 'Esta categoría no tiene notas asociadas y se eliminará de forma permanente.',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
               ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancelar', style: TextStyle(color: OrtizPalette.muted)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: OrtizPalette.bad,
+              foregroundColor: OrtizPalette.onAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Eliminar', style: TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -190,8 +186,8 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
     final categories = notasState.categories;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+      backgroundColor: OrtizPalette.surface,
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 620),
@@ -200,10 +196,9 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
           children: [
             // Header del diálogo
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.lg),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: OrtizPalette.line)),
               ),
               child: Row(
                 children: [
@@ -212,30 +207,30 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: NotasColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: const Center(
-                      child: Icon(Icons.folder_special_rounded, color: NotasColors.primary, size: 20),
+                      child: Icon(Icons.folder_special_rounded, color: NotasColors.primary, size: OrtizIconSize.md),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Categorías de Notas',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm, color: OrtizPalette.fg),
                         ),
                         Text(
                           'Organiza tus notas, acuerdos e ideas',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20, color: Colors.black54),
+                    icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -250,20 +245,19 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
             // Footer con botón de acción
             if (!_isCreating)
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                padding: const EdgeInsets.all(OrtizSpace.lg),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: OrtizPalette.line)),
                 ),
                 child: FilledButton.icon(
                   onPressed: _startCreating,
-                  icon: const Icon(Icons.add_rounded, size: 18),
+                  icon: const Icon(Icons.add_rounded, size: OrtizIconSize.sm),
                   label: const Text('Nueva Categoría', style: TextStyle(fontWeight: FontWeight.bold)),
                   style: FilledButton.styleFrom(
                     backgroundColor: NotasColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    foregroundColor: OrtizPalette.onAccent,
+                    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                   ),
                 ),
               ),
@@ -276,31 +270,31 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
   Widget _buildCategoryList(BuildContext context, NotasState notasState, List<NoteCategory> categories) {
     if (categories.isEmpty) {
       return const Center(
-        child: Text('No hay categorías registradas', style: TextStyle(color: Colors.grey)),
+        child: Text('No hay categorías registradas', style: TextStyle(color: OrtizPalette.muted)),
       );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm, horizontal: OrtizSpace.md),
       itemCount: categories.length,
-      separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey[150]),
+      separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final cat = categories[index];
         final noteCount = notasState.notes.where((n) => n.categoryId == cat.id).length;
         final isDefault = cat.isSystem || cat.id == NoteCategory.generalCategoryId;
 
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
           leading: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: cat.color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: cat.color.withOpacity(0.3), width: 1.2),
+              color: cat.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+              border: Border.all(color: cat.color.withValues(alpha: 0.3), width: 1.2),
             ),
             child: Center(
-              child: Text(cat.icon, style: const TextStyle(fontSize: 20)),
+              child: Text(cat.icon, style: const TextStyle(fontSize: OrtizFontSize.title)),
             ),
           ),
           title: Row(
@@ -308,21 +302,21 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
               Flexible(
                 child: Text(
                   cat.name,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: OrtizFontSize.body),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (isDefault) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(6),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   child: const Text(
                     'Predeterminada',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
+                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                   ),
                 ),
               ],
@@ -330,19 +324,19 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
           ),
           subtitle: Text(
             '$noteCount ${noteCount == 1 ? 'nota' : 'notas'}',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black54),
+                icon: const Icon(Icons.edit_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
                 tooltip: 'Editar',
                 onPressed: () => _startEditing(cat),
               ),
               if (!isDefault)
                 IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                  icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: OrtizPalette.bad),
                   tooltip: 'Eliminar',
                   onPressed: () => _confirmDelete(context, notasState, cat),
                 ),
@@ -355,7 +349,7 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
 
   Widget _buildForm(NotasState notasState) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(OrtizSpace.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -363,7 +357,7 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
             children: [
               Text(
                 _editingCategory != null ? 'Editar Categoría' : 'Nueva Categoría',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
               ),
               const Spacer(),
               TextButton(
@@ -372,30 +366,30 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: OrtizSpace.md),
 
           // Campo de Nombre
-          const Text('Nombre de la categoría', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          const SizedBox(height: 6),
+          const Text('Nombre de la categoría', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.bodySm)),
+          const SizedBox(height: OrtizSpace.xs),
           TextField(
             controller: _nameController,
             autofocus: true,
             decoration: InputDecoration(
               hintText: 'Ej: Acuerdos de Pareja, Finanzas...',
-              hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+              hintStyle: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
               filled: true,
-              fillColor: Colors.grey[50],
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[300]!)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[300]!)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: NotasColors.primary, width: 1.8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              fillColor: OrtizPalette.surfaceHigh,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip), borderSide: const BorderSide(color: OrtizPalette.line)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip), borderSide: const BorderSide(color: OrtizPalette.line)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip), borderSide: const BorderSide(color: NotasColors.primary, width: 1.8)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: OrtizSpace.lg),
 
           // Selector de Emoji / Icono
-          const Text('Icono representativo', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          const SizedBox(height: 8),
+          const Text('Icono representativo', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.bodySm)),
+          const SizedBox(height: OrtizSpace.sm),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -403,31 +397,31 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
               final isSelected = _selectedIcon == icon;
               return InkWell(
                 onTap: () => setState(() => _selectedIcon = icon),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: isSelected ? NotasColors.primaryLight : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
+                    color: isSelected ? NotasColors.primaryLight : OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     border: Border.all(
-                      color: isSelected ? NotasColors.primary : Colors.grey[300]!,
+                      color: isSelected ? NotasColors.primary : OrtizPalette.line,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
                   child: Center(
-                    child: Text(icon, style: const TextStyle(fontSize: 20)),
+                    child: Text(icon, style: const TextStyle(fontSize: OrtizFontSize.title)),
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: OrtizSpace.lg),
 
           // Selector de Color
-          const Text('Color distintivo', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          const SizedBox(height: 8),
+          const Text('Color distintivo', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.bodySm)),
+          const SizedBox(height: OrtizSpace.sm),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -442,27 +436,19 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      if (isSelected)
-                        BoxShadow(
-                          color: color.withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                    ],
                     border: Border.all(
-                      color: isSelected ? Colors.white : Colors.transparent,
+                      color: isSelected ? OrtizPalette.fg : Colors.transparent,
                       width: 2.5,
                     ),
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                      ? const Icon(Icons.check_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.sm)
                       : null,
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: OrtizSpace.xxl),
 
           // Botón Guardar
           SizedBox(
@@ -471,9 +457,9 @@ class _CategoryManagerDialogState extends State<CategoryManagerDialog> {
               onPressed: () => _saveCategory(notasState),
               style: FilledButton.styleFrom(
                 backgroundColor: NotasColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: OrtizPalette.onAccent,
+                padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
               child: Text(
                 _editingCategory != null ? 'Actualizar Categoría' : 'Crear Categoría',

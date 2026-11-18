@@ -13,12 +13,21 @@ import '../widgets/mood_quick_bar.dart';
 import '../screens/animo_dashboard_screen.dart';
 import '../../notas/notas.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class PersonalNotesView extends StatefulWidget {
   final EdgeInsetsGeometry padding;
 
   const PersonalNotesView({
     super.key,
-    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 88),
+    // Abajo deja sitio al FAB (48 + 32 + 8 = 88).
+    this.padding = const EdgeInsets.fromLTRB(
+      OrtizSpace.lg,
+      OrtizSpace.lg,
+      OrtizSpace.lg,
+      OrtizSize.minTouch + OrtizSpace.xxxl + OrtizSpace.sm,
+    ),
   });
 
   @override
@@ -88,36 +97,36 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
       children: [
         // 0. Check-in de ánimo (no se dibuja si AnimoState no está registrado)
         MoodTodayCard(
-          margin: const EdgeInsets.only(bottom: 14),
+          margin: const EdgeInsets.only(bottom: OrtizSpace.md),
           onOpenDashboard: () => openAnimoDashboard(context),
         ),
 
         // 1. Header Banner: Quick Action & Stats
         _buildHeaderBanner(context, allPersonal.length),
 
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
 
         // 2. Search Field
         TextField(
           onChanged: (val) => setState(() => _searchQuery = val),
           decoration: InputDecoration(
             hintText: 'Buscar en mis notas personales...',
-            prefixIcon: const Icon(Icons.search_rounded, size: 20, color: DiarioColors.textMuted),
+            prefixIcon: const Icon(Icons.search_rounded, size: OrtizIconSize.md, color: DiarioColors.textMuted),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: OrtizPalette.surface,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               borderSide: const BorderSide(color: DiarioColors.cardBorder),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               borderSide: const BorderSide(color: DiarioColors.cardBorder),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         // 3. Filter Chips
         SingleChildScrollView(
@@ -126,20 +135,20 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
             children: _filters.map((filter) {
               final isSelected = _selectedFilter == filter;
               return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
+                padding: const EdgeInsets.only(right: OrtizSpace.sm),
                 child: ChoiceChip(
                   label: Text(filter),
                   selected: isSelected,
                   showCheckmark: false,
                   selectedColor: DiarioColors.primary,
-                  backgroundColor: Colors.white,
+                  backgroundColor: OrtizPalette.bg,
                   labelStyle: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                    color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                    color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                     side: BorderSide(
                       color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
                     ),
@@ -151,7 +160,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
           ),
         ),
 
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
 
         // 4. Notes List or Empty State
         if (filtered.isEmpty)
@@ -163,37 +172,23 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
   }
 
   Widget _buildHeaderBanner(BuildContext context, int totalCount) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1F6F5F), Color(0xFF164E43)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1F6F5F).withOpacity(0.25),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    // Sin tarjeta (spec 05): encabezado sobre el fondo, sin degradado ni sombra.
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(12),
+                  color: DiarioColors.primaryLight,
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
-                child: const Icon(Icons.note_alt_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.note_alt_rounded, color: DiarioColors.primary, size: OrtizIconSize.md),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,17 +196,17 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                     const Text(
                       'Mis Notas Personales',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: OrtizFontSize.titleSm,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: OrtizPalette.fg,
                         letterSpacing: -0.3,
                       ),
                     ),
                     Text(
                       '$totalCount ${totalCount == 1 ? "nota guardada" : "notas guardadas"}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white.withOpacity(0.85),
+                      style: const TextStyle(
+                        fontSize: OrtizFontSize.caption,
+                        color: OrtizPalette.muted,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -220,40 +215,40 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: OrtizSpace.md),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _openQuickNoteDialog(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF1F6F5F),
+                    backgroundColor: DiarioColors.primary,
+                    foregroundColor: OrtizPalette.onAccent,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   ),
-                  icon: const Icon(Icons.bolt_rounded, size: 18),
+                  icon: const Icon(Icons.bolt_rounded, size: OrtizIconSize.md),
                   label: const Text(
                     'Nota Rápida',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _openNewNoteDialog(),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white70, width: 1.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: DiarioColors.primary,
+                    side: const BorderSide(color: DiarioColors.primaryBorder),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   ),
-                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  icon: const Icon(Icons.tune_rounded, size: OrtizIconSize.md),
                   label: const Text(
                     'Nota Completa',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
                   ),
                 ),
               ),
@@ -265,14 +260,10 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
   }
 
   Widget _buildEmptyState() {
+    // Sin tarjeta (spec 05): estado vacío sobre el fondo.
     return Container(
-      margin: const EdgeInsets.only(top: 20),
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
+      margin: const EdgeInsets.only(top: OrtizSpace.xl),
+      padding: const EdgeInsets.all(OrtizSpace.xxxl),
       child: Column(
         children: [
           Container(
@@ -282,30 +273,30 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
               color: DiarioColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.note_alt_outlined, size: 28, color: DiarioColors.primary),
+            child: const Icon(Icons.note_alt_outlined, size: OrtizIconSize.xl, color: DiarioColors.primary),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
           const Text(
             'Sin notas personales aún',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+            style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: OrtizSpace.xs),
           const Text(
             'Guarda ideas, recordatorios rápidos o notas por voz sin tener que asociarlas a ningún contacto.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary, height: 1.4),
+            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, height: 1.4),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: OrtizSpace.md),
           ElevatedButton.icon(
             onPressed: () => _openNewNoteDialog(),
             style: ElevatedButton.styleFrom(
               backgroundColor: DiarioColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              foregroundColor: OrtizPalette.onAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
             ),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Crear Primera Nota', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            icon: const Icon(Icons.add_rounded, size: OrtizIconSize.md),
+            label: const Text('Crear Primera Nota', style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
           ),
         ],
       ),
@@ -318,30 +309,20 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
       template = state.getTemplateById(entry.templateId!);
     }
 
+    // Sin tarjeta (spec 05): fila sobre el fondo; la fijada va sobre `surfaceHigh`.
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: entry.isPinned ? DiarioColors.primary.withOpacity(0.40) : DiarioColors.cardBorder,
-          width: entry.isPinned ? 1.5 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
+        color: entry.isPinned ? OrtizPalette.surfaceHigh : Colors.transparent,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => openEntryReader(context, entry),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(OrtizSpace.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -349,24 +330,24 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                       decoration: BoxDecoration(
                         color: DiarioColors.primaryLight,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             template != null ? template.iconData : Icons.note_alt_rounded,
-                            size: 13,
+                            size: OrtizIconSize.xs,
                             color: DiarioColors.primary,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: OrtizSpace.xs),
                           Text(
                             template != null ? template.name : 'Nota Personal',
                             style: const TextStyle(
-                              fontSize: 10.5,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: DiarioColors.primary,
                             ),
@@ -378,21 +359,21 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
 
                     // Date
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                       decoration: BoxDecoration(
                         color: DiarioColors.background,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         border: Border.all(color: DiarioColors.cardBorder),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.calendar_today_rounded, size: 10, color: DiarioColors.textMuted),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.calendar_today_rounded, size: OrtizIconSize.xs, color: DiarioColors.textMuted),
+                          const SizedBox(width: OrtizSpace.xs),
                           Text(
                             entry.formattedDate,
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w700,
                               color: DiarioColors.textSecondary,
                             ),
@@ -401,24 +382,24 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                       ),
                     ),
 
-                    const SizedBox(width: 6),
+                    const SizedBox(width: OrtizSpace.xs),
 
                     if (entry.isPinned)
                       IconButton(
-                        icon: const Icon(Icons.push_pin_rounded, color: DiarioColors.primary, size: 18),
+                        icon: const Icon(Icons.push_pin_rounded, color: DiarioColors.primary, size: OrtizIconSize.md),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         tooltip: 'Nota fijada',
                         onPressed: () => state.togglePinEntry(entry.id),
                       ),
 
-                    if (entry.isPinned) const SizedBox(width: 6),
+                    if (entry.isPinned) const SizedBox(width: OrtizSpace.xs),
 
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_horiz_rounded, size: 20, color: DiarioColors.textMuted),
+                      icon: const Icon(Icons.more_horiz_rounded, size: OrtizIconSize.md, color: DiarioColors.textMuted),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                       onSelected: (val) {
                         if (val == 'edit') _openEditNoteDialog(entry);
                         if (val == 'pin') state.togglePinEntry(entry.id);
@@ -429,8 +410,8 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                           value: 'pin',
                           child: Row(
                             children: [
-                              Icon(entry.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: 18),
-                              const SizedBox(width: 8),
+                              Icon(entry.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: OrtizIconSize.md),
+                              const SizedBox(width: OrtizSpace.sm),
                               Text(entry.isPinned ? 'Desfijar' : 'Fijar al inicio'),
                             ],
                           ),
@@ -439,8 +420,8 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                           value: 'edit',
                           child: Row(
                             children: [
-                              Icon(Icons.edit_outlined, size: 18),
-                              SizedBox(width: 8),
+                              Icon(Icons.edit_outlined, size: OrtizIconSize.md),
+                              SizedBox(width: OrtizSpace.sm),
                               Text('Editar'),
                             ],
                           ),
@@ -449,8 +430,8 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                           value: 'delete',
                           child: Row(
                             children: [
-                              Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: 18),
-                              SizedBox(width: 8),
+                              Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: OrtizIconSize.md),
+                              SizedBox(width: OrtizSpace.sm),
                               Text('Eliminar', style: TextStyle(color: DiarioColors.rose)),
                             ],
                           ),
@@ -462,11 +443,11 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
 
                 // Title
                 if (entry.hasTitle) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: OrtizSpace.sm),
                   Text(
                     entry.title,
                     style: const TextStyle(
-                      fontSize: 15.5,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.w900,
                       color: DiarioColors.textPrimary,
                       letterSpacing: -0.2,
@@ -476,7 +457,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
 
                 // Content text
                 if (entry.contentText != null && entry.contentText!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: OrtizSpace.xs),
                   Text.rich(
                     TextSpan(
                       children: MentionTextSpanHelper.buildSpans(
@@ -484,7 +465,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                         contacts: state.contacts,
                         notes: Provider.of<NotasState>(context, listen: false).notes,
                         baseStyle: const TextStyle(
-                          fontSize: 13,
+                          fontSize: OrtizFontSize.bodySm,
                           color: DiarioColors.textSecondary,
                           height: 1.4,
                         ),
@@ -503,22 +484,22 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
 
                 // Dynamic template fields badges
                 if (entry.contentData.isNotEmpty) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: OrtizSpace.sm),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
                     children: entry.contentData.entries.where((e) => e.value != null && e.value.toString().trim().isNotEmpty).map((e) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                         decoration: BoxDecoration(
                           color: DiarioColors.background,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           border: Border.all(color: DiarioColors.cardBorder),
                         ),
                         child: Text(
                           '${e.key}: ${e.value}',
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w700,
                             color: DiarioColors.textPrimary,
                           ),
@@ -530,7 +511,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
 
                 // Photo Thumbnail
                 if (entry.hasPhoto) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: OrtizSpace.md),
                   GestureDetector(
                     onTap: () => DiarioImageHelper.openFullScreenImage(
                       context,
@@ -538,7 +519,7 @@ class _PersonalNotesViewState extends State<PersonalNotesView> {
                       title: entry.title.isNotEmpty ? entry.title : 'Nota Personal',
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       child: DiarioImageHelper.buildImageWidget(
                         entry.photoUrl!,
                         height: 140,

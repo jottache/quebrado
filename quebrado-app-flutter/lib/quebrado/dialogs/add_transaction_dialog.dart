@@ -6,15 +6,17 @@ import '../models/transaction.dart';
 import '../models/transaction_category.dart';
 import '../models/currency_type.dart';
 import '../models/account.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../screens/mobile_payment_recipient_screen.dart' show venezuelanBanks;
-import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
 import '../models/saving_pocket.dart';
 import 'cross_profile_transfer_dialog.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 enum RateSource { bcv, paralelo, euro }
 
 extension RateSourceExtension on RateSource {
@@ -414,82 +416,80 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
       context: context,
       barrierDismissible: true,
       builder: (dialogCtx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.symmetric(horizontal: 24),
-        child: ClaymorphicCard(
-          cornerRadius: 24,
-          padding: EdgeInsets.all(24),
+        insetPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
+        child: Padding(
+          padding: EdgeInsets.all(OrtizSpace.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
                 child: Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(OrtizSpace.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.expense.withOpacity(0.12),
+                    color: AppColors.expense.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.warning_amber_rounded,
                     color: AppColors.expense,
-                    size: 48,
+                    size: OrtizIconSize.xxl,
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Center(
                 child: Text(
                   "¿Eliminar Movimiento?",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
                     color: AppColors.cardText,
                   ),
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
               Text(
                 "¿Estás seguro de que deseas eliminar este movimiento? Esta acción es permanente y recalculará todos los balances y proyecciones correspondientes.",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: OrtizFontSize.bodySm,
                   color: AppColors.cardSubtitleText,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                       ),
                       onPressed: () => Navigator.pop(dialogCtx),
                       child: Text(
                         "Cancelar",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: OrtizFontSize.body,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey,
+                          color: AppColors.cardSubtitleText,
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.expense,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        foregroundColor: OrtizPalette.onAccent,
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                       ),
                       onPressed: () {
@@ -500,7 +500,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                       child: Text(
                         "Eliminar",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: OrtizFontSize.body,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -532,19 +532,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
         color: AppColors.dialogBg,
         borderRadius: isDesktop
             ? const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               )
             : const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+                topLeft: Radius.circular(OrtizRadius.pill),
+                topRight: Radius.circular(OrtizRadius.pill),
               ),
       ),
       padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: isDesktop ? 24.0 : 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: isDesktop ? OrtizSpace.xxl : OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: isDesktop ? 1.0 : 0.85,
@@ -558,12 +558,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardBorderColor,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
             ],
 
             // Header
@@ -579,9 +579,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ? "Registrar Ingreso"
                           : "Registrar Gasto"),
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: AppColors.cardText,
                   ),
                 ),
                 Row(
@@ -608,7 +608,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Scrollable Content
             Expanded(
@@ -619,10 +619,10 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                   children: [
                     // 1. Transaction Type Selector
                     Container(
-                      padding: EdgeInsets.all(4.0),
+                      padding: EdgeInsets.all(OrtizSpace.xs),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.nestedTabTrackBg,
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                       child: Row(
                         children: [
@@ -637,33 +637,21 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               },
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: 8,
+                                  vertical: OrtizSpace.sm,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
                                       _transactionType == TransactionType.income
-                                      ? Colors.white
+                                      ? OrtizPalette.surfaceHigh
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow:
-                                      _transactionType == TransactionType.income
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.05,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "Ingreso",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                   ),
                                 ),
                               ),
@@ -680,35 +668,22 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               },
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: 8,
+                                  vertical: OrtizSpace.sm,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
                                       _transactionType ==
                                           TransactionType.expense
-                                      ? Colors.white
+                                      ? OrtizPalette.surfaceHigh
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow:
-                                      _transactionType ==
-                                          TransactionType.expense
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.05,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "Gasto",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                   ),
                                 ),
                               ),
@@ -717,44 +692,34 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: OrtizSpace.lg),
 
                     // 1b. Account Selector
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      title: "CUENTA",
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "CUENTA",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             initialValue: _selectedAccountId,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
+                                horizontal: OrtizSpace.lg,
+                                vertical: OrtizSpace.sm,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
+                                borderSide: const BorderSide(color: AppColors.cardBorderColor),
                               ),
                               filled: true,
-                              fillColor: Colors.black.withOpacity(0.03),
+                              fillColor: OrtizPalette.surfaceHigh,
                             ),
                             dropdownColor: AppColors.cardBackground,
                             style: TextStyle(
                               color: AppColors.cardText,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                             ),
                             items: appState.accounts.map((acc) {
                               final accColor = parseHexColor(acc.colorHex);
@@ -767,20 +732,20 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                       width: 24,
                                       height: 24,
                                       decoration: BoxDecoration(
-                                        color: accColor.withOpacity(0.15),
+                                        color: accColor.withValues(alpha: 0.15),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         getIconData(acc.icon),
                                         color: accColor,
-                                        size: 14,
+                                        size: OrtizIconSize.xs,
                                       ),
                                     ),
-                                    SizedBox(width: 8),
+                                    SizedBox(width: OrtizSpace.sm),
                                     Text(
                                       "${acc.name} (${isUsd ? formatUSD(acc.balance) : formatBs(acc.balance)})",
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
@@ -805,28 +770,15 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ),
                         ],
                       ),
+                      ],
                     ),
-                    SizedBox(height: 16),
 
                     // 2. Amount Input Card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.symmetric(
-                        vertical: 20.0,
-                        horizontal: 16.0,
-                      ),
-                      child: Column(
+                    OrtizSection(
+                      title: "CANTIDAD DEL MOVIMIENTO",
+                      children: [
+                      Column(
                         children: [
-                          Text(
-                            "CANTIDAD DEL MOVIMIENTO",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 8),
                           TextField(
                             controller: _amountController,
                             keyboardType: TextInputType.numberWithOptions(
@@ -834,7 +786,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             ),
                             inputFormatters: [CommaTextInputFormatter()],
                             style: TextStyle(
-                              fontSize: 36,
+                              fontSize: OrtizFontSize.displayLg,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardText,
                             ),
@@ -848,27 +800,27 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           if (!isAccVES) ...[
                             // USD account: non-interactive tab for USD
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                 decoration: BoxDecoration(
                                   color: AppColors.nestedTabActiveBg,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "USD (\$)",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     color: AppColors.nestedTabActiveText,
                                   ),
                                 ),
@@ -877,10 +829,10 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ] else ...[
                             // VES account: interactive tabs for BCV, EUR, Tasa
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                               child: Row(
                                 children: [
@@ -888,19 +840,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'bs'),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'bs'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "Bs.",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _vesMode == 'bs'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -913,19 +865,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'bcv'),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'bcv'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "BCV (\$)",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _vesMode == 'bcv'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -938,19 +890,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'eur'),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'eur'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "EUR (€)",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _vesMode == 'eur'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -963,19 +915,19 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: GestureDetector(
                                       onTap: () => setState(() => _vesMode = 'custom'),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _vesMode == 'custom'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "Tasa",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _vesMode == 'custom'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -990,61 +942,50 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             if (_vesMode == 'custom') ...[
                               Divider(
                                 height: 24,
-                                color: Colors.black.withOpacity(0.08),
+                                color: AppColors.cardBorderColor,
                               ),
                               Text(
                                 "TASA DE CAMBIO PERSONALIZADA (Bs/\$)",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.cardSubtitleText,
                                   letterSpacing: 1.0,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: OrtizSpace.sm),
                               TextField(
                                 controller: _customRateController,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                             inputFormatters: [CommaTextInputFormatter()],
                                 decoration: InputDecoration(
                                   hintText: "Ej: 45.00",
-                                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
+                                    borderSide: const BorderSide(color: AppColors.cardBorderColor),
                                   ),
                                   filled: true,
-                                  fillColor: Colors.black.withOpacity(0.03),
+                                  fillColor: OrtizPalette.surfaceHigh,
                                 ),
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
                           ],
                         ],
                       ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
                     // 3. General Details Card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      title: "DETALLES DE LA TRANSACCIÓN",
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "DETALLES DE LA TRANSACCIÓN",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 16),
-
                           // Pocket selection
                           if (!isAccVES || _vesMode != 'eur') ...[
                             Text(
@@ -1052,31 +993,31 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   ? "Destino de los Fondos"
                                   : "Origen de los Fondos",
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.cardText,
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: OrtizSpace.xs),
                             DropdownButtonFormField<String?>(
                               initialValue: _destinationPocketId,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                                  horizontal: OrtizSpace.lg,
+                                  vertical: OrtizSpace.sm,
                                 ),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                                  borderSide: const BorderSide(color: AppColors.cardBorderColor),
                                 ),
                                 filled: true,
-                                fillColor: Colors.black.withOpacity(0.03),
+                                fillColor: OrtizPalette.surfaceHigh,
                               ),
                               dropdownColor: AppColors.cardBackground,
                               style: TextStyle(
                                 color: AppColors.cardText,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                               ),
                               items: [
                                 DropdownMenuItem<String?>(
@@ -1084,7 +1025,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   child: Text(
                                     "Balance Libre (Efectivo/Banco)",
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.cardText,
                                     ),
@@ -1096,7 +1037,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     child: Text(
                                       "Bolsillo: ${pocket.name}",
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
@@ -1108,7 +1049,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 setState(() => _destinationPocketId = pocketId);
                               },
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: OrtizSpace.lg),
                           ],
 
                           // Pago Móvil Toggle & Fields (Conditional: account currency is Bs. & type is Expense)
@@ -1119,7 +1060,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 Text(
                                   "¿Es Pago Móvil?",
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardText,
                                   ),
@@ -1144,43 +1085,32 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               ],
                             ),
                             if (_isMobilePayment) ...[
-                              SizedBox(height: 12),
-                              ClaymorphicCard(
-                                cornerRadius: 18,
-                                padding: EdgeInsets.all(16.0),
-                                child: Column(
+                              SizedBox(height: OrtizSpace.md),
+                              OrtizSection(
+                                title: "DETALLES DE PAGO MÓVIL",
+                                children: [
+                                Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Text(
-                                      "DETALLES DE PAGO MÓVIL",
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.cardSubtitleText,
-                                        letterSpacing: 1.0,
-                                      ),
-                                    ),
-                                    SizedBox(height: 12),
-
                                     // Selector de beneficiario
                                     Text(
                                       "Beneficiario",
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    SizedBox(height: 4),
+                                    SizedBox(height: OrtizSpace.xs),
                                     DropdownButtonFormField<String>(
                                       initialValue: _selectedRecipientId ?? 'manual',
                                       decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                         filled: true,
-                                        fillColor: Colors.grey[100],
+                                        fillColor: OrtizPalette.surfaceHigh,
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      dropdownColor: Colors.white,
-                                      style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                                      dropdownColor: AppColors.cardBackground,
+                                      style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                                       items: [
                                         DropdownMenuItem<String>(
                                           value: 'manual',
@@ -1221,51 +1151,51 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         });
                                       },
                                     ),
-                                    SizedBox(height: 12),
+                                    SizedBox(height: OrtizSpace.md),
 
                                     // Alias/Nombre
                                     Text(
                                       "Nombre o Alias",
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    SizedBox(height: 4),
+                                    SizedBox(height: OrtizSpace.xs),
                                     TextField(
                                       controller: _mobilePaymentAliasController,
                                       decoration: InputDecoration(
                                         hintText: "Ej. Mamá, Pedro Pérez",
-                                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                        contentPadding: EdgeInsets.all(12),
+                                        hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                        contentPadding: EdgeInsets.all(OrtizSpace.md),
                                         filled: true,
-                                        fillColor: Colors.grey[100],
+                                        fillColor: OrtizPalette.surfaceHigh,
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                                       onChanged: (_) => setState(() {}),
                                     ),
-                                    SizedBox(height: 12),
+                                    SizedBox(height: OrtizSpace.md),
 
                                     // Banco
                                     Text(
                                       "Banco Receptor",
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    SizedBox(height: 4),
+                                    SizedBox(height: OrtizSpace.xs),
                                     DropdownButtonFormField<String>(
                                       initialValue: _selectedMobilePaymentBankCode ?? (venezuelanBanks.isNotEmpty ? venezuelanBanks.first["code"] : null),
                                       decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                         filled: true,
-                                        fillColor: Colors.grey[100],
+                                        fillColor: OrtizPalette.surfaceHigh,
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      dropdownColor: Colors.white,
-                                      style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                                      dropdownColor: AppColors.cardBackground,
+                                      style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                                       items: venezuelanBanks.map((b) {
                                         return DropdownMenuItem<String>(
                                           value: b["code"],
@@ -1276,28 +1206,28 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                         setState(() => _selectedMobilePaymentBankCode = code);
                                       },
                                     ),
-                                    SizedBox(height: 12),
+                                    SizedBox(height: OrtizSpace.md),
 
                                     // Cédula / RIF
                                     Text(
                                       "Cédula / RIF",
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    SizedBox(height: 4),
+                                    SizedBox(height: OrtizSpace.xs),
                                     Row(
                                       children: [
                                         Container(
                                           width: 70,
                                           decoration: BoxDecoration(
-                                            color: Colors.grey[100],
-                                            borderRadius: BorderRadius.circular(10),
+                                            color: OrtizPalette.surfaceHigh,
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           ),
-                                          padding: EdgeInsets.symmetric(horizontal: 8),
+                                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
                                           child: DropdownButtonHideUnderline(
                                             child: DropdownButton<String>(
                                               value: _selectedMobilePaymentIdPrefix,
-                                              dropdownColor: Colors.white,
-                                              style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                              dropdownColor: AppColors.cardBackground,
+                                              style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                               items: ["V", "E", "J", "G"].map((prefix) {
                                                 return DropdownMenuItem<String>(
                                                   value: prefix,
@@ -1312,57 +1242,57 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 8),
+                                        SizedBox(width: OrtizSpace.sm),
                                         Expanded(
                                           child: TextField(
                                             controller: _mobilePaymentIdCardController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               hintText: "Número de identificación",
-                                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                              contentPadding: EdgeInsets.all(12),
+                                              hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                                               filled: true,
-                                              fillColor: Colors.grey[100],
+                                              fillColor: OrtizPalette.surfaceHigh,
                                               border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                 borderSide: BorderSide.none,
                                               ),
                                             ),
-                                            style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                                            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                                             onChanged: (_) => setState(() {}),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 12),
+                                    SizedBox(height: OrtizSpace.md),
 
                                     // Teléfono
                                     Text(
                                       "Número de Teléfono",
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                     ),
-                                    SizedBox(height: 4),
+                                    SizedBox(height: OrtizSpace.xs),
                                     TextField(
                                       controller: _mobilePaymentPhoneController,
                                       keyboardType: TextInputType.phone,
                                       decoration: InputDecoration(
                                         hintText: "Ej. 04121234567",
-                                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                        contentPadding: EdgeInsets.all(12),
+                                        hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                        contentPadding: EdgeInsets.all(OrtizSpace.md),
                                         filled: true,
-                                        fillColor: Colors.grey[100],
+                                        fillColor: OrtizPalette.surfaceHigh,
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                                      style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                                       onChanged: (_) => setState(() {}),
                                     ),
                                     
                                     // Quick Save Checkbox
                                     if (!_checkIfContactExists(appState)) ...[
-                                      SizedBox(height: 12),
+                                      SizedBox(height: OrtizSpace.md),
                                       Row(
                                         children: [
                                           SizedBox(
@@ -1376,7 +1306,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               },
                                             ),
                                           ),
-                                          SizedBox(width: 8),
+                                          SizedBox(width: OrtizSpace.sm),
                                           Expanded(
                                             child: GestureDetector(
                                               onTap: () {
@@ -1385,7 +1315,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               child: Text(
                                                 "Guardar en contactos Pago Móvil",
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: OrtizFontSize.bodySm,
                                                   fontWeight: FontWeight.w600,
                                                   color: AppColors.cardText,
                                                 ),
@@ -1397,8 +1327,8 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                     ],
                                   ],
                                 ),
+                                ],
                               ),
-                              SizedBox(height: 16),
                             ],
                           ],
 
@@ -1406,31 +1336,31 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           Text(
                             "Nota / Concepto",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           TextField(
                             controller: _noteController,
                             decoration: InputDecoration(
                               hintText: "Ej. Pago de supermercado",
                               hintStyle: TextStyle(
                                 color: AppColors.cardSubtitleText,
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                               ),
-                              contentPadding: EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
 
                           // Date picker row
                           Row(
@@ -1439,7 +1369,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                               Text(
                                 "Fecha",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.cardText,
                                 ),
@@ -1449,11 +1379,11 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   backgroundColor: AppColors.nestedTabTrackBg,
                                   foregroundColor: AppColors.primary,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   ),
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
+                                    horizontal: OrtizSpace.md,
+                                    vertical: OrtizSpace.sm,
                                   ),
                                 ),
                                 onPressed: () async {
@@ -1469,12 +1399,12 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                 },
                                 icon: Icon(
                                   Icons.calendar_today_rounded,
-                                  size: 14,
+                                  size: OrtizIconSize.xs,
                                 ),
                                 label: Text(
                                   formatDate(_selectedDate),
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1483,40 +1413,20 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           ),
                         ],
                       ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
                     // 4. Category Grid Selector
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      title: "SELECCIONA UNA CATEGORÍA",
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "SELECCIONA UNA CATEGORÍA",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 16),
                           if (filteredCategories.isEmpty)
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 20.0,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "No hay categorías de este tipo.",
-                                  style: TextStyle(
-                                    color: AppColors.cardSubtitleText,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
+                            const OrtizEmptyState(
+                              icon: Icons.category_outlined,
+                              title: "No hay categorías de este tipo.",
                             )
                           else
                             GridView.builder(
@@ -1544,9 +1454,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? catColor.withOpacity(0.18)
-                                              : catColor.withOpacity(0.08),
-                                          borderRadius: BorderRadius.circular(16),
+                                              ? catColor.withValues(alpha: 0.18)
+                                              : catColor.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.block),
                                           border: Border.all(
                                             color: isSelected
                                                 ? catColor
@@ -1555,7 +1465,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                           ),
                                         ),
                                         padding: EdgeInsets.symmetric(
-                                          vertical: 10,
+                                          vertical: OrtizSpace.sm,
                                         ),
                                         child: Column(
                                           mainAxisAlignment:
@@ -1567,7 +1477,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               decoration: BoxDecoration(
                                                 color: isSelected
                                                     ? catColor
-                                                    : catColor.withOpacity(0.12),
+                                                    : catColor.withValues(alpha: 0.12),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Icon(
@@ -1575,16 +1485,16 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                                     ? Icons.arrow_upward
                                                     : Icons.arrow_downward,
                                                 color: isSelected
-                                                    ? Colors.white
+                                                    ? OrtizPalette.onAccent
                                                     : catColor,
-                                                size: 20,
+                                                size: OrtizIconSize.md,
                                               ),
                                             ),
-                                            SizedBox(height: 8),
+                                            SizedBox(height: OrtizSpace.sm),
                                             Text(
                                               "Ninguna",
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: OrtizFontSize.caption,
                                                 fontWeight: FontWeight.bold,
                                                 color: AppColors.cardText,
                                               ),
@@ -1603,14 +1513,14 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.08),
-                                          borderRadius: BorderRadius.circular(16),
+                                          color: OrtizPalette.surfaceHigh,
+                                          borderRadius: BorderRadius.circular(OrtizRadius.block),
                                           border: Border.all(
                                             color: Colors.transparent,
                                             width: 1.5,
                                           ),
                                         ),
-                                        padding: EdgeInsets.symmetric(vertical: 10),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
@@ -1618,20 +1528,20 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               width: 44,
                                               height: 44,
                                               decoration: BoxDecoration(
-                                                color: Colors.grey.withOpacity(0.12),
+                                                color: AppColors.cardBorderColor,
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Icon(
                                                 Icons.arrow_back_rounded,
                                                 color: AppColors.cardText,
-                                                size: 20,
+                                                size: OrtizIconSize.md,
                                               ),
                                             ),
-                                            SizedBox(height: 8),
+                                            SizedBox(height: OrtizSpace.sm),
                                             Text(
                                               "Atrás",
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: OrtizFontSize.caption,
                                                 fontWeight: FontWeight.bold,
                                                 color: AppColors.cardText,
                                               ),
@@ -1679,9 +1589,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? catColor.withOpacity(0.18)
-                                          : catColor.withOpacity(0.08),
-                                      borderRadius: BorderRadius.circular(16),
+                                          ? catColor.withValues(alpha: 0.18)
+                                          : catColor.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                                       border: Border.all(
                                         color: isSelected
                                             ? catColor
@@ -1690,7 +1600,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                       ),
                                     ),
                                     padding: EdgeInsets.symmetric(
-                                      vertical: 10,
+                                      vertical: OrtizSpace.sm,
                                     ),
                                     child: Column(
                                       mainAxisAlignment:
@@ -1705,15 +1615,15 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                               decoration: BoxDecoration(
                                                 color: isSelected
                                                     ? catColor
-                                                    : catColor.withOpacity(0.12),
+                                                    : catColor.withValues(alpha: 0.12),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Icon(
                                                 getIconData(cat.icon),
                                                 color: isSelected
-                                                    ? Colors.white
+                                                    ? OrtizPalette.onAccent
                                                     : catColor,
-                                                size: 20,
+                                                size: OrtizIconSize.md,
                                               ),
                                             ),
                                             if (isExpandable)
@@ -1721,25 +1631,25 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                                                 bottom: 0,
                                                 right: 0,
                                                 child: Container(
-                                                  padding: EdgeInsets.all(2),
+                                                  padding: EdgeInsets.all(OrtizSpace.xxs),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.white,
+                                                    color: AppColors.cardBackground,
                                                     shape: BoxShape.circle,
                                                   ),
                                                   child: Icon(
                                                     Icons.more_horiz_rounded,
-                                                    size: 14,
+                                                    size: OrtizIconSize.xs,
                                                     color: catColor,
                                                   ),
                                                 ),
                                               ),
                                           ],
                                         ),
-                                        SizedBox(height: 8),
+                                        SizedBox(height: OrtizSpace.sm),
                                         Text(
                                           (cat.parentId != null ? "↳ " : "") + cat.name,
                                           style: TextStyle(
-                                            fontSize: 11,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.cardText,
                                           ),
@@ -1755,9 +1665,9 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                             ),
                         ],
                       ),
+                      ],
                     ),
                     if (widget.editingTransaction != null) ...[
-                      SizedBox(height: 16),
                       OutlinedButton.icon(
                         onPressed: () => _confirmDeleteTransaction(context, appState),
                         icon: Icon(Icons.delete_forever_rounded, color: AppColors.expense),
@@ -1766,24 +1676,24 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           style: TextStyle(
                             color: AppColors.expense,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: OrtizFontSize.body,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: AppColors.expense, width: 1.5),
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                         ),
                       ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: OrtizSpace.xxxl),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Save / Cancel Buttons Row
             Row(
@@ -1791,38 +1701,32 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       "Cancelar",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: OrtizFontSize.body,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: AppColors.cardSubtitleText,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
-                  child: appState.useSlideToConfirm
-                      ? SlideToConfirmButton(
-                          enabled: (double.tryParse(_amountController.text) ?? 0.0) > 0,
-                          label: widget.editingTransaction != null ? "Desliza para actualizar" : "Desliza para registrar",
-                          onConfirmed: () => _handleConfirmAction(appState),
-                        )
-                      : ElevatedButton(
+                  child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 14),
+                            foregroundColor: OrtizPalette.onAccent,
+                            padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(OrtizRadius.field),
                             ),
                           ),
                           onPressed: ((double.tryParse(_amountController.text) ?? 0.0) <= 0)
@@ -1831,7 +1735,7 @@ class _AddTransactionBottomSheetState extends State<AddTransactionBottomSheet> {
                           child: Text(
                             widget.editingTransaction != null ? "Guardar" : "Registrar",
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: OrtizFontSize.body,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1870,17 +1774,17 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.bold,
             color: AppColors.cardSubtitleText,
           ),
         ),
-        SizedBox(width: 8),
+        SizedBox(width: OrtizSpace.sm),
         Flexible(
           child: Text(
             value,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: isBold ? FontWeight.w900 : FontWeight.bold,
               color: valueColor,
             ),
@@ -1968,58 +1872,56 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
     }
 
     return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.symmetric(horizontal: 24),
-      child: ClaymorphicCard(
-        cornerRadius: 24,
-        padding: EdgeInsets.all(24),
+      insetPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
+      child: Padding(
+        padding: EdgeInsets.all(OrtizSpace.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(OrtizSpace.lg),
                 decoration: BoxDecoration(
-                  color: themeColor.withOpacity(0.12),
+                  color: themeColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   isIncome ? Icons.trending_up_rounded : Icons.trending_down_rounded,
                   color: themeColor,
-                  size: 48,
+                  size: OrtizIconSize.xxl,
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Center(
               child: Text(
                 isIncome ? "¡Ingreso Registrado!" : "¡Gasto Registrado!",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardText,
                 ),
               ),
             ),
-            SizedBox(height: 6),
+            SizedBox(height: OrtizSpace.xs),
             Center(
               child: Text(
                 "La transacción ha sido guardada en la app",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   color: AppColors.cardSubtitleText,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: OrtizSpace.xl),
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(OrtizSpace.lg),
               decoration: BoxDecoration(
-                color: AppColors.background.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.black.withOpacity(0.04)),
+                color: AppColors.background.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(OrtizRadius.block),
+                border: Border.all(color: AppColors.cardBorderColor),
               ),
               child: Column(
                 children: [
@@ -2060,24 +1962,24 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
             ),
 
             if (matchingPockets.isNotEmpty) ...[
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Text(
                 "PLAN DE AHORRO AUTOMÁTICO",
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardSubtitleText,
                   letterSpacing: 1.0,
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: OrtizSpace.sm),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
                   color: AppColors.nestedTabTrackBg,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(OrtizRadius.block),
                   border: Border.all(
-                    color: AppColors.cardBorder.withOpacity(0.08),
+                    color: AppColors.cardBorder.withValues(alpha: 0.08),
                     width: 1,
                   ),
                 ),
@@ -2089,22 +1991,22 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                     final isProvisioned = _provisionedPocketIds.contains(pocket.id);
 
                     return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                       child: Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.all(6),
+                            padding: EdgeInsets.all(OrtizSpace.xs),
                             decoration: BoxDecoration(
-                              color: parseHexColor(pocket.colorHex).withOpacity(0.12),
+                              color: parseHexColor(pocket.colorHex).withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               getIconData(pocket.icon),
                               color: parseHexColor(pocket.colorHex),
-                              size: 14,
+                              size: OrtizIconSize.xs,
                             ),
                           ),
-                          SizedBox(width: 8),
+                          SizedBox(width: OrtizSpace.sm),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2112,7 +2014,7 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                                 Text(
                                   pocket.name,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardText,
                                   ),
@@ -2120,8 +2022,8 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                                 Text(
                                   ruleText,
                                   style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.grey[600],
+                                    fontSize: OrtizFontSize.micro,
+                                    color: AppColors.cardSubtitleText,
                                   ),
                                 ),
                               ],
@@ -2130,13 +2032,13 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                           TextButton(
                             style: TextButton.styleFrom(
                               backgroundColor: isProvisioned
-                                  ? AppColors.income.withOpacity(0.15)
-                                  : AppColors.primary.withOpacity(0.12),
+                                  ? AppColors.income.withValues(alpha: 0.15)
+                                  : AppColors.primary.withValues(alpha: 0.12),
                               foregroundColor: isProvisioned ? AppColors.income : AppColors.primary,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
-                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -2172,18 +2074,18 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (isProvisioned) ...[
-                                  Icon(Icons.check_circle_outline_rounded, size: 12),
-                                  SizedBox(width: 4),
+                                  Icon(Icons.check_circle_outline_rounded, size: OrtizIconSize.xs),
+                                  SizedBox(width: OrtizSpace.xs),
                                   Text(
                                     "Ahorrado",
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                                   ),
                                 ] else ...[
-                                  Icon(Icons.auto_awesome_rounded, size: 10),
-                                  SizedBox(width: 4),
+                                  Icon(Icons.auto_awesome_rounded, size: OrtizIconSize.xs),
+                                  SizedBox(width: OrtizSpace.xs),
                                   Text(
                                     "Ahorrar \$${suggestUSD.toStringAsFixed(2)}",
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ],
@@ -2197,14 +2099,14 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
               ),
             ],
 
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: OrtizPalette.onAccent,
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
                 elevation: 0,
               ),
@@ -2215,7 +2117,7 @@ class _TransactionSuccessDialogState extends State<TransactionSuccessDialog> {
               child: Text(
                 "Entendido",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: FontWeight.bold,
                 ),
               ),

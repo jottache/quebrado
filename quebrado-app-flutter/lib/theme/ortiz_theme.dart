@@ -14,7 +14,7 @@ import 'ortiz_type.dart';
 /// Los radios salen de `OrtizRadius` (`ortiz_space.dart`).
 abstract final class OrtizTheme {
   // Ancho del borde de un campo con foco.
-  static const double _focusWidth = 2;
+  static const double _focusWidth = OrtizStroke.focus;
 
   // Opacidad del resaltado de texto seleccionado.
   static const double _selectionAlpha = 0.35;
@@ -84,7 +84,7 @@ abstract final class OrtizTheme {
           borderRadius: BorderRadius.circular(r),
           side: side,
         );
-    OutlineInputBorder fieldBorder(Color color, [double width = 1]) =>
+    OutlineInputBorder fieldBorder(Color color, [double width = OrtizStroke.hairline]) =>
         OutlineInputBorder(
           borderRadius: BorderRadius.circular(OrtizRadius.field),
           borderSide: BorderSide(color: color, width: width),
@@ -192,7 +192,7 @@ abstract final class OrtizTheme {
         elevation: 0,
         shape: rounded(OrtizRadius.field),
       ),
-      dividerTheme: DividerThemeData(color: t.line, thickness: 1),
+      dividerTheme: DividerThemeData(color: t.line, thickness: OrtizStroke.hairline),
       chipTheme: ChipThemeData(
         backgroundColor: t.surface,
         selectedColor: t.surfaceHigh,

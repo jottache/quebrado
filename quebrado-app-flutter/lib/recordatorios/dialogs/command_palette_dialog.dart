@@ -6,6 +6,10 @@ import '../services/nlp_parser.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class CommandPaletteDialog extends StatefulWidget {
   const CommandPaletteDialog({super.key});
 
@@ -68,23 +72,17 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
     return Dialog(
       alignment: Alignment.topCenter,
-      insetPadding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
+      insetPadding: const EdgeInsets.only(top: OrtizSpace.xxxl + OrtizSpace.xxxl + OrtizSpace.lg, left: OrtizSpace.lg, right: OrtizSpace.lg, bottom: OrtizSpace.xxl),
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 520),
         child: Container(
+          // La paleta flota sobre `surface` (como hojas y diálogos), sin sombra.
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: RemindersColors.cardBorder, width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.14),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
+            color: RemindersColors.cardSurface,
+            borderRadius: BorderRadius.circular(OrtizRadius.dialog),
+            border: Border.all(color: RemindersColors.cardBorder, width: OrtizStroke.hairline),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -92,24 +90,24 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
             children: [
               // Search / Command Input Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.md),
                 child: Row(
                   children: [
-                    const Icon(Icons.search_rounded, color: RemindersColors.primary, size: 22),
-                    const SizedBox(width: 12),
+                    const Icon(Icons.search_rounded, color: RemindersColors.primary, size: OrtizIconSize.lg),
+                    const SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         focusNode: _focusNode,
                         autofocus: true,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: OrtizFontSize.titleSm,
                           fontWeight: FontWeight.w600,
                           color: RemindersColors.textPrimary,
                         ),
                         decoration: const InputDecoration(
                           hintText: 'Escribe un recordatorio o comando (ej. Reunión mañana 10am !p1)...',
-                          hintStyle: TextStyle(fontSize: 14, color: RemindersColors.textMuted, fontWeight: FontWeight.normal),
+                          hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: RemindersColors.textMuted, fontWeight: FontWeight.normal),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -120,19 +118,19 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
                     if (_input.isNotEmpty)
                       GestureDetector(
                         onTap: () => _controller.clear(),
-                        child: const Icon(Icons.close_rounded, size: 18, color: RemindersColors.textMuted),
+                        child: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: RemindersColors.textMuted),
                       ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: OrtizSpace.sm),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.grey[300]!),
+                        color: OrtizPalette.surfaceHigh,
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                        border: Border.all(color: RemindersColors.cardBorder),
                       ),
                       child: const Text(
                         'ESC',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: RemindersColors.textMuted),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: RemindersColors.textMuted),
                       ),
                     ),
                   ],
@@ -144,15 +142,15 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
               // NLP Realtime Token Chips Preview
               if (nlpResult != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: RemindersColors.primaryLight.withOpacity(0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+                  color: RemindersColors.primaryLight.withValues(alpha: 0.5),
                   child: Row(
                     children: [
                       const Text(
                         'NLP Detectado:',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: RemindersColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: RemindersColors.primary),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: OrtizSpace.sm),
                       Expanded(
                         child: Wrap(
                           spacing: 6,
@@ -187,11 +185,11 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
                       ),
                       TextButton.icon(
                         onPressed: () => _handleCreateFromInput(state),
-                        icon: const Icon(Icons.keyboard_return_rounded, size: 14),
-                        label: const Text('Crear', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.keyboard_return_rounded, size: OrtizIconSize.sm),
+                        label: const Text('Crear', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold)),
                         style: TextButton.styleFrom(
                           foregroundColor: RemindersColors.primary,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
@@ -203,24 +201,24 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
               // Command List & Search Results
               Flexible(
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                   shrinkWrap: true,
                   children: [
                     // Acción de creación directa si hay texto
                     if (_input.trim().isNotEmpty)
                       ListTile(
                         leading: Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(OrtizSpace.xs),
                           decoration: BoxDecoration(
                             color: RemindersColors.primaryLight,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
-                          child: const Icon(Icons.add_task_rounded, color: RemindersColors.primary, size: 18),
+                          child: const Icon(Icons.add_task_rounded, color: RemindersColors.primary, size: OrtizIconSize.md),
                         ),
                         title: RichText(
                           text: TextSpan(
                             text: 'Crear recordatorio: ',
-                            style: const TextStyle(fontSize: 13, color: RemindersColors.textSecondary),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textSecondary),
                             children: [
                               TextSpan(
                                 text: '"${nlpResult?.cleanTitle ?? _input.trim()}"',
@@ -229,17 +227,17 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
                             ],
                           ),
                         ),
-                        trailing: const Text('Enter ↵', style: TextStyle(fontSize: 11, color: RemindersColors.textMuted)),
+                        trailing: const Text('Enter ↵', style: TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted)),
                         onTap: () => _handleCreateFromInput(state),
                       ),
 
                     // Coincidencias existentes
                     if (matchingReminders.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 12, 16, 6),
+                        padding: EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.xs),
                         child: Text(
                           'RECORDATORIOS EXISTENTES',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: RemindersColors.textMuted, letterSpacing: 0.5),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: RemindersColors.textMuted, letterSpacing: 0.5),
                         ),
                       ),
                       ...matchingReminders.map(
@@ -248,22 +246,22 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
                           leading: Icon(
                             r.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                             color: r.isCompleted ? RemindersColors.completed : r.priority.color,
-                            size: 20,
+                            size: OrtizIconSize.md,
                           ),
                           title: Text(
                             r.title,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w600,
                               decoration: r.isCompleted ? TextDecoration.lineThrough : null,
                             ),
                           ),
                           subtitle: Text(
                             r.formattedDueTime,
-                            style: const TextStyle(fontSize: 11, color: RemindersColors.textMuted),
+                            style: const TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted),
                           ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.snooze_rounded, size: 18, color: RemindersColors.snoozed),
+                            icon: const Icon(Icons.snooze_rounded, size: OrtizIconSize.md, color: RemindersColors.snoozed),
                             tooltip: 'Posponer +1 hora',
                             onPressed: () {
                               state.snoozeRelative(r.id, const Duration(hours: 1));
@@ -280,20 +278,20 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
                     // Acciones Rápidas del Sistema
                     const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 12, 16, 6),
+                      padding: EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.xs),
                       child: Text(
                         'ACCIONES RÁPIDAS',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: RemindersColors.textMuted, letterSpacing: 0.5),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: RemindersColors.textMuted, letterSpacing: 0.5),
                       ),
                     ),
 
                     if (state.overdueCount > 0)
                       ListTile(
                         dense: true,
-                        leading: const Icon(Icons.next_plan_outlined, color: RemindersColors.overdue, size: 20),
+                        leading: const Icon(Icons.next_plan_outlined, color: RemindersColors.overdue, size: OrtizIconSize.md),
                         title: Text(
                           'Posponer todos los vencidos (${state.overdueCount}) a mañana 9:00 AM',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600),
                         ),
                         onTap: () {
                           state.snoozeAllOverdueToTomorrow();
@@ -303,8 +301,8 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
                     ListTile(
                       dense: true,
-                      leading: const Icon(Icons.filter_alt_outlined, color: RemindersColors.primary, size: 20),
-                      title: const Text('Filtrar solo prioritarios (P1 Urgente y P2 Alta)', style: TextStyle(fontSize: 13)),
+                      leading: const Icon(Icons.filter_alt_outlined, color: RemindersColors.primary, size: OrtizIconSize.md),
+                      title: const Text('Filtrar solo prioritarios (P1 Urgente y P2 Alta)', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
                       onTap: () {
                         state.setPriorityFilter(ReminderPriority.p1Urgent);
                         Navigator.of(context).pop();
@@ -314,8 +312,8 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
                     if (state.selectedPriorityFilter != null || state.selectedTagFilter != null || state.searchQuery.isNotEmpty)
                       ListTile(
                         dense: true,
-                        leading: const Icon(Icons.filter_list_off_rounded, color: Colors.grey, size: 20),
-                        title: const Text('Limpiar todos los filtros activos', style: TextStyle(fontSize: 13)),
+                        leading: const Icon(Icons.filter_list_off_rounded, color: RemindersColors.textSecondary, size: OrtizIconSize.md),
+                        title: const Text('Limpiar todos los filtros activos', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
                         onTap: () {
                           state.clearFilters();
                           Navigator.of(context).pop();
@@ -327,21 +325,21 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
               // Footer Bar with Shortcut Hints
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                 decoration: const BoxDecoration(
                   color: RemindersColors.background,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(OrtizRadius.dialog)),
                   border: Border(top: BorderSide(color: RemindersColors.cardBorder)),
                 ),
                 child: Row(
                   children: [
                     _buildKeyBadge('↵ Enter', 'Crear / Seleccionar'),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: OrtizSpace.md),
                     _buildKeyBadge('ESC', 'Cerrar'),
                     const Spacer(),
                     const Text(
                       'OrtizApp Reminders',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: RemindersColors.textMuted),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: RemindersColors.textMuted),
                     ),
                   ],
                 ),
@@ -355,20 +353,20 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
   Widget _buildTokenChip({required IconData icon, required String label, required Color color}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 11, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: OrtizIconSize.xs, color: color),
+          const SizedBox(width: OrtizSpace.xs),
           Text(
             label,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
@@ -380,16 +378,16 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.grey[300]!),
+            color: OrtizPalette.surfaceHigh,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+            border: Border.all(color: RemindersColors.cardBorder),
           ),
-          child: Text(key, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: RemindersColors.textSecondary)),
+          child: Text(key, style: const TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.bold, color: RemindersColors.textSecondary)),
         ),
-        const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 10, color: RemindersColors.textMuted)),
+        const SizedBox(width: OrtizSpace.xs),
+        Text(label, style: const TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted)),
       ],
     );
   }

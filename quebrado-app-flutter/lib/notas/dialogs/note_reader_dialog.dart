@@ -14,6 +14,12 @@ import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/models/diario_entry.dart';
 import '../../diario/dialogs/entry_reader_dialog.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
 /// Diálogo o Modal de visualización limpia de una Nota o Acuerdo.
 /// Permite interactuar con casillas de verificación (to-dos) en tiempo real,
 /// desplegar secciones plegables, exportar a Markdown y consultar backlinks del Diario.
@@ -58,10 +64,13 @@ class NoteReaderDialog extends StatelessWidget {
     final isDesktop = MediaQuery.of(context).size.width >= 768;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+      backgroundColor: OrtizPalette.surface,
       clipBehavior: Clip.antiAlias,
-      insetPadding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 16, vertical: isDesktop ? 32 : 24),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? OrtizSpace.xxxl + OrtizSpace.sm : OrtizSpace.lg,
+        vertical: isDesktop ? OrtizSpace.xxxl : OrtizSpace.xxl,
+      ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 720, maxHeight: MediaQuery.of(context).size.height * 0.90),
         child: Column(
@@ -83,14 +92,13 @@ class NoteReaderDialog extends StatelessWidget {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            color: OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                           alignment: Alignment.center,
-                          child: Text(note.emoji, style: const TextStyle(fontSize: 24)),
+                          child: Text(note.emoji, style: const TextStyle(fontSize: OrtizFontSize.display)),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: OrtizSpace.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,32 +106,32 @@ class NoteReaderDialog extends StatelessWidget {
                               Text(
                                 note.title,
                                 style: const TextStyle(
-                                  fontSize: 24,
+                                  fontSize: OrtizFontSize.display,
                                   fontWeight: FontWeight.w900,
                                   color: NotasColors.textPrimary,
                                   letterSpacing: -0.4,
                                   height: 1.2,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: OrtizSpace.xs),
                               Row(
                                 children: [
                                   if (category != null) ...[
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                                       decoration: BoxDecoration(
-                                        color: category.color.withOpacity(0.12),
-                                        borderRadius: BorderRadius.circular(6),
+                                        color: category.color.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(category.icon, style: const TextStyle(fontSize: 12)),
-                                          const SizedBox(width: 4),
+                                          Text(category.icon, style: const TextStyle(fontSize: OrtizFontSize.bodySm)),
+                                          const SizedBox(width: OrtizSpace.xs),
                                           Text(
                                             category.name,
                                             style: TextStyle(
-                                              fontSize: 11.5,
+                                              fontSize: OrtizFontSize.caption,
                                               fontWeight: FontWeight.bold,
                                               color: category.color,
                                             ),
@@ -131,11 +139,11 @@ class NoteReaderDialog extends StatelessWidget {
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: OrtizSpace.sm),
                                   ],
                                   Text(
                                     note.formattedDate,
-                                    style: const TextStyle(fontSize: 11.5, color: NotasColors.textMuted),
+                                    style: const TextStyle(fontSize: OrtizFontSize.caption, color: NotasColors.textMuted),
                                   ),
                                 ],
                               ),
@@ -146,20 +154,20 @@ class NoteReaderDialog extends StatelessWidget {
                     ),
 
                     // Barra de progreso si tiene tareas
-                    if (note.hasTodos) ...[const SizedBox(height: 18), _buildTodoProgressBar(note)],
+                    if (note.hasTodos) ...[const SizedBox(height: OrtizSpace.lg), _buildTodoProgressBar(note)],
 
-                    const SizedBox(height: 18),
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: OrtizSpace.lg),
+                    const Divider(height: 1),
+                    const SizedBox(height: OrtizSpace.md),
                   ];
                   final bottom = <Widget>[
                     // Sección de Backlinks en Diario
                     if (backlinks.isNotEmpty) ...[
-                      const SizedBox(height: 28),
+                      const SizedBox(height: OrtizSpace.xxl),
                       _buildBacklinksSection(context, backlinks),
                     ],
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: OrtizSpace.xxxl),
                   ];
 
                   // Documento enriquecido (notas creadas con el editor nuevo): el visor es
@@ -168,13 +176,13 @@ class NoteReaderDialog extends StatelessWidget {
                     return RichDocumentViewer(
                       document: note.document!,
                       accentColor: NotasColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
                       header: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                        padding: const EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.xl, OrtizSpace.xxl, 0),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: top),
                       ),
                       footer: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: bottom),
                       ),
                       onTodoToggled: (document) => notasState.updateNoteDocument(
@@ -187,16 +195,16 @@ class NoteReaderDialog extends StatelessWidget {
                   }
 
                   return ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl, vertical: OrtizSpace.xl),
                     children: [
                       ...top,
                       // Lista de bloques (formato anterior)
                       if (note.blocks.isEmpty)
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.xl),
                           child: Text(
                             'Esta nota no tiene contenido.',
-                            style: TextStyle(fontSize: 14, color: Colors.grey, fontStyle: FontStyle.italic),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.muted, fontStyle: FontStyle.italic),
                           ),
                         )
                       else
@@ -225,26 +233,25 @@ class NoteReaderDialog extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, NotasState notasState, NoteItem note, dynamic category) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: OrtizPalette.line)),
       ),
       child: Row(
         children: [
           if (note.isPinned)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(color: Colors.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
+              margin: const EdgeInsets.only(right: OrtizSpace.sm),
+              decoration: BoxDecoration(color: OrtizPalette.warnTint, borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.push_pin_rounded, size: 12, color: Colors.amber),
-                  SizedBox(width: 4),
+                  Icon(Icons.push_pin_rounded, size: OrtizIconSize.xs, color: OrtizPalette.warn),
+                  SizedBox(width: OrtizSpace.xs),
                   Text(
                     'Fijada',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
+                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.warn),
                   ),
                 ],
               ),
@@ -254,7 +261,7 @@ class NoteReaderDialog extends StatelessWidget {
 
           // Descargar PDF
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined, size: 19, color: Colors.black87),
+            icon: const Icon(Icons.picture_as_pdf_outlined, size: OrtizIconSize.md, color: OrtizPalette.fg),
             tooltip: 'Descargar como PDF',
             onPressed: () async {
               await NotePdfService.instance.downloadNotePdf(
@@ -267,7 +274,7 @@ class NoteReaderDialog extends StatelessWidget {
 
           // Compartir
           IconButton(
-            icon: const Icon(Icons.share_outlined, size: 19, color: Colors.black87),
+            icon: const Icon(Icons.share_outlined, size: OrtizIconSize.md, color: OrtizPalette.fg),
             tooltip: 'Compartir nota',
             onPressed: () async {
               await NotePdfService.showShareModal(
@@ -280,7 +287,7 @@ class NoteReaderDialog extends StatelessWidget {
 
           // Copiar Markdown
           IconButton(
-            icon: const Icon(Icons.copy_rounded, size: 18, color: Colors.black54),
+            icon: const Icon(Icons.copy_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
             tooltip: 'Copiar como Markdown',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: note.toMarkdown()));
@@ -292,7 +299,7 @@ class NoteReaderDialog extends StatelessWidget {
 
           // Editar nota
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 19, color: Colors.black87),
+            icon: const Icon(Icons.edit_outlined, size: OrtizIconSize.md, color: OrtizPalette.fg),
             tooltip: 'Editar nota',
             onPressed: () async {
               Navigator.of(context).pop();
@@ -302,14 +309,14 @@ class NoteReaderDialog extends StatelessWidget {
 
           // Eliminar nota
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 19, color: Colors.redAccent),
+            icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.md, color: OrtizPalette.bad),
             tooltip: 'Eliminar nota',
             onPressed: () => _confirmDelete(context, notasState, note),
           ),
 
           // Cerrar
           IconButton(
-            icon: const Icon(Icons.close_rounded, size: 20, color: Colors.black54),
+            icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
             tooltip: 'Cerrar',
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -324,102 +331,48 @@ class NoteReaderDialog extends StatelessWidget {
     final completed = progress.completed;
     final percent = total > 0 ? (completed / total) : 0.0;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progreso de tareas ($completed de $total)',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)),
-              ),
-              Text(
-                '${(percent * 100).toInt()}%',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: NotasColors.primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: percent,
-              minHeight: 6,
-              backgroundColor: const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(percent == 1.0 ? const Color(0xFF10B981) : NotasColors.primary),
+    // Sin tarjeta: texto y barra sobre el fondo del lector.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Progreso de tareas ($completed de $total)',
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: OrtizPalette.muted),
             ),
-          ),
-        ],
-      ),
+            Text(
+              '${(percent * 100).toInt()}%',
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: NotasColors.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: OrtizSpace.sm),
+        OrtizProgressBar(
+          value: percent,
+          color: percent == 1.0 ? OrtizPalette.ok : NotasColors.primary,
+          semanticsLabel: 'Progreso de tareas',
+        ),
+      ],
     );
   }
 
   Widget _buildBacklinksSection(BuildContext context, List<DiarioEntry> backlinks) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.link_rounded, size: 18, color: NotasColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Mencionada en el Diario (${backlinks.length})',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: NotasColors.textPrimary),
-              ),
-            ],
+    // Grupo sin tarjeta: encabezado en `muted` y una fila por entrada.
+    return OrtizSection(
+      title: 'Mencionada en el Diario (${backlinks.length})',
+      headerPadding: const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+      children: [
+        for (final entry in backlinks)
+          OrtizListRow(
+            leading: const Icon(Icons.auto_stories_rounded, color: SuiteAppColors.diario),
+            title: entry.title.isNotEmpty ? entry.title : 'Entrada del Diario',
+            subtitle: entry.formattedDate,
+            trailing: const Icon(Icons.chevron_right_rounded, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+            onTap: () => openEntryReader(context, entry),
           ),
-          const SizedBox(height: 10),
-          ...backlinks.map((entry) {
-            return InkWell(
-              onTap: () {
-                openEntryReader(context, entry);
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.auto_stories_rounded, size: 15, color: Color(0xFF1F6F5F)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.title.isNotEmpty ? entry.title : 'Entrada del Diario',
-                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.black87),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(entry.formattedDate, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
+      ],
     );
   }
 
@@ -440,15 +393,15 @@ class NoteReaderDialog extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
         title: const Text('¿Eliminar esta nota?'),
         content: Text('Estás a punto de eliminar "${note.title}". Esta acción no se puede deshacer.'),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: FilledButton.styleFrom(backgroundColor: OrtizPalette.bad, foregroundColor: OrtizPalette.onAccent),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text('Eliminar', style: TextStyle(color: OrtizPalette.onAccent)),
           ),
         ],
       ),

@@ -166,7 +166,7 @@ Familias empaquetadas en `assets/fonts/` (sin descarga en tiempo de ejecución, 
 | `ease` | `Cubic(0.2, 0.8, 0.2, 1)` | Curva única (rápida al empezar, se posa al final) |
 
 - **Reducir movimiento:** `OrtizMotion.of(context, d)` devuelve `Duration.zero` si `MediaQuery.disableAnimations` es verdadero; `OrtizMotion.staggerOf(context, i)` igual para el retraso; `OrtizMotion.reduced(context)` para decidir quitar un efecto (CA-06). Toda animación nueva pasa por ellos.
-- **`flutter_animate`** (dependencia desde la spec 01, se usa desde la 02) para entradas declarativas; las animaciones nativas (`AnimatedContainer`, `AnimatedSwitcher`…) siguen valiendo. `flutter_animate` **no** respeta solo la preferencia del sistema: hay que pasarle las duraciones de `OrtizMotion.of`.
+- **Entradas de lista: `ortizStaggered`** (`widgets/ortiz/ortiz_animate.dart`), con un `AnimationController` propio (el retraso es un `Interval` dentro de la misma animación). **No usar `flutter_animate` para entradas**: su `Animate` siempre programa un `Future.delayed` que no se cancela al desmontar y deja Timers pendientes (rompía widget tests). La dependencia sigue en `pubspec.yaml` sin uso en código (decisión pendiente de la persona: quitarla o reservarla). Las animaciones nativas (`AnimatedContainer`, `AnimatedSwitcher`…) siguen valiendo, con duraciones de `OrtizMotion.of`.
 
 ```dart
 child.animate(delay: OrtizMotion.staggerOf(context, index))
@@ -226,17 +226,24 @@ Sin cambios en la spec 01.
 
 | Componente | Ruta | Cuándo usarlo |
 | --- | --- | --- |
-| `OrtizTheme`, `OrtizTokens`, `SuiteApp`, `OrtizType`, `OrtizSpace`/`OrtizRadius`, `OrtizMotion` | `theme/` | Siempre (§2–6). |
+| `OrtizTheme`, `OrtizTokens`, `SuiteApp`, `OrtizType`/`OrtizFontSize`, `OrtizSpace`/`OrtizRadius`/`OrtizIconSize`/`OrtizStroke`/`OrtizSize`, `OrtizMotion` | `theme/` | Siempre (§2–6). `OrtizFontSize.micro` (9) solo en vistas muy densas (celdas de calendario, badges). |
+| `OrtizSection` | `widgets/ortiz/ortiz_section.dart` | Agrupar contenido **sin tarjeta**: título `caption` `muted`, separación `xxl`; `divided` para líneas entre filas; `surface` solo para el bloque que de verdad debe destacarse. |
+| `OrtizListRow` | `widgets/ortiz/ortiz_list_row.dart` | Fila de lista con punto de color (app, bolsillo, categoría), subtítulo y acción; hover/foco visibles; alto mínimo 48. |
+| `OrtizPill` | `widgets/ortiz/ortiz_pill.dart` | Estado, moneda o etiqueta; elige solo el color de texto con contraste. |
+| `OrtizAmount` | `widgets/ortiz/ortiz_amount.dart` | Montos (cifras tabulares); `animate` cuenta hasta el valor; `format:` para reutilizar `formatUSD`/`formatBs`. |
+| `OrtizProgressBar` | `widgets/ortiz/ortiz_progress.dart` | Avance de metas; el color del bolsillo va aquí y en el punto, no de fondo. |
+| `OrtizEmptyState` | `widgets/ortiz/ortiz_empty_state.dart` | Estados vacíos. |
+| `showOrtizNotice` | `widgets/ortiz/ortiz_notice.dart` | Avisos (SnackBar) con acción opcional («Ver», «Deshacer»). |
+| `ortizStaggered` | `widgets/ortiz/ortiz_animate.dart` | Entrada escalonada de listas; respeta reducir movimiento. |
 | `ResponsiveSuiteScaffold` | `widgets/responsive_suite_scaffold.dart` | Raíz de la app; añadir aquí un módulo nuevo de la suite. |
 | `DesktopCommandCenterView` | `widgets/desktop_command_center_view.dart` | Vista resumen en escritorio (la reemplaza la spec 02). |
 | `showResponsiveSheet` | `widgets/responsive_sheet_helper.dart` | Cualquier formulario o detalle en hoja (móvil) / panel (escritorio). |
 | `ResponsiveHorizontalScroll` | `widgets/responsive_sheet_helper.dart` | Filas horizontales de chips. |
 | `ResponsiveBreakpoints` | `widgets/responsive_breakpoints.dart` | Toda decisión responsive. |
-| `ClaymorphicCard` | `quebrado/widgets/claymorphic_card.dart` | **Heredado, no usar en código nuevo** (C4). Con el fondo oscuro calcula «tarjeta de color» y pinta texto blanco y volumen 3D (R-02). Se retira en la spec 05. |
-| `ClaymorphicBackground` | `quebrado/widgets/claymorphic_background.dart` | Fondo `AppColors.background` (= `bg`) a pantalla completa. |
-| `SlideToConfirmButton` | `quebrado/widgets/slide_to_confirm_button.dart` | Confirmar operaciones de dinero (activable con `useSlideToConfirm`). |
-| `CurrencyPill` + `currencyColor` / `currencyShortLabel` | `quebrado/widgets/currency_pill.dart` | Etiqueta de moneda (`$`, `Bs`, `€`, o `$ → Bs`). |
-| `AnimatedProgressBar` | `quebrado/widgets/animated_progress_bar.dart` | Progreso de metas (bolsillos). |
+| ~~`ClaymorphicCard`~~ | — | **Borrado en la spec 05** (C4): sus ~97 usos pasaron a `OrtizSection`/`OrtizListRow`. `ClaymorphicBackground` sigue existiendo pero solo pinta `bg`. |
+| `ClaymorphicBackground` | `quebrado/widgets/claymorphic_background.dart` | Solo pinta `bg` (heredado; quitar cuando se toque la pantalla, P-46). |
+| `CurrencyPill` + `currencyColor` / `currencyShortLabel` | `quebrado/widgets/currency_pill.dart` | Etiqueta de moneda (`$`, `Bs`, `€`, o `$ → Bs`) con `AppColors.currencyUsd/Bs/Eur`. |
+| `AnimatedProgressBar` | `quebrado/widgets/animated_progress_bar.dart` | Redirige a `OrtizProgressBar`. |
 | `PocketCard`, `TimelineEventRow`, `ExchangeSuggestionRow`, `DashboardChartsCard` | `quebrado/widgets/` | Bolsillo, fila del timeline, sugerencia de cambio, gráficos `fl_chart`. |
 | Helpers de formato | `quebrado/widgets/helpers.dart` | `formatUSD`, `formatBs`, `formatCurrency`, `formatRate`, `formatDate`, `formatFullDate`, `parseHexColor`, `getIconData`, `CommaTextInputFormatter`. |
 | Editor enriquecido | `rich_editor/` (`RichDocumentEditor`, `RichDocumentViewer`, `FormatToolbar`, `DraftBanner`…) | Texto largo con formato en Notas y Diario; fijar `RichEditorColors.accent` al color de la app al abrir. |
@@ -249,7 +256,7 @@ Sin cambios en la spec 01.
 - **Agrupar sin tarjetas:** encabezado de grupo en `caption`/`titleSm` color `muted`, filas separadas por `OrtizSpace.md` o por `Divider`, y `OrtizSpace.xxl` entre grupos. Lo seleccionado o activo va sobre `surfaceHigh`. Si un bloque necesita contorno (p. ej. una cita, un código), fondo `surface` con radio `block`, sin sombra.
 - **Hoja vs. diálogo:** formularios de creación/edición y detalles → `showResponsiveSheet`. Confirmaciones cortas y avisos → `AlertDialog`. Lectores/editores grandes de escritorio → diálogo grande (`entry_reader_dialog`, `note_reader_dialog`). Código nuevo usa el helper.
 - **Acción principal:** un solo botón `accent` por vista (`FilledButton` o FAB). Las demás, `OutlinedButton`/`TextButton`.
-- **Confirmaciones de dinero:** `SlideToConfirmButton` cuando el ajuste está activo; operaciones sensibles protegidas por PIN de 4 dígitos / biometría.
+- **Confirmaciones de dinero:** botón normal (la confirmación deslizante se eliminó en la spec 05, decisión de la persona); operaciones sensibles protegidas por PIN de 4 dígitos / biometría.
 - **Borrado:** siempre con confirmación y en `bad`. No hay «deshacer».
 - **Feedback:** `SnackBar` del tema (flotante, inverso). Sin helper común todavía (P-24).
 - **Carga:** `CircularProgressIndicator` / `LinearProgressIndicator` del tema; sin skeletons.
@@ -270,12 +277,8 @@ Sin cambios en la spec 01.
 
 Hasta la spec 05 conviven el tema oscuro y pantallas con literales claros. Lo que **sigue claro o mal** y es esperado (filas en `docs/pendientes.md`, sección Diseño, «a resolver en spec 05»):
 
-- Pantallas con `Colors.white`, `Colors.grey…` o `Color(0xFF…)` claros como fondo (por ejemplo la burbuja del bot en `agente/widgets/chat_message_bubble.dart`, ajustes e inicio del Agente, el bloque de código de `rich_editor/custom_blocks.dart`). El panel lateral de `showResponsiveSheet` ya se corrigió en la spec 01 (P-31).
-- Texto `Colors.white` sobre `AppColors.primary`/`secondary` (ahora coral claro): debería ser `onAccent`.
-- Notas usa su crema como fondo de botones y FAB, con posible texto blanco.
-- `ClaymorphicCard` con volumen y texto blanco (R-02).
-- `DiarioColors.primaryDark` usado fuera del Diario (launcher y command center) ahora sale rosa.
-- Literales sueltos: naranja de `dashboard_charts_card.dart`, `fontFamily: 'monospace'` en 3 sitios, `withOpacity` sobre tintes ya translúcidos en `mention_text_field.dart`, import de `google_fonts` sin uso en el launcher.
+- **Spec 05 (2026-11-17):** todas las apps quedaron sin valores de estilo escritos a mano (guardián `test/contract/no_hardcoded_styles_test.dart`) y sin tarjetas; lo listado aquí antes (fondos claros, blanco sobre coral, crema de Notas, `ClaymorphicCard` con volumen, literales sueltos) se resolvió en ella.
+- Siguen fuera del alcance, porque la spec 02 los reemplaza: el launcher (`screens/app_launcher_screen.dart`), el hub de acciones (`screens/launcher_action_hub_view.dart`) y el command center (`widgets/desktop_command_center_view.dart`), con `DiarioColors.primaryDark` en rosa y un import de `google_fonts` sin uso.
 
 Nada de esto se arregla «de paso»: cada pantalla se migra en la spec 05 con sus tests.
 

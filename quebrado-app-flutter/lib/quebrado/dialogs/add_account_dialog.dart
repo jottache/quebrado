@@ -4,10 +4,13 @@ import '../viewmodels/app_state.dart';
 import '../models/account.dart';
 import '../models/currency_type.dart';
 import '../theme/colors.dart';
-import '../widgets/claymorphic_card.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 import '../widgets/helpers.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class AddAccountBottomSheet extends StatefulWidget {
   final Account? editingAccount;
 
@@ -105,19 +108,19 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
         color: AppColors.dialogBg,
         borderRadius: isDesktop
             ? const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               )
             : const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+                topLeft: Radius.circular(OrtizRadius.pill),
+                topRight: Radius.circular(OrtizRadius.pill),
               ),
       ),
       padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: isDesktop ? 24.0 : 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: isDesktop ? OrtizSpace.xxl : OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: isDesktop ? 1.0 : 0.85,
@@ -131,12 +134,12 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: OrtizPalette.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
             ],
 
             // Header
@@ -146,9 +149,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                 Text(
                   widget.editingAccount == null ? "Nueva Cuenta" : "Editar Cuenta",
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 IconButton(
@@ -157,7 +160,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
 
             // Scrollable content
             Expanded(
@@ -167,77 +170,64 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Information Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "DETALLES DE LA CUENTA",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                    OrtizSection(
+                      title: "DETALLES DE LA CUENTA",
+                      children: [
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: "Nombre (ej. Banesco Bs, Efectivo \$)",
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: const EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           TextField(
                             controller: _balanceController,
                             keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               hintText: "Monto / Saldo Actual",
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: const EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
                           if (widget.editingAccount != null) ...[
-                            SizedBox(height: 6),
+                            SizedBox(height: OrtizSpace.xs),
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4.0),
+                              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
                               child: Text(
                                 "Nota: Si editas este campo, ajustarás el saldo de la cuenta de forma directa. No se crearán transacciones ficticias ni se afectarán tus gráficas de ingresos y gastos.",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[500],
+                                style: const TextStyle(
+                                  fontSize: OrtizFontSize.caption,
+                                  color: OrtizPalette.muted,
                                   height: 1.3,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
                             ),
                           ],
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                            Container(
-                            padding: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(OrtizSpace.xs),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.field),
                             ),
                             child: Row(
                               children: [
@@ -245,22 +235,22 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                   child: GestureDetector(
                                     onTap: isDefaultAccount ? null : () => setState(() => _selectedCurrency = CurrencyType.usd),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: _selectedCurrency == CurrencyType.usd
-                                            ? AppColors.nestedTabActiveBg.withOpacity(isDefaultAccount ? 0.6 : 1.0)
+                                            ? AppColors.nestedTabActiveBg.withValues(alpha: isDefaultAccount ? 0.6 : 1.0)
                                             : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "Dólares (\$)",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: _selectedCurrency == CurrencyType.usd
-                                              ? AppColors.nestedTabActiveText.withOpacity(isDefaultAccount ? 0.8 : 1.0)
-                                              : AppColors.nestedTabInactiveText.withOpacity(isDefaultAccount ? 0.3 : 1.0),
+                                              ? AppColors.nestedTabActiveText.withValues(alpha: isDefaultAccount ? 0.8 : 1.0)
+                                              : AppColors.nestedTabInactiveText.withValues(alpha: isDefaultAccount ? 0.3 : 1.0),
                                         ),
                                       ),
                                     ),
@@ -270,22 +260,22 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                   child: GestureDetector(
                                     onTap: isDefaultAccount ? null : () => setState(() => _selectedCurrency = CurrencyType.bsBCV),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: _selectedCurrency == CurrencyType.bsBCV
-                                            ? AppColors.nestedTabActiveBg.withOpacity(isDefaultAccount ? 0.6 : 1.0)
+                                            ? AppColors.nestedTabActiveBg.withValues(alpha: isDefaultAccount ? 0.6 : 1.0)
                                             : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "Bolívares (Bs.)",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: _selectedCurrency == CurrencyType.bsBCV
-                                              ? AppColors.nestedTabActiveText.withOpacity(isDefaultAccount ? 0.8 : 1.0)
-                                              : AppColors.nestedTabInactiveText.withOpacity(isDefaultAccount ? 0.3 : 1.0),
+                                              ? AppColors.nestedTabActiveText.withValues(alpha: isDefaultAccount ? 0.8 : 1.0)
+                                              : AppColors.nestedTabInactiveText.withValues(alpha: isDefaultAccount ? 0.3 : 1.0),
                                         ),
                                       ),
                                     ),
@@ -296,38 +286,23 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                           ),
                           if (isDefaultAccount)
                             Padding(
-                              padding: EdgeInsets.only(top: 8.0, left: 4.0),
+                              padding: EdgeInsets.only(top: OrtizSpace.sm, left: OrtizSpace.xs),
                               child: Text(
                                 "La moneda de la cuenta principal no se puede modificar.",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[500],
+                                style: const TextStyle(
+                                  fontSize: OrtizFontSize.caption,
+                                  color: OrtizPalette.muted,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
                             ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
                     // Icon Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "ICONO",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 12),
+                    OrtizSection(
+                      title: "ICONO",
+                      children: [
                           GridView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
@@ -345,40 +320,25 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                 onTap: () => setState(() => _selectedIcon = icon),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: isSelected ? themeColor : themeColor.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: isSelected ? themeColor : themeColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                   ),
                                   child: Icon(
                                     getIconData(icon),
-                                    color: isSelected ? Colors.white : themeColor,
-                                    size: 20,
+                                    color: isSelected ? OrtizPalette.onAccent : themeColor,
+                                    size: OrtizIconSize.md,
                                   ),
                                 ),
                               );
                             },
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
                     // Color Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "COLOR",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 12),
+                    OrtizSection(
+                      title: "COLOR",
+                      children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -393,7 +353,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                     color: color,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: isSelected ? Colors.black87 : Colors.transparent,
+                                      color: isSelected ? OrtizPalette.fg : Colors.transparent,
                                       width: isSelected ? 2.5 : 0,
                                     ),
                                   ),
@@ -401,34 +361,32 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                               );
                             }).toList(),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
 
                     // Destructive Delete Button
                     if (canDelete) ...[
-                      SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.expense.withOpacity(0.08),
+                          backgroundColor: AppColors.expense.withValues(alpha: 0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                         onPressed: () => _deleteAccount(appState),
                         child: Text(
                           "Eliminar Cuenta",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: OrtizSpace.xxxl),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Save / Cancel Buttons Row
             Row(
@@ -436,30 +394,30 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       "Cancelar",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
+                      style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: _nameController.text.trim().isEmpty ? null : () => _saveAccount(appState),
                     child: Text(
                       "Guardar",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

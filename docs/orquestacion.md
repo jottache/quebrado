@@ -25,7 +25,7 @@
 | `spec` | `SKILL.md`, `template.md` | solo persona (`disable-model-invocation`) | activo |
 | `spec-impl` | `SKILL.md` | solo persona (`disable-model-invocation`) | activo |
 | `testing` | `SKILL.md`, `mocking.md`, `plantillas.md`, `checklist.md` | precargada en flutter-dev, supabase-backend, test-engineer, ui-ux-designer | activo |
-| `ortiz-dark-ui` | `SKILL.md` | por descripción (crear, cambiar o revisar UI de quebrado-app); remite a `docs/design-system.md` v2 | activo (spec 01; pendiente de aprobación de la persona antes de las specs 02–05) |
+| `ortiz-dark-ui` | `SKILL.md` | por descripción (crear, cambiar o revisar UI de quebrado-app); remite a `docs/design-system.md` v2 | activo (spec 01; aprobada por la persona el 2026-11-17; spec 05 añade los componentes de `lib/widgets/ortiz/`) |
 
 Configuración de specs: `specs/.spec-config.yml` (`BaseBranch: feature/new-app`, `BranchPrefix: spec-`).
 
@@ -87,3 +87,4 @@ Auxiliares: `lib-json.sh` (lectura de JSON con python3), `suite-green.sh` ("verd
 | 2026-11-17 | Ronda 1 del `revisor`: la puerta exige el evento `done`, congela skips (`known-skips`), admite inestables (`~`), cerrojo y borrado del lcov viejo; `pump_app` con el tema completo; `FakeSupabase` verifica antes del dispose; `--check` en el generador. |
 | 2026-11-17 | Ronda 2 del `revisor`: APROBADO. Menores corregidos: limpieza atómica del cerrojo (también sin pid tras 1 min), `KNOWN_SKIPS_FILE` en la huella, caso de fallo de carga oculto en el test del parser. |
 | 2026-11-17 | Spec 01, paso 7: skill `ortiz-dark-ui`, `docs/design-system.md` v2, tokens `OrtizSpace`/`OrtizRadius` en `lib/theme/ortiz_space.dart`. |
+| 2026-11-17 | Spec 05: skill `ortiz-dark-ui` actualizada (componentes de `lib/widgets/ortiz/`, entradas con `ortizStaggered` y no `flutter_animate`); guardián `test/contract/no_hardcoded_styles_test.dart` + `no_hardcoded_styles_debt.txt` (deuda de estilos escritos a mano que solo baja); script `tool/codemod_tokens.py` (lo ejecuta la persona: `guard-bash` bloquea scripts que escriben código). |

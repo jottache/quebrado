@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/note_block.dart';
 import '../theme/notas_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 IconData iconForBlockType(BlockType type) {
   switch (type) {
     case BlockType.heading1:
@@ -45,12 +48,12 @@ PopupMenuItem<BlockType> _buildMenuItem(BlockType type, String title, IconData i
     value: type,
     child: Row(
       children: [
-        Icon(icon, size: 18, color: NotasColors.primary),
-        const SizedBox(width: 10),
+        Icon(icon, size: OrtizIconSize.md, color: NotasColors.primary),
+        const SizedBox(width: OrtizSpace.sm),
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w500),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -111,11 +114,11 @@ class NoteBlockWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (block.type) {
       case BlockType.heading1:
-        return _buildHeading(fontSize: 22, fontWeight: FontWeight.w900);
+        return _buildHeading(fontSize: OrtizFontSize.display, fontWeight: FontWeight.w900);
       case BlockType.heading2:
-        return _buildHeading(fontSize: 18, fontWeight: FontWeight.w800);
+        return _buildHeading(fontSize: OrtizFontSize.title, fontWeight: FontWeight.w800);
       case BlockType.heading3:
-        return _buildHeading(fontSize: 15, fontWeight: FontWeight.w700);
+        return _buildHeading(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w700);
       case BlockType.todo:
         return _buildTodo(context);
       case BlockType.bulletList:
@@ -154,7 +157,7 @@ class NoteBlockWidget extends StatelessWidget {
   Widget _buildHeading({required double fontSize, required FontWeight fontWeight}) {
     if (!isEditable) {
       return Padding(
-        padding: const EdgeInsets.only(top: 14, bottom: 4),
+        padding: const EdgeInsets.only(top: OrtizSpace.md, bottom: OrtizSpace.xs),
         child: Text(
           block.content,
           style: TextStyle(
@@ -196,7 +199,7 @@ class NoteBlockWidget extends StatelessWidget {
           hintStyle: TextStyle(fontSize: fontSize, color: NotasColors.textMuted),
           border: InputBorder.none,
           isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 6),
+          contentPadding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         ),
       ),
     );
@@ -205,11 +208,11 @@ class NoteBlockWidget extends StatelessWidget {
   Widget _buildParagraph() {
     if (!isEditable) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         child: Text(
           block.content,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: OrtizFontSize.body,
             color: NotasColors.textPrimary,
             height: 1.5,
           ),
@@ -227,13 +230,13 @@ class NoteBlockWidget extends StatelessWidget {
         initialValue: controller == null ? block.content : null,
         onChanged: onContentChanged,
         maxLines: null,
-        style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
+        style: const TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textPrimary, height: 1.4),
         decoration: const InputDecoration(
           hintText: 'Escribe algo...',
-          hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+          hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
           border: InputBorder.none,
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 4),
+          contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         ),
       ),
     );
@@ -247,10 +250,10 @@ class NoteBlockWidget extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         width: 20,
         height: 20,
-        margin: const EdgeInsets.only(right: 10, top: 2),
+        margin: const EdgeInsets.only(right: OrtizSpace.sm, top: OrtizSpace.xxs),
         decoration: BoxDecoration(
           color: isChecked ? NotasColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           border: Border.all(
             color: isChecked ? NotasColors.primary : NotasColors.textMuted,
             width: 1.8,
@@ -258,14 +261,14 @@ class NoteBlockWidget extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: isChecked
-            ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+            ? const Icon(Icons.check_rounded, size: OrtizIconSize.xs, color: OrtizPalette.onAccent)
             : null,
       ),
     );
 
     if (!isEditable) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -276,7 +279,7 @@ class NoteBlockWidget extends StatelessWidget {
                 child: Text(
                   block.content,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     color: isChecked ? NotasColors.textMuted : NotasColors.textPrimary,
                     decoration: isChecked ? TextDecoration.lineThrough : null,
                     decorationColor: NotasColors.textMuted,
@@ -320,16 +323,16 @@ class NoteBlockWidget extends StatelessWidget {
               minLines: 1,
               maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
               style: TextStyle(
-                fontSize: 14,
+                fontSize: OrtizFontSize.body,
                 color: isChecked ? NotasColors.textMuted : NotasColors.textPrimary,
                 decoration: isChecked ? TextDecoration.lineThrough : null,
               ),
               decoration: const InputDecoration(
                 hintText: 'Tarea pendiente...',
-                hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+                hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 2),
+                contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
               ),
             ),
           ),
@@ -340,13 +343,13 @@ class NoteBlockWidget extends StatelessWidget {
 
   Widget _buildBullet() {
     const bullet = Padding(
-      padding: EdgeInsets.only(right: 10, top: 7),
-      child: Icon(Icons.circle, size: 6, color: NotasColors.primary),
+      padding: EdgeInsets.only(right: OrtizSpace.sm, top: OrtizSpace.sm),
+      child: Icon(Icons.circle, size: OrtizSize.dot, color: NotasColors.primary),
     );
 
     if (!isEditable) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -354,7 +357,7 @@ class NoteBlockWidget extends StatelessWidget {
             Expanded(
               child: Text(
                 block.content,
-                style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
+                style: const TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textPrimary, height: 1.4),
               ),
             ),
           ],
@@ -391,13 +394,13 @@ class NoteBlockWidget extends StatelessWidget {
               keyboardType: TextInputType.text,
               minLines: 1,
               maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
-              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
+              style: const TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textPrimary, height: 1.4),
               decoration: const InputDecoration(
                 hintText: 'Elemento de lista...',
-                hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+                hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 2),
+                contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
               ),
             ),
           ),
@@ -408,11 +411,11 @@ class NoteBlockWidget extends StatelessWidget {
 
   Widget _buildNumbered() {
     final prefix = Padding(
-      padding: const EdgeInsets.only(right: 8, top: 1),
+      padding: const EdgeInsets.only(right: OrtizSpace.sm, top: OrtizSpace.xxs),
       child: Text(
         '${index + 1}.',
         style: const TextStyle(
-          fontSize: 14,
+          fontSize: OrtizFontSize.body,
           fontWeight: FontWeight.bold,
           color: NotasColors.primary,
         ),
@@ -421,7 +424,7 @@ class NoteBlockWidget extends StatelessWidget {
 
     if (!isEditable) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -429,7 +432,7 @@ class NoteBlockWidget extends StatelessWidget {
             Expanded(
               child: Text(
                 block.content,
-                style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
+                style: const TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textPrimary, height: 1.4),
               ),
             ),
           ],
@@ -466,13 +469,13 @@ class NoteBlockWidget extends StatelessWidget {
               keyboardType: TextInputType.text,
               minLines: 1,
               maxLines: null, // el texto largo baja de línea en vez de salirse por la derecha
-              style: const TextStyle(fontSize: 14, color: NotasColors.textPrimary, height: 1.4),
+              style: const TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textPrimary, height: 1.4),
               decoration: const InputDecoration(
                 hintText: 'Paso numerado...',
-                hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+                hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 2),
+                contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
               ),
             ),
           ),
@@ -484,24 +487,24 @@ class NoteBlockWidget extends StatelessWidget {
   Widget _buildCallout(BuildContext context) {
     final icon = block.calloutIcon ?? '💡';
     final card = Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
       decoration: BoxDecoration(
         color: NotasColors.calloutWarnBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         border: Border.all(color: NotasColors.calloutWarnBorder, width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(icon, style: const TextStyle(fontSize: 18)),
-          const SizedBox(width: 10),
+          Text(icon, style: const TextStyle(fontSize: OrtizFontSize.title)),
+          const SizedBox(width: OrtizSpace.sm),
           Expanded(
             child: !isEditable
                 ? Text(
                     block.content,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.w600,
                       color: NotasColors.textPrimary,
                       height: 1.4,
@@ -514,13 +517,13 @@ class NoteBlockWidget extends StatelessWidget {
                     onChanged: onContentChanged,
                     maxLines: null,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.w600,
                       color: NotasColors.textPrimary,
                     ),
                     decoration: const InputDecoration(
                       hintText: 'Acuerdo destacado o nota importante...',
-                      hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+                      hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -542,7 +545,7 @@ class NoteBlockWidget extends StatelessWidget {
 
   Widget _buildDivider() {
     final line = Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
+      margin: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
       child: const Divider(height: 1, thickness: 1.2, color: NotasColors.cardBorder),
     );
     if (!isEditable) return line;
@@ -620,10 +623,10 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
           child: AnimatedRotation(
             turns: _isExpanded ? 0.25 : 0.0,
             duration: const Duration(milliseconds: 200),
-            child: const Icon(Icons.arrow_right_rounded, size: 22, color: NotasColors.primary),
+            child: const Icon(Icons.arrow_right_rounded, size: OrtizIconSize.lg, color: NotasColors.primary),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: OrtizSpace.xs),
         Expanded(
           child: !widget.isEditable
               ? GestureDetector(
@@ -631,7 +634,7 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
                   child: Text(
                     widget.block.content,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.w700,
                       color: NotasColors.textPrimary,
                     ),
@@ -661,16 +664,16 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
                   minLines: 1,
                   maxLines: null,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: FontWeight.w700,
                     color: NotasColors.textPrimary,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Título de la sección desplegable...',
-                    hintStyle: TextStyle(fontSize: 14, color: NotasColors.textMuted),
+                    hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: NotasColors.textMuted),
                     border: InputBorder.none,
                     isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 4),
+                    contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                   ),
                 ),
         ),
@@ -688,7 +691,7 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
         : toggleHeaderTitle;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3),
+      margin: const EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -696,10 +699,10 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: Container(
-              margin: const EdgeInsets.only(left: 30, top: 2),
-              padding: const EdgeInsets.only(left: 10),
+              margin: const EdgeInsets.only(left: OrtizSpace.xxxl, top: OrtizSpace.xxs),
+              padding: const EdgeInsets.only(left: OrtizSpace.sm),
               decoration: const BoxDecoration(
-                border: Border(left: BorderSide(color: Color(0xFFE2E8F0), width: 1.8)),
+                border: Border(left: BorderSide(color: OrtizPalette.line, width: 1.8)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +735,7 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
                   }),
                   if (widget.isEditable)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 6),
+                      padding: const EdgeInsets.only(top: OrtizSpace.xs, bottom: OrtizSpace.xs),
                       child: PopupMenuButton<BlockType>(
                         tooltip: 'Agregar elemento al desplegable',
                         onSelected: (type) {
@@ -740,24 +743,24 @@ class _ToggleBlockViewState extends State<_ToggleBlockView> {
                           widget.onToggleChildAddBelow?.call(widget.block.children.length - 1, type);
                         },
                         itemBuilder: (ctx) => buildBlockTypeMenuItems(),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         child: MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: NotasColors.primary.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(6),
+                              color: NotasColors.primary.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.add_rounded, size: 13, color: NotasColors.primary),
-                                SizedBox(width: 4),
+                                Icon(Icons.add_rounded, size: OrtizIconSize.xs, color: NotasColors.primary),
+                                SizedBox(width: OrtizSpace.xs),
                                 Text(
                                   'Agregar dentro',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: OrtizFontSize.caption,
                                     fontWeight: FontWeight.w600,
                                     color: NotasColors.primary,
                                   ),
@@ -798,7 +801,7 @@ class _EditableBlockContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
+      margin: const EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -811,7 +814,7 @@ class _EditableBlockContainer extends StatelessWidget {
                 tooltip: 'Cambiar tipo de bloque',
                 icon: Icon(
                   iconForBlockType(block.type),
-                  size: 16,
+                  size: OrtizIconSize.sm,
                   color: NotasColors.textMuted,
                 ),
                 padding: EdgeInsets.zero,
@@ -820,7 +823,7 @@ class _EditableBlockContainer extends StatelessWidget {
                 itemBuilder: (context) => buildBlockTypeMenuItems(),
               ),
               if (onAddBlockBelowWithType != null) ...[
-                const SizedBox(height: 2),
+                const SizedBox(height: OrtizSpace.xxs),
                 PopupMenuButton<BlockType>(
                   tooltip: 'Agregar bloque abajo',
                   padding: EdgeInsets.zero,
@@ -828,22 +831,22 @@ class _EditableBlockContainer extends StatelessWidget {
                   onSelected: onAddBlockBelowWithType,
                   itemBuilder: (context) => buildBlockTypeMenuItems(),
                   offset: const Offset(24, 0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: Container(
                       width: 16,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: OrtizPalette.surfaceHigh,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+                        border: Border.all(color: OrtizPalette.line, width: 0.8),
                       ),
                       alignment: Alignment.center,
                       child: const Icon(
                         Icons.add_rounded,
-                        size: 11,
-                        color: Color(0xFF64748B),
+                        size: OrtizIconSize.xs,
+                        color: OrtizPalette.muted,
                       ),
                     ),
                   ),
@@ -851,11 +854,11 @@ class _EditableBlockContainer extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
           Expanded(child: child),
           if (onDelete != null)
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 15, color: NotasColors.textMuted),
+              icon: const Icon(Icons.close_rounded, size: OrtizIconSize.sm, color: NotasColors.textMuted),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               onPressed: onDelete,

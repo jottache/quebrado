@@ -5,12 +5,17 @@ import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../widgets/add_market_item_bottom_sheet.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
-import '../models/market_shopping_list.dart';
-import '../models/market_shopping_list_item.dart';
+import '../widgets/helpers.dart';
 import '../models/market_product.dart';
 import '../models/market_item.dart';
 import 'package:uuid/uuid.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+String _formatBsShort(double v) => "Bs ${v.toStringAsFixed(2)}";
 
 class MarketTripStoreScreen extends StatelessWidget {
   final String tripId;
@@ -27,18 +32,18 @@ class MarketTripStoreScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final tripMatches = appState.marketTrips.where((t) => t.id == tripId);
     final storeMatches = appState.marketStores.where((s) => s.id == storeId);
-    
+
     if (tripMatches.isEmpty || storeMatches.isEmpty) {
       return const Scaffold(backgroundColor: AppColors.background);
     }
-    
+
     final trip = tripMatches.first;
     final store = storeMatches.first;
-    
+
     final itemsInStore = appState.marketItems.where(
       (i) => i.tripId == tripId && i.storeId == storeId
     ).toList();
-    
+
     final totalUSD = itemsInStore.fold(0.0, (sum, i) => sum + i.priceUSD);
     final totalVES = itemsInStore.fold(0.0, (sum, i) => sum + i.priceVES);
 
@@ -47,10 +52,10 @@ class MarketTripStoreScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: AppColors.primary),
+        iconTheme: const IconThemeData(color: AppColors.primary),
         title: Text(
           store.name,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
           ),
@@ -58,13 +63,15 @@ class MarketTripStoreScreen extends StatelessWidget {
         actions: [
           if (trip.isActive)
             IconButton(
-              icon: Icon(Icons.playlist_add_check, color: AppColors.primary),
+              icon: const Icon(Icons.playlist_add_check, color: AppColors.primary),
+              tooltip: 'Cargar lista de compras',
               onPressed: () {
                 _showShoppingListBottomSheet(context, appState, tripId, storeId);
               },
             ),
           IconButton(
-            icon: Icon(Icons.delete_outline, color: Colors.red[300]),
+            icon: const Icon(Icons.delete_outline, color: OrtizPalette.bad),
+            tooltip: 'Eliminar establecimiento',
             onPressed: () {
               _confirmDeleteStore(context, appState, itemsInStore);
             },
@@ -75,54 +82,48 @@ class MarketTripStoreScreen extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ClaymorphicCard(
-                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "TOTAL TIENDA",
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: OrtizType.caption.copyWith(
                             fontWeight: FontWeight.w900,
-                            color: AppColors.cardSubtitleText,
+                            color: OrtizPalette.muted,
                             letterSpacing: 1.0,
                           ),
                         ),
-                        SizedBox(height: 2),
-                        Text(
-                          "\$${totalUSD.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        const SizedBox(height: OrtizSpace.xxs),
+                        OrtizAmount(
+                          value: totalUSD,
+                          currencySymbol: '\$',
+                          format: formatUSD,
+                          style: OrtizType.amountLg,
                         ),
                       ],
                     ),
-                    Text(
-                      "Bs ${totalVES.toStringAsFixed(2)}",
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  OrtizAmount(
+                    value: totalVES,
+                    currencySymbol: 'Bs',
+                    format: _formatBsShort,
+                    color: OrtizPalette.muted,
+                  ),
+                ],
               ),
             ),
+            const Divider(),
             Expanded(
               child: itemsInStore.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No has añadido productos de esta tienda.",
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                  ? const OrtizEmptyState(
+                      icon: Icons.shopping_cart_outlined,
+                      title: "No has añadido productos de esta tienda.",
                     )
                   : _buildItemsList(context, appState, itemsInStore, tripId, storeId),
             ),
@@ -131,8 +132,8 @@ class MarketTripStoreScreen extends StatelessWidget {
       ),
       bottomNavigationBar: trip.isActive ? SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton.icon(
+          padding: const EdgeInsets.all(OrtizSpace.lg),
+          child: FilledButton.icon(
             onPressed: () {
               showResponsiveSheet(
                 context: context,
@@ -143,23 +144,17 @@ class MarketTripStoreScreen extends StatelessWidget {
                 ),
               );
             },
-            icon: Icon(Icons.add, size: 20),
-            label: Text(
+            icon: const Icon(Icons.add, size: OrtizIconSize.md),
+            label: const Text(
               "AGREGAR PRODUCTO",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.0,
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.lg),
             ),
           ),
         ),
@@ -171,208 +166,132 @@ class MarketTripStoreScreen extends StatelessWidget {
     final pendingItems = items.where((i) => i.isPending).toList();
     final registeredItems = items.where((i) => !i.isPending).toList();
 
-    List<Widget> listWidgets = [];
+    var index = 0;
+    final sections = <Widget>[];
 
     if (pendingItems.isNotEmpty) {
-      listWidgets.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Text(
-            "Pendientes",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: Colors.grey[700],
-            ),
-          ),
+      sections.add(
+        OrtizSection(
+          title: "Pendientes",
+          headerPadding: const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+          divided: true,
+          children: [
+            for (final item in pendingItems)
+              ortizStaggered(
+                context,
+                index++,
+                _buildPendingItemRow(context, appState, item, tripId, storeId),
+              ),
+          ],
         ),
       );
-      for (var item in pendingItems) {
-        listWidgets.add(_buildPendingItemCard(context, appState, item, tripId, storeId));
-      }
     }
 
     if (registeredItems.isNotEmpty) {
-      listWidgets.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Text(
-            "Registrados",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: Colors.grey[700],
-            ),
-          ),
+      sections.add(
+        OrtizSection(
+          title: "Registrados",
+          headerPadding: const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+          divided: true,
+          children: [
+            for (final item in registeredItems)
+              ortizStaggered(
+                context,
+                index++,
+                _buildRegisteredItemRow(context, appState, item),
+              ),
+          ],
         ),
       );
-      for (var item in registeredItems) {
-        listWidgets.add(_buildRegisteredItemCard(context, appState, item));
-      }
     }
 
     return ListView(
-      padding: EdgeInsets.only(bottom: 100, top: 0),
-      children: listWidgets,
-    );
-  }
-
-  Widget _buildPendingItemCard(BuildContext context, AppState appState, MarketItem item, String tripId, String storeId) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      child: ClaymorphicCard(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          children: [
-            Checkbox(
-              activeColor: AppColors.primary,
-              value: false,
-              onChanged: (val) {
-                if (val == true) {
-                  // Open AddMarketItemBottomSheet in edit/register mode
-                  showResponsiveSheet(
-                    context: context,
-                    builder: (context) => AddMarketItemBottomSheet(
-                      tripId: tripId,
-                      initialStoreId: storeId,
-                      forceStore: true,
-                      pendingItem: item, // we will add this parameter to AddMarketItemBottomSheet
-                    ),
-                  );
-                }
-              },
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.cardText,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    item.category,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.cardSubtitleText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.close, color: Colors.grey, size: 20),
-              onPressed: () {
-                _confirmDeleteItem(context, appState, item);
-              },
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.fromLTRB(
+        OrtizSpace.lg,
+        OrtizSpace.md,
+        OrtizSpace.lg,
+        OrtizSpace.xxxl,
       ),
+      children: sections,
     );
   }
 
-  Widget _buildRegisteredItemCard(BuildContext context, AppState appState, MarketItem item) {
-    final qtyStr = item.quantity.toString().endsWith('.0') 
-        ? item.quantity.toInt().toString() 
-        : item.quantity.toStringAsFixed(2);
-        
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      child: ClaymorphicCard(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.fastfood_outlined,
-                color: AppColors.cardSubtitleText,
-                size: 20,
-              ),
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.cardText,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          item.category.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "$qtyStr ${item.unit}",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "\$${item.priceUSD.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
-                    fontSize: 18,
-                  ),
+  Widget _buildPendingItemRow(BuildContext context, AppState appState, MarketItem item, String tripId, String storeId) {
+    return Row(
+      children: [
+        Checkbox(
+          activeColor: AppColors.primary,
+          value: false,
+          onChanged: (val) {
+            if (val == true) {
+              // Open AddMarketItemBottomSheet in edit/register mode
+              showResponsiveSheet(
+                context: context,
+                builder: (context) => AddMarketItemBottomSheet(
+                  tripId: tripId,
+                  initialStoreId: storeId,
+                  forceStore: true,
+                  pendingItem: item, // we will add this parameter to AddMarketItemBottomSheet
                 ),
-                Text(
-                  "Bs ${item.priceVES.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    color: AppColors.cardSubtitleText,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: Icon(Icons.close, color: Colors.red[300], size: 20),
+              );
+            }
+          },
+        ),
+        Expanded(
+          child: OrtizListRow(
+            title: item.name,
+            subtitle: item.category,
+            trailing: IconButton(
+              icon: const Icon(Icons.close, color: OrtizPalette.muted, size: OrtizIconSize.md),
+              tooltip: 'Quitar producto',
               onPressed: () {
                 _confirmDeleteItem(context, appState, item);
               },
             ),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildRegisteredItemRow(BuildContext context, AppState appState, MarketItem item) {
+    final qtyStr = item.quantity.toString().endsWith('.0')
+        ? item.quantity.toInt().toString()
+        : item.quantity.toStringAsFixed(2);
+
+    return OrtizListRow(
+      leading: const Icon(Icons.fastfood_outlined),
+      title: item.name,
+      subtitle: "${item.category.toUpperCase()} · $qtyStr ${item.unit}",
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OrtizAmount(
+                value: item.priceUSD,
+                currencySymbol: '\$',
+                format: formatUSD,
+              ),
+              OrtizAmount(
+                value: item.priceVES,
+                currencySymbol: 'Bs',
+                format: _formatBsShort,
+                style: OrtizType.caption,
+                color: OrtizPalette.muted,
+              ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: OrtizPalette.bad, size: OrtizIconSize.md),
+            tooltip: 'Eliminar producto',
+            onPressed: () {
+              _confirmDeleteItem(context, appState, item);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -389,59 +308,59 @@ class MarketTripStoreScreen extends StatelessWidget {
         final lists = appState.shoppingLists;
 
         return Container(
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: const BoxDecoration(
+            color: OrtizPalette.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
           ),
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(OrtizSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 "Cargar Lista de Compras",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: OrtizSpace.sm),
+              const Text(
                 "Selecciona una lista para cargar sus productos como pendientes en esta sesión.",
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                style: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               if (lists.isEmpty)
-                Center(
+                const Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: EdgeInsets.all(OrtizSpace.xxxl),
                     child: Text(
                       "No tienes ninguna lista de compras creada.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: OrtizPalette.muted),
                     ),
                   ),
                 )
               else
                 ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: lists.length,
                   itemBuilder: (context, index) {
                     final list = lists[index];
                     return ListTile(
-                      leading: Icon(Icons.list_alt, color: AppColors.primary),
-                      title: Text(list.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                      leading: const Icon(Icons.list_alt, color: AppColors.primary),
+                      title: Text(list.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      trailing: const Icon(Icons.chevron_right, color: OrtizPalette.muted),
                       onTap: () async {
                         Navigator.pop(context); // Close sheet
-                        
+
                         // Load items
                         final listItems = appState.shoppingListItems
                             .where((item) => item.listId == list.id)
                             .toList();
-                            
+
                         for (var listItem in listItems) {
                           final product = appState.marketProducts.firstWhere(
                             (p) => p.id == listItem.productId,
@@ -451,7 +370,7 @@ class MarketTripStoreScreen extends StatelessWidget {
                               category: 'Otros',
                             ),
                           );
-                          
+
                           final newItem = MarketItem(
                             id: const Uuid().v4(),
                             name: product.name,
@@ -469,7 +388,7 @@ class MarketTripStoreScreen extends StatelessWidget {
                           );
                           await appState.addMarketItem(newItem);
                         }
-                        
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Lista "${list.title}" cargada con éxito.')),
                         );
@@ -488,64 +407,16 @@ class MarketTripStoreScreen extends StatelessWidget {
     showResponsiveSheet(
       context: context,
       builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "¿Eliminar Establecimiento?",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              SizedBox(height: 12),
-              Text(
-                "Se eliminarán todos los productos registrados en este establecimiento para esta sesión.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text("Cancelar", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(context); // Close bottom sheet
-                        for (var item in itemsInStore) {
-                          await appState.deleteMarketItem(item.id);
-                        }
-                        Navigator.pop(context); // Go back to trip screen
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[400],
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text("Eliminar", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        return _ConfirmDeleteSheet(
+          title: "¿Eliminar Establecimiento?",
+          message: "Se eliminarán todos los productos registrados en este establecimiento para esta sesión.",
+          onConfirm: () async {
+            Navigator.pop(context); // Close bottom sheet
+            for (var item in itemsInStore) {
+              await appState.deleteMarketItem(item.id);
+            }
+            Navigator.pop(context); // Go back to trip screen
+          },
         );
       },
     );
@@ -555,63 +426,85 @@ class MarketTripStoreScreen extends StatelessWidget {
     showResponsiveSheet(
       context: context,
       builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        return _ConfirmDeleteSheet(
+          title: "¿Eliminar Producto?",
+          message: "¿Estás seguro que deseas remover ${item.name} de esta sesión?",
+          onConfirm: () async {
+            Navigator.pop(context); // Close bottom sheet
+            await appState.deleteMarketItem(item.id);
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Hoja de confirmación de borrado (título en `bad`, Cancelar / Eliminar).
+class _ConfirmDeleteSheet extends StatelessWidget {
+  const _ConfirmDeleteSheet({
+    required this.title,
+    required this.message,
+    required this.onConfirm,
+  });
+
+  final String title;
+  final String message;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
+      ),
+      padding: const EdgeInsets.all(OrtizSpace.xxl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: OrtizFontSize.title,
+              fontWeight: FontWeight.bold,
+              color: OrtizPalette.bad,
+            ),
           ),
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: OrtizSpace.md),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: OrtizPalette.muted),
+          ),
+          const SizedBox(height: OrtizSpace.xxl),
+          Row(
             children: [
-              Text(
-                "¿Eliminar Producto?",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancelar", style: TextStyle(color: OrtizPalette.muted, fontWeight: FontWeight.bold)),
                 ),
               ),
-              SizedBox(height: 12),
-              Text(
-                "¿Estás seguro que deseas remover ${item.name} de esta sesión?",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text("Cancelar", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
+              const SizedBox(width: OrtizSpace.lg),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: OrtizPalette.bad,
+                    foregroundColor: OrtizPalette.onAccent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(context); // Close bottom sheet
-                        await appState.deleteMarketItem(item.id);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[400],
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text("Eliminar", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
+                  child: const Text("Eliminar", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

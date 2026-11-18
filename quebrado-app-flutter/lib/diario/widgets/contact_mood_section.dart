@@ -8,6 +8,8 @@ import '../screens/animo_dashboard_screen.dart';
 import 'mood_log_tile.dart';
 import 'mood_quick_bar.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Sección "Ánimo percibido" del detalle de contacto.
 class ContactMoodSection extends StatelessWidget {
   final DiarioContact contact;
@@ -27,17 +29,9 @@ class ContactMoodSection extends StatelessWidget {
     final avg30 = animo.averageValence(contactId: contact.id, days: 30);
     final series = animo.dailySeries(contactId: contact.id, days: 30);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), offset: const Offset(0, 3), blurRadius: 10),
-        ],
-      ),
+    // Sin tarjeta (spec 05): el grupo va sobre el fondo, separado por espacio.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, 0, OrtizSpace.xl, OrtizSpace.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,14 +40,14 @@ class ContactMoodSection extends StatelessWidget {
               Container(
                 width: 28,
                 height: 28,
-                decoration: BoxDecoration(color: DiarioColors.primaryLight, borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.mood_rounded, size: 16, color: DiarioColors.primary),
+                decoration: BoxDecoration(color: DiarioColors.primaryLight, borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                child: const Icon(Icons.mood_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: OrtizSpace.sm),
               const Expanded(
                 child: Text(
                   'Ánimo percibido',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                  style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                 ),
               ),
               if (logs.isNotEmpty)
@@ -62,25 +56,25 @@ class ContactMoodSection extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => AnimoDashboardScreen(contactId: contact.id)),
                   ),
                   style: TextButton.styleFrom(foregroundColor: DiarioColors.primary),
-                  child: Text('Historial (${logs.length}) ›', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                  child: Text('Historial (${logs.length}) ›', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm)),
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: OrtizSpace.xs),
           Text(
             latest == null
                 ? '¿Cómo viste a $_displayName? Registra lo que notaste o lo que te contó.'
                 : _summary(latest, avg30),
-            style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary, fontWeight: FontWeight.w600, height: 1.35),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, fontWeight: FontWeight.w600, height: 1.35),
           ),
           if (series.length >= 2) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             _Sparkline(series: series),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.sm),
           MoodQuickBar(contactId: contact.id, emojiSize: 26),
           if (latest != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: OrtizSpace.sm),
             MoodLogTile(log: latest, showDate: true),
           ],
         ],
@@ -115,11 +109,11 @@ class _Sparkline extends StatelessWidget {
           final value = series[MoodLog.dateKey(d)];
           return Expanded(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 1),
+              margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
               height: value == null ? 6 : 10 + (value + 2) * 4,
               decoration: BoxDecoration(
                 color: value == null ? DiarioColors.surfaceHover : MoodCatalog.colorForAverage(value),
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
           );

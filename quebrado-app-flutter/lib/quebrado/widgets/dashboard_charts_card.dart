@@ -8,7 +8,10 @@ import '../models/currency_type.dart';
 import '../models/transaction.dart';
 import '../models/timeline_event.dart';
 import 'helpers.dart';
-import 'claymorphic_card.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class DashboardChartsCard extends StatefulWidget {
   const DashboardChartsCard({super.key});
@@ -55,46 +58,45 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
     final appState = Provider.of<AppState>(context);
     final isUsd = appState.selectedCurrency == CurrencyType.usd;
 
-    return ClaymorphicCard(
-      cornerRadius: 24,
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-      child: Column(
+    return OrtizSection(
+      surface: true,
+      children: [Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.12),
+                  color: AppColors.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.bar_chart_rounded,
                   color: AppColors.primary,
-                  size: 20,
+                  size: OrtizIconSize.md,
                 ),
               ),
-              SizedBox(width: 10),
+              SizedBox(width: OrtizSpace.sm),
               Text(
                 "Análisis Financiero",
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: OrtizFontSize.body,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardText,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Custom Tabs Selector
           Container(
-            padding: EdgeInsets.all(2),
+            padding: EdgeInsets.all(OrtizSpace.xxs),
             decoration: BoxDecoration(
               color: AppColors.nestedTabTrackBg,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
             ),
             child: Row(
               children: [
@@ -110,7 +112,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: OrtizSpace.xl),
 
           // Active Graph Container
           AnimatedSwitcher(
@@ -122,7 +124,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ],
-      ),
+      )],
     );
   }
 
@@ -132,17 +134,17 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       onTap: () => setState(() => _activeTab = tabIndex),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.nestedTabActiveBg : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             color: selected
                 ? AppColors.nestedTabActiveText
                 : AppColors.nestedTabInactiveText,
@@ -335,7 +337,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         space: 4,
                         child: Text(
                           text,
-                          style: TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
+                          style: TextStyle(fontSize: OrtizFontSize.micro, color: AppColors.cardSubtitleText),
                         ),
                       );
                     },
@@ -357,7 +359,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         child: Text(
                           name,
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: isCurr ? FontWeight.bold : FontWeight.normal,
                             color: isCurr ? AppColors.primary : AppColors.cardSubtitleText,
                           ),
@@ -369,7 +371,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               ),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  tooltipBgColor: Colors.blueGrey[900]!,
+                  tooltipBgColor: OrtizPalette.surfaceHigh,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     final int xIndex = touchedSpots.first.x.toInt();
                     final monthName = monthNamesShort[monthDates[xIndex].month - 1];
@@ -387,8 +389,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                           "Egresos Recurrentes: ${_formatDisplayAmount(er, appState)}\n"
                           "Egresos Individuales: ${_formatDisplayAmount(ei, appState)}",
                           TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
+                            color: OrtizPalette.fg,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.bold,
                           ),
                         );
@@ -415,8 +417,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        colIngRec.withOpacity(0.15),
-                        colIngRec.withOpacity(0.0),
+                        colIngRec.withValues(alpha: 0.15),
+                        colIngRec.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -435,8 +437,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        colIngInd.withOpacity(0.15),
-                        colIngInd.withOpacity(0.0),
+                        colIngInd.withValues(alpha: 0.15),
+                        colIngInd.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -455,8 +457,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        colEgrRec.withOpacity(0.15),
-                        colEgrRec.withOpacity(0.0),
+                        colEgrRec.withValues(alpha: 0.15),
+                        colEgrRec.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -475,8 +477,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        colEgrInd.withOpacity(0.15),
-                        colEgrInd.withOpacity(0.0),
+                        colEgrInd.withValues(alpha: 0.15),
+                        colEgrInd.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -487,7 +489,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        SizedBox(height: 12),
+        SizedBox(height: OrtizSpace.md),
         // Legends Scrollable
         SizedBox(
           height: 22,
@@ -498,15 +500,15 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               physics: BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  SizedBox(width: 8),
+                  SizedBox(width: OrtizSpace.sm),
                   _buildLegendItem("Ingresos Recurrentes", colIngRec),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   _buildLegendItem("Ingresos Individuales", colIngInd),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   _buildLegendItem("Egresos Recurrentes", colEgrRec),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   _buildLegendItem("Egresos Individuales", colEgrInd),
-                  SizedBox(width: 8),
+                  SizedBox(width: OrtizSpace.sm),
                 ],
               ),
             ),
@@ -525,14 +527,14 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
           height: 4,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
         ),
-        SizedBox(width: 6),
+        SizedBox(width: OrtizSpace.xs),
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: OrtizFontSize.caption,
             color: AppColors.cardSubtitleText,
             fontWeight: FontWeight.bold,
           ),
@@ -589,14 +591,14 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
           children: [
             Icon(
               Icons.receipt_long_outlined,
-              size: 44,
-              color: AppColors.primary.withOpacity(0.3),
+              size: OrtizIconSize.xxl,
+              color: AppColors.primary.withValues(alpha: 0.3),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: OrtizSpace.sm),
             Text(
               "No hay egresos registrados o proyectados\npara el mes en curso.",
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 fontStyle: FontStyle.italic,
               ),
@@ -616,12 +618,12 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
       final percentage = (sum / totalSpend) * 100;
       if (sum <= 0) return;
 
-      Color catColor = Colors.grey;
+      Color catColor = OrtizPalette.muted;
       String catName = "Otros";
       IconData catIcon = Icons.folder_open;
 
       if (catId == 'projected') {
-        catColor = Color(0xFFD4A373); // Custom sand gold color
+        catColor = OrtizPalette.warn; // pagos programados
         catName = "Pagos Programados";
         catIcon = Icons.calendar_today_rounded;
       } else {
@@ -645,39 +647,39 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
           radius: 22,
           showTitle: percentage >= 10,
           titleStyle: TextStyle(
-            fontSize: 10,
+            fontSize: OrtizFontSize.caption,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: OrtizPalette.onAccent,
           ),
         ),
       );
 
       legendWidgets.add(
         Padding(
-          padding: EdgeInsets.only(bottom: 8.0),
+          padding: EdgeInsets.only(bottom: OrtizSpace.sm),
           child: Row(
             children: [
               Container(
                 width: 16,
                 height: 16,
                 decoration: BoxDecoration(
-                  color: catColor.withOpacity(0.15),
+                  color: catColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Icon(
                     catIcon,
                     color: catColor,
-                    size: 9,
+                    size: OrtizIconSize.xs,
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Text(
                   catName,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
@@ -685,11 +687,11 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               Text(
                 _formatDisplayAmount(sum, appState),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: OrtizFontSize.caption,
                   color: catColor,
                   fontWeight: FontWeight.w900,
                 ),
@@ -723,16 +725,16 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     Text(
                       "Total",
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: OrtizFontSize.micro,
                         color: AppColors.cardSubtitleText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 1),
+                    SizedBox(height: OrtizSpace.xxs),
                     Text(
                       _formatDisplayAmount(totalSpend, appState),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.w900,
                         color: AppColors.cardText,
                       ),
@@ -744,14 +746,14 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        SizedBox(height: 14),
+        SizedBox(height: OrtizSpace.md),
         // Breakdown List Scrollable at Bottom with Scrollbar indicator
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: (notification) => true,
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
-              padding: EdgeInsets.only(right: 12.0),
+              padding: EdgeInsets.only(right: OrtizSpace.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: legendWidgets,
@@ -844,7 +846,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         space: 4,
                         child: Text(
                           text,
-                          style: TextStyle(fontSize: 8.5, color: AppColors.cardSubtitleText),
+                          style: TextStyle(fontSize: OrtizFontSize.micro, color: AppColors.cardSubtitleText),
                         ),
                       );
                     },
@@ -872,7 +874,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         child: Text(
                           dayIndex == 0 ? "Hoy" : text,
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: OrtizFontSize.micro,
                             color: AppColors.cardSubtitleText,
                             fontWeight: FontWeight.bold,
                           ),
@@ -884,7 +886,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               ),
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  tooltipBgColor: Colors.blueGrey[900]!,
+                  tooltipBgColor: OrtizPalette.surfaceHigh,
                   getTooltipItems: (List<LineBarSpot> touchedSpots) {
                     return touchedSpots.map((LineBarSpot touchedSpot) {
                       final spot = spots[touchedSpot.x.toInt()];
@@ -894,8 +896,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                         "${formatDate(date)}\n"
                         "Saldo Líq: $amtFormatted",
                         TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: OrtizPalette.fg,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.bold,
                         ),
                       );
@@ -919,8 +921,8 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.primary.withOpacity(0.35),
-                        AppColors.primary.withOpacity(0.0),
+                        AppColors.primary.withValues(alpha: 0.35),
+                        AppColors.primary.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -931,7 +933,7 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
             ),
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: OrtizSpace.sm),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -940,14 +942,14 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
               height: 3,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
-            SizedBox(width: 6),
+            SizedBox(width: OrtizSpace.xs),
             Text(
               "Proyección Saldo Líquido Consolidado (30 Días)",
               style: TextStyle(
-                fontSize: 9,
+                fontSize: OrtizFontSize.micro,
                 fontWeight: FontWeight.bold,
                 color: AppColors.cardSubtitleText,
               ),

@@ -15,6 +15,14 @@ abstract final class OrtizMotion {
   /// Curva de salida suave (rápida al empezar, se posa al final).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
 
+  /// Desplazamiento vertical de una entrada, en fracción de la altura del
+  /// elemento (`slideY(begin: entryOffset)`): un deslizamiento corto.
+  static const double entryOffset = 0.08;
+
+  /// Índice máximo que suma retraso en una lista escalonada: a partir de él,
+  /// los elementos entran a la vez (una lista larga no hace esperar al final).
+  static const int staggerMaxIndex = 8;
+
   /// True si el sistema pide reducir el movimiento. Sin `MediaQuery` arriba
   /// se asume que no.
   static bool reduced(BuildContext context) =>

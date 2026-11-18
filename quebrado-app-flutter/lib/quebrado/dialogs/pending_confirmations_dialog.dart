@@ -8,10 +8,13 @@ import '../models/currency_type.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
 import '../widgets/helpers.dart';
-import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 class PendingConfirmationsBottomSheet extends StatefulWidget {
   final PendingOccurrence? filterOccurrence;
   final bool forceShowCustomAmount;
@@ -408,11 +411,11 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
             builder: (ctx) => AlertDialog(
               title: Text("Última Cuota", style: TextStyle(fontWeight: FontWeight.bold)),
               content: Text("Has registrado la última cuota de '${payment.name}'. ¿Deseas eliminar este registro de la lista de pagos por cuotas?"),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: Text("Mantener", style: TextStyle(color: Colors.grey[700])),
+                  child: const Text("Mantener", style: TextStyle(color: AppColors.cardSubtitleText)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -475,42 +478,42 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text("Sugerencias de Auto-Ahorro", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+        title: Text("Sugerencias de Auto-Ahorro", style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm, color: AppColors.primary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Basado en el ingreso cobrado (\$${usdIncomeAmount.toStringAsFixed(2)}), te sugerimos apartar a tus bolsillos:", style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText)),
-            SizedBox(height: 16),
+            Text("Basado en el ingreso cobrado (\$${usdIncomeAmount.toStringAsFixed(2)}), te sugerimos apartar a tus bolsillos:", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText)),
+            SizedBox(height: OrtizSpace.lg),
             ...proposedDeposits.entries.map((e) {
               final pocket = appState.pockets.firstWhere((p) => p.id == e.key);
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
+                padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text("• ${pocket.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.cardText))),
-                    Text(formatUSD(e.value), style: TextStyle(color: AppColors.income, fontWeight: FontWeight.bold, fontSize: 13)),
+                    Expanded(child: Text("• ${pocket.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm, color: AppColors.cardText))),
+                    Text(formatUSD(e.value), style: TextStyle(color: AppColors.income, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
                   ],
                 ),
               );
             }).toList(),
           ],
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: Text("Ignorar", style: TextStyle(color: Colors.grey[700])),
+            child: const Text("Ignorar", style: TextStyle(color: AppColors.cardSubtitleText)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              foregroundColor: OrtizPalette.onAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
             onPressed: () async {
               double totalRequired = proposedDeposits.values.fold(0.0, (a, b) => a + b);
@@ -551,15 +554,15 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
         color: AppColors.dialogBg,
         borderRadius: isDesktop
             ? const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               )
             : const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                topRight: Radius.circular(OrtizRadius.sheet),
               ),
       ),
-      padding: EdgeInsets.only(left: 20, right: 20, top: isDesktop ? 24 : 20, bottom: 8),
+      padding: EdgeInsets.only(left: OrtizSpace.xl, right: OrtizSpace.xl, top: isDesktop ? OrtizSpace.xxl : OrtizSpace.xl, bottom: OrtizSpace.sm),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -571,35 +574,35 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardBorderColor,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
             ],
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
+                  padding: const EdgeInsets.all(OrtizSpace.sm),
+                  decoration: const BoxDecoration(
+                    color: OrtizPalette.accentTint,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.notifications_active_rounded,
                     color: AppColors.primary,
-                    size: 20,
+                    size: OrtizIconSize.md,
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     widget.filterOccurrence != null 
                         ? "Registrar ${widget.filterOccurrence!.payment.type == TransactionType.income ? 'Cobro' : 'Pago'}"
                         : "Cobros y Pagos de Hoy",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
                     ),
@@ -607,45 +610,38 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
             Text(
               widget.filterOccurrence != null
                   ? "Confirma los detalles para registrar este ${widget.filterOccurrence!.payment.type == TransactionType.income ? 'ingreso' : 'egreso'} en tus cuentas:"
                   : "Tienes registros programados pendientes para hoy. Elige cuáles quieres registrar automáticamente en tus cuentas:",
               style: TextStyle(
-                fontSize: 13,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 height: 1.4,
               ),
             ),
             if (showTabs) ...[
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
               Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.nestedTabTrackBg,
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: appState.profiles.length > 3,
                   indicator: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      )
-                    ],
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey[500],
-                  labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+                  labelColor: OrtizPalette.onAccent,
+                  unselectedLabelColor: AppColors.nestedTabInactiveText,
+                  labelStyle: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
+                  unselectedLabelStyle: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.normal),
                   physics: BouncingScrollPhysics(),
                   tabs: appState.profiles.map((p) {
                     final String name = p['name'] ?? 'Personal';
@@ -659,7 +655,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 ),
               ),
             ],
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             if (_isLoading)
               Expanded(
                 child: Center(
@@ -673,20 +669,20 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.check_circle_outline_rounded,
                       color: AppColors.primary,
-                      size: 48,
+                      size: OrtizIconSize.xxl,
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: OrtizSpace.md),
                     Text(
                       "¡Todo al día!",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                      style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: OrtizSpace.sm),
                     Text(
                       "No tienes ningún pago programado pendiente para hoy en este libro.",
-                      style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -711,15 +707,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                     final targetAccount = appState.accounts.firstWhere((a) => a.id == accId, orElse: () => appState.accounts.first);
                     final needsConversion = (p.currency == CurrencyType.usd || p.currency == CurrencyType.eur) && targetAccount.currency == CurrencyType.bsBCV;
 
+                    // Fila sin tarjeta: separada de la siguiente por una línea.
                     return Container(
-                      margin: EdgeInsets.only(bottom: 12),
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.06),
-                          width: 1,
+                      margin: const EdgeInsets.only(bottom: OrtizSpace.md),
+                      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: AppColors.cardBorderColor, width: OrtizStroke.hairline),
                         ),
                       ),
                       child: Column(
@@ -743,18 +737,18 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 ],
                               ),
                               Container(
-                                padding: EdgeInsets.all(8),
+                                padding: EdgeInsets.all(OrtizSpace.sm),
                                 decoration: BoxDecoration(
-                                  color: iconColor.withOpacity(0.12),
+                                  color: iconColor.withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   getIconData(p.icon),
                                   color: iconColor,
-                                  size: 18,
+                                  size: OrtizIconSize.sm,
                                 ),
                               ),
-                                SizedBox(width: 6),
+                                SizedBox(width: OrtizSpace.xs),
                                 Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,26 +756,26 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     Text(
                                       p.name,
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
                                     ),
-                                    SizedBox(height: 2),
+                                    SizedBox(height: OrtizSpace.xxs),
                                     Text(
                                       "${isIncome ? 'Ingreso' : 'Gasto'} • Vence: ${formatDate(state.occurrence.occurrenceDate)}",
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: OrtizFontSize.caption,
                                         color: isIncome ? AppColors.primary : AppColors.expense,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     if (state.occurrence.partialAmountPaid > 0) ...[
-                                      SizedBox(height: 2),
+                                      SizedBox(height: OrtizSpace.xxs),
                                       Text(
                                         "Pagado parcial: ${formatCurrency(state.occurrence.partialAmountPaid, p.currency)}",
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: OrtizFontSize.caption,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.income,
                                         ),
@@ -794,7 +788,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 Text(
                                   formatCurrency(p.amount, p.currency),
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: OrtizFontSize.body,
                                     fontWeight: FontWeight.bold,
                                     color: isIncome ? AppColors.primary : AppColors.expense,
                                   ),
@@ -802,30 +796,30 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ],
                           ),
                           if ((p.isVariable || state.showCustomAmount) && state.isChecked && !state.willSkip) ...[
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                       Text(
                                         "Rango: ${formatCurrency(p.amount, p.currency)} - ${formatCurrency(p.maxAmount ?? p.amount, p.currency)}",
-                                        style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText),
+                                        style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: OrtizSpace.xs),
                                       SizedBox(
                                         height: 36,
                                         child: TextField(
                                           controller: state.amountController,
                                           keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                                           decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
                                             hintText: "0.00 ${p.currency.symbol}",
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                              borderSide: BorderSide(color: Colors.black12),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                              borderSide: const BorderSide(color: AppColors.cardBorderColor),
                                             ),
                                             focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                               borderSide: BorderSide(color: AppColors.primary),
                                             ),
                                           ),
@@ -836,7 +830,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ),
                           ],
                           if (needsConversion && state.isChecked && !state.willSkip) ...[
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -844,28 +838,28 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         Text(
                                           "Monto Base: ${formatCurrency(p.amount, p.currency)}",
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: OrtizFontSize.bodySm,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.cardText,
                                           ),
                                         ),
-                                        SizedBox(height: 6),
+                                        SizedBox(height: OrtizSpace.xs),
                                       ],
                                       Text(
                                         "TASA DE CAMBIO",
                                         style: TextStyle(
-                                          fontSize: 9,
+                                          fontSize: OrtizFontSize.micro,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.cardSubtitleText,
                                           letterSpacing: 0.8,
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: OrtizSpace.xs),
                                       Container(
-                                        padding: EdgeInsets.all(2),
+                                        padding: EdgeInsets.all(OrtizSpace.xxs),
                                         decoration: BoxDecoration(
                                           color: AppColors.nestedTabTrackBg,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         child: Row(
                                           children: [
@@ -873,19 +867,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               child: GestureDetector(
                                                 onTap: () => setState(() => state.isCustomRate = false),
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(vertical: 6),
+                                                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                                                   decoration: BoxDecoration(
                                                     color: !state.isCustomRate
                                                         ? AppColors.nestedTabActiveBg
                                                         : Colors.transparent,
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                   ),
                                                   alignment: Alignment.center,
                                                   child: Text(
                                                     "${p.currency == CurrencyType.eur ? 'EUR' : 'BCV'} (${(p.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate).toStringAsFixed(2)})",
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      fontSize: 11,
+                                                      fontSize: OrtizFontSize.caption,
                                                       color: !state.isCustomRate
                                                           ? AppColors.nestedTabActiveText
                                                           : AppColors.nestedTabInactiveText,
@@ -898,19 +892,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               child: GestureDetector(
                                                 onTap: () => setState(() => state.isCustomRate = true),
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(vertical: 6),
+                                                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                                                   decoration: BoxDecoration(
                                                     color: state.isCustomRate
                                                         ? AppColors.nestedTabActiveBg
                                                         : Colors.transparent,
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                   ),
                                                   alignment: Alignment.center,
                                                   child: Text(
                                                     "Personalizada",
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      fontSize: 11,
+                                                      fontSize: OrtizFontSize.caption,
                                                       color: state.isCustomRate
                                                           ? AppColors.nestedTabActiveText
                                                           : AppColors.nestedTabInactiveText,
@@ -923,22 +917,22 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         ),
                                       ),
                                       if (state.isCustomRate) ...[
-                                        SizedBox(height: 6),
+                                        SizedBox(height: OrtizSpace.xs),
                                         SizedBox(
                                           height: 36,
                                           child: TextField(
                                             controller: state.rateController,
                                             keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                                             decoration: InputDecoration(
-                                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
                                               hintText: "Ingrese tasa Bs.",
                                               border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                                borderSide: BorderSide(color: Colors.black12),
+                                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                                borderSide: const BorderSide(color: AppColors.cardBorderColor),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(8),
+                                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                 borderSide: BorderSide(color: AppColors.primary),
                                               ),
                                             ),
@@ -946,7 +940,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           ),
                                         ),
                                       ],
-                                      SizedBox(height: 8),
+                                      SizedBox(height: OrtizSpace.sm),
                                       Builder(
                                         builder: (context) {
                                           final usdVal = double.tryParse(state.amountController.text.replaceAll(',', '.')) ?? state.occurrence.remainingAmount;
@@ -957,24 +951,26 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           final calculatedBs = usdVal * rateVal;
                                           return Container(
                                             width: double.infinity,
-                                            padding: EdgeInsets.all(8),
+                                            padding: EdgeInsets.all(OrtizSpace.sm),
                                             decoration: BoxDecoration(
-                                              color: AppColors.primary.withOpacity(0.06),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.primary.withValues(alpha: 0.06),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                             ),
                                             child: Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
                                                   "Se registrará en Banco Bs.:",
-                                                  style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
+                                                  style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                                                 ),
-                                                Text(
-                                                  formatBs(calculatedBs),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
+                                                OrtizAmount(
+                                                  value: calculatedBs,
+                                                  currencySymbol: 'Bs.',
+                                                  format: formatBs,
+                                                  color: AppColors.primary,
+                                                  style: OrtizType.amount.copyWith(
+                                                    fontSize: OrtizFontSize.bodySm,
                                                     fontWeight: FontWeight.w900,
-                                                    color: AppColors.primary,
                                                   ),
                                                 ),
                                               ],
@@ -986,15 +982,15 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ),
                           ],
                           if (!p.isVariable) ...[
-                            SizedBox(height: 12),
+                            SizedBox(height: OrtizSpace.md),
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.primary,
-                                  side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                   visualDensity: VisualDensity.compact,
                                 ),
                                 onPressed: () {
@@ -1005,19 +1001,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     }
                                   });
                                 },
-                                child: Text(state.showCustomAmount ? "Usar monto completo" : "Modificar monto", style: TextStyle(fontSize: 12)),
+                                child: Text(state.showCustomAmount ? "Usar monto completo" : "Modificar monto", style: TextStyle(fontSize: OrtizFontSize.bodySm)),
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: state.willSkip ? Colors.white : AppColors.expense,
+                                  foregroundColor: state.willSkip ? OrtizPalette.onAccent : AppColors.expense,
                                   backgroundColor: state.willSkip ? AppColors.expense : Colors.transparent,
-                                  side: BorderSide(color: AppColors.expense.withOpacity(0.5)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  side: BorderSide(color: AppColors.expense.withValues(alpha: 0.5)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                   visualDensity: VisualDensity.compact,
                                 ),
                                 onPressed: () {
@@ -1031,19 +1027,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     }
                                   });
                                 },
-                                child: Text(state.willSkip ? "Se omitirá este ${isIncome ? 'ingreso' : 'pago'}" : "Omitir ${isIncome ? 'ingreso' : 'pago'}", style: TextStyle(fontSize: 12)),
+                                child: Text(state.willSkip ? "Se omitirá este ${isIncome ? 'ingreso' : 'pago'}" : "Omitir ${isIncome ? 'ingreso' : 'pago'}", style: TextStyle(fontSize: OrtizFontSize.bodySm)),
                               ),
                             ),
                           ],
                           if (isIncome && !state.willSkip && state.isChecked) ...[
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             CheckboxListTile(
                               value: state.useExistingBalance,
                               dense: true,
                               activeColor: AppColors.primary,
                               visualDensity: VisualDensity.compact,
-                              title: Text("Usar saldo existente", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText)),
-                              subtitle: Text("No se añadirá saldo extra a la cuenta, previniendo dinero duplicado si ya compraste las divisas manualmente.", style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText)),
+                              title: Text("Usar saldo existente", style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                              subtitle: Text("No se añadirá saldo extra a la cuenta, previniendo dinero duplicado si ya compraste las divisas manualmente.", style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText)),
                               onChanged: (val) {
                                 if (val == true) {
                                   final usdAccounts = appState.accounts.where((a) => a.currency == CurrencyType.usd).toList();
@@ -1087,20 +1083,20 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     children: [
                                       if (usdAccounts.length > 1)
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                                          padding: const EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xs),
                                           child: DropdownButtonFormField<String>(
                                             value: state.selectedExistingBalanceAccountId,
                                             decoration: InputDecoration(
                                               labelText: "Selecciona la cuenta donde ya tienes el dinero",
-                                              labelStyle: TextStyle(fontSize: 11),
+                                              labelStyle: TextStyle(fontSize: OrtizFontSize.caption),
                                               isDense: true,
-                                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                                             ),
                                             items: usdAccounts.map((a) {
                                               return DropdownMenuItem(
                                                 value: a.id,
-                                                child: Text("${a.name} (\$${a.balance.toStringAsFixed(2)})", style: TextStyle(fontSize: 12)),
+                                                child: Text("${a.name} (\$${a.balance.toStringAsFixed(2)})", style: TextStyle(fontSize: OrtizFontSize.bodySm)),
                                               );
                                             }).toList(),
                                             onChanged: (val) {
@@ -1112,23 +1108,23 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         ),
                                       if (existingBalanceError != null)
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                                          padding: const EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xs),
                                           child: Container(
-                                            padding: EdgeInsets.all(8),
+                                            padding: EdgeInsets.all(OrtizSpace.sm),
                                             decoration: BoxDecoration(
-                                              color: AppColors.expense.withOpacity(0.08),
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(color: AppColors.expense.withOpacity(0.3)),
+                                              color: AppColors.expense.withValues(alpha: 0.08),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                              border: Border.all(color: AppColors.expense.withValues(alpha: 0.3)),
                                             ),
                                             child: Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 16),
-                                                SizedBox(width: 8),
+                                                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: OrtizIconSize.sm),
+                                                SizedBox(width: OrtizSpace.sm),
                                                 Expanded(
                                                   child: Text(
                                                     existingBalanceError,
-                                                    style: TextStyle(fontSize: 11, color: AppColors.expense, fontWeight: FontWeight.w600, height: 1.3),
+                                                    style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.expense, fontWeight: FontWeight.w600, height: 1.3),
                                                   ),
                                                 ),
                                               ],
@@ -1146,7 +1142,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                     );
                   }),
                     if (_states.any((s) => s.isChecked)) ...[
-                    SizedBox(height: 4),
+                    SizedBox(height: OrtizSpace.xs),
                     Builder(
                       builder: (context) {
                         double totalIncomeUSD = 0.0;
@@ -1243,36 +1239,22 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                         final String displayNetBs = (netBs >= 0 ? "+" : "-") + formatBs(netBs.abs());
                         final Color netColor = netUSD >= 0 ? AppColors.income : AppColors.expense;
 
-                        return Container(
-                          padding: EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.6), // Premium glassmorphic look
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.black.withOpacity(0.05),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.02),
-                                blurRadius: 8,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
+                        // Bloque destacado sin sombra (antes, tarjeta «glass»).
+                        return OrtizSection(
+                          surface: true,
+                          children: [Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 "RESUMEN DE SELECCIÓN",
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: OrtizFontSize.micro,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.cardSubtitleText,
                                   letterSpacing: 0.8,
                                 ),
                               ),
-                               SizedBox(height: 10),
+                               SizedBox(height: OrtizSpace.sm),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -1284,53 +1266,53 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         Text(
                                           "Total Ingresos",
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        SizedBox(height: OrtizSpace.xs),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalIncomeUSD.toStringAsFixed(2), "Total Ingresos USD"),
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatUSD(totalIncomeUSD),
                                                   style: TextStyle(
-                                                    fontSize: 16,
+                                                    fontSize: OrtizFontSize.titleSm,
                                                     fontWeight: FontWeight.bold,
                                                     color: AppColors.income,
                                                   ),
                                                 ),
-                                                SizedBox(width: 6),
-                                                Icon(Icons.content_copy_rounded, size: 14, color: AppColors.income.withOpacity(0.5)),
+                                                SizedBox(width: OrtizSpace.xs),
+                                                Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: AppColors.income.withValues(alpha: 0.5)),
                                               ],
                                             ),
                                           ),
                                         ),
-                                        SizedBox(height: 2),
+                                        SizedBox(height: OrtizSpace.xxs),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalIncomeBs.toStringAsFixed(2), "Total Ingresos Bs."),
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatBs(totalIncomeBs),
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: OrtizFontSize.bodySm,
                                                     fontWeight: FontWeight.w500,
                                                     color: AppColors.income,
                                                   ),
                                                 ),
-                                                SizedBox(width: 6),
-                                                Icon(Icons.content_copy_rounded, size: 12, color: AppColors.income.withOpacity(0.4)),
+                                                SizedBox(width: OrtizSpace.xs),
+                                                Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: AppColors.income.withValues(alpha: 0.4)),
                                               ],
                                             ),
                                           ),
@@ -1342,9 +1324,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   Container(
                                     height: 40,
                                     width: 1,
-                                    color: Colors.black.withOpacity(0.06),
+                                    color: AppColors.cardBorderColor,
                                   ),
-                                  SizedBox(width: 16),
+                                  SizedBox(width: OrtizSpace.lg),
                                   // Egresos
                                   Expanded(
                                     child: Column(
@@ -1353,53 +1335,53 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                         Text(
                                           "Total Egresos",
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        SizedBox(height: OrtizSpace.xs),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalExpenseUSD.toStringAsFixed(2), "Total Egresos USD"),
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatUSD(totalExpenseUSD),
                                                   style: TextStyle(
-                                                    fontSize: 16,
+                                                    fontSize: OrtizFontSize.titleSm,
                                                     fontWeight: FontWeight.bold,
                                                     color: AppColors.expense,
                                                   ),
                                                 ),
-                                                SizedBox(width: 6),
-                                                Icon(Icons.content_copy_rounded, size: 14, color: AppColors.expense.withOpacity(0.5)),
+                                                SizedBox(width: OrtizSpace.xs),
+                                                Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: AppColors.expense.withValues(alpha: 0.5)),
                                               ],
                                             ),
                                           ),
                                         ),
-                                        SizedBox(height: 2),
+                                        SizedBox(height: OrtizSpace.xxs),
                                         InkWell(
                                           onTap: () => _copyToClipboard(context, totalExpenseBs.toStringAsFixed(2), "Total Egresos Bs."),
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
                                                   formatBs(totalExpenseBs),
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: OrtizFontSize.bodySm,
                                                     fontWeight: FontWeight.w500,
                                                     color: AppColors.expense,
                                                   ),
                                                 ),
-                                                SizedBox(width: 6),
-                                                Icon(Icons.content_copy_rounded, size: 12, color: AppColors.expense.withOpacity(0.4)),
+                                                SizedBox(width: OrtizSpace.xs),
+                                                Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: AppColors.expense.withValues(alpha: 0.4)),
                                               ],
                                             ),
                                           ),
@@ -1409,16 +1391,16 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 10),
-                              Divider(color: Colors.black.withOpacity(0.05), height: 1),
-                              SizedBox(height: 8),
+                              SizedBox(height: OrtizSpace.sm),
+                              const Divider(color: AppColors.cardBorderColor, height: OrtizStroke.hairline),
+                              SizedBox(height: OrtizSpace.sm),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "Total Neto",
                                     style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: OrtizFontSize.caption,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                     ),
@@ -1428,9 +1410,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                     children: [
                                       InkWell(
                                         onTap: () => _copyToClipboard(context, netUSD.toStringAsFixed(2), "Total Neto USD"),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             mainAxisAlignment: MainAxisAlignment.end,
@@ -1438,23 +1420,23 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               Text(
                                                 displayNetUSD,
                                                 style: TextStyle(
-                                                  fontSize: 15,
+                                                  fontSize: OrtizFontSize.body,
                                                   fontWeight: FontWeight.bold,
                                                   color: netColor,
                                                 ),
                                               ),
-                                              SizedBox(width: 6),
-                                              Icon(Icons.content_copy_rounded, size: 13, color: netColor.withOpacity(0.5)),
+                                              SizedBox(width: OrtizSpace.xs),
+                                              Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: netColor.withValues(alpha: 0.5)),
                                             ],
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 2),
+                                      SizedBox(height: OrtizSpace.xxs),
                                       InkWell(
                                         onTap: () => _copyToClipboard(context, netBs.toStringAsFixed(2), "Total Neto Bs."),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             mainAxisAlignment: MainAxisAlignment.end,
@@ -1462,13 +1444,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                               Text(
                                                 displayNetBs,
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: OrtizFontSize.bodySm,
                                                   fontWeight: FontWeight.w600,
                                                   color: netColor,
                                                 ),
                                               ),
-                                              SizedBox(width: 6),
-                                              Icon(Icons.content_copy_rounded, size: 11, color: netColor.withOpacity(0.4)),
+                                              SizedBox(width: OrtizSpace.xs),
+                                              Icon(Icons.content_copy_rounded, size: OrtizIconSize.xs,color: netColor.withValues(alpha: 0.4)),
                                             ],
                                           ),
                                         ),
@@ -1478,14 +1460,14 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 ],
                               ),
                               if (totalDeficitBs > 0) ...[
-                                SizedBox(height: 12),
+                                SizedBox(height: OrtizSpace.md),
                                 Container(
-                                  padding: EdgeInsets.all(12),
+                                  padding: EdgeInsets.all(OrtizSpace.md),
                                   decoration: BoxDecoration(
-                                    color: AppColors.secondary.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: AppColors.secondary.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                     border: Border.all(
-                                      color: AppColors.secondary.withOpacity(0.2),
+                                      color: AppColors.secondary.withValues(alpha: 0.2),
                                       width: 1,
                                     ),
                                   ),
@@ -1497,13 +1479,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           Icon(
                                             Icons.calculate_outlined,
                                             color: AppColors.secondary,
-                                            size: 16,
+                                            size: OrtizIconSize.sm,
                                           ),
-                                          SizedBox(width: 6),
+                                          SizedBox(width: OrtizSpace.xs),
                                           Text(
                                             "OPTIMIZADOR DE VENTA P2P (BINANCE)",
                                             style: TextStyle(
-                                              fontSize: 9,
+                                              fontSize: OrtizFontSize.micro,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.secondary,
                                               letterSpacing: 0.5,
@@ -1511,76 +1493,76 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 8),
+                                      SizedBox(height: OrtizSpace.sm),
                                       InkWell(
                                         onTap: () => _copyToClipboard(context, totalDeficitBs.toStringAsFixed(2), "Déficit en Bolívares"),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         child: Padding(
-                                          padding: EdgeInsets.only(top: 4, bottom: 4, right: 8, left: 0),
+                                          padding: EdgeInsets.only(top: OrtizSpace.xs, bottom: OrtizSpace.xs, right: OrtizSpace.sm, left: 0),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
                                                 "Déficit (Falta por Cubrir): ${formatBs(totalDeficitBs)}",
                                                 style: TextStyle(
-                                                  fontSize: 13,
+                                                  fontSize: OrtizFontSize.bodySm,
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors.cardText,
                                                 ),
                                               ),
-                                              SizedBox(width: 8),
+                                              SizedBox(width: OrtizSpace.sm),
                                               Icon(
                                                 Icons.content_copy_rounded,
-                                                size: 13,
-                                                color: AppColors.cardSubtitleText.withOpacity(0.6),
+                                                size: OrtizIconSize.xs,
+                                                color: AppColors.cardSubtitleText.withValues(alpha: 0.6),
                                               ),
                                             ],
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: OrtizSpace.xs),
                                       Text(
                                         "El déficit representa lo que le falta a tus cuentas en Bolívares para cubrir los egresos seleccionados (Egresos - Saldo Disponible).",
                                         style: TextStyle(
-                                          fontSize: 9.5,
+                                          fontSize: OrtizFontSize.micro,
                                           color: AppColors.cardSubtitleText,
                                           height: 1.3,
                                         ),
                                       ),
-                                      SizedBox(height: 12),
+                                      SizedBox(height: OrtizSpace.md),
                                       Row(
                                         children: [
                                           Text(
                                             "Tasa P2P de Venta: ",
-                                            style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
+                                            style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                                           ),
-                                          SizedBox(width: 8),
+                                          SizedBox(width: OrtizSpace.sm),
                                           SizedBox(
                                             width: 80,
                                             height: 28,
                                             child: TextField(
                                               controller: _p2pRateController,
                                               keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                                               textAlign: TextAlign.center,
                                               decoration: InputDecoration(
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                                contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
                                                 isDense: true,
                                                 border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(6),
+                                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                 ),
                                               ),
                                               onChanged: (_) => setState(() {}),
                                             ),
                                           ),
-                                          SizedBox(width: 4),
+                                          SizedBox(width: OrtizSpace.xs),
                                           Text(
                                             " Bs/\$",
-                                            style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
+                                            style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 12),
+                                      SizedBox(height: OrtizSpace.md),
                                       Builder(
                                         builder: (context) {
                                           final p2pRate = double.tryParse(_p2pRateController.text.replaceAll(',', '.')) ?? appState.parallelRate;
@@ -1600,12 +1582,12 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                             children: [
                                               // Option A Card
                                               Container(
-                                                padding: EdgeInsets.all(10),
+                                                padding: EdgeInsets.all(OrtizSpace.sm),
                                                 decoration: BoxDecoration(
-                                                  color: AppColors.primary.withOpacity(0.06),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: AppColors.primary.withValues(alpha: 0.06),
+                                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                   border: Border.all(
-                                                    color: AppColors.primary.withOpacity(0.15),
+                                                    color: AppColors.primary.withValues(alpha: 0.15),
                                                     width: 1,
                                                   ),
                                                 ),
@@ -1615,42 +1597,42 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                     Text(
                                                       "OPCIÓN A: VENDER SOLO EL DÉFICIT",
                                                       style: TextStyle(
-                                                        fontSize: 8.5,
+                                                        fontSize: OrtizFontSize.micro,
                                                         fontWeight: FontWeight.w900,
                                                         color: AppColors.primary,
                                                         letterSpacing: 0.5,
                                                       ),
                                                     ),
-                                                    SizedBox(height: 4),
+                                                    SizedBox(height: OrtizSpace.xs),
                                                     InkWell(
                                                       onTap: () => _copyToClipboard(context, usdNeededDeficit.toStringAsFixed(2), "Binance P2P (Déficit)"),
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                       child: Row(
                                                         mainAxisSize: MainAxisSize.min,
                                                         children: [
                                                           Text(
                                                             "Debes vender: ${formatUSD(usdNeededDeficit)}",
                                                             style: TextStyle(
-                                                              fontSize: 14,
+                                                              fontSize: OrtizFontSize.body,
                                                               fontWeight: FontWeight.bold,
                                                               color: AppColors.primary,
                                                             ),
                                                           ),
-                                                          SizedBox(width: 8),
+                                                          SizedBox(width: OrtizSpace.sm),
                                                           Icon(
                                                             Icons.content_copy_rounded,
-                                                            size: 13,
-                                                            color: AppColors.primary.withOpacity(0.7),
+                                                            size: OrtizIconSize.xs,
+                                                            color: AppColors.primary.withValues(alpha: 0.7),
                                                           ),
                                                         ],
                                                       ),
                                                     ),
                                                     if (savedUsdDeficit > 0.01) ...[
-                                                      SizedBox(height: 2),
+                                                      SizedBox(height: OrtizSpace.xxs),
                                                       Text(
                                                         "¡Ahorras ${formatUSD(savedUsdDeficit)}! (Vs. ${formatUSD(usdNominalDeficit)} a tasa BCV)",
                                                         style: TextStyle(
-                                                          fontSize: 9.5,
+                                                          fontSize: OrtizFontSize.micro,
                                                           fontWeight: FontWeight.bold,
                                                           color: AppColors.income,
                                                         ),
@@ -1659,15 +1641,15 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                   ],
                                                 ),
                                               ),
-                                              SizedBox(height: 10),
+                                              SizedBox(height: OrtizSpace.sm),
                                               // Option B Card
                                               Container(
-                                                padding: EdgeInsets.all(10),
+                                                padding: EdgeInsets.all(OrtizSpace.sm),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey[100],
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: OrtizPalette.surfaceHigh,
+                                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                   border: Border.all(
-                                                    color: Colors.black.withOpacity(0.05),
+                                                    color: AppColors.cardBorderColor,
                                                     width: 1,
                                                   ),
                                                 ),
@@ -1677,42 +1659,42 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                                     Text(
                                                       "OPCIÓN B: VENDER EL EGRESO TOTAL",
                                                       style: TextStyle(
-                                                        fontSize: 8.5,
+                                                        fontSize: OrtizFontSize.micro,
                                                         fontWeight: FontWeight.w900,
                                                         color: AppColors.cardSubtitleText,
                                                         letterSpacing: 0.5,
                                                       ),
                                                     ),
-                                                    SizedBox(height: 4),
+                                                    SizedBox(height: OrtizSpace.xs),
                                                     InkWell(
                                                       onTap: () => _copyToClipboard(context, usdNeededTotal.toStringAsFixed(2), "Binance P2P (Total)"),
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                       child: Row(
                                                         mainAxisSize: MainAxisSize.min,
                                                         children: [
                                                           Text(
                                                             "Debes vender: ${formatUSD(usdNeededTotal)}",
                                                             style: TextStyle(
-                                                              fontSize: 14,
+                                                              fontSize: OrtizFontSize.body,
                                                               fontWeight: FontWeight.bold,
                                                               color: AppColors.cardText,
                                                             ),
                                                           ),
-                                                          SizedBox(width: 8),
+                                                          SizedBox(width: OrtizSpace.sm),
                                                           Icon(
                                                             Icons.content_copy_rounded,
-                                                            size: 13,
-                                                            color: AppColors.cardSubtitleText.withOpacity(0.7),
+                                                            size: OrtizIconSize.xs,
+                                                            color: AppColors.cardSubtitleText.withValues(alpha: 0.7),
                                                           ),
                                                         ],
                                                       ),
                                                     ),
                                                     if (savedUsdTotal > 0.01) ...[
-                                                      SizedBox(height: 2),
+                                                      SizedBox(height: OrtizSpace.xxs),
                                                       Text(
                                                         "¡Ahorras ${formatUSD(savedUsdTotal)}! (Vs. ${formatUSD(usdNominalTotal)} a tasa BCV)",
                                                         style: TextStyle(
-                                                          fontSize: 9.5,
+                                                          fontSize: OrtizFontSize.micro,
                                                           fontWeight: FontWeight.bold,
                                                           color: AppColors.income,
                                                         ),
@@ -1730,7 +1712,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                                 ),
                               ],
                             ],
-                          ),
+                          )],
                         );
                       }
                     ),
@@ -1777,18 +1759,18 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (_states.length > 2) ...[
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           Center(
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.unfold_more, size: 14, color: AppColors.cardSubtitleText.withOpacity(0.6)),
-                                SizedBox(width: 4),
+                                Icon(Icons.unfold_more, size: OrtizIconSize.xs,color: AppColors.cardSubtitleText.withValues(alpha: 0.6)),
+                                SizedBox(width: OrtizSpace.xs),
                                 Text(
                                   "Desliza para ver más",
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.cardSubtitleText.withOpacity(0.6),
+                                    fontSize: OrtizFontSize.caption,
+                                    color: AppColors.cardSubtitleText.withValues(alpha: 0.6),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -1796,71 +1778,12 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                             ),
                           ),
                         ],
-                        SizedBox(height: 16),
+                        SizedBox(height: OrtizSpace.lg),
                         Column(
                           children: [
                         SizedBox(
                           width: double.infinity,
-                          child: appState.useSlideToConfirm
-                              ? SlideToConfirmButton(
-                                  enabled: isEnabled,
-                          label: "Desliza para registrar",
-                          onConfirmed: () async {
-                            final _states = _profileStates[_currentViewedDb] ?? [];
-                            final selected = _states.where((s) => s.isChecked || s.willSkip).toList();
-                            if (selected.isEmpty) return;
-
-                            // Map of accountId -> net balance change
-                            final Map<String, double> netChanges = {};
-
-                            for (var s in selected) {
-                              if (s.willSkip) continue; // skipped ones don't affect balance change
-                              final p = s.payment;
-                              final accId = p.accountId ?? (p.currency == CurrencyType.usd ? 'default_usd' : 'default_ves');
-                              final targetAccount = appState.accounts.firstWhere((a) => a.id == accId, orElse: () => appState.accounts.first);
-                              final needsConversion = (p.currency == CurrencyType.usd || p.currency == CurrencyType.eur) && targetAccount.currency == CurrencyType.bsBCV;
-
-                              double actualAmt = p.amount;
-                              if (needsConversion) {
-                                final rateController = s.rateController;
-                                final defaultRate = p.currency == CurrencyType.eur ? appState.euroRate : appState.bcvRate;
-                                final double rateVal = double.tryParse(rateController.text.replaceAll(',', '.')) ?? defaultRate;
-                                actualAmt = p.amount * rateVal;
-                              }
-
-                              // Determine net effect
-                              double change = actualAmt;
-                              if (p.type == TransactionType.expense) {
-                                change = -change;
-                              }
-
-                              netChanges[targetAccount.id] = (netChanges[targetAccount.id] ?? 0.0) + change;
-                            }
-
-                            // Check deficits
-                            final List<Map<String, dynamic>> deficitAccounts = [];
-                            netChanges.forEach((accountId, netChange) {
-                              final acc = appState.accounts.firstWhere((a) => a.id == accountId);
-                              if (acc.balance + netChange < 0) {
-                                final deficit = -(acc.balance + netChange);
-                                deficitAccounts.add({
-                                  'account': acc,
-                                  'deficit': deficit,
-                                });
-                              }
-                            });
-
-                            final proceed = await _handleConsolidatedDeficits(
-                              context: context,
-                              appState: appState,
-                              deficits: deficitAccounts,
-                            );
-                            if (!proceed) return;
-
-                            await _submitConfirmations(appState);
-                          },
-                        )
-                      : ElevatedButton(
+                          child: ElevatedButton(
                           onPressed: isEnabled && !_isLoading
                               ? () async {
                                   // Confirm and register all selected
@@ -1920,19 +1843,19 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                               : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                            foregroundColor: OrtizPalette.onAccent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(OrtizRadius.block),
                             ),
-                            padding: EdgeInsets.symmetric(vertical: 14),
+                            padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           ),
                           child: Text(
                             "Registrar",
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                           ),
                         ),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   children: [
                     Expanded(
@@ -1968,32 +1891,32 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.cardSubtitleText,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
-                          side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          side: const BorderSide(color: AppColors.cardBorderColor),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                         ),
                         child: Text(
                           "Omitir hoy",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                         ),
                         child: Text(
                           "Decidir más tarde",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2052,11 +1975,11 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(OrtizSpace.xl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2067,41 +1990,41 @@ class _NoSourceAccountsDeficitBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.cardBorderColor,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
-                SizedBox(width: 10),
+                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: OrtizIconSize.lg),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Saldo Insuficiente",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                    style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Text(
               "El saldo en '${targetAccount.name}' (${targetAccount.balance.toStringAsFixed(2)} ${targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados (Déficit consolidado de $deficitFormatted).\n\nNo tienes otras cuentas con fondos disponibles para realizar una transferencia. Por favor, agrega fondos a tus cuentas primero para poder proceder.",
-              style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText, height: 1.4),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, height: 1.4),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context, false),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.cardSubtitleText,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
+                  side: const BorderSide(color: AppColors.cardBorderColor),
+                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                 ),
-                child: Text("Cerrar", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                child: Text("Cerrar", style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -2224,11 +2147,11 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(OrtizSpace.xl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2239,41 +2162,41 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.cardBorderColor,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 24),
-                SizedBox(width: 10),
+                const Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: OrtizIconSize.lg),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Saldo Insuficiente",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                    style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
             Text(
               "El saldo de '${widget.targetAccount.name}' (${widget.targetAccount.balance.toStringAsFixed(2)} ${widget.targetAccount.currency.symbol}) es insuficiente para registrar los pagos seleccionados.\n\nSe necesita cubrir un déficit consolidado de $deficitFormatted.",
-              style: TextStyle(fontSize: 12.5, color: AppColors.cardSubtitleText, height: 1.4),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, height: 1.4),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Text(
               "Origen de los fondos:",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
             ),
-            SizedBox(height: 6),
+            SizedBox(height: OrtizSpace.xs),
             DropdownButtonFormField<Account>(
               initialValue: selectedSource,
               dropdownColor: AppColors.cardBackground,
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
               items: widget.sourceAccounts.map((acc) {
                 final balFormatted = acc.currency == CurrencyType.usd
@@ -2283,7 +2206,7 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                   value: acc,
                   child: Text(
                     "${acc.name} ($balFormatted)",
-                    style: TextStyle(fontSize: 12, color: AppColors.cardText),
+                    style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                   ),
                 );
               }).toList(),
@@ -2297,35 +2220,35 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
               },
             ),
             if (isCrossCurrency) ...[
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
               Text(
                 "Tasa de cambio para la transferencia:",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
               ),
-              SizedBox(height: 6),
+              SizedBox(height: OrtizSpace.xs),
               DropdownButtonFormField<String>(
                 initialValue: selectedRateType,
                 dropdownColor: AppColors.cardBackground,
                 decoration: InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 ),
                 items: [
                   DropdownMenuItem(
                     value: 'parallel',
-                    child: Text("Paralela / P2P (${widget.appState.parallelRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("Paralela / P2P (${widget.appState.parallelRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
                   ),
                   DropdownMenuItem(
                     value: 'bcv',
-                    child: Text("BCV Oficial (${widget.appState.bcvRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("BCV Oficial (${widget.appState.bcvRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
                   ),
                   DropdownMenuItem(
                     value: 'euro',
-                    child: Text("Euro Oficial (${widget.appState.euroRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("Euro Oficial (${widget.appState.euroRate.toStringAsFixed(2)} Bs/\$)", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
                   ),
                   DropdownMenuItem(
                     value: 'custom',
-                    child: Text("Personalizada", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
+                    child: Text("Personalizada", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
                   ),
                 ],
                 onChanged: (val) {
@@ -2338,14 +2261,14 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 },
               ),
               if (selectedRateType == 'custom') ...[
-                SizedBox(height: 8),
+                SizedBox(height: OrtizSpace.sm),
                 TextFormField(
                   controller: customRateController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm),
                   decoration: InputDecoration(
                     labelText: "Tasa de cambio personalizada (Bs/\$)",
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (val) {
@@ -2356,20 +2279,20 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 ),
               ],
             ],
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
             Text(
               "Monto a transferir (origen):",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
             ),
-            SizedBox(height: 6),
+            SizedBox(height: OrtizSpace.xs),
             TextFormField(
               controller: customAmountController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              style: TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: OrtizFontSize.body),
               decoration: InputDecoration(
                 prefixText: selectedSource.currency == CurrencyType.usd ? "\$ " : "Bs. ",
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 errorText: errorText,
               ),
               onChanged: (val) {
@@ -2378,31 +2301,31 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 });
               },
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(OrtizSpace.md),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.12)),
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 16),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: OrtizIconSize.sm),
+                  SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       isCrossCurrency
                           ? "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}'. Recibirás $targetAmtFormatted usando la tasa seleccionada (${activeRate.toStringAsFixed(2)} Bs/\$)."
                           : "Se registrará una transferencia de $sourceAmtFormatted desde '${selectedSource.name}' hacia '${widget.targetAccount.name}'. Recibirás $targetAmtFormatted.",
-                      style: TextStyle(fontSize: 11.5, color: AppColors.cardText, height: 1.4),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardText, height: 1.4),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: OrtizSpace.xl),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -2417,18 +2340,18 @@ class _DeficitTransferBottomSheetState extends State<_DeficitTransferBottomSheet
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: OrtizPalette.onAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
+                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                 ),
-                child: Text("Transferir y Registrar", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text("Transferir y Registrar", style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold)),
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, null),
-                child: Text("Cancelar", style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                child: Text("Cancelar", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

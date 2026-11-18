@@ -12,6 +12,9 @@ import '../dialogs/pin_setup_bottom_sheet.dart';
 import '../services/supabase_config.dart';
 import '../services/supabase_service.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -47,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.black54),
+            icon: const Icon(Icons.close_rounded, color: OrtizPalette.muted),
             tooltip: "Cerrar",
             onPressed: () {
               Navigator.of(context, rootNavigator: true).maybePop();
@@ -57,38 +60,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ClaymorphicBackground(
         child: ListView(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(OrtizSpace.lg),
           children: [
             // Libros de Contabilidad Section
             _buildSectionHeader("Contabilidad"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: ListTile(
                 title: Text(
                   "Libros de Contabilidad",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 subtitle: Text(
                   "Libro activo: ${appState.activeProfileName}",
                   style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
+                    fontSize: OrtizFontSize.caption,
+                    color: OrtizPalette.muted,
                   ),
                 ),
                 trailing: Icon(
                   Icons.chevron_right_rounded,
-                  color: Colors.black54,
+                  color: OrtizPalette.muted,
                 ),
                 onTap: () {
                   Navigator.of(context).push(
@@ -102,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
-                              fontSize: 16,
+                              fontSize: OrtizFontSize.titleSm,
                             ),
                           ),
                         ),
@@ -116,31 +112,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Cambia de contabilidad, crea nuevos libros aislados para tus negocios o renómbralos.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Supabase Cloud Section
             _buildSectionHeader("Nube y Sincronización"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: ListTile(
                 leading: Icon(
                   SupabaseConfig.isConfigured ? Icons.cloud_done_rounded : Icons.cloud_queue_rounded,
-                  color: SupabaseConfig.isConfigured ? AppColors.income : Colors.orange,
-                  size: 28,
+                  color: SupabaseConfig.isConfigured ? AppColors.income : OrtizPalette.warn,
+                  size: OrtizIconSize.lg,
                 ),
                 title: Text(
                   "Supabase Cloud",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 subtitle: Text(
@@ -148,22 +137,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? "Conectado a tu base de datos en la nube"
                       : "Configurar URL y Anon Key para sincronización",
                   style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
+                    fontSize: OrtizFontSize.caption,
+                    color: OrtizPalette.muted,
                   ),
                 ),
                 trailing: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                   decoration: BoxDecoration(
-                    color: (SupabaseConfig.isConfigured ? AppColors.income : Colors.orange).withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    color: (SupabaseConfig.isConfigured ? AppColors.income : OrtizPalette.warn).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   child: Text(
                     SupabaseConfig.isConfigured ? "Activo" : "Pendiente",
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.bold,
-                      color: SupabaseConfig.isConfigured ? AppColors.income : Colors.orange,
+                      color: SupabaseConfig.isConfigured ? AppColors.income : OrtizPalette.warn,
                     ),
                   ),
                 ),
@@ -175,20 +164,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Permite sincronizar tus datos en tiempo real entre la Web (PWA en iPhone), Android y macOS.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Copias de Seguridad Section
             _buildSectionHeader("Copias de Seguridad"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: Column(
                 children: [
                   ListTile(
@@ -196,19 +178,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Gestionar Copias de Seguridad",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     subtitle: Text(
                       "Crea copias manuales, restaura datos previos y ve el historial.",
                       style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
+                        fontSize: OrtizFontSize.caption,
+                        color: OrtizPalette.muted,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
@@ -218,25 +200,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "PIN de Seguridad",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     subtitle: Text(
                       "Cambia el código PIN de 4 dígitos requerido para restaurar datos.",
                       style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
+                        fontSize: OrtizFontSize.caption,
+                        color: OrtizPalette.muted,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () => _showChangePinBottomSheet(context, appState),
                   ),
@@ -246,20 +228,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Administra tus respaldos locales de seguridad y configura el PIN de confirmación.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Personalizacion Section
             _buildSectionHeader("Personalización"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: Column(
                 children: [
                   ListTile(
@@ -267,12 +242,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Cuentas y Bancos",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
@@ -282,18 +257,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "Categorías de Transacción",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
@@ -303,18 +278,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "Contactos Pago Móvil",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       Navigator.of(context).push(
@@ -330,20 +305,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
              _buildSectionFooter(
               "Administra tus cuentas financieras y edita las categorías y colores disponibles para tus transacciones.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Seguridad y Confirmación Section
             _buildSectionHeader("Seguridad y Confirmación"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: Column(
                 children: [
                   SwitchListTile(
@@ -352,31 +320,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Confirmación Biométrica",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     subtitle: Text(
                       "Solicita tu huella o rostro al registrar transacciones.",
-                      style: TextStyle(fontSize: 11),
+                      style: TextStyle(fontSize: OrtizFontSize.caption),
                     ),
                     value: appState.useBiometrics,
                     onChanged: (bool value) async {
                       await appState.setUseBiometrics(value);
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   SwitchListTile(
                     activeThumbColor: AppColors.primary,
                     title: const Text(
                       "Confirmación con PIN",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     subtitle: const Text(
                       "Solicita tu código PIN de 4 dígitos al registrar transacciones (ideal para Web y Desktop).",
-                      style: TextStyle(fontSize: 11),
+                      style: TextStyle(fontSize: OrtizFontSize.caption),
                     ),
                     value: appState.usePinSecurity,
                     onChanged: (bool value) async {
@@ -391,45 +359,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       await appState.setUsePinSecurity(value);
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
-                  SwitchListTile(
-                    activeThumbColor: AppColors.primary,
-                    title: Text(
-                      "Botón Deslizable",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "Reemplaza los botones de registrar por un control deslizable.",
-                      style: TextStyle(fontSize: 11),
-                    ),
-                    value: appState.useSlideToConfirm,
-                    onChanged: (bool value) async {
-                      await appState.setUseSlideToConfirm(value);
-                    },
-                  ),
                 ],
               ),
             ),
             _buildSectionFooter(
               "Configura capas extra de protección para evitar toques accidentales al registrar tus movimientos.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Guías y Ayuda Section
             _buildSectionHeader("Guías y Ayuda"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: Column(
                 children: [
                   ListTile(
@@ -437,66 +379,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Ver Guía del Tablero",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       appState.triggerDashboardTutorial();
                       Navigator.pop(context);
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "Ver Guía de Bolsillos",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       appState.triggerPocketsTutorial();
                       Navigator.pop(context);
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "Ver Guía de Pagos Recurrentes",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       appState.triggerRecurrentsTutorial();
                       Navigator.pop(context);
                     },
                   ),
-                  Divider(height: 1, color: Colors.black.withOpacity(0.08)),
+                  Divider(height: 1, color: OrtizPalette.line),
                   ListTile(
                     title: Text(
                       "Ver Guía de Proyección",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: OrtizPalette.fg,
                       ),
                     ),
                     trailing: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black54,
+                      color: OrtizPalette.muted,
                     ),
                     onTap: () {
                       appState.triggerTimelineTutorial();
@@ -510,20 +452,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Inicia las guías interactivas para aprender a usar las funciones clave o restablécelas para verlas de nuevo.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Tasas de Cambio Section
             _buildSectionHeader("Tasas de Cambio"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: ListTile(
                 title: Text(
                   appState.isFetchingHistory
@@ -532,8 +467,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: appState.isFetchingHistory
-                        ? Colors.grey
-                        : Colors.black,
+                        ? OrtizPalette.muted
+                        : OrtizPalette.fg,
                   ),
                 ),
                 onTap: appState.isFetchingHistory
@@ -562,31 +497,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionFooter(
               "Sincroniza y descarga el historial completo de tasas de cambio oficiales del BCV y Euro en el dispositivo.",
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Mantenimiento Section
             _buildSectionHeader("Mantenimiento"),
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
+            // Grupo sin tarjeta: filas directas sobre el fondo.
+            Material(
+              type: MaterialType.transparency,
               child: ListTile(
                 title: Text(
                   "Reiniciar Datos",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 trailing: Icon(
                   Icons.chevron_right_rounded,
-                  color: Colors.black54,
+                  color: OrtizPalette.muted,
                 ),
                 onTap: () => _showResetOptionsBottomSheet(context, appState),
               ),
@@ -602,13 +530,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
+      padding: EdgeInsets.only(left: OrtizSpace.sm, bottom: OrtizSpace.sm),
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
-          fontSize: 10,
+          fontSize: OrtizFontSize.caption,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[600],
+          color: OrtizPalette.muted,
           letterSpacing: 1.0,
         ),
       ),
@@ -617,10 +545,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionFooter(String text) {
     return Padding(
-      padding: EdgeInsets.only(left: 8.0, top: 6.0, right: 8.0),
+      padding: EdgeInsets.only(left: OrtizSpace.sm, top: OrtizSpace.xs, right: OrtizSpace.sm),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
       ),
     );
   }
@@ -637,23 +565,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.cardText,
-                fontSize: 16,
+                fontSize: OrtizFontSize.titleSm,
               ),
             ),
           ),
           body: ClaymorphicBackground(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
               children: [
                 const Text(
                   "Selecciona una opción para reiniciar tu app desde cero. Esta acción es irreversible.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: OrtizSpace.xxl),
 
                 // Option 1: Partial reset
                 GestureDetector(
@@ -665,27 +593,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(OrtizSpace.lg),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      color: OrtizPalette.warn.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
+                      border: Border.all(color: OrtizPalette.warn.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(OrtizSpace.sm),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.15),
+                            color: OrtizPalette.warn.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.cleaning_services_rounded,
-                            color: Colors.orange,
-                            size: 20,
+                            color: OrtizPalette.warn,
+                            size: OrtizIconSize.md,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: OrtizSpace.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,16 +621,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Text(
                                 "Limpieza Parcial (Conservar Registros)",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: OrtizPalette.warn,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: OrtizSpace.xs),
                               Text(
                                 "Conserva tus bolsillos, cuentas y categorías (con saldos en cero), borrando transacciones e ingresos/gastos recurrentes.",
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: OrtizFontSize.caption,
                                   color: AppColors.cardSubtitleText,
                                   height: 1.3,
                                 ),
@@ -714,7 +642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
 
                 // Option 2: Absolute Reset
                 GestureDetector(
@@ -726,29 +654,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(OrtizSpace.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.expense.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.expense.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                       border: Border.all(
-                        color: AppColors.expense.withOpacity(0.3),
+                        color: AppColors.expense.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(OrtizSpace.sm),
                           decoration: BoxDecoration(
-                            color: AppColors.expense.withOpacity(0.15),
+                            color: AppColors.expense.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.delete_forever_rounded,
                             color: AppColors.expense,
-                            size: 20,
+                            size: OrtizIconSize.md,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: OrtizSpace.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,16 +684,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Text(
                                 "Limpieza Total (Borrar Todo)",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.expense,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: OrtizSpace.xs),
                               Text(
                                 "Elimina absolutamente todos los datos: transacciones, cuentas, bolsillos, categorías y vuelve al estado inicial.",
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: OrtizFontSize.caption,
                                   color: AppColors.cardSubtitleText,
                                   height: 1.3,
                                 ),
@@ -801,12 +729,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return AlertDialog(
               backgroundColor: AppColors.dialogBg,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(OrtizRadius.dialog),
               ),
               title: Text(
                 isAbsolute ? "Confirmar Borrado Total" : "Confirmar Limpieza Parcial",
                 style: TextStyle(
-                  color: isAbsolute ? AppColors.expense : Colors.orange,
+                  color: isAbsolute ? AppColors.expense : OrtizPalette.warn,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -819,32 +747,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? "Esta acción eliminará de forma irreversible toda tu información (cuentas, movimientos, bolsillos, etc.) y reiniciará la app."
                         : "Esta acción vaciará el historial de transacciones, pero conservará tus bolsillos, cuentas y categorías.",
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: OrtizFontSize.bodySm,
                       color: AppColors.cardText,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: OrtizSpace.lg),
                   Text(
                     "Escribe 'ELIMINAR' para confirmar:",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardSubtitleText,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: OrtizSpace.sm),
                   TextField(
                     controller: _confirmController,
                     autofocus: true,
                     decoration: InputDecoration(
                       hintText: "ELIMINAR",
-                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      hintStyle: TextStyle(color: OrtizPalette.muted),
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: OrtizSpace.md,
+                        vertical: OrtizSpace.sm,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       ),
                     ),
                     onChanged: (val) {
@@ -880,7 +808,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextButton.styleFrom(
                     foregroundColor: _isConfirmEnabled
                         ? AppColors.expense
-                        : Colors.grey,
+                        : OrtizPalette.muted,
                   ),
                   child: Text("Confirmar y Borrar"),
                 ),
@@ -909,7 +837,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.cardText,
-                fontSize: 16,
+                fontSize: OrtizFontSize.titleSm,
               ),
             ),
           ),
@@ -937,17 +865,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) {
         final isConfigured = SupabaseConfig.isConfigured;
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
           title: Row(
             children: [
               Icon(
                 isConfigured ? Icons.cloud_done_rounded : Icons.cloud_queue_rounded,
-                color: isConfigured ? AppColors.income : Colors.orange,
+                color: isConfigured ? AppColors.income : OrtizPalette.warn,
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               Text(
                 "Supabase Cloud",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -959,39 +887,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 isConfigured
                     ? "Tu aplicación está configurada para sincronizarse directamente con Supabase en la nube."
                     : "Para habilitar la sincronización en la nube, coloca tu URL y Anon Key en lib/services/supabase_config.dart.",
-                style: TextStyle(fontSize: 13, height: 1.4),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, height: 1.4),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
+                  color: OrtizPalette.surfaceHigh,
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "URL:",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                     ),
                     Text(
                       SupabaseConfig.supabaseUrl,
-                      style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.black87),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontFamily: OrtizType.fontMono, color: OrtizPalette.fg),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: OrtizSpace.sm),
                     Text(
                       "Estado:",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                     ),
                     Text(
                       isConfigured ? "Conectado / Listo" : "Pendiente de credenciales",
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: OrtizFontSize.caption,
                         fontWeight: FontWeight.bold,
-                        color: isConfigured ? AppColors.income : Colors.orange,
+                        color: isConfigured ? AppColors.income : OrtizPalette.warn,
                       ),
                     ),
                   ],

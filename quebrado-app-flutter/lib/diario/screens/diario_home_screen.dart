@@ -15,6 +15,15 @@ import '../widgets/diario_image_helper.dart';
 import '../widgets/personal_notes_view.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import '../../widgets/ortiz/ortiz.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+/// Margen inferior de las listas para que el FAB extendido no tape la última
+/// fila (antes 88 px: objetivo táctil + 32 + 8).
+const double _fabClearance = OrtizSize.minTouch + OrtizSpace.xxxl + OrtizSpace.sm;
+
 class DiarioHomeScreen extends StatefulWidget {
   const DiarioHomeScreen({super.key});
 
@@ -85,7 +94,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     return Drawer(
       width: drawerWidth,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
+        borderRadius: BorderRadius.horizontal(left: Radius.circular(OrtizRadius.sheet)),
       ),
       clipBehavior: Clip.antiAlias,
       child: _activeDrawerContent == 'templates'
@@ -153,11 +162,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
       endDrawer: _buildEndDrawer(context, isDesktop),
       backgroundColor: DiarioColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: DiarioColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Row(
@@ -167,11 +176,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               height: 32,
               decoration: BoxDecoration(
                 color: DiarioColors.primaryLight,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
-              child: const Icon(Icons.auto_stories_rounded, color: DiarioColors.primary, size: 18),
+              child: const Icon(Icons.auto_stories_rounded, color: DiarioColors.primary, size: OrtizIconSize.md),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,13 +189,13 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   const Text(
                     'Diario Jottache',
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: DiarioColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm, color: DiarioColors.textPrimary),
                   ),
                   if (isDesktop)
                     const Text(
                       'Notas Personales & Directorio',
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
                     ),
                 ],
               ),
@@ -222,7 +231,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               }
             },
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
         ],
         bottom: isDesktop
             ? null
@@ -230,31 +239,24 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                 preferredSize: const Size.fromHeight(48),
                 child: Container(
                   height: 40,
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  padding: const EdgeInsets.all(3),
+                  margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, 0, OrtizSpace.lg, OrtizSpace.sm),
+                  padding: const EdgeInsets.all(OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey[200]!),
+                    color: DiarioColors.surface,
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
+                    border: Border.all(color: DiarioColors.cardBorder),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
                       color: DiarioColors.primary,
-                      borderRadius: BorderRadius.circular(11),
-                      boxShadow: [
-                        BoxShadow(
-                          color: DiarioColors.primary.withOpacity(0.25),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
+                    labelColor: OrtizPalette.onAccent,
                     unselectedLabelColor: DiarioColors.textSecondary,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
+                    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.bodySm),
                     dividerColor: Colors.transparent,
                     tabs: const [
                       Tab(
@@ -262,8 +264,8 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.edit_note_rounded, size: 18),
-                            SizedBox(width: 6),
+                            Icon(Icons.edit_note_rounded, size: OrtizIconSize.md),
+                            SizedBox(width: OrtizSpace.xs),
                             Text('Mis Notas'),
                           ],
                         ),
@@ -273,8 +275,8 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.people_outline_rounded, size: 18),
-                            SizedBox(width: 6),
+                            Icon(Icons.people_outline_rounded, size: OrtizIconSize.md),
+                            SizedBox(width: OrtizSpace.xs),
                             Text('Contactos'),
                           ],
                         ),
@@ -309,7 +311,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   heroTag: 'fab_diario_desktop',
                   onPressed: _openAddContactDialog,
                   backgroundColor: DiarioColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: OrtizPalette.onAccent,
                   icon: const Icon(Icons.person_add_alt_1_rounded),
                   label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
                 ))
@@ -318,7 +320,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   heroTag: 'fab_diario_personal_mob',
                   onPressed: _openAddPersonalNoteDialog,
                   backgroundColor: DiarioColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: OrtizPalette.onAccent,
                   icon: const Icon(Icons.edit_note_rounded),
                   label: const Text('Nueva Nota', style: TextStyle(fontWeight: FontWeight.bold)),
                 )
@@ -328,7 +330,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                       heroTag: 'fab_diario_contact_mob',
                       onPressed: _openAddContactDialog,
                       backgroundColor: DiarioColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       icon: const Icon(Icons.person_add_alt_1_rounded),
                       label: const Text('Nuevo Contacto', style: TextStyle(fontWeight: FontWeight.bold)),
                     ))),
@@ -352,7 +354,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
             const Expanded(
               flex: 5,
               child: PersonalNotesView(
-                padding: EdgeInsets.fromLTRB(24, 20, 20, 32),
+                padding: EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.xxxl),
               ),
             ),
 
@@ -367,7 +369,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               flex: 6,
               child: activeContactId != null
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                       child: ContactDetailScreen(
                         key: ValueKey(activeContactId),
                         contactId: activeContactId,
@@ -383,7 +385,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                       state,
                       filtered,
                       upcomingBirthdays,
-                      padding: const EdgeInsets.fromLTRB(20, 20, 24, 88),
+                      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.xxl, _fabClearance),
                     ),
             ),
           ],
@@ -404,7 +406,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
       children: [
         // Tab 1: Mis Notas Personales
         const PersonalNotesView(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 88),
+          padding: EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
         ),
 
         // Tab 2: Directorio de Contactos o Detalle de Contacto
@@ -423,7 +425,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                 state,
                 filtered,
                 upcomingBirthdays,
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 88),
+                padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, _fabClearance),
               ),
       ],
     );
@@ -434,7 +436,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     DiarioState state,
     List<DiarioContact> filtered,
     List<DiarioContact> upcomingBirthdays, {
-    EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(20, 6, 20, 88),
+    EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, _fabClearance),
   }) {
     return CustomScrollView(
       slivers: [
@@ -447,7 +449,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
         // 2. Search & Filter Bar
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.sm),
             child: Column(
               children: [
                 // Search Bar
@@ -455,22 +457,22 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
                     hintText: 'Buscar contacto por nombre o rol...',
-                    prefixIcon: const Icon(Icons.search_rounded, size: 20, color: DiarioColors.textMuted),
+                    prefixIcon: const Icon(Icons.search_rounded, size: OrtizIconSize.md, color: DiarioColors.textMuted),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: DiarioColors.surface,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                       borderSide: const BorderSide(color: DiarioColors.cardBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                       borderSide: const BorderSide(color: DiarioColors.cardBorder),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
 
                 // Filter Chips
                 SingleChildScrollView(
@@ -479,20 +481,20 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                     children: _filters.map((filter) {
                       final isSelected = _selectedFilter == filter;
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
+                        padding: const EdgeInsets.only(right: OrtizSpace.sm),
                         child: ChoiceChip(
                           label: Text(filter),
                           selected: isSelected,
                           showCheckmark: false,
                           selectedColor: DiarioColors.primary,
-                          backgroundColor: Colors.white,
+                          backgroundColor: DiarioColors.background,
                           labelStyle: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                            color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                            color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                             side: BorderSide(
                               color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
                             ),
@@ -511,36 +513,36 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
         // 3. Section Title, Total & Action
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.md, OrtizSpace.xl, OrtizSpace.sm),
             child: Row(
               children: [
                 const Flexible(
                   child: Text(
                     'Directorio de Personas',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                    style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
                     color: DiarioColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   child: Text(
                     '${filtered.length}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: DiarioColors.primary),
+                    style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: DiarioColors.primary),
                   ),
                 ),
                 if (ResponsiveBreakpoints.isDesktop(context)) ...[
                   const Spacer(),
                   TextButton.icon(
                     onPressed: _openAddContactDialog,
-                    icon: const Icon(Icons.add, size: 16, color: DiarioColors.primary),
+                    icon: const Icon(Icons.add, size: OrtizIconSize.sm, color: DiarioColors.primary),
                     label: const Text(
                       'Nuevo Contacto',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: DiarioColors.primary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: DiarioColors.primary),
                     ),
                   ),
                 ],
@@ -551,27 +553,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
 
         // 4. Contact Cards List or Empty
         if (filtered.isEmpty)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    const Icon(Icons.people_outline_rounded, size: 48, color: DiarioColors.textMuted),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'No hay contactos que coincidan',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: DiarioColors.textPrimary),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Presiona el botón para agregar una nueva persona.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
+          const SliverToBoxAdapter(
+            child: OrtizEmptyState(
+              icon: Icons.people_outline_rounded,
+              title: 'No hay contactos que coincidan',
+              message: 'Presiona el botón para agregar una nueva persona.',
             ),
           )
         else
@@ -592,40 +578,28 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
   }
 
   Widget _buildUpcomingBirthdaysBanner(List<DiarioContact> birthdays) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-          ),
-        ],
-      ),
+    // Sin tarjeta (spec 05, C4): franja sobre el fondo, con su encabezado.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              Icon(Icons.cake_outlined, color: DiarioColors.primary, size: 16),
-              const SizedBox(width: 8),
+              Icon(Icons.cake_outlined, color: DiarioColors.primary, size: OrtizIconSize.sm),
+              SizedBox(width: OrtizSpace.sm),
               Text(
                 'PRÓXIMOS CUMPLEAÑOS',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w800,
-                  color: Colors.grey[600],
+                  color: DiarioColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: OrtizSpace.sm),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -637,35 +611,35 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                       _selectedContactId = c.id;
                     });
                   },
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    margin: const EdgeInsets.only(right: OrtizSpace.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
                       color: DiarioColors.surfaceHover,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey[200]!),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                      border: Border.all(color: DiarioColors.cardBorder),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           c.name,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black87),
+                          style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: OrtizSpace.xs),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
                             color: DiarioColors.primaryLight,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Text(
                             days == 0
                                 ? (c.ageOnUpcomingBirthday != null ? '¡HOY! (cumple ${c.ageOnUpcomingBirthday})' : '¡HOY!')
                                 : (c.ageOnUpcomingBirthday != null ? 'en ${days}d (cumplirá ${c.ageOnUpcomingBirthday})' : 'en ${days}d'),
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w800,
                               color: DiarioColors.primary,
                             ),
@@ -686,19 +660,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
   Widget _buildContactCard(BuildContext context, DiarioContact contact, DiarioState state) {
     final entriesCount = state.getEntriesForContact(contact.id).length;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-          ),
-        ],
+    // Sin tarjeta (spec 05, C4): fila sobre el fondo; las filas se separan
+    // con una línea fina.
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: DiarioColors.cardBorder)),
       ),
       child: InkWell(
         onTap: () {
@@ -706,9 +672,9 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
             _selectedContactId = contact.id;
           });
         },
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.md),
           child: Row(
             children: [
               // Minimalist Avatar in Primary Tone (Tap to zoom if photo exists)
@@ -733,7 +699,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                       color: DiarioColors.primaryLight,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: DiarioColors.primary.withOpacity(0.20),
+                        color: DiarioColors.primary.withValues(alpha: 0.20),
                         width: 1.2,
                       ),
                     ),
@@ -750,7 +716,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                         : Text(
                             contact.initials,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: OrtizFontSize.titleSm,
                               fontWeight: FontWeight.w900,
                               color: DiarioColors.primary,
                             ),
@@ -759,7 +725,7 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                 ),
               ),
 
-              const SizedBox(width: 14),
+              const SizedBox(width: OrtizSpace.md),
 
               // Info
               Expanded(
@@ -772,21 +738,21 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                           child: Text(
                             contact.name,
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: OrtizFontSize.body,
                               fontWeight: FontWeight.w900,
-                              color: Colors.black87,
+                              color: DiarioColors.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (contact.isFavorite) ...[
-                          const SizedBox(width: 6),
-                          Icon(Icons.star_rounded, size: 16, color: DiarioColors.primary),
+                          const SizedBox(width: OrtizSpace.xs),
+                          const Icon(Icons.star_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: OrtizSpace.xs),
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 8,
@@ -794,32 +760,32 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                       children: [
                         if (contact.relationship != null && contact.relationship!.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
                               color: DiarioColors.surfaceHover,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.grey[200]!),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                              border: Border.all(color: DiarioColors.cardBorder),
                             ),
                             child: Text(
                               contact.relationship!,
-                              style: TextStyle(
-                                fontSize: 10,
+                              style: const TextStyle(
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.grey[700],
+                                color: DiarioColors.textSecondary,
                               ),
                             ),
                           ),
                         if (contact.currentAge != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: DiarioColors.primaryLight.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(6),
+                              color: DiarioColors.primaryLight.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Text(
                               '${contact.currentAge} años',
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w700,
                                 color: DiarioColors.primary,
                               ),
@@ -828,12 +794,12 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
                         if (contact.nickname != null && contact.nickname!.isNotEmpty)
                           Text(
                             '"${contact.nickname}"',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, fontStyle: FontStyle.italic),
                             overflow: TextOverflow.ellipsis,
                           ),
                         Text(
                           '$entriesCount ${entriesCount == 1 ? "registro" : "registros"}',
-                          style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                          style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textMuted),
                         ),
                         ?_buildPerceivedMoodBadge(contact),
                       ],
@@ -843,11 +809,11 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
               ),
 
               IconButton(
-                icon: const Icon(Icons.note_add_outlined, size: 19, color: DiarioColors.primary),
+                icon: const Icon(Icons.note_add_outlined, size: OrtizIconSize.md, color: DiarioColors.primary),
                 tooltip: 'Agregar nota rápida',
                 onPressed: () => _openQuickAddEntry(contact),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey[400]),
+              const Icon(Icons.arrow_forward_ios_rounded, size: OrtizIconSize.sm, color: DiarioColors.textMuted),
             ],
           ),
         ),
@@ -863,12 +829,12 @@ class _DiarioHomeScreenState extends State<DiarioHomeScreen>
     return Tooltip(
       message: 'Ánimo percibido: ${meta.label}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
         decoration: BoxDecoration(
           color: meta.lightColor,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
-        child: Text(meta.emoji, style: const TextStyle(fontSize: 11)),
+        child: Text(meta.emoji, style: const TextStyle(fontSize: OrtizFontSize.caption)),
       ),
     );
   }

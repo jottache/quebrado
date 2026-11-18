@@ -9,6 +9,11 @@ import '../models/note_item.dart';
 import '../models/note_category.dart';
 import '../models/note_block.dart';
 
+import '../theme/notas_colors.dart';
+import '../theme/notas_pdf_palette.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Servicio para la generación de documentos PDF de alta calidad,
 /// exportación, descarga e intercambio de notas y acuerdos.
 class NotePdfService {
@@ -87,7 +92,10 @@ class NotePdfService {
       pw.MultiPage(
         theme: theme,
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+        margin: const pw.EdgeInsets.symmetric(
+          horizontal: NotasPdfPalette.pageMargin,
+          vertical: NotasPdfPalette.pageMargin,
+        ),
         header: (pw.Context context) => _buildPdfHeader(
           note: note,
           category: category,
@@ -114,8 +122,8 @@ class NotePdfService {
     required String updatedDate,
   }) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 20),
-      padding: const pw.EdgeInsets.only(bottom: 14),
+      margin: const pw.EdgeInsets.only(bottom: OrtizSpace.xl),
+      padding: const pw.EdgeInsets.only(bottom: OrtizSpace.md),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
           bottom: pw.BorderSide(color: PdfColors.grey300, width: 1),
@@ -130,16 +138,16 @@ class NotePdfService {
             children: [
               if (category != null)
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const pw.EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                   decoration: pw.BoxDecoration(
                     color: categoryColor,
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(OrtizRadius.chip)),
                   ),
                   child: pw.Text(
                     category.name.toUpperCase(),
                     style: pw.TextStyle(
                       color: PdfColors.white,
-                      fontSize: 8.5,
+                      fontSize: OrtizFontSize.micro,
                       fontWeight: pw.FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -147,52 +155,52 @@ class NotePdfService {
                 ),
               if (note.sharedTag != null && note.sharedTag!.isNotEmpty)
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const pw.EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                   decoration: pw.BoxDecoration(
                     color: PdfColors.grey200,
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(OrtizRadius.chip)),
                   ),
                   child: pw.Text(
                     '#${note.sharedTag}',
                     style: const pw.TextStyle(
                       color: PdfColors.grey700,
-                      fontSize: 8.5,
+                      fontSize: OrtizFontSize.micro,
                     ),
                   ),
                 ),
             ],
           ),
-          pw.SizedBox(height: 10),
+          pw.SizedBox(height: OrtizSpace.sm),
 
           // Título de la nota
           pw.Text(
             note.title.isNotEmpty ? note.title : 'Sin título',
             style: pw.TextStyle(
-              fontSize: 22,
+              fontSize: OrtizFontSize.display,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blueGrey900,
             ),
           ),
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: OrtizSpace.sm),
 
           // Metadatos de fecha
           pw.Row(
             children: [
               pw.Text(
                 'Creada: $createdDate',
-                style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey600),
+                style: const pw.TextStyle(fontSize: OrtizFontSize.micro, color: PdfColors.grey600),
               ),
-              pw.SizedBox(width: 14),
+              pw.SizedBox(width: OrtizSpace.md),
               pw.Text(
                 'Actualizada: $updatedDate',
-                style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey600),
+                style: const pw.TextStyle(fontSize: OrtizFontSize.micro, color: PdfColors.grey600),
               ),
               if (note.isPinned) ...[
-                pw.SizedBox(width: 14),
+                pw.SizedBox(width: OrtizSpace.md),
                 pw.Text(
                   '[Fijada]',
                   style: pw.TextStyle(
-                    fontSize: 8.5,
+                    fontSize: OrtizFontSize.micro,
                     fontWeight: pw.FontWeight.bold,
                     color: PdfColors.amber800,
                   ),
@@ -208,8 +216,8 @@ class NotePdfService {
   /// Construye el pie de página con paginación y marca sutil.
   pw.Widget _buildPdfFooter(pw.Context context) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 16),
-      padding: const pw.EdgeInsets.only(top: 8),
+      margin: const pw.EdgeInsets.only(top: OrtizSpace.lg),
+      padding: const pw.EdgeInsets.only(top: OrtizSpace.sm),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
           top: pw.BorderSide(color: PdfColors.grey200, width: 0.8),
@@ -220,11 +228,11 @@ class NotePdfService {
         children: [
           pw.Text(
             'OrtizApp | Notas & Acuerdos',
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+            style: const pw.TextStyle(fontSize: OrtizFontSize.micro, color: PdfColors.grey500),
           ),
           pw.Text(
             'Pagina ${context.pageNumber} de ${context.pagesCount}',
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+            style: const pw.TextStyle(fontSize: OrtizFontSize.micro, color: PdfColors.grey500),
           ),
         ],
       ),
@@ -241,14 +249,14 @@ class NotePdfService {
         widgets.add(
           pw.Text(
             text,
-            style: const pw.TextStyle(fontSize: 10.5, lineSpacing: 2, color: PdfColors.grey900),
+            style: const pw.TextStyle(fontSize: OrtizFontSize.caption, lineSpacing: 2, color: PdfColors.grey900),
           ),
         );
       } else {
         widgets.add(
           pw.Text(
             'Esta nota no contiene texto adicional.',
-            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontStyle: pw.FontStyle.italic),
+            style: pw.TextStyle(fontSize: OrtizFontSize.caption, color: PdfColors.grey500, fontStyle: pw.FontStyle.italic),
           ),
         );
       }
@@ -268,11 +276,11 @@ class NotePdfService {
     switch (block.type) {
       case BlockType.heading1:
         return pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 16, bottom: 6),
+          padding: const pw.EdgeInsets.only(top: OrtizSpace.lg, bottom: OrtizSpace.xs),
           child: pw.Text(
             block.content,
             style: pw.TextStyle(
-              fontSize: 18,
+              fontSize: OrtizFontSize.title,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blueGrey900,
             ),
@@ -281,11 +289,11 @@ class NotePdfService {
 
       case BlockType.heading2:
         return pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 12, bottom: 4),
+          padding: const pw.EdgeInsets.only(top: OrtizSpace.md, bottom: OrtizSpace.xs),
           child: pw.Text(
             block.content,
             style: pw.TextStyle(
-              fontSize: 15,
+              fontSize: OrtizFontSize.body,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blueGrey800,
             ),
@@ -294,11 +302,11 @@ class NotePdfService {
 
       case BlockType.heading3:
         return pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 10, bottom: 4),
+          padding: const pw.EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xs),
           child: pw.Text(
             block.content,
             style: pw.TextStyle(
-              fontSize: 12.5,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blueGrey700,
             ),
@@ -307,11 +315,11 @@ class NotePdfService {
 
       case BlockType.paragraph:
         return pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 6),
+          padding: const pw.EdgeInsets.only(bottom: OrtizSpace.xs),
           child: pw.Text(
             block.content,
             style: const pw.TextStyle(
-              fontSize: 10.5,
+              fontSize: OrtizFontSize.caption,
               lineSpacing: 2,
               color: PdfColors.grey900,
             ),
@@ -320,17 +328,17 @@ class NotePdfService {
 
       case BlockType.todo:
         return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2.5),
+          padding: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Container(
                 width: 12,
                 height: 12,
-                margin: const pw.EdgeInsets.only(top: 1.5, right: 8),
+                margin: const pw.EdgeInsets.only(top: OrtizSpace.xxs, right: OrtizSpace.sm),
                 decoration: pw.BoxDecoration(
                   color: block.isChecked ? primaryColor : PdfColors.white,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(OrtizRadius.chip)),
                   border: pw.Border.all(
                     color: block.isChecked ? primaryColor : PdfColors.grey400,
                     width: 1.2,
@@ -341,7 +349,7 @@ class NotePdfService {
                         child: pw.Text(
                           'X',
                           style: pw.TextStyle(
-                            fontSize: 7.5,
+                            fontSize: OrtizFontSize.micro,
                             color: PdfColors.white,
                             fontWeight: pw.FontWeight.bold,
                           ),
@@ -353,7 +361,7 @@ class NotePdfService {
                 child: pw.Text(
                   block.content,
                   style: pw.TextStyle(
-                    fontSize: 10.5,
+                    fontSize: OrtizFontSize.caption,
                     color: block.isChecked ? PdfColors.grey500 : PdfColors.grey900,
                     decoration: block.isChecked ? pw.TextDecoration.lineThrough : null,
                   ),
@@ -365,14 +373,14 @@ class NotePdfService {
 
       case BlockType.bulletList:
         return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          padding: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Container(
                 width: 4,
                 height: 4,
-                margin: const pw.EdgeInsets.only(top: 5, left: 4, right: 8),
+                margin: const pw.EdgeInsets.only(top: OrtizSpace.xs, left: OrtizSpace.xs, right: OrtizSpace.sm),
                 decoration: const pw.BoxDecoration(
                   color: PdfColors.blueGrey700,
                   shape: pw.BoxShape.circle,
@@ -381,7 +389,7 @@ class NotePdfService {
               pw.Expanded(
                 child: pw.Text(
                   block.content,
-                  style: const pw.TextStyle(fontSize: 10.5, color: PdfColors.grey900),
+                  style: const pw.TextStyle(fontSize: OrtizFontSize.caption, color: PdfColors.grey900),
                 ),
               ),
             ],
@@ -390,7 +398,7 @@ class NotePdfService {
 
       case BlockType.numberedList:
         return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+          padding: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -399,7 +407,7 @@ class NotePdfService {
                 child: pw.Text(
                   '${index + 1}.',
                   style: pw.TextStyle(
-                    fontSize: 10,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: pw.FontWeight.bold,
                     color: primaryColor,
                   ),
@@ -408,7 +416,7 @@ class NotePdfService {
               pw.Expanded(
                 child: pw.Text(
                   block.content,
-                  style: const pw.TextStyle(fontSize: 10.5, color: PdfColors.grey900),
+                  style: const pw.TextStyle(fontSize: OrtizFontSize.caption, color: PdfColors.grey900),
                 ),
               ),
             ],
@@ -417,11 +425,11 @@ class NotePdfService {
 
       case BlockType.toggle:
         return pw.Container(
-          margin: const pw.EdgeInsets.symmetric(vertical: 4),
-          padding: const pw.EdgeInsets.all(8),
+          margin: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.xs),
+          padding: const pw.EdgeInsets.all(OrtizSpace.sm),
           decoration: pw.BoxDecoration(
             color: PdfColors.grey100,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(OrtizRadius.chip)),
             border: pw.Border.all(color: PdfColors.grey300, width: 0.6),
           ),
           child: pw.Column(
@@ -429,19 +437,19 @@ class NotePdfService {
             children: [
               pw.Row(
                 children: [
-                  pw.Text('v ', style: pw.TextStyle(fontSize: 9, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('v ', style: pw.TextStyle(fontSize: OrtizFontSize.micro, color: primaryColor, fontWeight: pw.FontWeight.bold)),
                   pw.Expanded(
                     child: pw.Text(
                       block.content.isNotEmpty ? block.content : 'Desplegable',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900),
+                      style: pw.TextStyle(fontSize: OrtizFontSize.caption, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900),
                     ),
                   ),
                 ],
               ),
               if (block.children.isNotEmpty) ...[
-                pw.SizedBox(height: 6),
+                pw.SizedBox(height: OrtizSpace.xs),
                 pw.Padding(
-                  padding: const pw.EdgeInsets.only(left: 12),
+                  padding: const pw.EdgeInsets.only(left: OrtizSpace.md),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: block.children
@@ -458,11 +466,11 @@ class NotePdfService {
 
       case BlockType.callout:
         return pw.Container(
-          margin: const pw.EdgeInsets.symmetric(vertical: 4),
-          padding: const pw.EdgeInsets.all(10),
+          margin: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.xs),
+          padding: const pw.EdgeInsets.all(OrtizSpace.sm),
           decoration: pw.BoxDecoration(
             color: PdfColors.indigo50,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(OrtizRadius.chip)),
             border: pw.Border.all(color: PdfColors.indigo200, width: 0.8),
           ),
           child: pw.Row(
@@ -471,7 +479,7 @@ class NotePdfService {
               pw.Container(
                 width: 8,
                 height: 8,
-                margin: const pw.EdgeInsets.only(top: 3, right: 8),
+                margin: const pw.EdgeInsets.only(top: OrtizSpace.xxs, right: OrtizSpace.sm),
                 decoration: pw.BoxDecoration(
                   color: primaryColor,
                   shape: pw.BoxShape.circle,
@@ -480,7 +488,7 @@ class NotePdfService {
               pw.Expanded(
                 child: pw.Text(
                   block.content,
-                  style: const pw.TextStyle(fontSize: 10.5, color: PdfColors.indigo900),
+                  style: const pw.TextStyle(fontSize: OrtizFontSize.caption, color: PdfColors.indigo900),
                 ),
               ),
             ],
@@ -489,7 +497,7 @@ class NotePdfService {
 
       case BlockType.divider:
         return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 8),
+          padding: const pw.EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           child: pw.Divider(color: PdfColors.grey300, thickness: 0.8),
         );
     }
@@ -515,7 +523,7 @@ class NotePdfService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Documento PDF "$fileName" generado con éxito'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: OrtizPalette.ok,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -526,7 +534,7 @@ class NotePdfService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al generar PDF: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: OrtizPalette.bad,
           ),
         );
       }
@@ -580,7 +588,7 @@ class NotePdfService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al compartir PDF: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: OrtizPalette.bad,
           ),
         );
       }
@@ -605,10 +613,10 @@ class NotePdfService {
       builder: (ctx) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: OrtizPalette.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -620,12 +628,12 @@ class NotePdfService {
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
+                      color: OrtizPalette.line,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: OrtizSpace.lg),
 
                 // Encabezado de la nota
                 Row(
@@ -634,14 +642,13 @@ class NotePdfService {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        color: OrtizPalette.surfaceHigh,
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                       alignment: Alignment.center,
-                      child: Text(note.emoji, style: const TextStyle(fontSize: 22)),
+                      child: Text(note.emoji, style: const TextStyle(fontSize: OrtizFontSize.display)),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -651,17 +658,17 @@ class NotePdfService {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: OrtizFontSize.titleSm,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
+                              color: OrtizPalette.fg,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: OrtizSpace.xxs),
                           Text(
                             category?.name ?? 'General',
                             style: TextStyle(
-                              fontSize: 12,
-                              color: category?.color ?? const Color(0xFF6366F1),
+                              fontSize: OrtizFontSize.bodySm,
+                              color: category?.color ?? NotasColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -670,23 +677,23 @@ class NotePdfService {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: OrtizSpace.xl),
                 const Divider(height: 1),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
 
                 // Opción 1: Descargar PDF
                 ListTile(
                   leading: Container(
-                    padding: const EdgeInsets.all(9),
+                    padding: const EdgeInsets.all(OrtizSpace.sm),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(10),
+                      color: NotasColors.primaryLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
-                    child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF6366F1), size: 22),
+                    child: const Icon(Icons.picture_as_pdf_rounded, color: NotasColors.primary, size: OrtizIconSize.lg),
                   ),
-                  title: const Text('Descargar como PDF', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  subtitle: const Text('Genera un archivo PDF limpio y listo para guardar o imprimir', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  title: const Text('Descargar como PDF', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.body)),
+                  subtitle: const Text('Genera un archivo PDF limpio y listo para guardar o imprimir', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     await NotePdfService.instance.downloadNotePdf(
@@ -700,16 +707,16 @@ class NotePdfService {
                 // Opción 2: Imprimir / Vista Previa
                 ListTile(
                   leading: Container(
-                    padding: const EdgeInsets.all(9),
+                    padding: const EdgeInsets.all(OrtizSpace.sm),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(10),
+                      color: NotasColors.datosGreenLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
-                    child: const Icon(Icons.print_rounded, color: Color(0xFF16A34A), size: 22),
+                    child: const Icon(Icons.print_rounded, color: NotasColors.datosGreen, size: OrtizIconSize.lg),
                   ),
-                  title: const Text('Imprimir / Vista Previa', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  subtitle: const Text('Abre el visor de impresión nativo del navegador o dispositivo', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  title: const Text('Imprimir / Vista Previa', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.body)),
+                  subtitle: const Text('Abre el visor de impresión nativo del navegador o dispositivo', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     await NotePdfService.instance.printOrPreviewPdf(
@@ -722,16 +729,16 @@ class NotePdfService {
                 // Opción 3: Compartir Archivo PDF
                 ListTile(
                   leading: Container(
-                    padding: const EdgeInsets.all(9),
+                    padding: const EdgeInsets.all(OrtizSpace.sm),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFDF2F8),
-                      borderRadius: BorderRadius.circular(10),
+                      color: NotasColors.acuerdosPinkLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
-                    child: const Icon(Icons.share_rounded, color: Color(0xFFDB2777), size: 22),
+                    child: const Icon(Icons.share_rounded, color: NotasColors.acuerdosPink, size: OrtizIconSize.lg),
                   ),
-                  title: const Text('Compartir documento PDF', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  subtitle: const Text('Envía el PDF por WhatsApp, Telegram, correo u otras apps', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  title: const Text('Compartir documento PDF', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.body)),
+                  subtitle: const Text('Envía el PDF por WhatsApp, Telegram, correo u otras apps', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     await NotePdfService.instance.sharePdfFile(
@@ -746,16 +753,16 @@ class NotePdfService {
                 // Opción 4: Compartir como Texto / Markdown
                 ListTile(
                   leading: Container(
-                    padding: const EdgeInsets.all(9),
+                    padding: const EdgeInsets.all(OrtizSpace.sm),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(10),
+                      color: NotasColors.ideasAmberLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
-                    child: const Icon(Icons.text_snippet_rounded, color: Color(0xFFD97706), size: 22),
+                    child: const Icon(Icons.text_snippet_rounded, color: NotasColors.ideasAmber, size: OrtizIconSize.lg),
                   ),
-                  title: const Text('Compartir como Texto', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  subtitle: const Text('Comparte el contenido en texto plano / Markdown', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  title: const Text('Compartir como Texto', style: TextStyle(fontWeight: FontWeight.w600, fontSize: OrtizFontSize.body)),
+                  subtitle: const Text('Comparte el contenido en texto plano / Markdown', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     await Share.share(
@@ -765,7 +772,7 @@ class NotePdfService {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: OrtizSpace.sm),
               ],
             ),
           ),

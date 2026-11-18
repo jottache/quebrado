@@ -57,7 +57,6 @@ class AppState extends ChangeNotifier {
   int _historyFilterIndex = 0;
   bool _useBiometrics = false;
   bool _usePinSecurity = false;
-  bool _useSlideToConfirm = false;
 
   List<SavingPocket> pockets = [];
   List<TransactionCategory> categories = [];
@@ -121,7 +120,6 @@ class AppState extends ChangeNotifier {
   CurrencyType get selectedCurrency => _selectedCurrency;
   bool get useBiometrics => _useBiometrics;
   bool get usePinSecurity => _usePinSecurity;
-  bool get useSlideToConfirm => _useSlideToConfirm;
 
   double get totalBalanceUSD {
     double total = 0.0;
@@ -205,7 +203,6 @@ class AppState extends ChangeNotifier {
         if (spSettings.containsKey('euroRate')) _euroRate = double.tryParse(spSettings['euroRate']!) ?? _euroRate;
         if (spSettings.containsKey('selectedCurrency')) _selectedCurrency = CurrencyType.fromString(spSettings['selectedCurrency']!);
         if (spSettings.containsKey('useBiometrics')) _useBiometrics = spSettings['useBiometrics'] == 'true';
-        if (spSettings.containsKey('useSlideToConfirm')) _useSlideToConfirm = spSettings['useSlideToConfirm'] == 'true';
         _loadStringSet(spSettings[fulfilledSuggestionsSettingKey], _fulfilledPocketSuggestions);
         _loadStringSet(spSettings['manual_savings_confirmed'], _manualSavingsConfirmed);
 
@@ -254,7 +251,8 @@ class AppState extends ChangeNotifier {
           final colorHex = activeProfile['color']!;
           AppColors.updateThemeColor(Color(int.parse(colorHex.replaceFirst('#', '0xFF'))));
         } else {
-          AppColors.updateThemeColor(const Color(0xFF1F6F5F));
+          // Color por defecto del libro: el acento (creationColors[0]).
+          AppColors.updateThemeColor(AppColors.primary);
         }
 
         await _ensureDefaultAccountsForActiveProfile();
@@ -275,7 +273,7 @@ class AppState extends ChangeNotifier {
           final colorHex = activeProfile['color']!;
           AppColors.updateThemeColor(Color(int.parse(colorHex.replaceFirst('#', '0xFF'))));
         } else {
-          AppColors.updateThemeColor(Color(0xFF1F6F5F)); // Default color
+          AppColors.updateThemeColor(AppColors.primary); // Color por defecto del libro
         }
         
         await DatabaseHelper.instance.checkAndPerformAutoBackup();
@@ -299,9 +297,6 @@ class AppState extends ChangeNotifier {
 
         final pinSecurityVal = await DatabaseHelper.instance.getSetting('usePinSecurity');
         if (pinSecurityVal != null) _usePinSecurity = pinSecurityVal == 'true';
-
-        final slideVal = await DatabaseHelper.instance.getSetting('useSlideToConfirm');
-        if (slideVal != null) _useSlideToConfirm = slideVal == 'true';
 
         pockets = await DatabaseHelper.instance.getPockets();
         categories = await DatabaseHelper.instance.getCategories();
@@ -424,17 +419,6 @@ class AppState extends ChangeNotifier {
     }
     if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
       await SupabaseService.instance.saveSetting('useBiometrics', _useBiometrics.toString());
-    }
-    notifyListeners();
-  }
-
-  Future<void> setUseSlideToConfirm(bool value) async {
-    _useSlideToConfirm = value;
-    if (!kIsWeb) {
-      await DatabaseHelper.instance.setSetting('useSlideToConfirm', _useSlideToConfirm.toString());
-    }
-    if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {
-      await SupabaseService.instance.saveSetting('useSlideToConfirm', _useSlideToConfirm.toString());
     }
     notifyListeners();
   }
@@ -4056,7 +4040,7 @@ class AppState extends ChangeNotifier {
       final colorHex = activeProfile['color']!;
       AppColors.updateThemeColor(Color(int.parse(colorHex.replaceFirst('#', '0xFF'))));
     } else {
-      AppColors.updateThemeColor(const Color(0xFF1F6F5F)); // Default color
+      AppColors.updateThemeColor(AppColors.primary); // Color por defecto del libro
     }
     
     if (SupabaseConfig.isConfigured && SupabaseService.instance.isReady) {

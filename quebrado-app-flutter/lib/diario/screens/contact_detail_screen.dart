@@ -22,6 +22,16 @@ import '../../habitos/dialogs/habit_detail_cli_dialog.dart';
 import '../../habitos/theme/habitos_terminal_theme.dart';
 import '../../notas/notas.dart';
 
+import '../../widgets/ortiz/ortiz.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
+/// Margen inferior de la lista para que el FAB extendido no tape la última
+/// entrada (antes 80 px: objetivo táctil + 32).
+const double _fabClearance = OrtizSize.minTouch + OrtizSpace.xxxl;
+
 class ContactDetailScreen extends StatefulWidget {
   final String contactId;
   final VoidCallback? onBack;
@@ -93,7 +103,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
         title: const Text('¿Eliminar Contacto?'),
         content: Text('Se eliminará permanentemente a ${contact.name} y todos los registros asociados.'),
         actions: [
@@ -114,7 +124,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: DiarioColors.rose),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text('Eliminar', style: TextStyle(color: OrtizPalette.onAccent)),
           ),
         ],
       ),
@@ -171,7 +181,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     return Scaffold(
       backgroundColor: DiarioColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: DiarioColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: (widget.embedded && widget.onBack != null)
@@ -183,7 +193,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             : null,
         title: Text(
           contact.name,
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DiarioColors.textPrimary),
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.title, color: DiarioColors.textPrimary),
         ),
         actions: [
           IconButton(
@@ -201,7 +211,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
             onSelected: (val) {
               if (val == 'delete') _confirmDeleteContact(contact);
             },
@@ -210,8 +220,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: 20),
-                    SizedBox(width: 8),
+                    Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: OrtizIconSize.md),
+                    SizedBox(width: OrtizSpace.sm),
                     Text('Eliminar Contacto', style: TextStyle(color: DiarioColors.rose, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -251,23 +261,23 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           // 4. Entries List Header
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.sm),
               child: Row(
                 children: [
                   const Text(
                     'Registros y Detalles',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                    style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Text(
                       '${entries.length}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: DiarioColors.primary),
+                      style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: DiarioColors.primary),
                     ),
                   ),
                 ],
@@ -282,12 +292,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 80),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, _fabClearance),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final entry = entries[index];
-                    return _buildEntryCard(context, entry, state);
+                    return ortizStaggered(context, index, _buildEntryCard(context, entry, state));
                   },
                   childCount: entries.length,
                 ),
@@ -298,7 +308,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEntryEditor(),
         backgroundColor: DiarioColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: OrtizPalette.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nueva Entrada', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -309,21 +319,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   // WIDGET: CONTACT HEADER CARD
   // ===========================================================================
   Widget _buildContactHeaderCard(BuildContext context, DiarioContact contact, DiarioState state) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: DiarioColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
-      ),
+    // Sin tarjeta (spec 05, C4): la ficha va sobre el fondo.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -349,7 +347,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           color: DiarioColors.primaryLight,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: DiarioColors.primary.withOpacity(0.25),
+                            color: DiarioColors.primary.withValues(alpha: 0.25),
                             width: 1.5,
                           ),
                         ),
@@ -366,7 +364,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                             : Text(
                                 contact.initials,
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: OrtizFontSize.title,
                                   fontWeight: FontWeight.w900,
                                   color: DiarioColors.primary,
                                 ),
@@ -382,16 +380,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(OrtizSpace.xs),
                           decoration: BoxDecoration(
                             color: DiarioColors.primary,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            border: Border.all(color: DiarioColors.background, width: 1.5),
                           ),
                           child: const Icon(
                             Icons.camera_alt_rounded,
-                            size: 11,
-                            color: Colors.white,
+                            size: OrtizIconSize.xs,
+                            color: OrtizPalette.onAccent,
                           ),
                         ),
                       ),
@@ -399,7 +397,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   ),
                 ],
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: OrtizSpace.md),
               // Name & Nickname
               Expanded(
                 child: Column(
@@ -408,7 +406,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     Text(
                       contact.name,
                       style: const TextStyle(
-                        fontSize: 19,
+                        fontSize: OrtizFontSize.title,
                         fontWeight: FontWeight.w900,
                         color: DiarioColors.textPrimary,
                         letterSpacing: -0.3,
@@ -417,54 +415,54 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     if (contact.nickname != null && contact.nickname!.isNotEmpty)
                       Text(
                         'Conocido como "${contact.nickname}"',
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: const TextStyle(
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
+                          color: DiarioColors.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: OrtizSpace.xs),
                     Row(
                       children: [
                         if (contact.relationship != null && contact.relationship!.isNotEmpty) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
                               color: DiarioColors.surfaceHover,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.grey[200]!),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                              border: Border.all(color: DiarioColors.cardBorder),
                             ),
                             child: Text(
                               contact.relationship!,
-                              style: TextStyle(
-                                fontSize: 11,
+                              style: const TextStyle(
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.grey[700],
+                                color: DiarioColors.textSecondary,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: OrtizSpace.sm),
                         ],
                         InkWell(
                           onTap: () => _openContactEditor(contact),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
                               color: DiarioColors.primaryLight,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: DiarioColors.primary.withOpacity(0.25)),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                              border: Border.all(color: DiarioColors.primary.withValues(alpha: 0.25)),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.edit_outlined, size: 12, color: DiarioColors.primary),
-                                SizedBox(width: 4),
+                                Icon(Icons.edit_outlined, size: OrtizIconSize.xs, color: DiarioColors.primary),
+                                SizedBox(width: OrtizSpace.xs),
                                 Text(
                                   'Editar',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: OrtizFontSize.caption,
                                     fontWeight: FontWeight.w800,
                                     color: DiarioColors.primary,
                                   ),
@@ -483,28 +481,28 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
           // Birthday & Phone section
           if (contact.birthdate != null || (contact.phone != null && contact.phone!.isNotEmpty)) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: OrtizSpace.md),
             const Divider(height: 1, color: DiarioColors.cardBorder),
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
             Wrap(
               spacing: 12,
               runSpacing: 8,
               children: [
                 if (contact.birthdate != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
                       color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.cake_outlined, size: 16, color: DiarioColors.primary),
-                        const SizedBox(width: 6),
+                        const Icon(Icons.cake_outlined, size: OrtizIconSize.sm, color: DiarioColors.primary),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           '${contact.formattedBirthdate}${contact.currentAge != null ? " • ${contact.currentAge} años" : ""} (${contact.daysUntilBirthday == 0 ? "¡HOY cumple ${contact.ageOnUpcomingBirthday}!" : "en ${contact.daysUntilBirthday}d cumplirá ${contact.ageOnUpcomingBirthday}"})',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DiarioColors.primary),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: DiarioColors.primary),
                         ),
                       ],
                     ),
@@ -517,25 +515,25 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                         SnackBar(content: Text('Teléfono copiado: ${contact.phone}')),
                       );
                     },
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                       decoration: BoxDecoration(
                         color: DiarioColors.surfaceHover,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey[200]!),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                        border: Border.all(color: DiarioColors.cardBorder),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.phone_outlined, size: 16, color: DiarioColors.primary),
-                          const SizedBox(width: 6),
+                          const Icon(Icons.phone_outlined, size: OrtizIconSize.sm, color: DiarioColors.primary),
+                          const SizedBox(width: OrtizSpace.xs),
                           Text(
                             contact.phone!,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: DiarioColors.textPrimary),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: DiarioColors.textPrimary),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.copy_rounded, size: 13, color: DiarioColors.textMuted),
+                          const SizedBox(width: OrtizSpace.xs),
+                          const Icon(Icons.copy_rounded, size: OrtizIconSize.xs, color: DiarioColors.textMuted),
                         ],
                       ),
                     ),
@@ -546,17 +544,17 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
           // Quick Notes preview
           if (contact.notes != null && contact.notes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(OrtizSpace.sm),
               decoration: BoxDecoration(
                 color: DiarioColors.surfaceHover,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: Text(
                 contact.notes!,
-                style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary, fontStyle: FontStyle.italic),
+                style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, fontStyle: FontStyle.italic),
               ),
             ),
           ],
@@ -575,30 +573,30 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
     return Container(
       height: 48,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length + 3,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: OrtizSpace.sm),
         itemBuilder: (context, index) {
           if (index == 0) {
             final isSelected = _selectedRootCategoryId == null;
             return FilterChip(
               selected: isSelected,
               showCheckmark: false,
-              avatar: Icon(Icons.grid_view_rounded, size: 16, color: isSelected ? Colors.white : DiarioColors.primary),
+              avatar: Icon(Icons.grid_view_rounded, size: OrtizIconSize.sm, color: isSelected ? OrtizPalette.onAccent : DiarioColors.primary),
               label: Text(
                 'Todos ($totalEntriesCount)',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                  color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                  color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
                 ),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: DiarioColors.background,
               selectedColor: DiarioColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
                 side: BorderSide(
                   color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
                 ),
@@ -617,19 +615,19 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             return FilterChip(
               selected: isSelected,
               showCheckmark: false,
-              avatar: Icon(Icons.alternate_email_rounded, size: 16, color: isSelected ? Colors.white : DiarioColors.primary),
+              avatar: Icon(Icons.alternate_email_rounded, size: OrtizIconSize.sm, color: isSelected ? OrtizPalette.onAccent : DiarioColors.primary),
               label: Text(
                 'Menciones (${mentionEntries.length})',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                  color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                  color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
                 ),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: DiarioColors.background,
               selectedColor: DiarioColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
                 side: BorderSide(
                   color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
                 ),
@@ -664,19 +662,19 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           return FilterChip(
             selected: isSelected,
             showCheckmark: false,
-            avatar: Icon(cat.iconData, size: 16, color: isSelected ? Colors.white : cat.color),
+            avatar: Icon(cat.iconData, size: OrtizIconSize.sm, color: isSelected ? OrtizPalette.onAccent : cat.color),
             label: Text(
               catEntriesCount > 0 ? '${cat.name} ($catEntriesCount)' : cat.name,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
               ),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: DiarioColors.background,
             selectedColor: DiarioColors.primary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
               side: BorderSide(
                 color: isSelected ? DiarioColors.primary : DiarioColors.cardBorder,
               ),
@@ -698,15 +696,15 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   // ===========================================================================
   Widget _buildSubcategoriesBar(List<DiarioCategory> subcategories) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 10, 20, 4),
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.sm, OrtizSpace.xl, OrtizSpace.xs),
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
             // "Todos" Pill
             ChoiceChip(
-              label: const Text('Todos los registros', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+              label: const Text('Todos los registros', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w700)),
               selected: _selectedSubcategoryId == null,
               selectedColor: DiarioColors.primaryLight,
               labelStyle: TextStyle(
@@ -716,19 +714,19 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 setState(() => _selectedSubcategoryId = null);
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: OrtizSpace.sm),
 
             // Subcategories chips
             ...subcategories.map((sub) {
               final isSelected = sub.id == _selectedSubcategoryId;
               return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
+                padding: const EdgeInsets.only(right: OrtizSpace.sm),
                 child: ChoiceChip(
-                  avatar: Icon(sub.iconData, size: 14, color: isSelected ? Colors.white : sub.color),
-                  label: Text(sub.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  avatar: Icon(sub.iconData, size: OrtizIconSize.sm, color: isSelected ? OrtizPalette.onAccent : sub.color),
+                  label: Text(sub.name, style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold)),
                   selected: isSelected,
                   selectedColor: sub.color,
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87),
+                  labelStyle: TextStyle(color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary),
                   onSelected: (val) {
                     setState(() => _selectedSubcategoryId = isSelected ? null : sub.id);
                   },
@@ -738,8 +736,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
             // Add Subcategory Button (+)
             ActionChip(
-              avatar: const Icon(Icons.add_rounded, size: 14, color: DiarioColors.primary),
-              label: const Text('Subcategoría', style: TextStyle(fontSize: 11, color: DiarioColors.primary, fontWeight: FontWeight.w700)),
+              avatar: const Icon(Icons.add_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
+              label: const Text('Subcategoría', style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.primary, fontWeight: FontWeight.w700)),
               backgroundColor: DiarioColors.primaryLight,
               side: BorderSide.none,
               onPressed: () => _openSubcategoryEditor(_selectedRootCategoryId!),
@@ -762,32 +760,28 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     final category = state.getCategoryById(entry.categoryId);
     final isMention = entry.contactId != widget.contactId;
 
+    // Sin tarjeta (spec 05, C4): las entradas van sobre el fondo separadas por
+    // una línea; las menciones se marcan con el tinte del Diario y las fijadas
+    // sobre `surfaceHigh` (lo destacado), sin sombra.
+    final highlighted = isMention || entry.isPinned;
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isMention ? const Color(0xFFF3F9F7) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isMention
-              ? DiarioColors.primary.withOpacity(0.4)
-              : (entry.isPinned ? DiarioColors.primary.withOpacity(0.35) : DiarioColors.cardBorder),
-          width: (isMention || entry.isPinned) ? 1.5 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isMention ? DiarioColors.primary.withOpacity(0.06) : Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
+      margin: EdgeInsets.only(bottom: highlighted ? OrtizSpace.sm : 0),
+      decoration: highlighted
+          ? BoxDecoration(
+              color: isMention ? DiarioColors.primaryLight : DiarioColors.surfaceHover,
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
+              border: Border.all(color: DiarioColors.primaryBorder),
+            )
+          : const BoxDecoration(
+              border: Border(bottom: BorderSide(color: DiarioColors.cardBorder)),
+            ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           onTap: () => openEntryReader(context, entry),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(OrtizSpace.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -796,25 +790,25 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               children: [
                 if (isMention)
                   Container(
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    margin: const EdgeInsets.only(right: OrtizSpace.xs),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
                       color: DiarioColors.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.alternate_email_rounded, size: 12, color: Colors.white),
-                        const SizedBox(width: 5),
+                        const Icon(Icons.alternate_email_rounded, size: OrtizIconSize.xs, color: OrtizPalette.onAccent),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           entry.isPersonal
                               ? 'Mención en Nota Personal'
                               : 'Mención en ${state.getContactById(entry.contactId)?.name ?? "Contacto"}',
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: OrtizPalette.onAccent,
                             letterSpacing: 0.2,
                           ),
                         ),
@@ -823,20 +817,20 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   )
                 else if (template != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
-                      color: template.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
+                      color: template.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(template.iconData, size: 13, color: template.color),
-                        const SizedBox(width: 4),
+                        Icon(template.iconData, size: OrtizIconSize.xs, color: template.color),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           template.name,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: template.color,
                           ),
@@ -846,20 +840,20 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.edit_note_rounded, size: 13, color: DiarioColors.primary),
-                        SizedBox(width: 4),
+                        Icon(Icons.edit_note_rounded, size: OrtizIconSize.xs, color: DiarioColors.primary),
+                        SizedBox(width: OrtizSpace.xs),
                         Text(
                           'Nota simple',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: DiarioColors.primary,
                           ),
@@ -872,21 +866,21 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
                 // Fecha del registro
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
                     color: DiarioColors.background,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     border: Border.all(color: DiarioColors.cardBorder),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.calendar_today_rounded, size: 10, color: DiarioColors.textMuted),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.calendar_today_rounded, size: OrtizIconSize.xs, color: DiarioColors.textMuted),
+                      const SizedBox(width: OrtizSpace.xs),
                       Text(
                         entry.formattedDate,
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.w700,
                           color: DiarioColors.textSecondary,
                         ),
@@ -895,25 +889,25 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 6),
+                const SizedBox(width: OrtizSpace.xs),
 
                 // Pin indicator
                 if (entry.isPinned)
                   IconButton(
-                    icon: const Icon(Icons.push_pin_rounded, color: DiarioColors.primary, size: 18),
+                    icon: const Icon(Icons.push_pin_rounded, color: DiarioColors.primary, size: OrtizIconSize.md),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () => state.togglePinEntry(entry.id),
                   ),
 
-                if (entry.isPinned) const SizedBox(width: 6),
+                if (entry.isPinned) const SizedBox(width: OrtizSpace.xs),
 
                 // Popup menu
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_horiz_rounded, size: 20, color: DiarioColors.textMuted),
+                  icon: const Icon(Icons.more_horiz_rounded, size: OrtizIconSize.md, color: DiarioColors.textMuted),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   onSelected: (val) {
                     if (val == 'edit') _openEntryEditor(entry);
                     if (val == 'pin') state.togglePinEntry(entry.id);
@@ -924,8 +918,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       value: 'pin',
                       child: Row(
                         children: [
-                          Icon(entry.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: 18),
-                          const SizedBox(width: 8),
+                          Icon(entry.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: OrtizIconSize.md),
+                          const SizedBox(width: OrtizSpace.sm),
                           Text(entry.isPinned ? 'Desfijar' : 'Fijar al inicio'),
                         ],
                       ),
@@ -934,8 +928,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit_outlined, size: 18),
-                          SizedBox(width: 8),
+                          Icon(Icons.edit_outlined, size: OrtizIconSize.md),
+                          SizedBox(width: OrtizSpace.sm),
                           Text('Editar'),
                         ],
                       ),
@@ -944,8 +938,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: 18),
-                          SizedBox(width: 8),
+                          Icon(Icons.delete_outline_rounded, color: DiarioColors.rose, size: OrtizIconSize.md),
+                          SizedBox(width: OrtizSpace.sm),
                           Text('Eliminar', style: TextStyle(color: DiarioColors.rose)),
                         ],
                       ),
@@ -957,11 +951,11 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
             // Title (Solo si tiene título definido)
             if (entry.hasTitle) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.sm),
               Text(
                 entry.title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: OrtizFontSize.titleSm,
                   fontWeight: FontWeight.w900,
                   color: DiarioColors.textPrimary,
                   letterSpacing: -0.2,
@@ -971,13 +965,13 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
             // Content Data (Structured Model Fields Display)
             if (entry.contentData.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
                   color: DiarioColors.background,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey[200]!),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                  border: Border.all(color: DiarioColors.cardBorder),
                 ),
                 child: Wrap(
                   spacing: 16,
@@ -1006,25 +1000,25 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       children: [
                         Text(
                           label,
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: const TextStyle(
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w800,
-                            color: Colors.grey[500],
+                            color: DiarioColors.textMuted,
                             letterSpacing: 0.3,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: OrtizSpace.xxs),
                         isHighlight
                             ? Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                                 decoration: BoxDecoration(
                                   color: DiarioColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 child: Text(
                                   val,
                                   style: const TextStyle(
-                                    fontSize: 12,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.w900,
                                     color: DiarioColors.primary,
                                   ),
@@ -1033,7 +1027,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                             : Text(
                                 val,
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.w700,
                                   color: DiarioColors.textPrimary,
                                 ),
@@ -1047,7 +1041,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
             // Content Text (Notes)
             if (entry.contentText != null && entry.contentText!.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.sm),
               Text.rich(
                 TextSpan(
                   children: MentionTextSpanHelper.buildSpans(
@@ -1073,7 +1067,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
             // Photo Attachment Display
             if (entry.hasPhoto) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               GestureDetector(
                 onTap: () => DiarioImageHelper.openFullScreenImage(
                   context,
@@ -1081,14 +1075,14 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   title: entry.title,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   child: Container(
                     constraints: const BoxConstraints(maxHeight: 220),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.grey[200]!),
+                      color: DiarioColors.surfaceHover,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      border: Border.all(color: DiarioColors.cardBorder),
                     ),
                     child: Stack(
                       alignment: Alignment.bottomRight,
@@ -1099,20 +1093,21 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           fit: BoxFit.cover,
                         ),
                         Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          margin: const EdgeInsets.all(OrtizSpace.sm),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.55),
-                            borderRadius: BorderRadius.circular(20),
+                            // Velo oscuro sobre la foto para que el texto se lea.
+                            color: DiarioColors.background.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.zoom_in_rounded, size: 14, color: Colors.white),
-                              SizedBox(width: 4),
+                              Icon(Icons.zoom_in_rounded, size: OrtizIconSize.sm, color: DiarioColors.textPrimary),
+                              SizedBox(width: OrtizSpace.xs),
                               Text(
                                 'Ver foto',
-                                style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textPrimary, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -1124,17 +1119,17 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               ),
             ],
             if (isMention) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
               Row(
                 children: [
-                  Icon(Icons.open_in_new_rounded, size: 13, color: DiarioColors.primary.withOpacity(0.85)),
-                  const SizedBox(width: 5),
+                  Icon(Icons.open_in_new_rounded, size: OrtizIconSize.xs, color: DiarioColors.primary.withValues(alpha: 0.85)),
+                  const SizedBox(width: OrtizSpace.xs),
                   Text(
                     'Toca para abrir la nota original completa',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.w800,
-                      color: DiarioColors.primary.withOpacity(0.9),
+                      color: DiarioColors.primary.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -1151,7 +1146,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   Widget _buildEmptyEntriesState(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxxl, vertical: OrtizSpace.xxxl),
         child: Column(
           children: [
             Container(
@@ -1161,29 +1156,29 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 color: DiarioColors.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.note_add_outlined, size: 30, color: DiarioColors.primary),
+              child: const Icon(Icons.note_add_outlined, size: OrtizIconSize.xl, color: DiarioColors.primary),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: OrtizSpace.md),
             const Text(
               'No hay registros en esta sección',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+              style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.xs),
             const Text(
               'Guarda un gusto, una idea de regalo o aplica un modelo como auto o talla.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
             ElevatedButton.icon(
               onPressed: () => _openEntryEditor(),
-              icon: const Icon(Icons.add_rounded, size: 18),
+              icon: const Icon(Icons.add_rounded, size: OrtizIconSize.md),
               label: const Text('Agregar Registro'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: DiarioColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                foregroundColor: OrtizPalette.onAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
               ),
             ),
           ],
@@ -1220,21 +1215,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     final habitosState = Provider.of<HabitosState>(context);
     final linkedHabits = habitosState.getHabitsForContact(contact.id);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 3),
-            blurRadius: 10,
-          ),
-        ],
-      ),
+    // Sin tarjeta (spec 05, C4): grupo sobre el fondo.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, 0, OrtizSpace.xl, OrtizSpace.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1248,47 +1231,47 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     height: 28,
                     decoration: BoxDecoration(
                       color: HabitosColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
-                    child: const Icon(Icons.track_changes_rounded, size: 16, color: HabitosColors.primary),
+                    child: const Icon(Icons.track_changes_rounded, size: OrtizIconSize.sm, color: HabitosColors.primary),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   const Text(
                     'Hábitos Vinculados',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                    style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: OrtizSpace.xs),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: HabitosColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Text(
                       '${linkedHabits.length}',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.primary),
+                      style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.primary),
                     ),
                   ),
                 ],
               ),
               InkWell(
                 onTap: () => _showLinkHabitBottomSheet(context, contact, habitosState),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                   decoration: BoxDecoration(
                     color: HabitosColors.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: HabitosColors.primary.withOpacity(0.2)),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                    border: Border.all(color: HabitosColors.primary.withValues(alpha: 0.2)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add_rounded, size: 14, color: HabitosColors.primary),
-                      SizedBox(width: 4),
+                      Icon(Icons.add_rounded, size: OrtizIconSize.sm, color: HabitosColors.primary),
+                      SizedBox(width: OrtizSpace.xs),
                       Text(
                         'Vincular',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.primary),
                       ),
                     ],
                   ),
@@ -1297,31 +1280,31 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             ],
           ),
           if (linkedHabits.isEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md, horizontal: OrtizSpace.sm),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: DiarioColors.background,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: const Text(
                 'No tienes hábitos vinculados a este contacto aún.',
-                style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
               ),
             ),
           ] else ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
             ...linkedHabits.map((habit) {
               final isCompleted = habitosState.isCompleted(habit.id);
               final val = habitosState.getValue(habit.id);
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
                   color: DiarioColors.background,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(color: DiarioColors.cardBorder),
                 ),
                 child: Row(
@@ -1338,16 +1321,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                         height: 30,
                         decoration: BoxDecoration(
                           color: habit.isNegative ? HabitosColors.amberLight : HabitosColors.primaryLight,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                         child: Icon(
                           habit.isNegative ? Icons.shield_outlined : Icons.check_circle_outline_rounded,
-                          size: 16,
+                          size: OrtizIconSize.sm,
                           color: habit.isNegative ? HabitosColors.amber : HabitosColors.primary,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: InkWell(
                         onTap: () {
@@ -1363,7 +1346,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                               habit.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: DiarioColors.textPrimary),
+                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: DiarioColors.textPrimary),
                             ),
                             Text(
                               habit.type == HabitType.counter
@@ -1372,7 +1355,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                       ? '${val.toInt()} / ${habit.targetValue.toInt()} ${habit.unit ?? ""}'
                                       : (isCompleted ? 'Completado hoy' : 'Pendiente hoy')),
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w600,
                                 color: (isCompleted || val > 0) ? HabitosColors.primary : DiarioColors.textMuted,
                               ),
@@ -1384,7 +1367,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     if (habit.type == HabitType.counter) ...[
                       if (val > 0)
                         IconButton(
-                          icon: const Icon(Icons.remove_circle_outline_rounded, size: 18),
+                          icon: const Icon(Icons.remove_circle_outline_rounded, size: OrtizIconSize.md),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
                           color: DiarioColors.textMuted,
@@ -1394,20 +1377,20 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                         onPressed: () => habitosState.incrementCounter(habit.id),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: HabitosColors.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: OrtizPalette.onAccent,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           minimumSize: const Size(36, 28),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                         ),
-                        child: const Text('+1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                        child: const Text('+1', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w900)),
                       ),
                     ] else ...[
                       IconButton(
                         icon: Icon(
                           isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                           color: isCompleted ? HabitosColors.primary : DiarioColors.textMuted,
-                          size: 22,
+                          size: OrtizIconSize.lg,
                         ),
                         onPressed: () => habitosState.toggleHabitCompletion(habit.id),
                       ),
@@ -1425,16 +1408,16 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   void _showLinkHabitBottomSheet(BuildContext context, DiarioContact contact, HabitosState habitosState) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: DiarioColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       builder: (ctx) {
         final availableHabits = habitosState.allHabits.where((h) => h.contactId != contact.id).toList();
 
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1444,26 +1427,26 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
+                      color: DiarioColors.cardBorder,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: OrtizSpace.md),
                 Text(
                   'Hábitos para ${contact.name}',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.w900,
                     color: DiarioColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: OrtizSpace.xs),
                 const Text(
                   'Elige cómo vincular hábitos con este contacto',
-                  style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: OrtizSpace.lg),
                 ListTile(
                   leading: Container(
                     width: 40,
@@ -1472,12 +1455,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       color: HabitosColors.primaryLight,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.add_task_rounded, color: HabitosColors.primary, size: 20),
+                    child: const Icon(Icons.add_task_rounded, color: HabitosColors.primary, size: OrtizIconSize.md),
                   ),
-                  title: const Text('Crear Nuevo Hábito', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                  subtitle: const Text('Configura un hábito nuevo asignado a este contacto', style: TextStyle(fontSize: 11)),
+                  title: const Text('Crear Nuevo Hábito', style: TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.body)),
+                  subtitle: const Text('Configura un hábito nuevo asignado a este contacto', style: TextStyle(fontSize: OrtizFontSize.caption)),
                   trailing: const Icon(Icons.chevron_right_rounded, color: DiarioColors.textMuted),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   tileColor: DiarioColors.background,
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -1488,29 +1471,29 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   },
                 ),
                 if (availableHabits.isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: OrtizSpace.lg),
                   const Text(
                     'O VINCULAR HÁBITO EXISTENTE',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary, letterSpacing: 0.5),
+                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary, letterSpacing: 0.5),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: OrtizSpace.sm),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 200),
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: availableHabits.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      separatorBuilder: (_, __) => const SizedBox(height: OrtizSpace.xs),
                       itemBuilder: (c, idx) {
                         final h = availableHabits[idx];
                         return ListTile(
                           dense: true,
-                          title: Text(h.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                          subtitle: Text(h.type.label, style: const TextStyle(fontSize: 10)),
+                          title: Text(h.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: OrtizFontSize.bodySm)),
+                          subtitle: Text(h.type.label, style: const TextStyle(fontSize: OrtizFontSize.caption)),
                           trailing: const Text(
                             '+ Vincular',
-                            style: TextStyle(color: HabitosColors.primary, fontWeight: FontWeight.w800, fontSize: 12),
+                            style: TextStyle(color: HabitosColors.primary, fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
                           ),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                           tileColor: DiarioColors.background,
                           onTap: () async {
                             Navigator.of(ctx).pop();

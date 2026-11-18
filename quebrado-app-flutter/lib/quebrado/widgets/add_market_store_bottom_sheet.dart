@@ -5,6 +5,10 @@ import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../models/market_store.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class AddMarketStoreBottomSheet extends StatefulWidget {
   final Function(String) onStoreAdded;
 
@@ -43,14 +47,14 @@ class _AddMarketStoreBottomSheetState extends State<AddMarketStoreBottomSheet> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          color: OrtizPalette.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
         ),
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: bottomInset > 0 ? bottomInset + 16 : 32,
+          left: OrtizSpace.lg,
+          right: OrtizSpace.lg,
+          top: OrtizSpace.lg,
+          bottom: bottomInset > 0 ? bottomInset + OrtizSpace.lg : OrtizSpace.xxxl,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -62,58 +66,58 @@ class _AddMarketStoreBottomSheetState extends State<AddMarketStoreBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
+                    color: OrtizPalette.faint,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Text(
                 "Añadir Establecimiento",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               Text(
                 "Nombre del establecimiento",
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: OrtizSpace.xs),
               TextField(
                 controller: _storeNameController,
                 decoration: InputDecoration(
                   hintText: "Ej. Frutería Los Hermanos",
-                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                  contentPadding: EdgeInsets.all(12),
+                  hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                  contentPadding: EdgeInsets.all(OrtizSpace.md),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: OrtizPalette.surfaceHigh,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                style: TextStyle(fontSize: 13, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               ElevatedButton(
                 onPressed: _saveStore,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                 ),
                 child: Text(
                   "Guardar Establecimiento",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: OrtizPalette.onAccent,
                   ),
                 ),
               ),

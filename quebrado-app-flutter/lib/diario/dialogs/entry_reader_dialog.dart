@@ -13,6 +13,10 @@ import '../../rich_editor/plain_text.dart';
 import '../../rich_editor/rich_document_viewer.dart';
 import '../../notas/notas.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Abre el visor de nota en modo lectura:
 /// - En desktop: un Dialog centrado elegante.
 /// - En mobile: un ModalBottomSheet al 90% del alto de la pantalla.
@@ -109,61 +113,54 @@ class EntryReaderDialog extends StatelessWidget {
 
     final contentWidget = Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: OrtizPalette.surface,
         borderRadius: isBottomSheet
-            ? const BorderRadius.vertical(top: Radius.circular(28))
-            : BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+            ? const BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet))
+            : BorderRadius.circular(OrtizRadius.sheet),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Drag handle for bottom sheet
           if (isBottomSheet) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
             Center(
               child: Container(
                 width: 44,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.xs),
           ],
 
           // Top Navigation & Actions Bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 14, 10),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.md, OrtizSpace.md, OrtizSpace.sm),
             child: Row(
               children: [
                 // Contact / Personal Badge
                 if (isPersonal)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F6F5F).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: DiarioColors.primaryLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.person_pin_rounded, size: 16, color: Color(0xFF1F6F5F)),
-                        SizedBox(width: 6),
+                        Icon(Icons.person_pin_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
+                        SizedBox(width: OrtizSpace.xs),
                         Text(
                           'Personal',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                            color: Color(0xFF1F6F5F),
+                            fontSize: OrtizFontSize.bodySm,
+                            color: DiarioColors.primary,
                           ),
                         ),
                       ],
@@ -184,20 +181,20 @@ class EntryReaderDialog extends StatelessWidget {
                         child: Text(
                           contact.initials,
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: DiarioColors.primary,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: OrtizSpace.sm),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 160),
                         child: Text(
                           contact.name,
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                             color: DiarioColors.textPrimary,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -206,25 +203,25 @@ class EntryReaderDialog extends StatelessWidget {
                     ],
                   ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
 
                 // Category or Template Badge
                 if (template != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
-                      color: template.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
+                      color: template.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(template.iconData, size: 13, color: template.color),
-                        const SizedBox(width: 4),
+                        Icon(template.iconData, size: OrtizIconSize.xs, color: template.color),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           template.name,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w700,
                             color: template.color,
                           ),
@@ -234,16 +231,16 @@ class EntryReaderDialog extends StatelessWidget {
                   )
                 else if (category != null && category.name != 'Notas Personales')
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                     decoration: BoxDecoration(
                       color: DiarioColors.surfaceHover,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[200]!),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                      border: Border.all(color: OrtizPalette.line),
                     ),
                     child: Text(
                       category.name,
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: OrtizFontSize.caption,
                         fontWeight: FontWeight.w600,
                         color: DiarioColors.textSecondary,
                       ),
@@ -251,22 +248,22 @@ class EntryReaderDialog extends StatelessWidget {
                   ),
 
                 if (currentEntry.isPinned) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: OrtizSpace.xs),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.push_pin_rounded, size: 12, color: DiarioColors.primary),
-                        SizedBox(width: 3),
+                        Icon(Icons.push_pin_rounded, size: OrtizIconSize.xs, color: DiarioColors.primary),
+                        SizedBox(width: OrtizSpace.xxs),
                         Text(
                           'Fijada',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w800,
                             color: DiarioColors.primary,
                           ),
@@ -280,14 +277,14 @@ class EntryReaderDialog extends StatelessWidget {
 
                 // Edit Button
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20, color: DiarioColors.textSecondary),
+                  icon: const Icon(Icons.edit_outlined, size: OrtizIconSize.md, color: DiarioColors.textSecondary),
                   tooltip: 'Editar esta nota',
                   onPressed: () => _openEditor(context, state),
                 ),
 
                 // Close Button
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 22, color: DiarioColors.textMuted),
+                  icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg, color: DiarioColors.textMuted),
                   tooltip: 'Cerrar',
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -304,12 +301,12 @@ class EntryReaderDialog extends StatelessWidget {
                   // Timestamp
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, size: 14, color: DiarioColors.textMuted),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.access_time_rounded, size: OrtizIconSize.xs, color: DiarioColors.textMuted),
+                      const SizedBox(width: OrtizSpace.xs),
                       Text(
                         _formatDateTime(currentEntry.createdAt),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           color: DiarioColors.textMuted,
                           fontWeight: FontWeight.w600,
                         ),
@@ -317,21 +314,21 @@ class EntryReaderDialog extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: OrtizSpace.md),
 
                   // Title (if present)
                   if (currentEntry.hasTitle) ...[
                     Text(
                       currentEntry.title,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: OrtizFontSize.display,
                         fontWeight: FontWeight.w900,
                         color: DiarioColors.textPrimary,
                         letterSpacing: -0.4,
                         height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: OrtizSpace.lg),
                   ],
 
                   // Photo attachment (if present)
@@ -347,9 +344,9 @@ class EntryReaderDialog extends StatelessWidget {
                       child: Container(
                         constraints: const BoxConstraints(maxHeight: 380),
                         width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 20),
+                        margin: const EdgeInsets.only(bottom: OrtizSpace.xl),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(OrtizRadius.block),
                           border: Border.all(color: DiarioColors.cardBorder),
                         ),
                         clipBehavior: Clip.antiAlias,
@@ -364,12 +361,12 @@ class EntryReaderDialog extends StatelessWidget {
                               top: 10,
                               right: 10,
                               child: Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: const EdgeInsets.all(OrtizSpace.xs),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: OrtizPalette.bg.withValues(alpha: 0.6),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 18),
+                                child: const Icon(Icons.fullscreen_rounded, color: OrtizPalette.fg, size: OrtizIconSize.md),
                               ),
                             ),
                           ],
@@ -380,35 +377,30 @@ class EntryReaderDialog extends StatelessWidget {
 
                   // Structured Template Fields (if present)
                   if (currentEntry.contentData != null && currentEntry.contentData!.isNotEmpty) ...[
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: DiarioColors.surfaceHover,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: DiarioColors.cardBorder),
-                      ),
+                    // Sin tarjeta (spec 05): grupo separado por espacio.
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: OrtizSpace.xl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.tune_rounded, size: 16, color: DiarioColors.primary),
-                              SizedBox(width: 6),
+                              Icon(Icons.tune_rounded, size: OrtizIconSize.sm, color: DiarioColors.primary),
+                              SizedBox(width: OrtizSpace.xs),
                               Text(
                                 'Datos Estructurados',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.w800,
                                   color: DiarioColors.textPrimary,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: OrtizSpace.md),
                           ...currentEntry.contentData!.entries.map((entryField) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
+                              padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -418,7 +410,7 @@ class EntryReaderDialog extends StatelessWidget {
                                       '${entryField.key}:',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                         color: DiarioColors.textSecondary,
                                       ),
                                     ),
@@ -427,7 +419,7 @@ class EntryReaderDialog extends StatelessWidget {
                                     child: Text(
                                       '${entryField.value}',
                                       style: const TextStyle(
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.w600,
                                         color: DiarioColors.textPrimary,
                                       ),
@@ -445,12 +437,12 @@ class EntryReaderDialog extends StatelessWidget {
                   // Mentioned Contacts Bar
                   if (mentionedContacts.isNotEmpty) ...[
                     Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      margin: const EdgeInsets.only(bottom: OrtizSpace.lg),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                       decoration: BoxDecoration(
-                        color: DiarioColors.primaryLight.withOpacity(0.55),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: DiarioColors.primary.withOpacity(0.2)),
+                        color: DiarioColors.primaryLight,
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
+                        border: Border.all(color: DiarioColors.primaryBorder),
                       ),
                       child: Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -460,12 +452,12 @@ class EntryReaderDialog extends StatelessWidget {
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.alternate_email_rounded, size: 14, color: DiarioColors.primary),
-                              SizedBox(width: 4),
+                              Icon(Icons.alternate_email_rounded, size: OrtizIconSize.xs, color: DiarioColors.primary),
+                              SizedBox(width: OrtizSpace.xs),
                               Text(
                                 'Mencionados:',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w800,
                                   color: DiarioColors.primary,
                                 ),
@@ -477,16 +469,16 @@ class EntryReaderDialog extends StatelessWidget {
                                   backgroundColor: DiarioColors.primary,
                                   child: Text(
                                     c.initials,
-                                    style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.onAccent, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 label: Text(
                                   c.name,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: DiarioColors.primary),
+                                  style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w700, color: DiarioColors.primary),
                                 ),
-                                backgroundColor: Colors.white,
-                                side: BorderSide(color: DiarioColors.primary.withOpacity(0.3)),
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                backgroundColor: OrtizPalette.surface,
+                                side: const BorderSide(color: DiarioColors.primaryBorder),
+                                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: 0),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                   state.selectContact(c.id);
@@ -505,12 +497,12 @@ class EntryReaderDialog extends StatelessWidget {
                 return RichDocumentViewer(
                   document: currentEntry.richDocument!,
                   accentColor: DiarioColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
                   header: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.xl, OrtizSpace.xxl, 0),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: top),
                   ),
-                  footer: const SizedBox(height: 32),
+                  footer: const SizedBox(height: OrtizSpace.xxxl),
                   onTodoToggled: (document) => state.updateEntry(
                     currentEntry.copyWith(
                       richDocument: document.toJson(),
@@ -521,7 +513,7 @@ class EntryReaderDialog extends StatelessWidget {
               }
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                padding: const EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.xl, OrtizSpace.xxl, OrtizSpace.xxxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -535,7 +527,7 @@ class EntryReaderDialog extends StatelessWidget {
                           contacts: state.contacts,
                           notes: Provider.of<NotasState>(context, listen: false).notes,
                           baseStyle: const TextStyle(
-                            fontSize: 15.5,
+                            fontSize: OrtizFontSize.titleSm,
                             height: 1.65,
                             color: DiarioColors.textPrimary,
                             letterSpacing: 0.1,
@@ -553,7 +545,7 @@ class EntryReaderDialog extends StatelessWidget {
                   ] else if (!currentEntry.hasTitle && !currentEntry.hasPhoto && (currentEntry.contentData == null || currentEntry.contentData!.isEmpty)) ...[
                     const Center(
                       child: Padding(
-                        padding: EdgeInsets.all(32.0),
+                        padding: EdgeInsets.all(OrtizSpace.xxxl),
                         child: Text(
                           'Nota sin contenido de texto adicional.',
                           style: TextStyle(color: DiarioColors.textMuted, fontStyle: FontStyle.italic),
@@ -575,10 +567,10 @@ class EntryReaderDialog extends StatelessWidget {
     }
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.sheet)),
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl, vertical: OrtizSpace.xxxl),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 680,

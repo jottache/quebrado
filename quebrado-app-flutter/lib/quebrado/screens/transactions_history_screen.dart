@@ -4,7 +4,6 @@ import '../viewmodels/app_state.dart';
 import '../models/transaction.dart';
 import '../models/transaction_category.dart';
 import '../models/currency_type.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../models/account.dart';
 import '../dialogs/calculator_dialog.dart';
@@ -15,6 +14,11 @@ import '../theme/colors.dart';
 import '../../widgets/responsive_breakpoints.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 import '../dialogs/book_selector_dialog.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class TransactionsHistoryScreen extends StatefulWidget {
   const TransactionsHistoryScreen({super.key});
@@ -89,16 +93,18 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
   Widget _buildDateHeader(String title, bool isFirst) {
     return Padding(
       padding: EdgeInsets.only(
-        top: isFirst ? 8.0 : 20.0,
-        bottom: 8.0,
-        left: 4.0,
+        top: isFirst ? OrtizSpace.sm : OrtizSpace.xl,
+        bottom: OrtizSpace.sm,
+        left: OrtizSpace.xs,
       ),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: AppColors.cardSubtitleText,
+      child: Semantics(
+        header: true,
+        child: Text(
+          title,
+          style: OrtizType.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.cardSubtitleText,
+          ),
         ),
       ),
     );
@@ -143,7 +149,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
+          padding: const EdgeInsets.only(right: OrtizSpace.xxxl),
           child: Image.asset(
             'assets/images/quebrado/logo_quebrado.png',
             height: 50,
@@ -152,13 +158,13 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
         ),
         leading: isDesktop
             ? Padding(
-                padding: const EdgeInsets.only(left: 12.0),
+                padding: const EdgeInsets.only(left: OrtizSpace.md),
                 child: Center(
                   child: ActionChip(
-                    avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                    avatar: const Icon(Icons.auto_stories_rounded, size: OrtizIconSize.sm),
                     label: Text(
                       appState.activeProfileName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                     ),
                     onPressed: () {
                       showResponsiveSheet(
@@ -198,7 +204,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
@@ -211,8 +217,8 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
+                          color: OrtizPalette.onAccent,
+                          fontSize: OrtizFontSize.micro,
                           fontWeight: FontWeight.w900,
                         ),
                         textAlign: TextAlign.center,
@@ -233,7 +239,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                 );
               },
             ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           IconButton(
             icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
@@ -244,7 +250,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
               );
             },
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: OrtizSpace.lg),
         ],
       ),
       body: Column(
@@ -252,14 +258,14 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
           // Filter segmented selector
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
+              horizontal: OrtizSpace.lg,
+              vertical: OrtizSpace.sm,
             ),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.mainTabTrackBg,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: Row(
                 children: [
@@ -292,50 +298,23 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
               ),
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: OrtizSpace.sm),
 
           // Ledger transactions list
           Expanded(
             child: filtered.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.folder_open_rounded,
-                          size: 52,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          "Historial vacío",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 48.0),
-                          child: Text(
-                            "Aún no tienes movimientos registrados en esta categoría.",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
+                ? const OrtizEmptyState(
+                    icon: Icons.folder_open_rounded,
+                    title: "Historial vacío",
+                    message: "Aún no tienes movimientos registrados en esta categoría.",
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.only(
-                      left: 16.0,
-                      right: 16.0,
-                      top: 8.0,
-                      bottom: 140.0,
+                    padding: const EdgeInsets.only(
+                      left: OrtizSpace.lg,
+                      right: OrtizSpace.lg,
+                      top: OrtizSpace.sm,
+                      // Deja libre el FAB y la barra inferior.
+                      bottom: kBottomNavigationBarHeight + OrtizSize.minTouch + OrtizSpace.xxxl,
                     ),
                     itemCount: listItems.length,
                     itemBuilder: (context, index) {
@@ -346,14 +325,9 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
 
                       final tx = item as Transaction;
                       return Padding(
-                        padding: EdgeInsets.only(bottom: 12.0),
-                        child: _TransactionRow(
-                          transaction: tx,
-                          backgroundColor: AppColors.getAlternateCardColor(
-                            index,
-                          ),
-                        ),
-                      );
+                        padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
+                        child: _TransactionRow(transaction: tx),
+                      ).ortizStaggered(context, index);
                     },
                   ),
           ),
@@ -380,20 +354,11 @@ class _FilterSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
           child: Text(
             title,
@@ -402,7 +367,7 @@ class _FilterSegment extends StatelessWidget {
               color: isSelected
                   ? AppColors.mainTabActiveText
                   : AppColors.mainTabInactiveText,
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
             ),
           ),
         ),
@@ -413,9 +378,8 @@ class _FilterSegment extends StatelessWidget {
 
 class _TransactionRow extends StatelessWidget {
   final Transaction transaction;
-  final Color? backgroundColor;
 
-  const _TransactionRow({required this.transaction, this.backgroundColor});
+  const _TransactionRow({required this.transaction});
 
   @override
   Widget build(BuildContext context) {
@@ -472,22 +436,13 @@ class _TransactionRow extends StatelessWidget {
       counterpartText = "≈ ${formatBs(vesAmt)}";
     }
 
-    final cardBgColor = backgroundColor ?? AppColors.cardBackground;
-    final isLightCard =
-        cardBgColor == Colors.white ||
-        cardBgColor == AppColors.cardBackground ||
-        HSLColor.fromColor(cardBgColor).lightness >= 0.75;
-
-    final textColor = isLightCard ? AppColors.cardText : Colors.white;
-    final subtitleColor = isLightCard
-        ? AppColors.cardSubtitleText
-        : Colors.white.withOpacity(0.7);
+    final t = OrtizTokens.of(context);
+    final textColor = t.fg;
+    final subtitleColor = t.muted;
     final categoryColor = category != null
         ? parseHexColor(category.colorHex)
         : (isIncome ? AppColors.income : AppColors.expense);
-    final amountColor = isLightCard
-        ? (isIncome ? AppColors.income : AppColors.expense)
-        : Colors.white;
+    final amountColor = isIncome ? t.income : t.expense;
 
     final isExchange = categoryName == "Cambio de Divisa";
     final isExchangeCompra =
@@ -515,7 +470,11 @@ class _TransactionRow extends StatelessWidget {
     final isFuture = transaction.date.isAfter(DateTime.now());
     final displayTimeOrDate = isFuture ? formatDate(transaction.date) : formattedTime;
 
-    return GestureDetector(
+    // Fila sin tarjeta: sobre el fondo, con resaltado al tocar.
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+      borderRadius: BorderRadius.circular(OrtizRadius.field),
       onTap: () {
         showModalBottomSheet(
           context: context,
@@ -525,29 +484,28 @@ class _TransactionRow extends StatelessWidget {
               TransactionDetailBottomSheet(transaction: transaction),
         );
       },
-      child: ClaymorphicCard(
-        cornerRadius: 18,
-        padding: EdgeInsets.all(14.0),
-        backgroundColor: cardBgColor,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: OrtizSpace.xs,
+          vertical: OrtizSpace.sm,
+        ),
         child: Row(
           children: [
-            // Category Icon
+            // Category Icon (color de la categoría: dato de la persona)
             Container(
-              width: 44,
-              height: 44,
+              width: OrtizSpace.xxxl + OrtizSpace.md,
+              height: OrtizSpace.xxxl + OrtizSpace.md,
               decoration: BoxDecoration(
-                color: isLightCard
-                    ? displayCategoryColor.withOpacity(0.12)
-                    : Colors.white.withOpacity(0.18),
+                color: displayCategoryColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 displayIcon,
-                color: isLightCard ? displayCategoryColor : Colors.white,
-                size: isExchange ? 20 : 18,
+                color: displayCategoryColor,
+                size: isExchange ? OrtizIconSize.md : OrtizIconSize.sm,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: OrtizSpace.md),
 
             // Note / Date
             Expanded(
@@ -557,54 +515,54 @@ class _TransactionRow extends StatelessWidget {
                   Text(
                     transaction.note.isEmpty ? categoryName : transaction.note,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 3),
+                  SizedBox(height: OrtizSpace.xxs),
                   Row(
                     children: [
                       Text(
                         displayTimeOrDate,
-                        style: TextStyle(fontSize: 11, color: subtitleColor),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, color: subtitleColor),
                       ),
                       if (transaction.date.isAfter(DateTime.now())) ...[
-                        SizedBox(width: 6),
+                        SizedBox(width: OrtizSpace.xs),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.orange.withOpacity(0.3), width: 0.5),
+                            color: t.warn.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                            border: Border.all(color: t.warn.withValues(alpha: 0.3), width: OrtizStroke.hairline),
                           ),
                           child: Text(
                             "Programado",
                             style: TextStyle(
-                              fontSize: 8.5,
+                              fontSize: OrtizFontSize.micro,
                               fontWeight: FontWeight.bold,
-                              color: Colors.orange,
+                              color: t.warn,
                             ),
                           ),
                         ),
                       ],
                       if (appState.partialPayments.any((p) => p.transactionId == transaction.id)) ...[
-                        SizedBox(width: 6),
+                        SizedBox(width: OrtizSpace.xs),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 0.5),
+                            color: t.income.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                            border: Border.all(color: t.income.withValues(alpha: 0.3), width: OrtizStroke.hairline),
                           ),
                           child: Text(
                             "Abono Parcial",
                             style: TextStyle(
-                              fontSize: 8.5,
+                              fontSize: OrtizFontSize.micro,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: t.income,
                             ),
                           ),
                         ),
@@ -619,33 +577,18 @@ class _TransactionRow extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      prefix,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: amountColor,
-                      ),
-                    ),
-                    Text(
-                      mainAmountText,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: amountColor,
-                      ),
-                    ),
-                  ],
+                OrtizAmount(
+                  value: transaction.amount,
+                  currencySymbol: transaction.currency.symbol,
+                  format: (_) => "$prefix$mainAmountText",
+                  color: amountColor,
+                  style: OrtizType.amount.copyWith(fontWeight: FontWeight.w700),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: OrtizSpace.xxs),
                 Text(
                   counterpartText,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  style: OrtizType.amount.copyWith(
+                    fontSize: OrtizFontSize.caption,
                     color: subtitleColor,
                   ),
                 ),
@@ -653,6 +596,7 @@ class _TransactionRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

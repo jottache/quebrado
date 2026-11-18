@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import '../models/transaction.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
-import '../widgets/claymorphic_card.dart';
 import 'add_transaction_dialog.dart';
 import 'add_exchange_dialog.dart';
 import 'pending_confirmations_dialog.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 
 class AddActionSelectionBottomSheet extends StatelessWidget {
   const AddActionSelectionBottomSheet({super.key});
@@ -18,15 +21,15 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: 32.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: OrtizSpace.xxxl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -38,22 +41,22 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: OrtizSpace.xl),
+          const Text(
             "Nueva Operación",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: OrtizFontSize.title,
               fontWeight: FontWeight.w900,
-              color: Colors.black87,
+              color: OrtizPalette.fg,
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -140,13 +143,13 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
   }) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6.0),
-        child: GestureDetector(
+        padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
+        // Sin tarjeta: la opción va directa sobre la hoja (`surface`).
+        child: InkWell(
           onTap: onTap,
-          child: ClaymorphicCard(
-            cornerRadius: 18,
-            backgroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xl, horizontal: OrtizSpace.sm),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -154,15 +157,15 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(12),
+                      padding: EdgeInsets.all(OrtizSpace.md),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
+                        color: color.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         icon,
                         color: color,
-                        size: 28,
+                        size: OrtizIconSize.lg,
                       ),
                     ),
                     if (badgeCount != null && badgeCount > 0)
@@ -170,7 +173,7 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                         right: -4,
                         top: -4,
                         child: Container(
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(OrtizSpace.xs),
                           decoration: BoxDecoration(
                             color: AppColors.expense,
                             shape: BoxShape.circle,
@@ -182,9 +185,9 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                           child: Center(
                             child: Text(
                               '$badgeCount',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
+                              style: const TextStyle(
+                                color: OrtizPalette.onAccent,
+                                fontSize: OrtizFontSize.micro,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -193,14 +196,14 @@ class AddActionSelectionBottomSheet extends StatelessWidget {
                       ),
                   ],
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     title,
                     maxLines: 1,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.w900,
                       color: color,
                     ),

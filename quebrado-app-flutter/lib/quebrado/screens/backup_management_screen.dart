@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 import '../dialogs/pin_verification_dialog.dart';
 import '../dialogs/pin_setup_bottom_sheet.dart';
 import '../services/backup_service.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class BackupManagementScreen extends StatefulWidget {
   const BackupManagementScreen({super.key});
 
@@ -115,51 +118,50 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               return PopScope(
                 canPop: false,
                 child: Dialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  backgroundColor: Colors.white,
-                  elevation: 10,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+                  backgroundColor: OrtizPalette.surface,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl, vertical: OrtizSpace.xxl),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(OrtizSpace.lg),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.cloud_upload_rounded,
                             color: AppColors.primary,
-                            size: 38,
+                            size: OrtizIconSize.xl,
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: OrtizSpace.lg),
                         const Text(
                           "Importando Copia de Seguridad",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         Text(
                           "Subiendo y sincronizando tus libros contables...",
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.3),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, height: 1.3),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: OrtizSpace.xxl),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           child: LinearProgressIndicator(
                             minHeight: 6,
-                            backgroundColor: const Color(0xFFEEEEEE),
+                            backgroundColor: OrtizPalette.surfaceHigh,
                             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: OrtizSpace.md),
                         Text(
                           "Por favor no cierres esta ventana",
-                          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                         ),
                       ],
                     ),
@@ -193,26 +195,26 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         await showDialog(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
             title: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(OrtizSpace.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.income.withOpacity(0.15),
+                    color: AppColors.income.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.check_circle_rounded,
                     color: AppColors.income,
-                    size: 26,
+                    size: OrtizIconSize.lg,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: OrtizSpace.md),
                 const Expanded(
                   child: Text(
                     "¡Importación Exitosa!",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
                   ),
                 ),
               ],
@@ -226,15 +228,15 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                     result.fileName != null
                         ? "Se restauraron los datos correctamente desde '${result.fileName}'."
                         : "Se restauraron los datos correctamente desde la copia de seguridad.",
-                    style: const TextStyle(fontSize: 13, height: 1.3, color: Colors.black87),
+                    style: const TextStyle(fontSize: OrtizFontSize.bodySm, height: 1.3, color: OrtizPalette.fg),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: OrtizSpace.lg),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(OrtizSpace.md),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F9FA),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
+                      color: OrtizPalette.surfaceHigh,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      border: Border.all(color: OrtizPalette.line),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,14 +248,14 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           isBold: true,
                         ),
                         if (result.profilesCount > 1) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: OrtizSpace.sm),
                           _buildSummaryRow(
                             Icons.switch_account_rounded,
                             "Perfiles en copia:",
                             "${result.profilesCount}",
                           ),
                         ],
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         _buildSummaryRow(
                           Icons.receipt_long_rounded,
                           "Transacciones:",
@@ -261,26 +263,26 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                           isBold: true,
                           valueColor: AppColors.primary,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         _buildSummaryRow(
                           Icons.account_balance_wallet_rounded,
                           "Cuentas:",
                           "${result.accountsCount}",
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         _buildSummaryRow(
                           Icons.savings_rounded,
                           "Bolsillos:",
                           "${result.pocketsCount}",
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         _buildSummaryRow(
                           Icons.category_rounded,
                           "Categorías:",
                           "${result.categoriesCount}",
                         ),
                         if (result.recurringCount > 0) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: OrtizSpace.sm),
                           _buildSummaryRow(
                             Icons.repeat_rounded,
                             "Pagos recurrentes:",
@@ -301,8 +303,8 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  foregroundColor: OrtizPalette.onAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 ),
                 onPressed: () {
                   Navigator.of(dialogCtx).pop();
@@ -310,7 +312,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                     Navigator.of(context).pop();
                   }
                 },
-                icon: const Icon(Icons.dashboard_rounded, size: 18),
+                icon: const Icon(Icons.dashboard_rounded, size: OrtizIconSize.md),
                 label: const Text("Ir al Dashboard"),
               ),
             ],
@@ -369,11 +371,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
       builder: (context) => AlertDialog(
         title: Text(
           "Eliminar Copia de Seguridad",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
         ),
         content: Text(
           "¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad? Esta acción no se puede deshacer.",
-          style: TextStyle(fontSize: 13, height: 1.3),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, height: 1.3),
         ),
         actions: [
           TextButton(
@@ -406,11 +408,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
       builder: (context) => AlertDialog(
         title: Text(
           "Restaurar Datos",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
         ),
         content: Text(
           "Se reemplazarán todas tus cuentas, transacciones y bolsillos actuales con los datos de esta copia de seguridad.\n\n¿Estás seguro de que deseas proceder?",
-          style: TextStyle(fontSize: 13, height: 1.3),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, height: 1.3),
         ),
         actions: [
           TextButton(
@@ -471,11 +473,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
           builder: (context) => AlertDialog(
             title: Text(
               "¡Restauración Exitosa!",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
             ),
             content: Text(
               "Tus libros y transacciones han sido restaurados correctamente al estado de la copia de seguridad seleccionada.",
-              style: TextStyle(fontSize: 13, height: 1.3),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, height: 1.3),
             ),
             actions: [
               TextButton(
@@ -485,8 +487,8 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  foregroundColor: OrtizPalette.onAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -494,7 +496,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                     Navigator.of(context).pop();
                   }
                 },
-                icon: const Icon(Icons.dashboard_rounded, size: 18),
+                icon: const Icon(Icons.dashboard_rounded, size: OrtizIconSize.md),
                 label: const Text("Ir al Dashboard"),
               ),
             ],
@@ -523,13 +525,13 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey.shade600),
-        const SizedBox(width: 8),
+        Icon(icon, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+        const SizedBox(width: OrtizSpace.sm),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12.5,
-            color: Colors.grey.shade700,
+            fontSize: OrtizFontSize.bodySm,
+            color: OrtizPalette.muted,
             fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -537,8 +539,8 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 12.5,
-            color: valueColor ?? (isBold ? Colors.black87 : Colors.grey.shade800),
+            fontSize: OrtizFontSize.bodySm,
+            color: valueColor ?? (isBold ? OrtizPalette.fg : OrtizPalette.fg),
             fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
           ),
         ),
@@ -554,7 +556,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         appBar: AppBar(
           title: Text(
             "Copias de Seguridad",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.title),
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -572,16 +574,16 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               )
             : SingleChildScrollView(
                 physics: BouncingScrollPhysics(),
-                padding: EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(OrtizSpace.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Segmented Tab Bar
                     Container(
-                      padding: EdgeInsets.all(4),
+                      padding: EdgeInsets.all(OrtizSpace.xs),
                       decoration: BoxDecoration(
                         color: AppColors.nestedTabTrackBg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                       child: Row(
                         children: [
@@ -598,15 +600,11 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: OrtizSpace.xl),
 
                     if (_selectedTab == 0) ...[
                       // Create backup card
-                      ClaymorphicCard(
-                        cornerRadius: 16,
-                        padding: EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                      OrtizSection(
                           children: [
                             Row(
                               children: [
@@ -617,17 +615,17 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                       Text(
                                         "Resguardar Datos al Instante",
                                         style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: OrtizFontSize.body,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      SizedBox(height: 2),
+                                      SizedBox(height: OrtizSpace.xxs),
                                       Text(
                                         "Crea una copia de seguridad manual local con todos tus libros activos.",
                                         style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey[600],
+                                          fontSize: OrtizFontSize.caption,
+                                          color: OrtizPalette.muted,
                                           height: 1.3,
                                         ),
                                       ),
@@ -636,30 +634,30 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: OrtizSpace.lg),
                             ElevatedButton(
                               onPressed: _createManualBackup,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: OrtizPalette.onAccent,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                padding: EdgeInsets.symmetric(vertical: 12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field)),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                               ),
                               child: Text(
                                 "Crear Copia de Seguridad Manual",
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            SizedBox(height: 10),
+                            SizedBox(height: OrtizSpace.sm),
                             OutlinedButton(
                               onPressed: _importBackupFromFile,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field)),
                                 side: BorderSide(color: AppColors.primary),
-                                padding: EdgeInsets.symmetric(vertical: 12),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                               ),
                               child: Text(
                                 "Importar desde Archivo (.json)",
@@ -667,74 +665,42 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                               ),
                             ),
                           ],
-                        ),
                       ),
-                      SizedBox(height: 24),
 
-                      // Title backup list
-                      Text(
-                        "COPIAS DISPONIBLES",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.cardSubtitleText,
-                          letterSpacing: 1.0,
-                        ),
+                      // Backup list
+                      OrtizSection(
+                        title: "COPIAS DISPONIBLES",
+                        divided: true,
+                        children: [
+                          if (_backups.isEmpty)
+                            OrtizEmptyState(
+                              icon: Icons.inventory_2_outlined,
+                              title: "No hay copias de seguridad disponibles.",
+                              message: "Se crean automáticamente todos los días.",
+                            )
+                          else
+                            ..._backups.map((bk) => _buildBackupRow(bk)),
+                        ],
                       ),
-                      SizedBox(height: 8),
-
-                      if (_backups.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Text(
-                            "No hay copias de seguridad disponibles.\nSe crean automáticamente todos los días.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              height: 1.4,
-                            ),
-                          ),
-                        )
-                      else
-                        ..._backups.map((bk) => _buildBackupRow(bk)),
                     ] else ...[
-                      // Restore history title
-                      Text(
-                        "HISTORIAL DE RESTAURACIONES",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.cardSubtitleText,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-
-                      if (_restoreHistory.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16.0),
-                          child: Text(
-                            "Aún no se han realizado restauraciones en este dispositivo.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[500],
+                      // Restore history
+                      OrtizSection(
+                        title: "HISTORIAL DE RESTAURACIONES",
+                        children: [
+                          if (_restoreHistory.isEmpty)
+                            OrtizEmptyState(
+                              icon: Icons.history_rounded,
+                              title:
+                                  "Aún no se han realizado restauraciones en este dispositivo.",
+                            )
+                          else
+                            ..._restoreHistory.map(
+                              (hist) => _buildHistoryRow(hist),
                             ),
-                          ),
-                        )
-                      else
-                        ClaymorphicCard(
-                          cornerRadius: 16,
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            children: _restoreHistory
-                                .map((hist) => _buildHistoryRow(hist))
-                                .toList(),
-                          ),
-                        ),
+                        ],
+                      ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: OrtizSpace.xxxl),
                   ],
                 ),
               ),
@@ -750,28 +716,29 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final dt = bk['created_at'] as DateTime;
     final path = bk['path'] as String? ?? '';
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.0),
-      child: GestureDetector(
+    // Fila sin tarjeta dentro de una `OrtizSection` dividida. No es
+    // `OrtizListRow` porque esta fusiona la semántica y las tres acciones
+    // deben seguir siendo botones independientes.
+    return GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => _showBackupPreview(context, name, path),
-        child: ClaymorphicCard(
-          cornerRadius: 16,
-          padding: EdgeInsets.all(12),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   isAuto ? Icons.auto_mode_rounded : Icons.person_rounded,
                   color: AppColors.primary,
-                  size: 20,
+                  size: OrtizIconSize.md,
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -779,15 +746,15 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                     Text(
                       isAuto ? "Copia Automática" : "Copia Manual",
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.bold,
                         color: AppColors.cardText,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    SizedBox(height: OrtizSpace.xxs),
                     Text(
                       "${_formatDateTime(dt)} • ${_formatSize(size)}",
-                      style: TextStyle(fontSize: 10.5, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                     ),
                   ],
                 ),
@@ -823,7 +790,6 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -842,9 +808,9 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
     final isAuto = bkName.startsWith('auto_backup_');
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
+        border: Border(bottom: BorderSide(color: OrtizPalette.line, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -856,24 +822,24 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                 child: Text(
                   isAuto ? "Copia Automática" : "Copia Manual",
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                 decoration: BoxDecoration(
                   color: success
-                      ? AppColors.income.withOpacity(0.12)
-                      : AppColors.expense.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(4),
+                      ? AppColors.income.withValues(alpha: 0.12)
+                      : AppColors.expense.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
                 child: Text(
                   success ? "EXITOSA" : "FALLIDA",
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: OrtizFontSize.micro,
                     fontWeight: FontWeight.bold,
                     color: success ? AppColors.income : AppColors.expense,
                   ),
@@ -881,21 +847,21 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               ),
             ],
           ),
-          SizedBox(height: 3),
+          SizedBox(height: OrtizSpace.xxs),
           Text(
             "Origen: $bkName\nFecha: $displayDate",
             style: TextStyle(
-              fontSize: 9.5,
-              color: Colors.grey[500],
+              fontSize: OrtizFontSize.micro,
+              color: OrtizPalette.muted,
               height: 1.3,
             ),
           ),
           if (error != null) ...[
-            SizedBox(height: 4),
+            SizedBox(height: OrtizSpace.xs),
             Text(
               "Error: $error",
               style: TextStyle(
-                fontSize: 9.5,
+                fontSize: OrtizFontSize.micro,
                 color: AppColors.expense,
                 fontWeight: FontWeight.w500,
               ),
@@ -923,7 +889,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppColors.background,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
               ),
               child: FutureBuilder<Map<String, dynamic>>(
                 future: appState.getBackupPreview(folderPath),
@@ -949,18 +915,18 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
 
                   return Column(
                     children: [
-                      SizedBox(height: 12),
+                      SizedBox(height: OrtizSpace.md),
                       Container(
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.grey[400],
-                          borderRadius: BorderRadius.circular(2),
+                          color: OrtizPalette.muted,
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -971,23 +937,23 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                   Text(
                                     "Vista Previa de Respaldo",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: OrtizFontSize.title,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,
                                     ),
                                   ),
-                                  SizedBox(height: 2),
+                                  SizedBox(height: OrtizSpace.xxs),
                                   Text(
                                     folderName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.close, color: Colors.grey),
+                              icon: Icon(Icons.close, color: OrtizPalette.muted),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ],
@@ -997,7 +963,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                       Expanded(
                         child: ListView(
                           controller: scrollController,
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.sm),
                           children: [
                             Row(
                               children: [
@@ -1007,14 +973,14 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                   "Transacciones",
                                   AppColors.primary,
                                 ),
-                                SizedBox(width: 12),
+                                SizedBox(width: OrtizSpace.md),
                                 _buildPreviewStatCard(
                                   Icons.savings_rounded,
                                   "$totalPockets",
                                   "Bolsillos",
                                   AppColors.primary,
                                 ),
-                                SizedBox(width: 12),
+                                SizedBox(width: OrtizSpace.md),
                                 _buildPreviewStatCard(
                                   Icons.shopping_cart_rounded,
                                   "$totalMarket",
@@ -1023,48 +989,38 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 24),
+                            SizedBox(height: OrtizSpace.xxl),
                             Text(
                               "LIBROS Y CUENTAS",
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.cardSubtitleText,
                                 letterSpacing: 0.8,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             if (profilesList.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                                child: Center(
-                                  child: Text(
-                                    "No se encontraron perfiles guardados.",
-                                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                                  ),
-                                ),
+                              OrtizEmptyState(
+                                icon: Icons.menu_book_outlined,
+                                title: "No se encontraron perfiles guardados.",
                               )
                             else
                               ...profilesList.map((p) {
                                 final name = p['name'] as String;
                                 final accounts = p['accounts'] as List;
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16.0),
-                                  child: ClaymorphicCard(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                return OrtizSection(
                                       children: [
                                         Row(
                                           children: [
-                                            Icon(Icons.book_outlined, size: 18, color: AppColors.primary),
-                                            SizedBox(width: 8),
+                                            Icon(Icons.book_outlined, size: OrtizIconSize.md, color: AppColors.primary),
+                                            SizedBox(width: OrtizSpace.sm),
                                             Text(
                                               "Libro: $name",
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 14,
+                                                fontSize: OrtizFontSize.body,
                                                 color: AppColors.primary,
                                               ),
                                             ),
@@ -1074,7 +1030,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                         if (accounts.isEmpty)
                                           Text(
                                             "Sin cuentas registradas en este libro.",
-                                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                                            style: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
                                           )
                                         else
                                           ...accounts.map((acc) {
@@ -1090,17 +1046,20 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                             }
 
                                             return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  Text(accName, style: TextStyle(fontSize: 13)),
-                                                  Text(
-                                                    "$currencySymbol ${balance.toStringAsFixed(2)}",
+                                                  Text(accName, style: TextStyle(fontSize: OrtizFontSize.bodySm)),
+                                                  OrtizAmount(
+                                                    value: balance,
+                                                    currencySymbol: currencySymbol,
+                                                    format: (v) =>
+                                                        "$currencySymbol ${v.toStringAsFixed(2)}",
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      fontSize: 13,
-                                                      color: Colors.grey[800],
+                                                      fontSize: OrtizFontSize.bodySm,
+                                                      color: OrtizPalette.fg,
                                                     ),
                                                   ),
                                                 ],
@@ -1108,15 +1067,13 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                                             );
                                           }).toList(),
                                       ],
-                                    ),
-                                  ),
                                 );
                               }).toList(),
                           ],
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(OrtizSpace.xl),
                         child: SizedBox(
                           width: double.infinity,
                           height: 48,
@@ -1129,9 +1086,9 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
                             label: Text("Restaurar esta Copia"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: OrtizPalette.onAccent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                             ),
                           ),
@@ -1150,27 +1107,27 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
 
   Widget _buildPreviewStatCard(IconData icon, String val, String label, Color color) {
     return Expanded(
-      child: ClaymorphicCard(
-        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: OrtizSpace.md, horizontal: OrtizSpace.sm),
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.all(6),
+              padding: EdgeInsets.all(OrtizSpace.xs),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
+                color: color.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 18),
+              child: Icon(icon, color: color, size: OrtizIconSize.md),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Text(
               val,
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.cardText),
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm, color: AppColors.cardText),
             ),
-            SizedBox(height: 2),
+            SizedBox(height: OrtizSpace.xxs),
             Text(
               label,
-              style: TextStyle(fontSize: 9.5, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: OrtizFontSize.micro, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -1196,20 +1153,11 @@ class _TabSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
           child: Text(
             title,
@@ -1218,7 +1166,7 @@ class _TabSegment extends StatelessWidget {
               color: isSelected
                   ? AppColors.mainTabActiveText
                   : AppColors.mainTabInactiveText,
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
             ),
           ),
         ),

@@ -13,7 +13,8 @@ double radioDe(ShapeBorder? shape) {
 
 void main() {
   group('OrtizSpace', () {
-    test('sigue la escala 4 · 8 · 12 · 16 · 20 · 24 · 32', () {
+    test('sigue la escala 2 · 4 · 8 · 12 · 16 · 20 · 24 · 32', () {
+      expect(OrtizSpace.xxs, 2);
       expect(OrtizSpace.xs, 4);
       expect(OrtizSpace.sm, 8);
       expect(OrtizSpace.md, 12);
@@ -24,7 +25,14 @@ void main() {
     });
 
     test('la lista de la escala contiene los mismos valores en orden creciente', () {
-      expect(OrtizSpace.scale, [4, 8, 12, 16, 20, 24, 32]);
+      expect(OrtizSpace.scale, [2, 4, 8, 12, 16, 20, 24, 32]);
+    });
+  });
+
+  group('OrtizIconSize', () {
+    test('sigue la escala 12 · 16 · 20 · 24 · 32 · 48 en orden creciente', () {
+      expect(OrtizIconSize.scale, [12, 16, 20, 24, 32, 48]);
+      expect(OrtizIconSize.md, 20);
     });
   });
 

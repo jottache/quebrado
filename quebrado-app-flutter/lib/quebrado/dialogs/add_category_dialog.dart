@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../models/transaction_category.dart';
-import '../widgets/claymorphic_card.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 import '../widgets/helpers.dart';
 import '../theme/colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class AddCategoryBottomSheet extends StatefulWidget {
   final TransactionCategoryType initialType;
   final TransactionCategory? editingCategory;
@@ -86,18 +90,18 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
     final themeColor = parseHexColor(_selectedColorHex);
 
     return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFFF9F9F5),
+      decoration: const BoxDecoration(
+        color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: 0.85,
@@ -110,12 +114,12 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -123,10 +127,10 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
               children: [
                 Text(
                   widget.editingCategory != null ? "Editar Categoría" : "Crear Categoría",
-                  style: TextStyle(
-                    fontSize: 20,
+                  style: const TextStyle(
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 IconButton(
@@ -135,7 +139,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Scrollable Content
             Expanded(
@@ -145,101 +149,87 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Preview Icon Card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.symmetric(vertical: 24.0),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: themeColor.withOpacity(0.12),
-                              shape: BoxShape.circle,
+                    // Vista previa (sin tarjeta)
+                    OrtizSection(
+                      children: [
+                        Column(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: themeColor.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                getIconData(_selectedIcon),
+                                color: themeColor,
+                                size: OrtizIconSize.xl,
+                              ),
                             ),
-                            child: Icon(
-                              getIconData(_selectedIcon),
-                              color: themeColor,
-                              size: 32,
+                            const SizedBox(height: OrtizSpace.md),
+                            Text(
+                              _nameController.text.isEmpty ? "Nueva Categoría" : _nameController.text,
+                              style: const TextStyle(
+                                fontSize: OrtizFontSize.title,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.cardText,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          SizedBox(height: 12),
-                          Text(
-                            _nameController.text.isEmpty ? "Nueva Categoría" : _nameController.text,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardText,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
-                    // Category Details Card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "DETALLES DE LA CATEGORÍA",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 16),
-
+                    // Category Details
+                    OrtizSection(
+                      title: "DETALLES DE LA CATEGORÍA",
+                      children: [
                           // Name TextField
                           Text(
                             "Nombre",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: "Ej. Gimnasio, Freelance Swift...",
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: const EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
 
                           // Type Picker
                           Text(
                             "Tipo de Movimiento",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           Container(
-                            padding: EdgeInsets.all(4.0),
+                            padding: EdgeInsets.all(OrtizSpace.xs),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.field),
                             ),
                             child: Row(
                               children: [
@@ -247,19 +237,19 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _categoryType = TransactionCategoryType.income),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: _categoryType == TransactionCategoryType.income
                                             ? AppColors.nestedTabActiveBg
                                             : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "Ingreso",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: _categoryType == TransactionCategoryType.income
                                               ? AppColors.nestedTabActiveText
                                               : AppColors.nestedTabInactiveText,
@@ -272,19 +262,19 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _categoryType = TransactionCategoryType.expense),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: _categoryType == TransactionCategoryType.expense
                                             ? AppColors.nestedTabActiveBg
                                             : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "Gasto",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: _categoryType == TransactionCategoryType.expense
                                               ? AppColors.nestedTabActiveText
                                               : AppColors.nestedTabInactiveText,
@@ -296,40 +286,40 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               ],
                             ),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
 
                           // Parent Category Picker
                           Text(
                             "Categoría Padre (Opcional)",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 14),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
+                              color: OrtizPalette.surfaceHigh,
+                              borderRadius: BorderRadius.circular(OrtizRadius.field),
                             ),
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String?>(
                                 isExpanded: true,
                                 value: _selectedParentId,
-                                hint: Text("Ninguna", style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                hint: Text("Ninguna", style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText)),
                                 items: [
                                   DropdownMenuItem<String?>(
                                     value: null,
-                                    child: Text("Ninguna", style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                    child: Text("Ninguna", style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText)),
                                   ),
                                   ...appState.getParentCategories(_categoryType)
                                     .where((c) => c.id != widget.editingCategory?.id)
                                     .map((cat) {
                                     return DropdownMenuItem<String?>(
                                       value: cat.id,
-                                      child: Text(cat.name, style: TextStyle(fontSize: 14, color: AppColors.cardText)),
+                                      child: Text(cat.name, style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText)),
                                     );
                                   }).toList(),
                                 ],
@@ -341,31 +331,16 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
-                    // Color selection card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "SELECCIONA UN COLOR",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 16),
+                    // Color selection
+                    OrtizSection(
+                      title: "SELECCIONA UN COLOR",
+                      children: [
                           Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
+                            spacing: OrtizSpace.md,
+                            runSpacing: OrtizSpace.md,
                             alignment: WrapAlignment.center,
                             children: AppColors.creationColors.map((colorHex) {
                               final isSelected = _selectedColorHex == colorHex;
@@ -373,55 +348,32 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                               return GestureDetector(
                                 onTap: () => setState(() => _selectedColorHex = colorHex),
                                 child: AnimatedContainer(
-                                  duration: Duration(milliseconds: 150),
+                                  duration: OrtizMotion.of(context, OrtizMotion.fast),
+                                  curve: OrtizMotion.ease,
                                   width: 38,
                                   height: 38,
                                   decoration: BoxDecoration(
                                     color: color,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: isSelected ? Colors.black87 : Colors.transparent,
+                                      color: isSelected ? OrtizPalette.fg : Colors.transparent,
                                       width: isSelected ? 2.5 : 0,
                                     ),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                              color: color.withOpacity(0.4),
-                                              blurRadius: 4,
-                                              offset: Offset(0, 2),
-                                            )
-                                          ]
-                                        : null,
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 20),
 
-                    // Icon selection card
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "SELECCIONA UN ICONO",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          SizedBox(height: 16),
+                    // Icon selection
+                    OrtizSection(
+                      title: "SELECCIONA UN ICONO",
+                      children: [
                           GridView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 6,
                               crossAxisSpacing: 10,
@@ -436,27 +388,26 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                 onTap: () => setState(() => _selectedIcon = icon),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: isSelected ? themeColor : themeColor.withOpacity(0.12),
+                                    color: isSelected ? themeColor : themeColor.withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     getIconData(icon),
-                                    color: isSelected ? Colors.white : themeColor,
-                                    size: 18,
+                                    color: isSelected ? OrtizPalette.onAccent : themeColor,
+                                    size: OrtizIconSize.md,
                                   ),
                                 ),
                               );
                             },
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 32),
+                    const SizedBox(height: OrtizSpace.sm),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Action Buttons
             Row(
@@ -464,32 +415,32 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       "Cancelar",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
+                      style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: _nameController.text.trim().isEmpty
                         ? null
                         : () => _saveCategory(appState),
                     child: Text(
                       widget.editingCategory != null ? "Guardar" : "Crear",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

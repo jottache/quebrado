@@ -16,12 +16,12 @@ El detalle (valores, mapa de cada clase de color, componentes tematizados, respo
    - radio: `OrtizRadius.chip/field/menu/block/dialog/sheet/pillShape`;
    - movimiento: `OrtizMotion`.
    Si falta un token, no lo inventes: pídelo a `ui-ux-designer`. Se tolera `Colors.transparent`.
-2. **Sin tarjetas.** Nada de `Card`, `ClaymorphicCard` ni contenedores con sombra nuevos. El contenido va sobre `bg`; los grupos se separan con `OrtizSpace.xxl` y `Divider()` (color `line` del tema); el encabezado de grupo va en `caption`/`titleSm` color `muted`; lo activo, sobre `surfaceHigh`. Solo flotan (sobre `surface`) el menú, las hojas/diálogos y el campo del chat.
+2. **Sin tarjetas.** Nada de `Card`, `ClaymorphicCard` ni contenedores con sombra nuevos. El contenido va sobre `bg`; los grupos se separan con `OrtizSpace.xxl` y `Divider()` (color `line` del tema); el encabezado de grupo va en `caption`/`titleSm` color `muted`; lo activo, sobre `surfaceHigh`. Solo flotan (sobre `surface`) el menú, las hojas/diálogos y el campo del chat. **Usa los componentes de `lib/widgets/ortiz/`** (barrel `ortiz.dart`): `OrtizSection` (grupo sin tarjeta), `OrtizListRow` (fila con punto de color), `OrtizPill`, `OrtizAmount` (montos), `OrtizProgressBar`, `OrtizEmptyState`, `showOrtizNotice` (avisos) y `ortizStaggered` (entrada escalonada).
 3. **Color de app solo vía `SuiteApp`/`SuiteAppColors`** (o la clase del módulo, que ya lo lee de ahí). Nunca un hex de app. El coral `accent` es la única acción principal; el color del libro solo marca el selector de libro.
 4. **Texto sobre `accent` o sobre cualquier relleno claro (color de app, estado) = `onAccent`**, nunca blanco.
 5. **`faint` nunca para texto que haya que leer** (2,5–2,9:1). Texto secundario = `muted`.
 6. **`withValues(alpha: …)`**, no `withOpacity`. En `const`, usa los derivados `SuiteAppColors.xxxTint`/`xxxBorder`.
-7. **Animaciones con `OrtizMotion` y respetando reducir movimiento**: duración con `OrtizMotion.of(context, …)`, retrasos con `staggerOf`, curva `OrtizMotion.ease`. `flutter_animate` no lo respeta solo.
+7. **Animaciones con `OrtizMotion` y respetando reducir movimiento**: duración con `OrtizMotion.of(context, …)`, retrasos con `staggerOf`, curva `OrtizMotion.ease`. Entradas de lista con `ortizStaggered`; **no uses `flutter_animate`** (deja Timers pendientes).
 8. **Campos de texto a 16 px** (lo pone el tema; no les bajes el tamaño).
 9. **Textos en español**, tuteo, sin `$e`. El agente se llama **«Ortiz»**.
 10. Responsive y sheets como siempre: `ResponsiveBreakpoints.isDesktop`/`isExpanded` y `showResponsiveSheet`.
@@ -62,14 +62,15 @@ const Icon(Icons.book, color: SuiteAppColors.diario); // en const
 ```
 
 ```dart
-// MAL: duración fija, ignora reducir movimiento.
-child.animate().fadeIn(duration: 300.ms);
+// MAL: duración fija, ignora reducir movimiento, y `flutter_animate` deja
+// un Timer vivo al desmontar (rompe los widget tests).
+child.animate(delay: 60.ms).fadeIn(duration: 300.ms);
 
-// BIEN
-final d = OrtizMotion.of(context, OrtizMotion.base);
-child.animate(delay: OrtizMotion.staggerOf(context, i))
-    .fadeIn(duration: d, curve: OrtizMotion.ease)
-    .slideY(begin: .08, end: 0, duration: d, curve: OrtizMotion.ease);
+// BIEN: entrada de lista
+ortizStaggered(context, i, fila);   // o fila.ortizStaggered(context, i)
+
+// BIEN: transición nativa
+AnimatedContainer(duration: OrtizMotion.of(context, OrtizMotion.base), curve: OrtizMotion.ease, …);
 ```
 
 ## Lista de control antes de entregar

@@ -9,6 +9,10 @@ import '../models/currency_type.dart';
 import '../widgets/helpers.dart';
 import '../models/account.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class TransactionDetailBottomSheet extends StatefulWidget {
   final Transaction transaction;
 
@@ -113,11 +117,11 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 20.0),
+      padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -128,24 +132,24 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
           ),
-          SizedBox(height: 18),
+          SizedBox(height: OrtizSpace.lg),
 
           // Header Row with Category tag & Edit button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                 decoration: BoxDecoration(
-                  color: displayCategoryColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(20),
+                  color: displayCategoryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                   border: Border.all(
-                    color: displayCategoryColor.withOpacity(0.2),
+                    color: displayCategoryColor.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -155,13 +159,13 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                     Icon(
                       displayIcon,
                       color: displayCategoryColor,
-                      size: 14,
+                      size: OrtizIconSize.sm,
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: OrtizSpace.xs),
                     Text(
                       displayCategoryName,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.bold,
                         color: displayCategoryColor,
                       ),
@@ -171,11 +175,11 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
               ),
               TextButton.icon(
                 style: TextButton.styleFrom(
-                  backgroundColor: AppColors.primary.withOpacity(0.08),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                   foregroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                 ),
                 onPressed: () {
@@ -189,15 +193,15 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                     ),
                   );
                 },
-                icon: Icon(Icons.edit_rounded, size: 14),
+                icon: const Icon(Icons.edit_rounded, size: OrtizIconSize.sm),
                 label: Text(
                   "Editar",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
 
           // Amount Section
           Column(
@@ -206,117 +210,80 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
                 "$prefix$originalStr",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 36,
+                  fontSize: OrtizFontSize.displayLg,
                   fontWeight: FontWeight.w900,
                   color: amountColor,
                   letterSpacing: -1.0,
                 ),
               ),
-              SizedBox(height: 6),
+              SizedBox(height: OrtizSpace.xs),
               Text(
                 "Equivalente: $counterpartStr",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardSubtitleText,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
 
-          // Details List Card
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.cardBorderColor,
-                width: AppColors.cardBorderWidth,
+          // Detalles: grupo sin tarjeta, filas separadas por líneas.
+          OrtizSection(
+            divided: true,
+            children: [
+              _buildDetailRow(
+                title: "Tipo de Movimiento",
+                value: currentTx.type == TransactionType.income ? "Ingreso" : "Gasto",
               ),
-            ),
-            padding: EdgeInsets.all(18.0),
-            child: Column(
+              _buildDetailRow(
+                title: isIncome ? "Destino" : "Origen",
+                value: pocketName,
+              ),
+              _buildDetailRow(
+                title: "Fecha",
+                value: formatFullDate(currentTx.date),
+              ),
+              _buildDetailRow(
+                title: "Tasa del Registro",
+                value: currentTx.currency == CurrencyType.eur
+                    ? "1 EUR = Bs. ${rate.toStringAsFixed(2)}"
+                    : "1 USD = Bs. ${rate.toStringAsFixed(2)}",
+              ),
+            ],
+          ),
+
+          // Nota / concepto (si la hay)
+          if (currentTx.note.isNotEmpty)
+            OrtizSection(
+              title: "NOTA / CONCEPTO",
               children: [
-                _buildDetailRow(
-                  title: "Tipo de Movimiento",
-                  value: currentTx.type == TransactionType.income ? "Ingreso" : "Gasto",
-                ),
-                Divider(height: 24, color: AppColors.cardBorderColor.withOpacity(0.6)),
-                _buildDetailRow(
-                  title: isIncome ? "Destino" : "Origen",
-                  value: pocketName,
-                ),
-                Divider(height: 24, color: AppColors.cardBorderColor.withOpacity(0.6)),
-                _buildDetailRow(
-                  title: "Fecha",
-                  value: formatFullDate(currentTx.date),
-                ),
-                Divider(height: 24, color: AppColors.cardBorderColor.withOpacity(0.6)),
-                _buildDetailRow(
-                  title: "Tasa del Registro",
-                  value: currentTx.currency == CurrencyType.eur
-                      ? "1 EUR = Bs. ${rate.toStringAsFixed(2)}"
-                      : "1 USD = Bs. ${rate.toStringAsFixed(2)}",
+                Text(
+                  "\"${currentTx.note}\"",
+                  style: const TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.cardText,
+                    fontSize: OrtizFontSize.bodySm,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-          ),
-          SizedBox(height: 16),
-
-          // Concept Note Card (if any)
-          if (currentTx.note.isNotEmpty) ...[
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.cardBorderColor,
-                  width: AppColors.cardBorderWidth,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "NOTA / CONCEPTO",
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardSubtitleText,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "\"${currentTx.note}\"",
-                    style: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: AppColors.cardText,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-          ],
 
           // Done Button
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 14),
+              foregroundColor: OrtizPalette.onAccent,
+              padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
             ),
             onPressed: () => Navigator.pop(context),
             child: Text(
               "Listo",
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -328,12 +295,14 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     required String title,
     required String value,
   }) {
-    return Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+      child: Row(
       children: [
         Text(
           title,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.w600,
             color: AppColors.cardSubtitleText,
           ),
@@ -342,12 +311,13 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
         Text(
           value,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.bold,
             color: AppColors.cardText,
           ),
         ),
       ],
+      ),
     );
   }
 }

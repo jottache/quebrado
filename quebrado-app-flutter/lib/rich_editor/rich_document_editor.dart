@@ -7,6 +7,8 @@ import 'format_toolbar.dart';
 import 'mentions.dart';
 import 'rich_editor_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Preparación única del editor: bloques propios, barra de formato y textos internos
 /// de AppFlowy. Los textos se cargan en inglés (los menús visibles son propios y en
 /// español) y se restaura Intl.defaultLocale para no alterar fechas ni números de la app.
@@ -151,10 +153,10 @@ class _RichDocumentEditorState extends State<RichDocumentEditor> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Padding(
-          padding: const EdgeInsets.only(right: 6, top: 2),
+          padding: const EdgeInsets.only(right: OrtizSpace.xs, top: OrtizSpace.xxs),
           child: Icon(
             checked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-            size: 20,
+            size: OrtizIconSize.md,
             color: checked ? RichEditorColors.accent : RichEditorColors.textMuted,
           ),
         ),
@@ -184,12 +186,16 @@ class _RichDocumentEditorState extends State<RichDocumentEditor> {
   EditorStyle _style({required bool mobile}) {
     final accent = RichEditorColors.accent;
     final textConfig = TextStyleConfiguration(
-      text: const TextStyle(fontSize: 15, color: RichEditorColors.textPrimary, height: 1.5),
-      code: const TextStyle(fontFamily: 'monospace', backgroundColor: Color(0xFFF1F5F9), color: Color(0xFFBE185D)),
+      text: const TextStyle(fontSize: OrtizFontSize.body, color: RichEditorColors.textPrimary, height: 1.5),
+      code: const TextStyle(
+        fontFamily: OrtizType.fontMono,
+        backgroundColor: RichEditorColors.inlineCodeBg,
+        color: RichEditorColors.inlineCodeFg,
+      ),
       bold: const TextStyle(fontWeight: FontWeight.w800),
       href: TextStyle(color: accent, decoration: TextDecoration.underline),
     );
-    final padding = widget.padding ?? EdgeInsets.symmetric(horizontal: mobile ? 16 : 32);
+    final padding = widget.padding ?? EdgeInsets.symmetric(horizontal: mobile ? OrtizSpace.lg : OrtizSpace.xxxl);
     if (mobile) {
       return EditorStyle.mobile(
         cursorColor: accent,
@@ -223,7 +229,7 @@ class _RichDocumentEditorState extends State<RichDocumentEditor> {
       future: RichEditorSetup.ensureInitialized(),
       builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done
           ? content()
-          : const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+          : const Center(child: Padding(padding: EdgeInsets.all(OrtizSpace.xxl), child: CircularProgressIndicator())),
     );
   }
 
@@ -292,8 +298,8 @@ class _RichDocumentEditorState extends State<RichDocumentEditor> {
           children: [
             for (final option in editorBlockOptions)
               ActionChip(
-                avatar: Icon(option.icon, size: 16),
-                label: Text(option.label, style: const TextStyle(fontSize: 12)),
+                avatar: Icon(option.icon, size: OrtizIconSize.sm),
+                label: Text(option.label, style: const TextStyle(fontSize: OrtizFontSize.bodySm)),
                 onPressed: () {
                   insertBlockAtCursor(editorState, option.build());
                   service.closeItemMenu();

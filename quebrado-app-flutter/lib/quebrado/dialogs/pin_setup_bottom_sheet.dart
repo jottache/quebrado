@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 enum PinSetupMode { create, update }
 
 class PinSetupBottomSheet extends StatefulWidget {
@@ -202,14 +206,14 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+      decoration: const BoxDecoration(
+        color: OrtizPalette.surface,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.lg, OrtizSpace.xxl, OrtizSpace.xxl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -221,33 +225,33 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: OrtizSpace.xl),
             
             Text(
               _title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: OrtizFontSize.title,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Text(
               _subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 height: 1.3,
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
 
             // Dots indicators
             Row(
@@ -256,21 +260,21 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                 final isFilled = index < _activeInput.length;
                 return AnimatedContainer(
                   duration: Duration(milliseconds: 150),
-                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  margin: EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: isFilled ? AppColors.primary : Colors.grey[200],
+                    color: isFilled ? AppColors.primary : OrtizPalette.surfaceHigh,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isFilled ? AppColors.primary : Colors.grey[300]!,
+                      color: isFilled ? AppColors.primary : OrtizPalette.line,
                       width: 1.5,
                     ),
                   ),
                 );
               }),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             
             if (_errorMessage != null)
               Text(
@@ -278,14 +282,14 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.expense,
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: FontWeight.bold,
                 ),
               )
             else
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Number keypad grid
             Column(
@@ -294,17 +298,17 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [1, 2, 3].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [4, 5, 6].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [7, 8, 9].map((val) => _buildKeypadButton(val)).toList(),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -314,11 +318,11 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.cardSubtitleText,
                           shape: CircleBorder(),
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(OrtizSpace.md),
                         ),
                         child: Text(
                           "Cancelar",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -329,7 +333,7 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
                         icon: Icon(Icons.backspace_outlined),
                         color: AppColors.cardText,
                         iconSize: 20,
-                        padding: EdgeInsets.all(12),
+                        padding: EdgeInsets.all(OrtizSpace.md),
                       ),
                     ),
                   ],
@@ -345,22 +349,22 @@ class _PinSetupBottomSheetState extends State<PinSetupBottomSheet> {
   Widget _buildKeypadButton(int val) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
         child: InkWell(
           onTap: () => _onNumberTap(val),
-          borderRadius: BorderRadius.circular(40),
+          borderRadius: BorderRadius.circular(OrtizRadius.pill),
           child: Container(
             height: 52,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: OrtizPalette.surfaceHigh,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey[200]!, width: 1),
+              border: Border.all(color: OrtizPalette.line, width: OrtizStroke.hairline),
             ),
             child: Text(
               val.toString(),
               style: TextStyle(
-                fontSize: 18,
+                fontSize: OrtizFontSize.title,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),

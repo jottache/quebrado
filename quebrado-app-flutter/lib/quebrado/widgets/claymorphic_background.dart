@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../theme/colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+
+/// Fondo de las pantallas de Quebrado: solo el `bg` del tema (spec 05).
 class ClaymorphicBackground extends StatelessWidget {
   final Widget? child;
 
@@ -11,7 +13,7 @@ class ClaymorphicBackground extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: AppColors.background,
+      color: OrtizTokens.of(context).bg,
       child: child,
     );
   }

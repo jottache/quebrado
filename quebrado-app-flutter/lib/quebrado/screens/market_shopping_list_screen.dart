@@ -7,8 +7,11 @@ import '../models/market_shopping_list.dart';
 import '../models/market_shopping_list_item.dart';
 import '../models/market_product.dart';
 import '../../widgets/responsive_sheet_helper.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/add_shopping_list_item_bottom_sheet.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class MarketShoppingListScreen extends StatefulWidget {
   final String listId;
@@ -179,41 +182,32 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
         children: [
           // Search & Add Bar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(OrtizSpace.lg),
             child: Column(
               children: [
-                ClaymorphicCard(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    decoration: InputDecoration(
-                      hintText: "Escribe un producto para agregar...",
-                      prefixIcon: Icon(Icons.search, color: AppColors.primary),
-                      border: InputBorder.none,
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, color: Colors.grey),
-                              onPressed: () => _searchController.clear(),
-                            )
-                          : null,
-                    ),
+                TextField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  decoration: InputDecoration(
+                    hintText: "Escribe un producto para agregar...",
+                    prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, color: OrtizPalette.muted),
+                            tooltip: 'Limpiar',
+                            onPressed: () => _searchController.clear(),
+                          )
+                        : null,
                   ),
                 ),
                 if (_searchQuery.isNotEmpty) ...[
-                  SizedBox(height: 8),
+                  const SizedBox(height: OrtizSpace.sm),
                   Container(
-                    constraints: BoxConstraints(maxHeight: 200),
+                    constraints: const BoxConstraints(maxHeight: 200),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
-                        )
-                      ],
+                      color: OrtizPalette.surface,
+                      borderRadius: BorderRadius.circular(OrtizRadius.menu),
+                      border: Border.all(color: OrtizPalette.line, width: OrtizStroke.hairline),
                     ),
                     child: ListView(
                       shrinkWrap: true,
@@ -243,62 +237,32 @@ class _MarketShoppingListScreenState extends State<MarketShoppingListScreen> {
           // List Items
           Expanded(
             child: mappedItems.isEmpty
-                ? Center(
-                    child: Text(
-                      "La lista está vacía.\nAgrega productos en el buscador de arriba.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
+                ? const OrtizEmptyState(
+                    icon: Icons.shopping_basket_outlined,
+                    title: "La lista está vacía.",
+                    message: "Agrega productos en el buscador de arriba.",
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
                     itemCount: mappedItems.length,
+                    separatorBuilder: (context, index) => const Divider(height: OrtizStroke.hairline),
                     itemBuilder: (context, index) {
                       final row = mappedItems[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: ClaymorphicCard(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      row.product.name,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    Text(
-                                      row.product.category,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      "${row.item.quantity.toString().endsWith('.0') ? row.item.quantity.toInt() : row.item.quantity.toStringAsFixed(2)} ${row.product.unit}",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.close, color: Colors.grey, size: 20),
-                                onPressed: () async {
-                                  await appState.deleteMarketShoppingListItem(row.item.id);
-                                },
-                              ),
-                            ],
+                      final qty = row.item.quantity.toString().endsWith('.0')
+                          ? row.item.quantity.toInt().toString()
+                          : row.item.quantity.toStringAsFixed(2);
+                      return ortizStaggered(
+                        context,
+                        index,
+                        OrtizListRow(
+                          title: row.product.name,
+                          subtitle: "${row.product.category} · $qty ${row.product.unit}",
+                          trailing: IconButton(
+                            icon: const Icon(Icons.close, color: OrtizPalette.muted, size: OrtizIconSize.md),
+                            tooltip: 'Quitar de la lista',
+                            onPressed: () async {
+                              await appState.deleteMarketShoppingListItem(row.item.id);
+                            },
                           ),
                         ),
                       );

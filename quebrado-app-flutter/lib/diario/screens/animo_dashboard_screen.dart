@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/mood_catalog.dart';
-import '../theme/diario_colors.dart';
 import '../viewmodels/animo_state.dart';
 import '../viewmodels/diario_state.dart';
 import '../widgets/mood_checkin_sheet.dart';
@@ -10,6 +9,15 @@ import '../widgets/mood_month_calendar.dart';
 import '../widgets/mood_quick_bar.dart';
 import '../widgets/mood_trend_chart.dart';
 import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/ortiz/ortiz.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+
+/// Color de identidad del Diario (spec 05: vía `SuiteApp`).
+Color get _diario => SuiteApp.diario.color;
 
 /// Pantalla "Mi ánimo" (o "Ánimo de {contacto}" si se pasa [contactId]).
 class AnimoDashboardScreen extends StatefulWidget {
@@ -31,6 +39,7 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final animo = Provider.of<AnimoState>(context);
+    final t = OrtizTokens.of(context);
     String title = 'Mi ánimo';
     if (!_isSelf) {
       try {
@@ -46,9 +55,8 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
       if (!animo.isBackendReady || animo.pendingCount > 0) _buildSyncBanner(animo),
       _isSelf ? const MoodTodayCard() : _buildContactQuickCard(),
       if (_isSelf && animo.selfLoggedDaysCount < _patternsGoalDays) _buildProgressCard(animo),
-      _card(
+      _section(
         title: 'Calendario',
-        icon: Icons.calendar_month_rounded,
         child: MoodMonthCalendar(
           contactId: widget.contactId,
           selectedDate: _selectedDay,
@@ -59,39 +67,41 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
     ];
 
     final rightColumn = <Widget>[
-      _card(
+      _section(
         title: 'Tendencia',
-        icon: Icons.show_chart_rounded,
         child: MoodTrendChart(contactId: widget.contactId),
       ),
-      _card(
+      _section(
         title: 'Emociones frecuentes · 30 días',
-        icon: Icons.bubble_chart_rounded,
         child: _buildTopEmotions(animo),
       ),
       _buildRecent(animo),
     ];
 
+    List<Widget> staggered(List<Widget> items) => [
+          for (var i = 0; i < items.length; i++) ortizStaggered(context, i, items[i]),
+        ];
+
     return Scaffold(
-      backgroundColor: DiarioColors.background,
+      backgroundColor: t.bg,
       appBar: AppBar(
-        backgroundColor: DiarioColors.background,
+        backgroundColor: t.bg,
         surfaceTintColor: Colors.transparent,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DiarioColors.textPrimary)),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.title, color: t.fg)),
         actions: [
           IconButton(
             tooltip: 'Registro completo',
             icon: const Icon(Icons.add_reaction_outlined),
             onPressed: () => showMoodCheckinSheet(context, contactId: widget.contactId),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
         ],
       ),
       body: RefreshIndicator(
-        color: DiarioColors.primary,
+        color: _diario,
         onRefresh: () => animo.loadAll(),
         child: animo.isLoading && !animo.hasLoaded
-            ? const Center(child: CircularProgressIndicator(color: DiarioColors.primary))
+            ? Center(child: CircularProgressIndicator(color: _diario))
             : isDesktop
                 ? Center(
                     child: ConstrainedBox(
@@ -101,19 +111,19 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
                         children: [
                           Expanded(
                             flex: 5,
-                            child: ListView(padding: const EdgeInsets.fromLTRB(24, 16, 12, 32), children: leftColumn),
+                            child: ListView(padding: const EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.lg, OrtizSpace.md, OrtizSpace.xxxl), children: staggered(leftColumn)),
                           ),
                           Expanded(
                             flex: 6,
-                            child: ListView(padding: const EdgeInsets.fromLTRB(12, 16, 24, 32), children: rightColumn),
+                            child: ListView(padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.lg, OrtizSpace.xxl, OrtizSpace.xxxl), children: staggered(rightColumn)),
                           ),
                         ],
                       ),
                     ),
                   )
                 : ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                    children: [...leftColumn, ...rightColumn],
+                    padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.sm, OrtizSpace.lg, OrtizSpace.xxxl),
+                    children: staggered([...leftColumn, ...rightColumn]),
                   ),
       ),
     );
@@ -123,32 +133,13 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
   // SECCIONES
   // ===========================================================================
 
-  Widget _card({required String title, required IconData icon, required Widget child, Widget? trailing}) {
-    return Container(
-      margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: DiarioColors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary)),
-              ),
-              ?trailing,
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
+  /// Grupo sin tarjeta (spec 05, C4): encabezado `muted` y contenido sobre `bg`.
+  Widget _section({required String title, required Widget child, Widget? trailing}) {
+    return OrtizSection(
+      padding: const EdgeInsets.only(top: OrtizSpace.md),
+      title: title,
+      trailing: trailing,
+      children: [child],
     );
   }
 
@@ -157,18 +148,18 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
         ? 'Sin conexión con Supabase. Tus registros se guardan en este dispositivo y se sincronizarán después.'
         : '${animo.pendingCount} ${animo.pendingCount == 1 ? "cambio pendiente" : "cambios pendientes"} de sincronizar.';
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.sm, OrtizSpace.xs, OrtizSpace.sm),
       decoration: BoxDecoration(
-        color: DiarioColors.amberLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: DiarioColors.cardBorder),
+        color: OrtizPalette.warnTint,
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
+        border: Border.all(color: OrtizPalette.warnBorder),
       ),
       child: Row(
         children: [
-          const Icon(Icons.cloud_off_rounded, size: 18, color: DiarioColors.textSecondary),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+          const Icon(Icons.cloud_off_rounded, size: OrtizIconSize.sm, color: OrtizPalette.warn),
+          const SizedBox(width: OrtizSpace.sm),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: OrtizPalette.fg))),
           if (animo.isBackendReady)
             TextButton(onPressed: () => animo.syncPending(), child: const Text('Reintentar')),
         ],
@@ -177,67 +168,56 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
   }
 
   Widget _buildContactQuickCard() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '¿Cómo lo viste hoy?',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
-          ),
-          const Text(
-            'Ánimo percibido · tu observación, no su auto-reporte',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
-          ),
-          const SizedBox(height: 4),
-          MoodQuickBar(contactId: widget.contactId),
-        ],
-      ),
+    return OrtizSection(
+      children: [
+        const Text(
+          '¿Cómo lo viste hoy?',
+          style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: OrtizPalette.fg),
+        ),
+        const Text(
+          'Ánimo percibido · tu observación, no su auto-reporte',
+          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: OrtizPalette.muted),
+        ),
+        const SizedBox(height: OrtizSpace.xs),
+        MoodQuickBar(contactId: widget.contactId),
+      ],
     );
   }
 
   Widget _buildProgressCard(AnimoState animo) {
     final done = animo.selfLoggedDaysCount;
-    return Container(
-      margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: DiarioColors.primaryLight,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: done / _patternsGoalDays,
-                  strokeWidth: 4,
-                  color: DiarioColors.primary,
-                  backgroundColor: Colors.white,
-                ),
-                Text('$done/$_patternsGoalDays', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
-              ],
+    return OrtizSection(
+      padding: const EdgeInsets.only(top: OrtizSpace.md),
+      surface: true,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    value: done / _patternsGoalDays,
+                    strokeWidth: 4,
+                    color: _diario,
+                    backgroundColor: OrtizPalette.line,
+                  ),
+                  Text('$done/$_patternsGoalDays', style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: OrtizPalette.fg)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Registra cómo te sientes durante 7 días distintos para empezar a ver tus patrones.',
-              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: DiarioColors.primaryDark, height: 1.35),
+            const SizedBox(width: OrtizSpace.md),
+            Expanded(
+              child: Text(
+                'Registra cómo te sientes durante 7 días distintos para empezar a ver tus patrones.',
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: _diario, height: 1.35),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -247,21 +227,20 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
     const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     final title = '${weekDays[day.weekday - 1]} ${day.day}/${day.month}';
 
-    return _card(
+    return _section(
       title: value == null ? title : '$title · ${MoodCatalog.metaForAverage(value).emoji} ${value.toStringAsFixed(1)}',
-      icon: Icons.today_rounded,
       trailing: TextButton.icon(
         onPressed: () => showMoodCheckinSheet(
           context,
           contactId: widget.contactId,
           initialDate: DateTime(day.year, day.month, day.day, 20),
         ),
-        icon: const Icon(Icons.add_rounded, size: 16),
+        icon: const Icon(Icons.add_rounded, size: OrtizIconSize.sm),
         label: const Text('Agregar', style: TextStyle(fontWeight: FontWeight.w800)),
-        style: TextButton.styleFrom(foregroundColor: DiarioColors.primary),
+        style: TextButton.styleFrom(foregroundColor: _diario),
       ),
       child: logs.isEmpty
-          ? const Text('Sin registros este día.', style: TextStyle(fontSize: 12, color: DiarioColors.textMuted))
+          ? const Text('Sin registros este día.', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted))
           : Column(children: logs.map((l) => MoodLogTile(log: l)).toList()),
     );
   }
@@ -271,35 +250,35 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
     if (top.isEmpty) {
       return const Text(
         'Cuando agregues emociones a tus registros, aquí verás cuáles se repiten.',
-        style: TextStyle(fontSize: 12, color: DiarioColors.textMuted, fontWeight: FontWeight.w600),
+        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, fontWeight: FontWeight.w600),
       );
     }
     final maxCount = top.first.count;
     return Column(
       children: top.map((f) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
           child: Row(
             children: [
               SizedBox(
                 width: 110,
-                child: Text(f.emotion.label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
+                child: Text(f.emotion.label, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800)),
               ),
               Expanded(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   child: LinearProgressIndicator(
                     value: f.count / maxCount,
                     minHeight: 10,
                     color: f.emotion.color,
-                    backgroundColor: f.emotion.color.withOpacity(0.12),
+                    backgroundColor: f.emotion.color.withValues(alpha: 0.12),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: OrtizSpace.sm),
               SizedBox(
                 width: 24,
-                child: Text('${f.count}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                child: Text('${f.count}', textAlign: TextAlign.right, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -310,13 +289,12 @@ class _AnimoDashboardScreenState extends State<AnimoDashboardScreen> {
 
   Widget _buildRecent(AnimoState animo) {
     final logs = animo.logsFor(contactId: widget.contactId).take(20).toList();
-    return _card(
+    return _section(
       title: 'Registros recientes',
-      icon: Icons.history_rounded,
       child: logs.isEmpty
           ? Text(
               _isSelf ? 'Aún no tienes registros. Toca un emoji arriba para empezar.' : 'Aún no hay registros de este contacto.',
-              style: const TextStyle(fontSize: 12, color: DiarioColors.textMuted, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, fontWeight: FontWeight.w600),
             )
           : Column(children: logs.map((l) => MoodLogTile(log: l, showDate: true)).toList()),
     );
@@ -332,4 +310,3 @@ void openAnimoDashboard(BuildContext context, {String? contactId}) {
     MaterialPageRoute(builder: (_) => AnimoDashboardScreen(contactId: contactId)),
   );
 }
-

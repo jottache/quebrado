@@ -15,6 +15,10 @@ import '../services/speech_recognition_service.dart';
 import '../theme/diario_colors.dart';
 import '../viewmodels/diario_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Lógica común de los editores de Diario (entrada completa y nota rápida):
 /// documento enriquecido, borrador automático, dictado por voz y menciones.
 mixin DiarioRichEditing<T extends StatefulWidget> on State<T> {
@@ -260,24 +264,24 @@ mixin DiarioRichEditing<T extends StatefulWidget> on State<T> {
     return InkWell(
       key: const ValueKey('diario_dictation_button'),
       onTap: toggleVoiceDictation,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(OrtizRadius.block),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
         decoration: BoxDecoration(
           color: isListening ? DiarioColors.rose.withValues(alpha: 0.12) : DiarioColors.primaryLight,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           border: Border.all(color: color.withValues(alpha: isListening ? 1 : 0.35), width: 1.2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(isListening ? Icons.mic_rounded : Icons.mic_none_rounded, size: 16, color: color),
+            Icon(isListening ? Icons.mic_rounded : Icons.mic_none_rounded, size: OrtizIconSize.sm, color: color),
             if (!compact) ...[
-              const SizedBox(width: 5),
+              const SizedBox(width: OrtizSpace.xs),
               Text(
                 isListening ? 'Escuchando… toca para parar' : 'Dictar por voz',
-                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color),
+                style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: color),
               ),
             ],
           ],
@@ -303,14 +307,14 @@ class DiarioEditorFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final child = EscapeToClose(onEscape: onEscape, child: this.child);
     if (!isDesktop(context)) {
-      return Dialog.fullscreen(backgroundColor: Colors.white, child: child);
+      return Dialog.fullscreen(backgroundColor: OrtizPalette.bg, child: child);
     }
     final size = MediaQuery.of(context).size;
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: OrtizPalette.surface,
       surfaceTintColor: Colors.transparent,
       insetPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(width: size.width * 0.9, height: size.height * 0.9, child: child),
     );

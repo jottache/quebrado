@@ -16,6 +16,10 @@ import '../dialogs/category_manager_dialog.dart';
 import '../services/note_document_converter.dart';
 import '../services/note_pdf_service.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Pantalla / Modal de edición de Notas & Acuerdos al estilo Notion, con el editor
 /// enriquecido (formato en línea, "/" para bloques) y borrador automático.
 class NoteEditorScreen extends StatefulWidget {
@@ -45,11 +49,8 @@ class NoteEditorScreen extends StatefulWidget {
                 width: dialogWidth,
                 height: dialogHeight,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 32, offset: const Offset(0, 10)),
-                  ],
+                  color: OrtizPalette.surface,
+                  borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: NoteEditorScreen(note: note, initialCategoryId: initialCategoryId, isModalDialog: true),
@@ -243,7 +244,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor escribe un título para la nota'), backgroundColor: Colors.orange),
+        const SnackBar(content: Text('Por favor escribe un título para la nota'), backgroundColor: OrtizPalette.warn),
       );
       return;
     }
@@ -287,14 +288,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                const Icon(Icons.check_circle_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+                const SizedBox(width: OrtizSpace.sm),
                 Text(widget.note != null ? 'Nota actualizada' : 'Nota creada exitosamente'),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: OrtizPalette.ok,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -304,7 +305,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.redAccent));
+        ).showSnackBar(SnackBar(content: Text('Error al guardar: $e'), backgroundColor: OrtizPalette.bad));
       }
     } finally {
       if (mounted) {
@@ -326,14 +327,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       SnackBar(
         content: const Row(
           children: [
-            Icon(Icons.copy_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
+            Icon(Icons.copy_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+            SizedBox(width: OrtizSpace.sm),
             Text('Contenido copiado en formato Markdown'),
           ],
         ),
         backgroundColor: NotasColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -374,7 +375,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       child: EscapeToClose(
         onEscape: _close,
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: widget.isModalDialog ? OrtizPalette.surface : OrtizPalette.bg,
           appBar: _buildAppBar(context, categories),
           body: editorState == null
               ? const Center(child: CircularProgressIndicator())
@@ -394,7 +395,12 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   Widget _buildHeader(List<NoteCategory> categories) {
     final mobile = MediaQuery.of(context).size.width < 840;
     return Padding(
-      padding: EdgeInsets.fromLTRB(mobile ? 16 : 32, 20, mobile ? 16 : 32, 8),
+      padding: EdgeInsets.fromLTRB(
+        mobile ? OrtizSpace.lg : OrtizSpace.xxxl,
+        OrtizSpace.xl,
+        mobile ? OrtizSpace.lg : OrtizSpace.xxxl,
+        OrtizSpace.sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -406,12 +412,12 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               onDismiss: () => setState(() => _restoredDraft = null),
             ),
           _buildCategoryAndPinBar(categories),
-          const SizedBox(height: 16),
+          const SizedBox(height: OrtizSpace.lg),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildEmojiPickerButton(),
-              const SizedBox(width: 14),
+              const SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: TextField(
                   key: const ValueKey('note_title_field'),
@@ -419,14 +425,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   textInputAction: TextInputAction.next,
                   onSubmitted: (_) => _focusEditor(),
                   style: const TextStyle(
-                    fontSize: 26,
+                    fontSize: OrtizFontSize.display,
                     fontWeight: FontWeight.w900,
                     color: NotasColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Título de la nota...',
-                    hintStyle: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFFCBD5E1)),
+                    hintStyle: TextStyle(fontSize: OrtizFontSize.display, fontWeight: FontWeight.w900, color: OrtizPalette.muted),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -435,9 +441,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.lg),
+          const Divider(height: 1),
+          const SizedBox(height: OrtizSpace.sm),
         ],
       ),
     );
@@ -464,22 +470,22 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, List<NoteCategory> categories) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: widget.isModalDialog ? OrtizPalette.surface : OrtizPalette.bg,
       elevation: 0,
       scrolledUnderElevation: 1,
       leading: IconButton(
-        icon: Icon(widget.isModalDialog ? Icons.close_rounded : Icons.arrow_back_rounded, color: Colors.black87),
+        icon: Icon(widget.isModalDialog ? Icons.close_rounded : Icons.arrow_back_rounded, color: OrtizPalette.fg),
         tooltip: widget.isModalDialog ? 'Cerrar modal' : 'Volver',
         onPressed: _close,
       ),
       title: Text(
         widget.note != null ? 'Editar Nota' : 'Nueva Nota',
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+        style: const TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: OrtizPalette.fg),
       ),
       actions: [
         // Descargar PDF
         IconButton(
-          icon: const Icon(Icons.picture_as_pdf_outlined, size: 20, color: Colors.black54),
+          icon: const Icon(Icons.picture_as_pdf_outlined, size: OrtizIconSize.md, color: OrtizPalette.muted),
           tooltip: 'Descargar como PDF',
           onPressed: () async {
             final notePreview = _getCurrentNotePreview();
@@ -490,7 +496,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
         // Compartir nota
         IconButton(
-          icon: const Icon(Icons.share_outlined, size: 20, color: Colors.black54),
+          icon: const Icon(Icons.share_outlined, size: OrtizIconSize.md, color: OrtizPalette.muted),
           tooltip: 'Compartir nota',
           onPressed: () async {
             final notePreview = _getCurrentNotePreview();
@@ -500,34 +506,34 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         ),
 
         IconButton(
-          icon: const Icon(Icons.copy_rounded, size: 20, color: Colors.black54),
+          icon: const Icon(Icons.copy_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
           tooltip: 'Copiar como Markdown',
           onPressed: _copyMarkdown,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: OrtizSpace.sm),
         if (widget.isModalDialog)
           TextButton(
             key: const ValueKey('note_editor_cancel'),
             onPressed: _isSaving ? null : _cancel,
-            child: const Text('Cancelar', style: TextStyle(color: Colors.black54)),
+            child: const Text('Cancelar', style: TextStyle(color: OrtizPalette.muted)),
           ),
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: OrtizSpace.lg),
           child: FilledButton.icon(
             onPressed: _isSaving ? null : _saveNote,
             icon: _isSaving
                 ? const SizedBox(
                     width: 14,
                     height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: OrtizPalette.onAccent),
                   )
-                : const Icon(Icons.save_rounded, size: 16),
+                : const Icon(Icons.save_rounded, size: OrtizIconSize.sm),
             label: Text(_isSaving ? 'Guardando...' : 'Guardar', style: const TextStyle(fontWeight: FontWeight.bold)),
             style: FilledButton.styleFrom(
               backgroundColor: NotasColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              foregroundColor: OrtizPalette.onAccent,
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
           ),
         ),
@@ -562,9 +568,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 value: cat.id,
                 child: Row(
                   children: [
-                    Text(cat.icon, style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Text(cat.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text(cat.icon, style: const TextStyle(fontSize: OrtizFontSize.titleSm)),
+                    const SizedBox(width: OrtizSpace.sm),
+                    Text(cat.name, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -574,31 +580,31 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               value: '__manage__',
               child: Row(
                 children: [
-                  Icon(Icons.settings_outlined, size: 16, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('Administrar categorías...', style: TextStyle(fontSize: 12.5, color: Colors.black54)),
+                  Icon(Icons.settings_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+                  SizedBox(width: OrtizSpace.sm),
+                  Text('Administrar categorías...', style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted)),
                 ],
               ),
             ),
           ],
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
             decoration: BoxDecoration(
-              color: currentCat.color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: currentCat.color.withOpacity(0.3)),
+              color: currentCat.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(OrtizRadius.dialog),
+              border: Border.all(color: currentCat.color.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(currentCat.icon, style: const TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
+                Text(currentCat.icon, style: const TextStyle(fontSize: OrtizFontSize.body)),
+                const SizedBox(width: OrtizSpace.xs),
                 Text(
                   currentCat.name,
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: currentCat.color),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: currentCat.color),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: currentCat.color),
+                const SizedBox(width: OrtizSpace.xs),
+                Icon(Icons.keyboard_arrow_down_rounded, size: OrtizIconSize.sm, color: currentCat.color),
               ],
             ),
           ),
@@ -614,29 +620,29 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               _hasChanges = true;
             });
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
             decoration: BoxDecoration(
-              color: _isPinned ? Colors.amber.withOpacity(0.15) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _isPinned ? Colors.amber[700]!.withOpacity(0.4) : Colors.transparent),
+              color: _isPinned ? OrtizPalette.warnTint : OrtizPalette.surfaceHigh,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
+              border: Border.all(color: _isPinned ? OrtizPalette.warnBorder : Colors.transparent),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   _isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-                  size: 15,
-                  color: _isPinned ? Colors.amber[800] : Colors.grey[600],
+                  size: OrtizIconSize.sm,
+                  color: _isPinned ? OrtizPalette.warn : OrtizPalette.muted,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: OrtizSpace.xs),
                 Text(
                   _isPinned ? 'Fijada' : 'Fijar',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
-                    color: _isPinned ? Colors.amber[800] : Colors.grey[600],
+                    color: _isPinned ? OrtizPalette.warn : OrtizPalette.muted,
                   ),
                 ),
               ],
@@ -673,10 +679,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                       _hasChanges = true;
                     });
                   },
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    child: Text(e, style: const TextStyle(fontSize: 22)),
+                    padding: const EdgeInsets.all(OrtizSpace.xs),
+                    child: Text(e, style: const TextStyle(fontSize: OrtizFontSize.display)),
                   ),
                 );
               }).toList(),
@@ -688,12 +694,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          color: OrtizPalette.surfaceHigh,
+          borderRadius: BorderRadius.circular(OrtizRadius.field),
         ),
         alignment: Alignment.center,
-        child: Text(_selectedEmoji, style: const TextStyle(fontSize: 26)),
+        child: Text(_selectedEmoji, style: const TextStyle(fontSize: OrtizFontSize.display)),
       ),
     );
   }

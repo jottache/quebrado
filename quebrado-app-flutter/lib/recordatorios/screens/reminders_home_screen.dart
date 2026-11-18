@@ -13,6 +13,11 @@ import '../viewmodels/reminders_state.dart';
 import '../widgets/covey_matrix_view.dart';
 import '../widgets/weekly_schedule_view.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
 class RemindersHomeScreen extends StatefulWidget {
   const RemindersHomeScreen({super.key});
 
@@ -130,21 +135,20 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             return Scaffold(
               backgroundColor: RemindersColors.background,
               appBar: AppBar(
-                backgroundColor: Colors.white,
                 elevation: 0,
                 surfaceTintColor: Colors.transparent,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 title: Text(
                   isMobile ? 'Agenda Semanal' : 'Agenda & Hábitos (Covey)',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: RemindersColors.textPrimary),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm, color: RemindersColors.textPrimary),
                 ),
                 actions: isMobile
                     ? [
                         IconButton(
-                          icon: const Icon(Icons.help_outline_rounded, size: 20, color: Color(0xFF4F46E5)),
+                          icon: const Icon(Icons.help_outline_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
                           tooltip: '¿Cómo organizarme?',
                           onPressed: () => showDialog(
                             context: context,
@@ -152,7 +156,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           ),
                         ),
                         PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert_rounded, size: 20, color: RemindersColors.textPrimary),
+                          icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: RemindersColors.textPrimary),
                           tooltip: 'Opciones de Agenda',
                           onSelected: (val) {
                             if (val == 'ritual') {
@@ -168,9 +172,9 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                               value: 'ritual',
                               child: Row(
                                 children: [
-                                  Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFFD97706)),
-                                  SizedBox(width: 10),
-                                  Text('Ritual Dominical', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  Icon(Icons.wb_sunny_outlined, size: OrtizIconSize.md, color: OrtizPalette.warn),
+                                  SizedBox(width: OrtizSpace.sm),
+                                  Text('Ritual Dominical', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                                 ],
                               ),
                             ),
@@ -178,9 +182,9 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                               value: 'roles',
                               child: Row(
                                 children: [
-                                  Icon(Icons.pie_chart_outline_rounded, size: 18, color: RemindersColors.primary),
-                                  SizedBox(width: 10),
-                                  Text('Roles Vitales (Brújula)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  Icon(Icons.pie_chart_outline_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
+                                  SizedBox(width: OrtizSpace.sm),
+                                  Text('Roles Vitales (Brújula)', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                                 ],
                               ),
                             ),
@@ -188,46 +192,46 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                               value: 'palette',
                               child: Row(
                                 children: [
-                                  Icon(Icons.terminal_rounded, size: 18, color: RemindersColors.textMuted),
-                                  SizedBox(width: 10),
-                                  Text('Buscar / Comandos', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                  Icon(Icons.terminal_rounded, size: OrtizIconSize.md, color: RemindersColors.textMuted),
+                                  SizedBox(width: OrtizSpace.sm),
+                                  Text('Buscar / Comandos', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                                 ],
                               ),
                             ),
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add_rounded, size: 22, color: RemindersColors.primary),
+                          icon: const Icon(Icons.add_rounded, size: OrtizIconSize.lg, color: RemindersColors.primary),
                           tooltip: 'Nuevo Recordatorio',
                           onPressed: () => _openEditorDialog(),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: OrtizSpace.xs),
                       ]
                     : [
                         // Botón Ritual Dominical de Stephen Covey
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           child: TextButton.icon(
                             onPressed: () => showDialog(
                               context: context,
                               builder: (_) => const SundayPlanningWizardDialog(),
                             ),
-                            icon: const Icon(Icons.wb_sunny_outlined, size: 15, color: Color(0xFFD97706)),
+                            icon: const Icon(Icons.wb_sunny_outlined, size: OrtizIconSize.sm, color: OrtizPalette.warn),
                             label: const Text(
                               'Ritual Dominical',
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.warn),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFFFEF3C7),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              backgroundColor: OrtizPalette.warnTint,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: OrtizSpace.xs),
                         // Botón Gestor de Roles Vitales
                         IconButton(
-                          icon: const Icon(Icons.pie_chart_outline_rounded, size: 20, color: RemindersColors.primary),
+                          icon: const Icon(Icons.pie_chart_outline_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
                           tooltip: 'Roles Vitales (Brújula)',
                           onPressed: () => showDialog(
                             context: context,
@@ -236,22 +240,22 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                         ),
                         // Atajo visual Command Palette
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm, horizontal: OrtizSpace.xs),
                           child: OutlinedButton.icon(
                             onPressed: _openCommandPalette,
-                            icon: const Icon(Icons.terminal_rounded, size: 16),
-                            label: const Text('Cmd+K', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.terminal_rounded, size: OrtizIconSize.sm),
+                            label: const Text('Cmd+K', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: RemindersColors.primary,
-                              side: BorderSide(color: RemindersColors.primary.withOpacity(0.3)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              side: BorderSide(color: RemindersColors.primary.withValues(alpha: 0.3)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
                             ),
                           ),
                         ),
                         // Botón Guía Paso a Paso
                         IconButton(
-                          icon: const Icon(Icons.help_outline_rounded, size: 21, color: Color(0xFF4F46E5)),
+                          icon: const Icon(Icons.help_outline_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
                           tooltip: '¿Cómo organizarme? (Guía Paso a Paso)',
                           onPressed: () => showDialog(
                             context: context,
@@ -263,7 +267,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           tooltip: 'Nuevo Recordatorio Completo',
                           onPressed: () => _openEditorDialog(),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: OrtizSpace.sm),
                       ],
               ),
               body: state.isLoading
@@ -272,7 +276,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                       children: [
                         // Barra de Switcher de Vistas Covey
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 20, vertical: 4),
+                          padding: EdgeInsets.symmetric(horizontal: isMobile ? OrtizSpace.md : OrtizSpace.xl, vertical: OrtizSpace.xs),
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 860),
@@ -283,11 +287,11 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.all(3),
+                                      padding: const EdgeInsets.all(OrtizSpace.xxs),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        color: OrtizPalette.surface,
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                        border: Border.all(color: OrtizPalette.line),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -316,26 +320,26 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: OrtizSpace.sm),
                                     // Botón Guía de Organización Paso a Paso
                                     TextButton.icon(
                                       onPressed: () => showDialog(
                                         context: context,
                                         builder: (_) => const CoveyGuideDialog(),
                                       ),
-                                      icon: const Icon(Icons.school_outlined, size: 15, color: Color(0xFF4F46E5)),
+                                      icon: const Icon(Icons.school_outlined, size: OrtizIconSize.sm, color: RemindersColors.primary),
                                       label: Text(
                                         isMobile ? 'Guía' : '¿Cómo organizarme?',
                                         style: const TextStyle(
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF4338CA),
+                                          color: RemindersColors.primary,
                                         ),
                                       ),
                                       style: TextButton.styleFrom(
-                                        backgroundColor: const Color(0xFFEEF2FF),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 10, vertical: 8),
+                                        backgroundColor: RemindersColors.primaryLight,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
                                       ),
                                     ),
                                   ],
@@ -348,7 +352,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                     // Banner de Recordatorios Fijados (visible para cualquier vista si hay fijados activos)
                     if (state.pinnedReminders.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 6, 20, 2),
+                        padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, OrtizSpace.xxs),
                         child: Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 860),
@@ -359,7 +363,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
 
                     // Barra de Captura Ultrarrápida con NLP (presente en la parte superior)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, OrtizSpace.xs),
                       child: Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 860),
@@ -378,7 +382,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                 ),
           floatingActionButton: FloatingActionButton(
             backgroundColor: RemindersColors.primary,
-            foregroundColor: Colors.white,
+            foregroundColor: OrtizPalette.onAccent,
             onPressed: () => _openEditorDialog(),
             tooltip: 'Crear Recordatorio',
             child: const Icon(Icons.add_task_rounded),
@@ -400,37 +404,28 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     final isSelected = viewKey == current;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(7),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+          color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 14,
-              color: isSelected ? RemindersColors.primary : Colors.grey.shade600,
+              size: OrtizIconSize.sm,
+              color: isSelected ? RemindersColors.primary : OrtizPalette.muted,
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: OrtizSpace.xs),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: OrtizFontSize.caption,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? RemindersColors.primary : Colors.grey.shade700,
+                color: isSelected ? RemindersColors.primary : OrtizPalette.muted,
               ),
             ),
           ],
@@ -448,7 +443,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             // Barra de Filtros y Estadísticas Rápidas
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl),
                 child: _buildStatusFilterTabs(state),
               ),
             ),
@@ -463,8 +458,8 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                 actionWidget: state.overdueCount > 0
                     ? TextButton.icon(
                         onPressed: () => state.snoozeAllOverdueToTomorrow(),
-                        icon: const Icon(Icons.snooze_rounded, size: 14),
-                        label: const Text('Posponer a mañana', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.snooze_rounded, size: OrtizIconSize.xs),
+                        label: const Text('Posponer a mañana', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold)),
                         style: TextButton.styleFrom(foregroundColor: RemindersColors.overdue),
                       )
                     : null,
@@ -515,21 +510,14 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     final currentIndex = _pinnedPageIndex.clamp(0, pinned.length - 1);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+      // Bloque destacado sin sombra (como `OrtizSection(surface: true)`).
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: RemindersColors.primary.withOpacity(0.35), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: RemindersColors.primary.withOpacity(0.06),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
+        color: OrtizPalette.surfaceHigh,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -548,7 +536,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                     child: InkWell(
                       onTap: () => _scrollToReminder(reminder),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                         child: Row(
                           children: [
                             // Vertical accent line
@@ -557,24 +545,24 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                               height: 38,
                               decoration: BoxDecoration(
                                 color: reminder.priority.color,
-                                borderRadius: BorderRadius.circular(2),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: OrtizSpace.sm),
                             // Pin icon circle
                             Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
-                                color: RemindersColors.primary.withOpacity(0.10),
+                                color: RemindersColors.primary.withValues(alpha: 0.10),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.push_pin_rounded,
-                                size: 15,
+                                size: OrtizIconSize.sm,
                                 color: RemindersColors.primary,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: OrtizSpace.md),
 
                             // Content: Title & Days/Hours remaining
                             Expanded(
@@ -587,24 +575,24 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                                       const Text(
                                         'RECORDATORIO FIJADO',
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: OrtizFontSize.caption,
                                           fontWeight: FontWeight.w900,
                                           color: RemindersColors.primary,
                                           letterSpacing: 0.5,
                                         ),
                                       ),
                                       if (pinned.length > 1) ...[
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: OrtizSpace.xs),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                           decoration: BoxDecoration(
                                             color: RemindersColors.primaryLight,
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           ),
                                           child: Text(
                                             '${index + 1}/${pinned.length}',
                                             style: const TextStyle(
-                                              fontSize: 9,
+                                              fontSize: OrtizFontSize.micro,
                                               fontWeight: FontWeight.w800,
                                               color: RemindersColors.primary,
                                             ),
@@ -613,35 +601,35 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                                       ],
                                     ],
                                   ),
-                                  const SizedBox(height: 3),
+                                  const SizedBox(height: OrtizSpace.xxs),
                                   Text(
                                     reminder.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.w800,
                                       color: RemindersColors.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: OrtizSpace.xxs),
                                   Row(
                                     children: [
                                       Icon(
                                         Icons.alarm_rounded,
-                                        size: 11,
+                                        size: OrtizIconSize.xs,
                                         color: reminder.isOverdue
                                             ? RemindersColors.overdue
                                             : RemindersColors.textSecondary,
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: OrtizSpace.xs),
                                       Expanded(
                                         child: Text(
                                           reminder.timeRemainingFormatted,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 11,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.w700,
                                             color: reminder.isOverdue
                                                 ? RemindersColors.overdue
@@ -657,7 +645,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
 
                             // Unpin Action Button
                             IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 16, color: RemindersColors.textMuted),
+                              icon: const Icon(Icons.close_rounded, size: OrtizIconSize.sm, color: RemindersColors.textMuted),
                               tooltip: 'Desfijar recordatorio',
                               onPressed: () => state.togglePin(reminder.id),
                             ),
@@ -674,17 +662,17 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
             if (pinned.length > 1)
               Container(
                 height: 20,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md),
                 decoration: BoxDecoration(
                   color: RemindersColors.background,
-                  border: Border(top: BorderSide(color: RemindersColors.cardBorder.withOpacity(0.5))),
+                  border: Border(top: BorderSide(color: RemindersColors.cardBorder.withValues(alpha: 0.5))),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Desliza horizontalmente para ver más (${currentIndex + 1} de ${pinned.length})',
-                      style: const TextStyle(fontSize: 10, color: RemindersColors.textMuted, fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted, fontWeight: FontWeight.w600),
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -693,10 +681,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                         return Container(
                           width: isSel ? 12 : 5,
                           height: 5,
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: isSel ? RemindersColors.primary : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(3),
+                            color: isSel ? RemindersColors.primary : OrtizPalette.line,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                         );
                       }),
@@ -715,56 +703,50 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
   // ===========================================================================
   Widget _buildQuickCaptureBar(RemindersState state, NlpParseResult? quickNlp) {
     return Container(
+      // Campo de captura: flota sobre `surface`, sin sombra.
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         border: Border.all(color: RemindersColors.cardBorder, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            offset: const Offset(0, 4),
-            blurRadius: 14,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 6, 10, 6),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xs, OrtizSpace.sm, OrtizSpace.xs),
             child: Row(
               children: [
-                const Icon(Icons.flash_on_rounded, color: RemindersColors.primary, size: 22),
-                const SizedBox(width: 12),
+                const Icon(Icons.flash_on_rounded, color: RemindersColors.primary, size: OrtizIconSize.lg),
+                const SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: TextField(
                     controller: _quickInputController,
                     focusNode: _quickInputFocus,
                     decoration: const InputDecoration(
                       hintText: 'Captura rápida: ej. Pagar internet mañana 9am !urgente #casa ↵',
-                      hintStyle: TextStyle(fontSize: 13, color: RemindersColors.textMuted),
+                      hintStyle: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textMuted),
                       border: InputBorder.none,
                       isDense: true,
                     ),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: RemindersColors.textPrimary),
+                    style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w600, color: RemindersColors.textPrimary),
                     onSubmitted: (_) => _submitQuickReminder(state),
                   ),
                 ),
                 if (_quickInputController.text.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.clear_rounded, size: 18),
+                    icon: const Icon(Icons.clear_rounded, size: OrtizIconSize.md),
                     onPressed: () => _quickInputController.clear(),
                   ),
                 ElevatedButton(
                   onPressed: () => _submitQuickReminder(state),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: RemindersColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: OrtizPalette.onAccent,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                   ),
-                  child: const Text('Crear', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: const Text('Crear', style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
                 ),
               ],
             ),
@@ -772,16 +754,16 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
           // Previsualización en vivo de los tokens extraídos
           if (quickNlp != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
               decoration: BoxDecoration(
-                color: RemindersColors.primaryLight.withOpacity(0.4),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+                color: RemindersColors.primaryLight.withValues(alpha: 0.4),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(OrtizRadius.block)),
                 border: const Border(top: BorderSide(color: RemindersColors.cardBorder)),
               ),
               child: Row(
                 children: [
-                  const Text('Detectado:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: RemindersColors.primary)),
-                  const SizedBox(width: 8),
+                  const Text('Detectado:', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: RemindersColors.primary)),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Wrap(
                       spacing: 6,
@@ -824,18 +806,18 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
 
   Widget _buildMiniChip({required IconData icon, required String label, required Color color}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: color),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+          Icon(icon, size: OrtizIconSize.xs, color: color),
+          const SizedBox(width: OrtizSpace.xs),
+          Text(label, style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -862,26 +844,26 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
           final isSelected = _activeTab == label;
 
           return Padding(
-            padding: const EdgeInsets.only(right: 8, bottom: 8),
+            padding: const EdgeInsets.only(right: OrtizSpace.sm, bottom: OrtizSpace.sm),
             child: ChoiceChip(
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, fontSize: 12)),
+                  Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, fontSize: OrtizFontSize.bodySm)),
                   if (count > 0) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: OrtizSpace.xs),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.white.withOpacity(0.3) : color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        color: isSelected ? OrtizPalette.onAccent.withValues(alpha: 0.2) : color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       ),
                       child: Text(
                         '$count',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : color,
+                          color: isSelected ? OrtizPalette.onAccent : color,
                         ),
                       ),
                     ),
@@ -890,10 +872,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
               ),
               selected: isSelected,
               selectedColor: RemindersColors.primary,
-              labelStyle: TextStyle(color: isSelected ? Colors.white : RemindersColors.textSecondary),
-              backgroundColor: Colors.white,
+              labelStyle: TextStyle(color: isSelected ? OrtizPalette.onAccent : RemindersColors.textSecondary),
+              backgroundColor: Colors.transparent,
               side: BorderSide(color: isSelected ? RemindersColors.primary : RemindersColors.cardBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               onSelected: (_) => setState(() => _activeTab = label),
             ),
           );
@@ -919,7 +901,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.sm),
             child: Row(
               children: [
                 Container(
@@ -927,22 +909,22 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                   height: 14,
                   decoration: BoxDecoration(
                     color: color,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 Text(
                   title,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: color, letterSpacing: 0.5),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w900, color: color, letterSpacing: 0.5),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
-                  child: Text('$count', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+                  child: Text('$count', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: color)),
                 ),
                 const Spacer(),
                 ?actionWidget,
@@ -951,10 +933,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _buildReminderCard(items[index]),
+              (context, index) => ortizStaggered(context, index, _buildReminderCard(items[index])),
               childCount: items.length,
             ),
           ),
@@ -972,12 +954,12 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     if (items.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.all(40),
+          padding: const EdgeInsets.all(OrtizSpace.xxxl),
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.done_all_rounded, size: 48, color: RemindersColors.textMuted.withOpacity(0.5)),
-                const SizedBox(height: 12),
+                const Icon(Icons.done_all_rounded, size: OrtizIconSize.xxl, color: OrtizPalette.faint),
+                const SizedBox(height: OrtizSpace.md),
                 Text(
                   'No hay recordatorios en "$_activeTab"',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: RemindersColors.textSecondary),
@@ -990,10 +972,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.sm, OrtizSpace.xl, OrtizSpace.xl),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildReminderCard(items[index]),
+          (context, index) => ortizStaggered(context, index, _buildReminderCard(items[index])),
           childCount: items.length,
         ),
       ),
@@ -1011,36 +993,30 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     return AnimatedContainer(
       key: cardKey,
       duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
       decoration: BoxDecoration(
-        color: isHighlighted ? RemindersColors.primary.withOpacity(0.06) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isHighlighted
-              ? RemindersColors.primary
-              : (reminder.isOverdue
-                  ? RemindersColors.overdue.withOpacity(0.4)
-                  : RemindersColors.cardBorder),
-          width: isHighlighted ? 2.0 : (reminder.isOverdue ? 1.5 : 1.0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isHighlighted
-                ? RemindersColors.primary.withOpacity(0.20)
-                : Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 2),
-            blurRadius: isHighlighted ? 12 : 6,
-          ),
-        ],
+        // Fila sin tarjeta: el resaltado va sobre `surfaceHigh` y la línea
+        // inferior separa una fila de otra.
+        color: isHighlighted ? OrtizPalette.surfaceHigh : Colors.transparent,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
+        border: isHighlighted
+            ? Border.all(color: RemindersColors.primary, width: 2.0)
+            : Border(
+                bottom: BorderSide(
+                  color: reminder.isOverdue
+                      ? RemindersColors.overdue.withValues(alpha: 0.4)
+                      : RemindersColors.cardBorder,
+                ),
+              ),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           onTap: () => _openEditorDialog(reminder),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(OrtizSpace.md),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1050,10 +1026,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                   child: Container(
                     width: 22,
                     height: 22,
-                    margin: const EdgeInsets.only(top: 2, right: 12),
+                    margin: const EdgeInsets.only(top: OrtizSpace.xxs, right: OrtizSpace.md),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: reminder.isCompleted ? RemindersColors.completed : Colors.white,
+                      color: reminder.isCompleted ? RemindersColors.completed : Colors.transparent,
                       border: Border.all(
                         color: reminder.isCompleted
                             ? RemindersColors.completed
@@ -1062,7 +1038,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                       ),
                     ),
                     child: reminder.isCompleted
-                        ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                        ? const Icon(Icons.check_rounded, size: OrtizIconSize.xs, color: OrtizPalette.onAccent)
                         : null,
                   ),
                 ),
@@ -1077,21 +1053,21 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                         children: [
                           if (reminder.isPinned) ...[
                             Container(
-                              margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              margin: const EdgeInsets.only(right: OrtizSpace.xs),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
-                                color: RemindersColors.primary.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
+                                color: RemindersColors.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.push_pin_rounded, size: 10, color: RemindersColors.primary),
-                                  SizedBox(width: 3),
+                                  Icon(Icons.push_pin_rounded, size: OrtizFontSize.micro, color: RemindersColors.primary),
+                                  SizedBox(width: OrtizSpace.xxs),
                                   Text(
                                     'Fijado',
                                     style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: OrtizFontSize.micro,
                                       fontWeight: FontWeight.w800,
                                       color: RemindersColors.primary,
                                     ),
@@ -1104,7 +1080,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                             child: Text(
                               reminder.title,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: OrtizFontSize.body,
                                 fontWeight: FontWeight.w700,
                                 color: reminder.isCompleted ? RemindersColors.textMuted : RemindersColors.textPrimary,
                                 decoration: reminder.isCompleted ? TextDecoration.lineThrough : null,
@@ -1113,14 +1089,14 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           ),
                           // Badge Prioridad
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: reminder.priority.color.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
+                              color: reminder.priority.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Text(
                               reminder.priority.label.split(' ')[0], // P1, P2...
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: reminder.priority.color),
+                              style: TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.bold, color: reminder.priority.color),
                             ),
                           ),
                         ],
@@ -1128,16 +1104,16 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
 
                       // Notas
                       if (reminder.notes != null && reminder.notes!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: OrtizSpace.xs),
                         Text(
                           reminder.notes!,
-                          style: const TextStyle(fontSize: 12, color: RemindersColors.textSecondary),
+                          style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textSecondary),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: OrtizSpace.sm),
 
                       // Fecha / Hora + Tags + Nagging Indicator
                       Wrap(
@@ -1151,16 +1127,16 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                               children: [
                                 Icon(
                                   Icons.alarm_rounded,
-                                  size: 13,
+                                  size: OrtizIconSize.xs,
                                   color: reminder.isOverdue
                                       ? RemindersColors.overdue
                                       : RemindersColors.textSecondary,
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: OrtizSpace.xs),
                                 Text(
                                   reminder.formattedDueTime,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: OrtizFontSize.caption,
                                     fontWeight: FontWeight.w700,
                                     color: reminder.isOverdue
                                         ? RemindersColors.overdue
@@ -1173,17 +1149,17 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           // Nagging indicator
                           if (reminder.isNagging)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(4),
+                                color: OrtizPalette.warnTint,
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: const [
-                                  Icon(Icons.notifications_active_rounded, size: 10, color: Colors.orange),
-                                  SizedBox(width: 3),
-                                  Text('Nagging', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.orange)),
+                                  Icon(Icons.notifications_active_rounded, size: OrtizFontSize.micro, color: OrtizPalette.warn),
+                                  SizedBox(width: OrtizSpace.xxs),
+                                  Text('Nagging', style: TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.bold, color: OrtizPalette.warn)),
                                 ],
                               ),
                             ),
@@ -1191,20 +1167,20 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           // Recurrence badge
                           if (reminder.isRecurring)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
-                                color: RemindersColors.primary.withOpacity(0.10),
-                                borderRadius: BorderRadius.circular(4),
+                                color: RemindersColors.primary.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.repeat_rounded, size: 10, color: RemindersColors.primary),
-                                  const SizedBox(width: 3),
+                                  const Icon(Icons.repeat_rounded, size: OrtizFontSize.micro, color: RemindersColors.primary),
+                                  const SizedBox(width: OrtizSpace.xxs),
                                   Text(
                                     reminder.recurrence.shortLabel,
                                     style: const TextStyle(
-                                      fontSize: 9,
+                                      fontSize: OrtizFontSize.micro,
                                       fontWeight: FontWeight.bold,
                                       color: RemindersColors.primary,
                                     ),
@@ -1216,14 +1192,14 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           // Tags
                           ...reminder.tags.map(
                             (tag) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(4),
+                                color: OrtizPalette.surfaceHigh,
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Text(
                                 '#$tag',
-                                style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
@@ -1239,10 +1215,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                   children: [
                     // Menú Smart Snooze
                     PopupMenuButton<Duration>(
-                      icon: const Icon(Icons.snooze_rounded, size: 18, color: RemindersColors.snoozed),
+                      icon: const Icon(Icons.snooze_rounded, size: OrtizIconSize.md, color: RemindersColors.snoozed),
                       tooltip: 'Posponer (Smart Snooze)',
                       padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                       onSelected: (duration) {
                         state.snoozeRelative(reminder.id, duration);
                       },
@@ -1280,9 +1256,9 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
 
                     // Menú de opciones adicionales
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, size: 18, color: RemindersColors.textMuted),
+                      icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: RemindersColors.textMuted),
                       padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                       onSelected: (action) {
                         if (action == 'edit') _openEditorDialog(reminder);
                         if (action == 'pin') state.togglePin(reminder.id);
@@ -1296,10 +1272,10 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                             children: [
                               Icon(
                                 reminder.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
-                                size: 16,
+                                size: OrtizIconSize.sm,
                                 color: reminder.isPinned ? RemindersColors.textSecondary : RemindersColors.primary,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: OrtizSpace.sm),
                               Text(reminder.isPinned ? 'Desfijar' : 'Fijar recordatorio'),
                             ],
                           ),
@@ -1308,8 +1284,8 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           value: 'edit',
                           child: Row(
                             children: [
-                              Icon(Icons.edit_outlined, size: 16),
-                              SizedBox(width: 8),
+                              Icon(Icons.edit_outlined, size: OrtizIconSize.sm),
+                              SizedBox(width: OrtizSpace.sm),
                               Text('Editar'),
                             ],
                           ),
@@ -1318,8 +1294,8 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           value: 'nagging',
                           child: Row(
                             children: [
-                              Icon(reminder.isNagging ? Icons.notifications_off_outlined : Icons.notifications_active_outlined, size: 16),
-                              const SizedBox(width: 8),
+                              Icon(reminder.isNagging ? Icons.notifications_off_outlined : Icons.notifications_active_outlined, size: OrtizIconSize.sm),
+                              const SizedBox(width: OrtizSpace.sm),
                               Text(reminder.isNagging ? 'Desactivar Nagging' : 'Activar Nagging'),
                             ],
                           ),
@@ -1328,8 +1304,8 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
                           value: 'delete',
                           child: Row(
                             children: [
-                              Icon(Icons.delete_outline_rounded, size: 16, color: RemindersColors.overdue),
-                              SizedBox(width: 8),
+                              Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: RemindersColors.overdue),
+                              SizedBox(width: OrtizSpace.sm),
                               Text('Eliminar', style: TextStyle(color: RemindersColors.overdue)),
                             ],
                           ),

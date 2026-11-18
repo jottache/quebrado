@@ -10,6 +10,10 @@ import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
 import '../widgets/helpers.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class DayActionsBottomSheet extends StatefulWidget {
   final String headerText;
   final List<TimelineEvent> dayEvents;
@@ -132,11 +136,11 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(OrtizSpace.xl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -148,34 +152,34 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(OrtizSpace.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.calendar_today_rounded,
                     color: AppColors.primary,
-                    size: 20,
+                    size: OrtizIconSize.md,
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Acciones del Día: ${widget.headerText}",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
                     ),
@@ -183,24 +187,24 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Exchange Rate Selector
             Text(
               "TASA DE CAMBIO PARA EL DÍA",
               style: TextStyle(
-                fontSize: 9,
+                fontSize: OrtizFontSize.micro,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardSubtitleText,
                 letterSpacing: 0.8,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Container(
-              padding: EdgeInsets.all(2),
+              padding: EdgeInsets.all(OrtizSpace.xxs),
               decoration: BoxDecoration(
                 color: AppColors.nestedTabTrackBg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
               child: Row(
                 children: [
@@ -229,7 +233,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
               ),
             ),
             if (_rateType == 'custom') ...[
-              SizedBox(height: 10),
+              SizedBox(height: OrtizSpace.sm),
               SizedBox(
                 height: 40,
                 child: TextField(
@@ -238,21 +242,21 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                     decimal: true,
                   ),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                   ),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                      horizontal: OrtizSpace.md,
+                      vertical: OrtizSpace.sm,
                     ),
                     hintText: "Ingrese tasa personalizada Bs.",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                      borderSide: const BorderSide(color: OrtizPalette.line),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       borderSide: BorderSide(color: AppColors.primary),
                     ),
                   ),
@@ -260,19 +264,19 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ),
             ],
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Events List
             Text(
               "EVENTOS Y PAGOS DEL DÍA",
               style: TextStyle(
-                fontSize: 9,
+                fontSize: OrtizFontSize.micro,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardSubtitleText,
                 letterSpacing: 0.8,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Flexible(
               child: SingleChildScrollView(
                 physics: BouncingScrollPhysics(),
@@ -280,11 +284,11 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                   children: [
                     if (widget.dayEvents.isEmpty)
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.xl),
                         child: Text(
                           "No hay eventos programados para este día.",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             color: AppColors.cardSubtitleText,
                             fontStyle: FontStyle.italic,
                           ),
@@ -343,15 +347,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                             ? formatBs(convertedAmt)
                             : formatUSD(convertedAmt);
 
+                        // Fila sin tarjeta: separada por una línea `line`.
                         return Container(
-                          margin: EdgeInsets.only(bottom: 10),
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.black.withOpacity(0.04),
-                              width: 1,
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: OrtizPalette.line),
                             ),
                           ),
                           child: Row(
@@ -369,18 +370,18 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   },
                                 ),
                               Container(
-                                padding: EdgeInsets.all(8),
+                                padding: EdgeInsets.all(OrtizSpace.sm),
                                 decoration: BoxDecoration(
-                                  color: iconColor.withOpacity(0.12),
+                                  color: iconColor.withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   iconData,
                                   color: iconColor,
-                                  size: 16,
+                                  size: OrtizIconSize.sm,
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              SizedBox(width: OrtizSpace.sm),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,12 +389,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                     Text(
                                       e.title,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.cardText,
                                       ),
                                     ),
-                                    SizedBox(height: 2),
+                                    SizedBox(height: OrtizSpace.xxs),
                                     Text(
                                       e.pocketName != null
                                           ? "Bolsillo: ${e.pocketName}"
@@ -403,16 +404,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                                   ? "Sugerencia del simulador"
                                                   : "")),
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: OrtizFontSize.caption,
                                         color: AppColors.cardSubtitleText,
                                       ),
                                     ),
                                     if (e.isCompletedAbono) ...[
-                                      SizedBox(height: 2),
+                                      SizedBox(height: OrtizSpace.xxs),
                                       Text(
                                         "Abono Parcial (Confirmado)",
                                         style: TextStyle(
-                                          fontSize: 9,
+                                          fontSize: OrtizFontSize.micro,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.income,
                                         ),
@@ -429,51 +430,51 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                       originalAmt.toStringAsFixed(2),
                                       "Monto Original",
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
                                           originalFormatted,
                                           style: TextStyle(
-                                            fontSize: 15,
+                                            fontSize: OrtizFontSize.body,
                                             fontWeight: FontWeight.bold,
                                             color: isIncome
                                                 ? AppColors.income
                                                 : AppColors.expense,
                                           ),
                                         ),
-                                        SizedBox(width: 4),
-                                        Icon(
+                                        SizedBox(width: OrtizSpace.xs),
+                                        const Icon(
                                           Icons.content_copy_rounded,
                                           color: AppColors.primary,
-                                          size: 14,
+                                          size: OrtizIconSize.sm,
                                         ),
                                       ],
                                     ),
                                   ),
-                                  SizedBox(height: 2),
+                                  SizedBox(height: OrtizSpace.xxs),
                                   InkWell(
                                     onTap: () => _copyToClipboard(
                                       convertedAmt.toStringAsFixed(2),
                                       "Monto Convertido",
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
                                           convertedFormatted,
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: AppColors.cardSubtitleText,
                                           ),
                                         ),
-                                        SizedBox(width: 4),
-                                        Icon(
+                                        SizedBox(width: OrtizSpace.xs),
+                                        const Icon(
                                           Icons.content_copy_rounded,
                                           color: AppColors.primary,
-                                          size: 12,
+                                          size: OrtizIconSize.xs,
                                         ),
                                       ],
                                     ),
@@ -488,32 +489,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
-            // Summary card
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.black.withOpacity(0.05),
-                  width: 1.2,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "RESUMEN ACUMULADO DEL DÍA",
-                    style: TextStyle(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardSubtitleText,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  SizedBox(height: 8),
+            // Resumen (sin tarjeta)
+            OrtizSection(
+              title: "RESUMEN ACUMULADO DEL DÍA",
+              children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -525,12 +506,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                             Text(
                               "Total Ingresos",
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: OrtizFontSize.micro,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: OrtizSpace.xs),
                             InkWell(
                               onTap: () => _copyToClipboard(
                                 totalIncomeUSD.toStringAsFixed(2),
@@ -542,16 +523,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   Text(
                                     formatUSD(totalIncomeUSD),
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: OrtizFontSize.titleSm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.income,
                                     ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
+                                  SizedBox(width: OrtizSpace.xs),
+                                  const Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
-                                    size: 14,
+                                    size: OrtizIconSize.sm,
                                   ),
                                 ],
                               ),
@@ -567,15 +548,15 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   Text(
                                     formatBs(totalIncomeBs),
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: OrtizFontSize.body,
                                       color: AppColors.income,
                                     ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
+                                  SizedBox(width: OrtizSpace.xs),
+                                  const Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
-                                    size: 12,
+                                    size: OrtizIconSize.xs,
                                   ),
                                 ],
                               ),
@@ -587,9 +568,9 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       Container(
                         height: 30,
                         width: 1,
-                        color: Colors.black.withOpacity(0.06),
+                        color: OrtizPalette.line,
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: OrtizSpace.md),
                       // Expenses
                       Expanded(
                         child: Column(
@@ -598,12 +579,12 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                             Text(
                               "Total Egresos",
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: OrtizFontSize.micro,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: OrtizSpace.xs),
                             InkWell(
                               onTap: () => _copyToClipboard(
                                 totalExpenseUSD.toStringAsFixed(2),
@@ -615,16 +596,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   Text(
                                     formatUSD(totalExpenseUSD),
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: OrtizFontSize.titleSm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.expense,
                                     ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
+                                  SizedBox(width: OrtizSpace.xs),
+                                  const Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
-                                    size: 14,
+                                    size: OrtizIconSize.sm,
                                   ),
                                 ],
                               ),
@@ -640,15 +621,15 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                   Text(
                                     formatBs(totalExpenseBs),
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: OrtizFontSize.body,
                                       color: AppColors.expense,
                                     ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
+                                  SizedBox(width: OrtizSpace.xs),
+                                  const Icon(
                                     Icons.content_copy_rounded,
                                     color: AppColors.primary,
-                                    size: 12,
+                                    size: OrtizIconSize.xs,
                                   ),
                                 ],
                               ),
@@ -665,7 +646,7 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       Text(
                         "Saldo Neto Proyectado",
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
@@ -684,16 +665,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 Text(
                                   (netUSD >= 0 ? "+" : "") + formatUSD(netUSD),
                                   style: TextStyle(
-                                    fontSize: 17,
+                                    fontSize: OrtizFontSize.titleSm,
                                     fontWeight: FontWeight.bold,
                                     color: netColor,
                                   ),
                                 ),
-                                SizedBox(width: 4),
-                                Icon(
+                                SizedBox(width: OrtizSpace.xs),
+                                const Icon(
                                   Icons.content_copy_rounded,
                                   color: AppColors.primary,
-                                  size: 14,
+                                  size: OrtizIconSize.sm,
                                 ),
                               ],
                             ),
@@ -709,16 +690,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                                 Text(
                                   (netBs >= 0 ? "+" : "") + formatBs(netBs),
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: OrtizFontSize.body,
                                     fontWeight: FontWeight.w600,
                                     color: netColor,
                                   ),
                                 ),
-                                SizedBox(width: 4),
-                                Icon(
+                                SizedBox(width: OrtizSpace.xs),
+                                const Icon(
                                   Icons.content_copy_rounded,
                                   color: AppColors.primary,
-                                  size: 12,
+                                  size: OrtizIconSize.xs,
                                 ),
                               ],
                             ),
@@ -727,10 +708,8 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       ),
                     ],
                   ),
-                ],
-              ),
+              ],
             ),
-            SizedBox(height: 16),
 
             // Confirmation / Close buttons
             Row(
@@ -741,22 +720,22 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.cardSubtitleText,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                       ),
-                      side: BorderSide(color: Colors.black.withOpacity(0.08)),
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: OrtizPalette.line),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     ),
                     child: Text(
                       "Cerrar",
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
                 if (checkableEvents.isNotEmpty) ...[
-                  SizedBox(width: 12),
+                  SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -839,11 +818,11 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                               builder: (ctx) => AlertDialog(
                                 title: Text("Última Cuota", style: TextStyle(fontWeight: FontWeight.bold)),
                                 content: Text("Has registrado la última cuota de '${payment.name}'. ¿Deseas eliminar este registro de la lista de pagos por cuotas?"),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
-                                    child: Text("Mantener", style: TextStyle(color: Colors.grey[700])),
+                                    child: Text("Mantener", style: TextStyle(color: OrtizPalette.muted)),
                                   ),
                                   TextButton(
                                     onPressed: () {
@@ -868,16 +847,16 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: OrtizPalette.onAccent,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(OrtizRadius.block),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       ),
                       child: Text(
                         "Registrar",
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -901,17 +880,17 @@ class _DayActionsBottomSheetState extends State<DayActionsBottomSheet> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.nestedTabActiveBg : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 11,
+            fontSize: OrtizFontSize.caption,
             color: selected
                 ? AppColors.nestedTabActiveText
                 : AppColors.nestedTabInactiveText,

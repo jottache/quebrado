@@ -5,6 +5,10 @@ import '../models/chat_message_model.dart';
 import '../theme/agente_colors.dart';
 import 'artifact_card_view.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessageModel message;
 
@@ -17,7 +21,7 @@ class ChatMessageBubble extends StatelessWidget {
         message.artifacts.any((a) => a.type == ArtifactType.actionProposal);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs, horizontal: OrtizSpace.md),
       child: Column(
         crossAxisAlignment:
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -25,7 +29,7 @@ class ChatMessageBubble extends StatelessWidget {
           // Tool Calls Badges (si hubo)
           if (!isUser && message.toolCalls.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 6.0),
+              padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
               child: Builder(
                 builder: (context) {
                   final toolCounts = <String, int>{};
@@ -35,31 +39,30 @@ class ChatMessageBubble extends StatelessWidget {
                   }
 
                   return Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
+                    spacing: OrtizSpace.sm,
+                    runSpacing: OrtizSpace.xs,
                     children: toolCounts.entries.map((entry) {
                       final name = entry.key;
                       final count = entry.value;
                       final badgeText = count > 1 ? 'Tool: $name ($count)' : 'Tool: $name';
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                         decoration: BoxDecoration(
-                          color: AgenteColors.toolExec.withOpacity(0.10),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AgenteColors.toolExec.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           border: Border.all(
-                            color: AgenteColors.toolExec.withOpacity(0.3),
-                            width: 1,
+                            color: AgenteColors.toolExec.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.flash_on_rounded, size: 12, color: AgenteColors.toolExec),
-                            const SizedBox(width: 4),
+                            const Icon(Icons.flash_on_rounded, size: OrtizIconSize.xs, color: AgenteColors.toolExec),
+                            const SizedBox(width: OrtizSpace.xs),
                             Text(
                               badgeText,
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
                                 color: AgenteColors.toolExec,
                               ),
@@ -79,25 +82,20 @@ class ChatMessageBubble extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.85,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
+              // P-27: el bot va sobre `surface` (antes blanco con texto
+              // claro); el usuario, sobre `surfaceHigh`. Sin sombra.
               decoration: BoxDecoration(
-                color: isUser ? AgenteColors.userBubble : Colors.white,
+                color: isUser ? AgenteColors.userBubble : AgenteColors.botBubble,
                 borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(20),
-                topRight: const Radius.circular(20),
-                bottomLeft: Radius.circular(isUser ? 20 : 4),
-                bottomRight: Radius.circular(isUser ? 4 : 20),
+                topLeft: const Radius.circular(OrtizRadius.dialog),
+                topRight: const Radius.circular(OrtizRadius.dialog),
+                bottomLeft: Radius.circular(isUser ? OrtizRadius.dialog : OrtizRadius.chip),
+                bottomRight: Radius.circular(isUser ? OrtizRadius.chip : OrtizRadius.dialog),
               ),
               border: isUser
                   ? null
-                  : Border.all(color: AgenteColors.cardBorder, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                ),
-              ],
+                  : Border.all(color: AgenteColors.cardBorder),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +104,7 @@ class ChatMessageBubble extends StatelessWidget {
                   Text(
                     message.content,
                     style: const TextStyle(
-                      fontSize: 14.5,
+                      fontSize: OrtizFontSize.body,
                       color: AgenteColors.userText,
                       height: 1.4,
                     ),
@@ -118,40 +116,40 @@ class ChatMessageBubble extends StatelessWidget {
                         : message.content,
                     styleSheet: MarkdownStyleSheet(
                       p: const TextStyle(
-                        fontSize: 14.5,
+                        fontSize: OrtizFontSize.body,
                         color: AgenteColors.botText,
                         height: 1.45,
                       ),
                       strong: const TextStyle(fontWeight: FontWeight.w800),
-                      tableBody: const TextStyle(fontSize: 12.5),
-                      tableHead: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      tableBody: const TextStyle(fontSize: OrtizFontSize.bodySm),
+                      tableHead: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                     ),
                   ),
 
                 // Indicador de streaming
                 if (message.isStreaming)
                   Padding(
-                    padding: const EdgeInsets.only(top: 6.0),
+                    padding: const EdgeInsets.only(top: OrtizSpace.xs),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         SizedBox(
-                          width: 10,
-                          height: 10,
+                          width: OrtizIconSize.xs,
+                          height: OrtizIconSize.xs,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: OrtizStroke.focus,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              isUser ? Colors.white70 : AgenteColors.primary,
+                              isUser ? OrtizPalette.muted : AgenteColors.primary,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
+                        const SizedBox(width: OrtizSpace.xs),
+                        const Text(
                           'Escribiendo...',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             fontStyle: FontStyle.italic,
-                            color: isUser ? Colors.white70 : Colors.grey[500],
+                            color: OrtizPalette.muted,
                           ),
                         ),
                       ],

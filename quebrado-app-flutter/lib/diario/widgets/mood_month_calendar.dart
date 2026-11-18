@@ -3,6 +3,8 @@ import '../models/mood_catalog.dart';
 import '../theme/diario_colors.dart';
 import '../viewmodels/animo_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Calendario mensual coloreado por el valor de ánimo de cada día.
 class MoodMonthCalendar extends StatefulWidget {
   final String? contactId;
@@ -66,13 +68,13 @@ class _MoodMonthCalendarState extends State<MoodMonthCalendar> {
                 children: [
                   Text(
                     '${_monthNames[_month.month - 1]} ${_month.year}',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                    style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                   ),
                   Text(
                     monthAvg == null
                         ? 'Sin registros'
                         : '${loggedDays.length} días · promedio ${MoodCatalog.metaForAverage(monthAvg).emoji} ${monthAvg.toStringAsFixed(1)}',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
+                    style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: DiarioColors.textSecondary),
                   ),
                 ],
               ),
@@ -84,17 +86,17 @@ class _MoodMonthCalendarState extends State<MoodMonthCalendar> {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Row(
           children: _weekDays
               .map((d) => Expanded(
                     child: Center(
-                      child: Text(d, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: DiarioColors.textMuted)),
+                      child: Text(d, style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textMuted)),
                     ),
                   ))
               .toList(),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         GridView.count(
           crossAxisCount: 7,
           shrinkWrap: true,
@@ -119,12 +121,12 @@ class _MoodMonthCalendarState extends State<MoodMonthCalendar> {
     final color = value != null ? MoodCatalog.colorForAverage(value) : null;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       onTap: isFuture || widget.onDaySelected == null ? null : () => widget.onDaySelected!(date),
       child: Container(
         decoration: BoxDecoration(
-          color: color?.withOpacity(0.85) ?? (isFuture ? Colors.transparent : DiarioColors.surfaceHover),
-          borderRadius: BorderRadius.circular(10),
+          color: color?.withValues(alpha: 0.85) ?? (isFuture ? Colors.transparent : DiarioColors.surfaceHover),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           border: Border.all(
             color: isSelected ? DiarioColors.textPrimary : (isToday ? DiarioColors.primary : Colors.transparent),
             width: isSelected ? 2 : 1.4,
@@ -132,11 +134,11 @@ class _MoodMonthCalendarState extends State<MoodMonthCalendar> {
         ),
         alignment: Alignment.center,
         child: value != null
-            ? Text(MoodCatalog.metaForAverage(value).emoji, style: const TextStyle(fontSize: 15))
+            ? Text(MoodCatalog.metaForAverage(value).emoji, style: const TextStyle(fontSize: OrtizFontSize.body))
             : Text(
                 '$day',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w700,
                   color: isFuture ? DiarioColors.cardBorder : DiarioColors.textMuted,
                 ),

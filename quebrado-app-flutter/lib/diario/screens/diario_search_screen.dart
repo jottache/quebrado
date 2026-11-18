@@ -7,7 +7,10 @@ import '../theme/diario_colors.dart';
 import '../widgets/diario_image_helper.dart';
 import 'contact_detail_screen.dart';
 import '../dialogs/entry_reader_dialog.dart';
+import '../../widgets/ortiz/ortiz.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class DiarioSearchScreen extends StatefulWidget {
   final bool isDrawer;
   final void Function(String contactId)? onSelectContact;
@@ -40,17 +43,17 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
     return Scaffold(
       backgroundColor: DiarioColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: DiarioColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: widget.isDrawer
             ? IconButton(
-                icon: const Icon(Icons.close_rounded, size: 22),
+                icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg),
                 tooltip: 'Cerrar',
                 onPressed: () => Navigator.of(context).pop(),
               )
             : IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md),
                 onPressed: () => Navigator.of(context).pop(),
               ),
         title: TextField(
@@ -59,9 +62,9 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
           decoration: const InputDecoration(
             hintText: 'Buscar por placa, comida, persona, modelo...',
             border: InputBorder.none,
-            hintStyle: TextStyle(fontSize: 14, color: DiarioColors.textMuted),
+            hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: DiarioColors.textMuted),
           ),
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
           onChanged: (val) => setState(() => _query = val),
         ),
         actions: [
@@ -86,7 +89,7 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
   Widget _buildInitialState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(OrtizSpace.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -97,18 +100,18 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
                 color: DiarioColors.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.manage_search_rounded, size: 34, color: DiarioColors.primary),
+              child: const Icon(Icons.manage_search_rounded, size: OrtizIconSize.xl, color: DiarioColors.primary),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
             const Text(
               'Búsqueda Inteligente Global',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+              style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: OrtizSpace.sm),
             const Text(
               'Escribe una placa (ej. AB-492), una comida (ej. pasta de hígado), una talla o un nombre para encontrar a la persona asociada.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: DiarioColors.textSecondary, height: 1.4),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary, height: 1.4),
             ),
           ],
         ),
@@ -119,20 +122,20 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
   Widget _buildEmptyResultsState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(OrtizSpace.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off_rounded, size: 48, color: DiarioColors.textMuted),
-            const SizedBox(height: 14),
+            const Icon(Icons.search_off_rounded, size: OrtizIconSize.xxl, color: DiarioColors.textMuted),
+            const SizedBox(height: OrtizSpace.md),
             Text(
               'Sin resultados para "$_query"',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: DiarioColors.textPrimary),
+              style: const TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: DiarioColors.textPrimary),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.xs),
             const Text(
               'Verifica que el término de búsqueda esté bien escrito.',
-              style: TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
             ),
           ],
         ),
@@ -142,40 +145,42 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
 
   Widget _buildResultsList(DiarioSearchResult result, DiarioState state) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(OrtizSpace.xl),
       children: [
         // 1. Personas encontradas
         if (result.matchedContacts.isNotEmpty) ...[
           Text(
             'PERSONAS (${result.matchedContacts.length})',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: DiarioColors.textMuted, letterSpacing: 0.8),
+            style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textMuted, letterSpacing: 0.8),
           ),
-          const SizedBox(height: 8),
-          ...result.matchedContacts.map((c) => _buildContactResultItem(c)),
-          const SizedBox(height: 20),
+          const SizedBox(height: OrtizSpace.sm),
+          for (var i = 0; i < result.matchedContacts.length; i++)
+            ortizStaggered(context, i, _buildContactResultItem(result.matchedContacts[i])),
+          const SizedBox(height: OrtizSpace.xl),
         ],
 
         // 2. Entradas y Datos encontrados
         if (result.matchedEntries.isNotEmpty) ...[
           Text(
             'REGISTROS Y DATOS (${result.matchedEntries.length})',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: DiarioColors.textMuted, letterSpacing: 0.8),
+            style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textMuted, letterSpacing: 0.8),
           ),
-          const SizedBox(height: 8),
-          ...result.matchedEntries.map((e) => _buildEntryResultItem(e, state)),
+          const SizedBox(height: OrtizSpace.sm),
+          for (var i = 0; i < result.matchedEntries.length; i++)
+            ortizStaggered(
+              context,
+              result.matchedContacts.length + i,
+              _buildEntryResultItem(result.matchedEntries[i], state),
+            ),
         ],
       ],
     );
   }
 
   Widget _buildContactResultItem(DiarioContact contact) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
+    // Sin tarjeta (spec 05, C4): la fila va directamente sobre el fondo.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
       child: ListTile(
         onTap: () {
           if (widget.isDrawer) {
@@ -216,7 +221,7 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
                 color: DiarioColors.primaryLight,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: DiarioColors.primary.withOpacity(0.20),
+                  color: DiarioColors.primary.withValues(alpha: 0.20),
                   width: 1.2,
                 ),
               ),
@@ -237,12 +242,12 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
             ),
           ),
         ),
-        title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body)),
         subtitle: Text(
           contact.relationship ?? (contact.phone ?? 'Sin teléfono'),
-          style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+          style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textMuted),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: OrtizIconSize.sm, color: DiarioColors.textMuted),
       ),
     );
   }
@@ -252,13 +257,8 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
     final contact = isPersonal ? null : state.getContactById(entry.contactId);
     final template = entry.templateId != null ? state.getTemplateById(entry.templateId!) : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
       child: ListTile(
         onTap: () => openEntryReader(context, entry),
         leading: Container(
@@ -266,18 +266,18 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
           height: 42,
           decoration: BoxDecoration(
             color: isPersonal
-                ? const Color(0xFF1F6F5F).withOpacity(0.12)
-                : (template != null ? template.color.withOpacity(0.12) : DiarioColors.primaryLight),
-            borderRadius: BorderRadius.circular(12),
+                ? DiarioColors.primaryLight
+                : (template != null ? template.color.withValues(alpha: 0.12) : DiarioColors.primaryLight),
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
           ),
           child: Icon(
             isPersonal
                 ? Icons.person_pin_rounded
                 : (template != null ? template.iconData : Icons.article_outlined),
             color: isPersonal
-                ? const Color(0xFF1F6F5F)
+                ? DiarioColors.primary
                 : (template != null ? template.color : DiarioColors.primary),
-            size: 20,
+            size: OrtizIconSize.md,
           ),
         ),
         title: Text(
@@ -288,16 +288,16 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
                       ? '${entry.contentText!.substring(0, 50)}...'
                       : entry.contentText!)
                   : (template?.name ?? (isPersonal ? 'Nota Personal' : 'Registro'))),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
         ),
         subtitle: Text(
           isPersonal
               ? 'Nota Personal${template != null ? " • (${template.name})" : ""}'
               : 'En contacto: ${contact?.name ?? "Contacto"}${template != null ? " • (${template.name})" : ""}',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: isPersonal ? FontWeight.w700 : FontWeight.normal,
-            color: isPersonal ? const Color(0xFF1F6F5F) : DiarioColors.textSecondary,
+            color: isPersonal ? DiarioColors.primary : DiarioColors.textSecondary,
           ),
         ),
         trailing: Row(
@@ -305,7 +305,7 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
           children: [
             if (entry.hasPhoto) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 child: DiarioImageHelper.buildImageWidget(
                   entry.photoUrl!,
                   width: 36,
@@ -313,9 +313,9 @@ class _DiarioSearchScreenState extends State<DiarioSearchScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: OrtizSpace.sm),
             ],
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: DiarioColors.textMuted),
+            const Icon(Icons.arrow_forward_ios_rounded, size: OrtizIconSize.sm, color: DiarioColors.textMuted),
           ],
         ),
       ),

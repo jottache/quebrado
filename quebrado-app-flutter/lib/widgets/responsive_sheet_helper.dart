@@ -28,7 +28,7 @@ Future<T?> showResponsiveSheet<T>({
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black45,
+    barrierColor: OrtizPalette.bg.withValues(alpha: 0.6),
     transitionDuration: const Duration(milliseconds: 280),
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
       final GlobalKey<NavigatorState> nestedNavKey = GlobalKey<NavigatorState>();
@@ -39,19 +39,14 @@ Future<T?> showResponsiveSheet<T>({
           child: Container(
             width: desktopWidth.clamp(380.0, MediaQuery.of(context).size.width * 0.9),
             height: MediaQuery.of(context).size.height,
+            // Panel flotante sobre `surface`, sin sombra (se separa del
+            // fondo por el velo de la barrera).
             decoration: const BoxDecoration(
               color: OrtizPalette.surface,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(OrtizRadius.sheet),
                 bottomLeft: Radius.circular(OrtizRadius.sheet),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 30,
-                  offset: Offset(-8, 0),
-                ),
-              ],
             ),
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
@@ -269,10 +264,10 @@ class _ResponsiveHorizontalScrollState extends State<ResponsiveHorizontalScroll>
           customBorder: const CircleBorder(),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(6.0),
+            padding: const EdgeInsets.all(OrtizSpace.xs),
             child: Icon(
               icon,
-              size: 22,
+              size: OrtizIconSize.md,
               color: OrtizPalette.fg,
             ),
           ),
