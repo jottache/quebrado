@@ -92,6 +92,57 @@ void main() {
     });
   }
 
+  /// Abre una hoja con la barrita de arrastre pedida.
+  Widget openerWithHandle() => Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showResponsiveSheet<void>(
+            context: context,
+            backgroundColor: null,
+            showDragHandle: true,
+            builder: (_) => const Text('contenido de la hoja'),
+          ),
+          child: const Text('abrir'),
+        ),
+      );
+
+  testWidgets('en compact, showDragHandle pinta la barrita del tema sobre la superficie',
+      (tester) async {
+    await pumpApp(tester, openerWithHandle(), window: WindowClass.compact);
+
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    final sheet = tester.widget<BottomSheet>(find.byType(BottomSheet));
+    expect(sheet.showDragHandle, isTrue);
+    expect(find.bySemanticsLabel(RegExp('arrastre|Dismiss|drag', caseSensitive: false)),
+        findsWidgets);
+    // Sin color propio, la hoja usa la superficie del tema.
+    final material = tester.widget<Material>(
+      find.descendant(of: find.byType(BottomSheet), matching: find.byType(Material)).first,
+    );
+    expect(material.color, OrtizTokens.dark.surface);
+  });
+
+  testWidgets('sin showDragHandle la hoja compact no lleva barrita', (tester) async {
+    await pumpApp(tester, _opener(), window: WindowClass.compact);
+
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle, isFalse);
+  });
+
+  testWidgets('en escritorio el panel lateral no lleva barrita aunque se pida', (tester) async {
+    await pumpApp(tester, openerWithHandle(), window: WindowClass.expanded);
+
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('contenido de la hoja'), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(_panelDecoration(tester), isNotNull);
+  });
+
   testWidgets('en compact abre una hoja inferior, no el panel lateral', (tester) async {
     await pumpApp(tester, _opener(), window: WindowClass.compact);
 

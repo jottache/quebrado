@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:uuid/uuid.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import '../../quebrado/models/currency_type.dart';
+import '../../quebrado/models/transaction_category.dart';
 import '../../quebrado/viewmodels/app_state.dart';
 import '../../diario/diario.dart';
 import '../../habitos/viewmodels/habitos_state.dart';
@@ -7,6 +10,20 @@ import '../../recordatorios/viewmodels/reminders_state.dart';
 import '../../recordatorios/models/reminder_model.dart';
 import '../../recordatorios/models/role_model.dart';
 import '../models/chat_artifact_model.dart';
+import '../../diario/viewmodels/animo_state.dart';
+import '../../notas/viewmodels/notas_state.dart';
+import '../models/agent_action_record.dart';
+import '../models/undo_result.dart';
+import 'write_tools/animo_write_tools.dart';
+import 'write_tools/diario_write_tools.dart';
+import 'write_tools/finanzas_write_tools.dart';
+import 'write_tools/habitos_write_tools.dart';
+import 'write_tools/notas_write_tools.dart';
+import 'write_tools/ortiz_resolver.dart' show currencyParam;
+import 'write_tools/reminders_write_tools.dart';
+import 'write_tools/write_tool_contract.dart';
+import 'write_tools/write_tool_result.dart';
+import 'write_tools/write_tool_specs.dart';
 
 class ToolExecutionResult {
   final Map<String, dynamic> resultData;
@@ -23,13 +40,311 @@ class SuiteRagService {
   final DiarioState diarioState;
   final HabitosState habitosState;
   final RemindersState remindersState;
+  final AnimoState? animoState;
+  final NotasState? notasState;
 
+  /// Ejecutores de escritura por nombre de herramienta (spec 03).
+  final Map<String, WriteToolHandler> _writeHandlers;
+
+  /// Se llama tras cada `saved` directo (no al confirmar una tarjeta, que lo
+  /// gestiona `AgenteState`). [record] es nulo si no hay nada que deshacer.
+  void Function(AgentActionRecord? record)? onWriteSaved;
+
+  /// Atiende `undoLastAction`: recibe el `undoId` (o null = el último) y
+  /// devuelve si se deshizo y el texto para la persona.
+  Future<UndoResult> Function(String? undoId)? onUndoRequested;
+
+  final Uuid _uuid = const Uuid();
+
+  // Estado del turno en curso (CA-10, §7).
+  String _turnUserText = '';
+
+  /// Se leyó texto libre en este turno.
+  bool _untrustedRead = false;
+
+  /// Se leyó texto libre en el turno anterior: se hereda un turno y luego se
+  /// limpia (S3-03).
+  bool _inheritedUntrustedRead = false;
+  bool _directWriteDone = false;
+
+  /// Lista blanca (S3-01): lecturas que solo devuelven números, fechas y
+  /// nombres saneados como los del contexto ([contextLine]). Son las únicas
+  /// lecturas que NO marcan el turno.
+  static const Set<String> trustedReadTools = {
+    'getFinancialOverview',
+    'calculateCurrencyExchange',
+  };
+
+  /// Lecturas con texto libre escrito por la persona o por terceros (notas,
+  /// títulos, nombres, propósitos). Es documental: cualquier herramienta que
+  /// no sea escritura ni esté en [trustedReadTools] marca el turno, aunque no
+  /// esté aquí. `proposeScheduleBigRock` va aquí porque no escribe y devuelve
+  /// nombres de roles.
+  static const Set<String> untrustedReadTools = {
+    'searchSuiteData',
+    'searchContacts',
+    'getContactDetails',
+    'searchDiarioEntries',
+    'getPersonalNotes',
+    'getUpcomingBirthdays',
+    'getHabitsStatus',
+    'getReminders',
+    'getWeeklySchedule',
+    'getRolesCompass',
+    'proposeScheduleBigRock',
+  };
+
+  /// Texto de `undoLastAction` cuando el turno leyó texto libre (S3-04).
+  static const String undoBlockedMessage =
+      'Para deshacer un registro usa el botón Deshacer de su mensaje.';
+
+  /// Texto de `undoLastAction` cuando no hay registros en la conversación.
+  static const String nothingToUndoMessage =
+      'No hay nada que deshacer en esta conversación.';
+
+  /// Largo máximo de un nombre en el contexto vivo (S3-02).
+  static const int contextNameMaxLength = 60;
+
+  /// Sanea un nombre para el contexto (S3-02): una sola línea, sin
+  /// caracteres de control, espacios colapsados y como mucho
+  /// [contextNameMaxLength] caracteres (con «…» si se corta).
+  static String contextLine(String text) {
+    final flat = text
+        .replaceAll(RegExp(r'[\u0000-\u001F\u007F-\u009F  ]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    final chars = flat.runes.toList();
+    if (chars.length <= contextNameMaxLength) return flat;
+    return '${String.fromCharCodes(chars.take(contextNameMaxLength - 1)).trimRight()}…';
+  }
+
+  /// [writeHandlers] solo se inyecta en tests; por defecto se construyen los
+  /// ejecutores de cada dominio (Ánimo y Notas solo si se pasan sus estados).
   SuiteRagService({
     required this.appState,
     required this.diarioState,
     required this.habitosState,
     required this.remindersState,
-  });
+    this.animoState,
+    this.notasState,
+    List<WriteToolHandler>? writeHandlers,
+    this.onWriteSaved,
+    this.onUndoRequested,
+  }) : _writeHandlers = {
+          for (final h in writeHandlers ??
+              [
+                FinanzasWriteTools(appState),
+                DiarioWriteTools(diarioState),
+                HabitosWriteTools(habitosState),
+                RemindersWriteTools(remindersState),
+                if (animoState != null) AnimoWriteTools(animoState),
+                if (notasState != null) NotasWriteTools(notasState),
+              ])
+            for (final name in h.toolNames) name: h,
+        };
+
+  /// Contexto de escritura del turno en curso.
+  WriteContext get turnContext => WriteContext(
+        userText: _turnUserText,
+        untrustedRead: turnUntrusted,
+        directWriteDone: _directWriteDone,
+      );
+
+  /// `true` si este turno o el anterior leyeron texto libre (CA-10, S3-03).
+  bool get turnUntrusted => _untrustedRead || _inheritedUntrustedRead;
+
+  /// Empieza un turno nuevo: [userText] es el texto de todos los mensajes de
+  /// la persona en la conversación (ancla de montos). La marca de texto libre
+  /// leído pasa al turno nuevo como heredada y se limpia en el siguiente
+  /// (S3-03); la escritura directa se reinicia.
+  void beginTurn(String userText) {
+    _turnUserText = userText;
+    _inheritedUntrustedRead = _untrustedRead;
+    _untrustedRead = false;
+    _directWriteDone = false;
+  }
+
+  /// `true` si [toolName] es una lectura que marca el turno: toda la que no
+  /// sea escritura, `undoLastAction` ni esté en [trustedReadTools] (S3-01).
+  bool marksTurnUntrusted(String toolName) =>
+      toolName != WriteToolNames.undoLastAction &&
+      !_writeHandlers.containsKey(toolName) &&
+      !trustedReadTools.contains(toolName);
+
+  /// `true` si hay un ejecutor para [toolName].
+  bool hasWriteHandler(String toolName) => _writeHandlers.containsKey(toolName);
+
+  /// Ejecuta una escritura con [ctx]. Nunca lanza: un fallo inesperado del
+  /// ejecutor sale como `error`.
+  Future<WriteOutcome> runWrite(
+    String toolName,
+    Map<String, dynamic> args,
+    WriteContext ctx,
+  ) async {
+    final handler = _writeHandlers[toolName];
+    if (handler == null) {
+      return WriteOutcome(WriteToolResult.error(
+        action: toolName,
+        message: 'No pude registrarlo: no sé hacer «$toolName». No se guardó nada.',
+      ));
+    }
+    try {
+      return await handler.execute(toolName, args, ctx);
+    } catch (e) {
+      // Solo el tipo: el texto del error puede llevar datos personales y no
+      // debe llegar a Gemini ni a la tarjeta (como en AgenteState.undoAction).
+      debugPrint('SuiteRagService.runWrite: falló $toolName (${e.runtimeType}).');
+      return WriteOutcome(WriteToolResult.error(
+        action: toolName,
+        message: 'No pude registrarlo. No se guardó nada.',
+      ));
+    }
+  }
+
+  /// Deshace una escritura. Lanza si no se pudo. Al deshacer un contacto
+  /// borra también sus registros de ánimo en memoria (como la pantalla del
+  /// contacto; en la base los borra la cascada).
+  Future<void> undoWrite(String toolName, Map<String, dynamic> undoPayload) async {
+    final handler = _writeHandlers[toolName];
+    if (handler == null) throw StateError('No sé deshacer «$toolName».');
+    await handler.undo(toolName, undoPayload);
+    if (toolName == WriteToolNames.createContact) {
+      final contactId = undoPayload['contactId'] as String?;
+      if (contactId != null) animoState?.removeLogsForContact(contactId);
+    }
+  }
+
+  /// Metadata del artefacto para un `saved` o un `proposal` (§2.1).
+  static Map<String, dynamic> artifactMetadataFor(
+    WriteOutcome outcome, {
+    String? undoId,
+  }) {
+    final r = outcome.result;
+    final parts = [for (final p in outcome.summaryParts) p.toJson()];
+    if (r.isSaved) {
+      return {
+        'status': 'saved',
+        'action': r.action,
+        'recordId': r.recordId,
+        'summary': r.summary,
+        'summaryTitle': outcome.summaryTitle,
+        'summaryParts': parts,
+        'route': r.route,
+        'undoId': undoId ?? r.undoId,
+      };
+    }
+    return {
+      'status': 'pending',
+      'action': r.action,
+      'reasons': List<String>.from(r.reasons),
+      'summary': r.summary,
+      'summaryTitle': outcome.summaryTitle,
+      'summaryParts': parts,
+      'resolved': Map<String, dynamic>.from(r.resolved),
+      'options': {
+        for (final e in r.options.entries) e.key: List<String>.from(e.value),
+      },
+      // Solo para la tarjeta («Ver todas»); no va al modelo.
+      'allOptions': {
+        for (final e in outcome.allOptions.entries) e.key: List<String>.from(e.value),
+      },
+      'commitArgs': Map<String, dynamic>.from(outcome.commitArgs ?? const {}),
+    };
+  }
+
+  Future<ToolExecutionResult> _executeWrite(
+    String toolName,
+    Map<String, dynamic> arguments,
+    String sessionId,
+  ) async {
+    final outcome = await runWrite(toolName, arguments, turnContext);
+    final result = outcome.result;
+    if (!result.isSaved && !result.isProposal) {
+      return ToolExecutionResult(resultData: result.toJson());
+    }
+
+    final resultData = result.toJson();
+    String? undoId;
+    if (result.isSaved) {
+      _directWriteDone = true;
+      undoId = result.undoId ??
+          (outcome.undoPayload != null ? _uuid.v4() : null);
+      if (undoId != null) resultData['undoId'] = undoId;
+    }
+    final artifact = ChatArtifactModel(
+      sessionId: sessionId,
+      type: ArtifactType.actionProposal,
+      title: outcome.summaryTitle ?? result.summary ?? toolName,
+      content: result.summary ?? '',
+      metadata: artifactMetadataFor(outcome, undoId: undoId),
+    );
+    if (result.isSaved) {
+      final payload = outcome.undoPayload;
+      onWriteSaved?.call(undoId != null && payload != null
+          ? AgentActionRecord(
+              undoId: undoId,
+              sessionId: sessionId,
+              artifactId: artifact.id,
+              toolName: toolName,
+              profileId: outcome.profileId,
+              undoPayload: payload,
+            )
+          : null);
+    }
+    return ToolExecutionResult(resultData: resultData, generatedArtifact: artifact);
+  }
+
+  Future<ToolExecutionResult> _executeUndoLast(Map<String, dynamic> arguments) async {
+    final undoId = arguments['undoId']?.toString();
+    final handler = onUndoRequested;
+    // Tras leer texto libre (este turno o el anterior) Ortiz no deshace: lo
+    // hace la persona con el botón del mensaje (S3-04).
+    final UndoResult result;
+    if (turnUntrusted) {
+      result = const UndoResult.failed(undoBlockedMessage);
+    } else if (handler == null) {
+      result = const UndoResult.failed(nothingToUndoMessage);
+    } else if (_directWriteDone) {
+      // Deshacer cuenta como la escritura directa del mensaje: una sola
+      // por mensaje (§7, medida 3).
+      result = const UndoResult.failed(undoBlockedMessage);
+    } else {
+      result = await handler(undoId == null || undoId.isEmpty ? null : undoId);
+      if (result.ok) _directWriteDone = true;
+    }
+    return ToolExecutionResult(resultData: {
+      'status': result.ok ? 'undone' : 'error',
+      'action': WriteToolNames.undoLastAction,
+      'message': result.message,
+    });
+  }
+
+  /// Ejecuta una herramienta: escrituras por su ejecutor, `undoLastAction`
+  /// por [onUndoRequested] y el resto como lecturas. Toda lectura fuera de
+  /// [trustedReadTools] marca el turno (antes de leer, también si falla) y
+  /// va envuelta en `untrusted_content` (CA-10, S3-01).
+  Future<ToolExecutionResult> executeFunctionCall(
+    String functionName,
+    Map<String, dynamic> arguments, {
+    required String sessionId,
+  }) async {
+    if (functionName == WriteToolNames.undoLastAction) {
+      return _executeUndoLast(arguments);
+    }
+    if (_writeHandlers.containsKey(functionName)) {
+      return _executeWrite(functionName, arguments, sessionId);
+    }
+    final untrusted = marksTurnUntrusted(functionName);
+    if (untrusted) _untrustedRead = true;
+    final res = await _executeReadTool(functionName, arguments, sessionId: sessionId);
+    if (untrusted) {
+      return ToolExecutionResult(
+        resultData: {'untrusted_content': res.resultData},
+        generatedArtifact: res.generatedArtifact,
+      );
+    }
+    return res;
+  }
 
   /// Genera un resumen contextual vivo de la suite para alimentar las System Instructions
   String generateLiveContextSnapshot() {
@@ -68,11 +383,11 @@ class SuiteRagService {
         ? '    · Sin roles configurados'
         : rolesList.map((r) {
             final rockCount = remindersState.countBigRocksForRole(r.id);
-            return '    · ${r.name}: $rockCount Grandes Rocas definidas';
+            return '    · ${contextLine(r.name)}: $rockCount Grandes Rocas definidas';
           }).join('\n');
 
     final unaddressedAlert = unaddressed.isNotEmpty
-        ? '⚠️ ALERTA DE EQUILIBRIO VITAL: Hay ${unaddressed.length} roles vitales sin ninguna Gran Roca esta semana (${unaddressed.map((r) => r.name).join(", ")}).'
+        ? '⚠️ ALERTA DE EQUILIBRIO VITAL: Hay ${unaddressed.length} roles vitales sin ninguna Gran Roca esta semana (${unaddressed.map((r) => contextLine(r.name)).join(", ")}).'
         : '✅ Equilibrio de vida óptimo: Todos los roles vitales tienen al menos una Gran Roca definida.';
 
     final bdaysStr = upcomingBirthdays.isEmpty
@@ -87,7 +402,7 @@ class SuiteRagService {
               nextAge = age;
             }
             final ageStr = nextAge != null ? ', cumplirá $nextAge años' : '';
-            return '- ${b.name}: ${b.formattedBirthdate ?? "Sin fecha"} (en ${b.daysUntilBirthday ?? "?"} días$ageStr)';
+            return '- ${contextLine(b.name)}: ${b.formattedBirthdate ?? "Sin fecha"} (en ${b.daysUntilBirthday ?? "?"} días$ageStr)';
           }).join('\n');
 
     return '''
@@ -117,7 +432,90 @@ $rolesSummary
 - Recordatorios y Tareas:
   * Recordatorios vencidos: $overdueReminders
   * Recordatorios programados para hoy: $todayReminders
+
+${generateRegistrationCatalogs(now: now)}''';
+  }
+
+  /// Tope de elementos por lista en [generateRegistrationCatalogs].
+  static const int catalogListLimit = 60;
+
+  /// Sección «CATÁLOGOS PARA REGISTRAR» del contexto (spec 03, diseño §7):
+  /// los nombres que Ortiz puede pasar a las herramientas de escritura.
+  /// Cuentas sin saldos; categorías con los mismos nombres que resuelve
+  /// `FinanzasWriteTools` (sin «Cambio de Divisa», subcategorías
+  /// «Padre › Hija»). Cada lista se corta en [catalogListLimit] y cada
+  /// nombre pasa por [contextLine] (S3-02).
+  String generateRegistrationCatalogs({DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final iso = _isoDay(today);
+    const weekDays = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    final readable = '${weekDays[today.weekday - 1]} ${today.day} de ${months[today.month - 1]} de ${today.year}';
+
+    List<String> categoryNames(TransactionCategoryType type) => [
+          for (final c in FinanzasWriteTools.categoryItemsFor(appState.categories, type))
+            contextLine(c.displayName),
+        ];
+
+    final defaultIds = {
+      for (final c in CurrencyType.values) appState.defaultAccountIdFor(c),
+    }..remove(null);
+    final accounts = [
+      for (final a in appState.accounts)
+        '${contextLine(a.name)} (${currencyParam(a.currency)})'
+            '${defaultIds.contains(a.id) ? ' [predeterminada]' : ''}',
+    ];
+
+    final habits = [for (final h in habitosState.allHabits) contextLine(h.title)];
+
+    final pendingByPayment = <String, DateTime>{};
+    for (final o in appState.pendingPaymentsToday) {
+      final prev = pendingByPayment[o.payment.id];
+      if (prev == null || o.occurrenceDate.isBefore(prev)) {
+        pendingByPayment[o.payment.id] = o.occurrenceDate;
+      }
+    }
+    final payments = <String>[];
+    for (final p in appState.recurringPayments) {
+      final pending = pendingByPayment[p.id];
+      final next = pending ?? FinanzasWriteTools.nextOccurrenceAfter(p, today);
+      if (next == null) continue;
+      final when = pending != null ? 'pendiente desde ${_isoDay(pending)}' : 'próxima ${_isoDay(next)}';
+      final variable = p.isVariable ? ' (variable)' : '';
+      payments.add('${contextLine(p.name)} · ${currencyParam(p.currency)} ${p.amount.toStringAsFixed(2)}$variable · $when');
+    }
+
+    final noteCategories = notasState == null
+        ? const <String>[]
+        : [for (final c in notasState!.categories) contextLine(c.name)];
+
+    return '''
+### CATÁLOGOS PARA REGISTRAR (libro ${contextLine(appState.activeProfileName)}):
+- Fecha de hoy: $iso ($readable)
+- Categorías de gasto:
+${_catalogList(categoryNames(TransactionCategoryType.expense))}
+- Categorías de ingreso:
+${_catalogList(categoryNames(TransactionCategoryType.income))}
+- Cuentas (nombre y moneda usd/ves/eur):
+${_catalogList(accounts)}
+- Hábitos activos:
+${_catalogList(habits)}
+- Pagos recurrentes (nombre · moneda y monto · fecha):
+${_catalogList(payments)}
+- Categorías de Notas:
+${_catalogList(noteCategories)}
 ''';
+  }
+
+  static String _isoDay(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// Lista con viñetas, cortada en [catalogListLimit] con «y N más».
+  static String _catalogList(List<String> items) {
+    if (items.isEmpty) return '  · (ninguna)';
+    final shown = items.take(catalogListLimit).map((e) => '  · $e');
+    final rest = items.length - catalogListLimit;
+    return [...shown, if (rest > 0) '  · y $rest más'].join('\n');
   }
 
   /// Declaraciones de herramientas (Function Declarations) para el Tool Calling de Gemini
@@ -258,25 +656,6 @@ $rolesSummary
             ),
           ),
           FunctionDeclaration(
-            'createReminder',
-            'Crea un nuevo recordatorio o tarea en el sistema de Recordatorios.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'title': Schema(SchemaType.string, description: 'Título de la tarea o recordatorio.'),
-                'priority': Schema(
-                  SchemaType.string,
-                  description: 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.',
-                ),
-                'recurrence': Schema(
-                  SchemaType.string,
-                  description: 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.',
-                ),
-              },
-              requiredProperties: ['title'],
-            ),
-          ),
-          FunctionDeclaration(
             'getWeeklySchedule',
             'Obtiene el cronograma semanal completo (Lunes a Domingo) de la Agenda del Hábito 3 de Stephen Covey, detallando las actividades y Grandes Rocas asignadas por día, y las tareas pendientes en la bandeja semanal.',
             Schema(
@@ -316,81 +695,9 @@ $rolesSummary
               requiredProperties: ['title', 'roleName'],
             ),
           ),
-          FunctionDeclaration(
-            'proposeCreateDiarioEntry',
-            'Propone registrar una nueva entrada, nota, apunte o bitácora en el Diario Jottache (asociada a un contacto o personal/general) mostrando una tarjeta interactiva con botones de Confirmar y Negar antes de guardarla. Úsala cuando el usuario diga "entrada", "nota", "anota esto", "guarda un apunte", o relate hechos, dolencias, síntomas, sucesos, gustos, medidas o comentarios sobre alguien.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'title': Schema(SchemaType.string, description: 'Título opcional de la nota o entrada. Si el usuario no proporciona un título, déjalo vacío ("") o null ya que no es obligatorio poner título a las notas.'),
-                'contentText': Schema(SchemaType.string, description: 'Texto detallado o relato completo de la nota o entrada.'),
-                'contactName': Schema(SchemaType.string, description: 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'),
-                'templateName': Schema(SchemaType.string, description: 'Modelo o plantilla reutilizable opcional si aplica (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es una nota libre o relato general, dejar vacío o "Nota simple".'),
-                'date': Schema(SchemaType.string, description: 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'),
-                'category': Schema(SchemaType.string, description: 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'),
-              },
-              requiredProperties: ['contentText'],
-            ),
-          ),
-          FunctionDeclaration(
-            'proposeCreateContact',
-            'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'name': Schema(SchemaType.string, description: 'Nombre completo o de pila del contacto.'),
-                'nickname': Schema(SchemaType.string, description: 'Apodo o sobrenombre opcional.'),
-                'relationship': Schema(SchemaType.string, description: 'Vínculo o relación (ej: "Hermano", "Amigo", "Compañero", "Madre").'),
-                'phone': Schema(SchemaType.string, description: 'Número de teléfono o WhatsApp.'),
-                'age': Schema(SchemaType.integer, description: 'Edad en años si el usuario la menciona (ej: 38).'),
-                'birthdate': Schema(SchemaType.string, description: 'Fecha de nacimiento en formato YYYY-MM-DD si se conoce.'),
-                'notes': Schema(SchemaType.string, description: 'Notas o detalles adicionales.'),
-              },
-              requiredProperties: ['name'],
-            ),
-          ),
-          FunctionDeclaration(
-            'proposeCreateReminder',
-            'Propone la creación de un nuevo recordatorio o tarea en Recordatorios mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala cuando el usuario pida crear o agendar una tarea o recordatorio.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'title': Schema(SchemaType.string, description: 'Título o concepto de la tarea/recordatorio.'),
-                'priority': Schema(SchemaType.string, description: 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.'),
-                'recurrence': Schema(SchemaType.string, description: 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.'),
-                'dueAt': Schema(SchemaType.string, description: 'Fecha y hora estimada (formato ISO 8601 ej: "2026-09-15T10:00:00").'),
-                'notes': Schema(SchemaType.string, description: 'Notas o comentarios adicionales.'),
-              },
-              requiredProperties: ['title'],
-            ),
-          ),
-          FunctionDeclaration(
-            'proposeCreateHabit',
-            'Propone la creación de un nuevo hábito o rutina personal en Hábitos mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'title': Schema(SchemaType.string, description: 'Nombre del hábito (ej: "Meditar 10 min", "No comer azúcar").'),
-                'isNegative': Schema(SchemaType.boolean, description: 'true si es un mal hábito a evitar/romper, false si es positivo para construir.'),
-              },
-              requiredProperties: ['title'],
-            ),
-          ),
-          FunctionDeclaration(
-            'proposeCreateTransaction',
-            'Propone registrar un nuevo movimiento financiero (gasto o ingreso) en Finanzas Quebrado mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
-            Schema(
-              SchemaType.object,
-              properties: {
-                'title': Schema(SchemaType.string, description: 'Descripción o concepto del movimiento (ej: "Almuerzo", "Cobro freelance").'),
-                'amount': Schema(SchemaType.number, description: 'Monto del movimiento financiero.'),
-                'type': Schema(SchemaType.string, description: 'Tipo de transacción: "expense" (gasto) o "income" (ingreso).'),
-                'currency': Schema(SchemaType.string, description: 'Moneda: "usd" o "ves".'),
-                'accountName': Schema(SchemaType.string, description: 'Nombre de la cuenta si se especificó (ej: "Banesco", "Zelle", "Efectivo").'),
-              },
-              requiredProperties: ['title', 'amount'],
-            ),
-          ),
+          // Herramientas de escritura (spec 03): una sola lista de
+          // especificaciones genera esta forma y la de `getToolsJson`.
+          ...writeToolFunctionDeclarations(),
         ],
       ),
     ];
@@ -534,25 +841,6 @@ $rolesSummary
             },
           },
           {
-            'name': 'createReminder',
-            'description': 'Crea un nuevo recordatorio o tarea en el sistema de Recordatorios.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'title': {'type': 'STRING', 'description': 'Título de la tarea o recordatorio.'},
-                'priority': {
-                  'type': 'STRING',
-                  'description': 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.',
-                },
-                'recurrence': {
-                  'type': 'STRING',
-                  'description': 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.',
-                },
-              },
-              'required': ['title'],
-            },
-          },
-          {
             'name': 'getWeeklySchedule',
             'description': 'Obtiene el cronograma semanal completo (Lunes a Domingo) de la Agenda del Hábito 3 de Stephen Covey, detallando las actividades y Grandes Rocas asignadas por día, y las tareas pendientes en la bandeja semanal.',
             'parameters': {
@@ -592,81 +880,8 @@ $rolesSummary
               'required': ['title', 'roleName'],
             },
           },
-          {
-            'name': 'proposeCreateDiarioEntry',
-            'description': 'Propone registrar una nueva entrada, nota, apunte o bitácora en el Diario Jottache (asociada a un contacto o personal/general) mostrando una tarjeta interactiva con botones de Confirmar y Negar antes de guardarla. Úsala cuando el usuario diga "entrada", "nota", "anota esto", "guarda un apunte", o relate hechos, dolencias, síntomas, sucesos, gustos, medidas o comentarios sobre alguien.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'title': {'type': 'STRING', 'description': 'Título opcional de la nota o entrada. Si el usuario no dio título, dejar vacío ("") o null ya que no es obligatorio.'},
-                'contentText': {'type': 'STRING', 'description': 'Texto detallado o relato completo de la nota o entrada.'},
-                'contactName': {'type': 'STRING', 'description': 'Nombre o apodo del contacto al que se asocia la nota si aplica (ej: "Mariana Dávila", "Carlos").'},
-                'templateName': {'type': 'STRING', 'description': 'Modelo o plantilla reutilizable opcional (ej: "Automóvil / Vehículo", "Tallas de Ropa / Calzado", "Cuenta Bancaria / Pago Móvil", "Preferencia Gastronómica", "Idea de Regalo / Deseo", "Mascota de Contacto"). Si es libre, dejar vacío o "Nota simple".'},
-                'date': {'type': 'STRING', 'description': 'Fecha opcional del registro en formato YYYY-MM-DD (ej: "2026-09-14"). Si no se especifica, se usa la fecha de hoy.'},
-                'category': {'type': 'STRING', 'description': 'Categoría interna sugerida opcional (ej: "salud", "alimentos", "regalos", "vehiculos", "general").'},
-              },
-              'required': ['contentText'],
-            },
-          },
-          {
-            'name': 'proposeCreateContact',
-            'description': 'Propone la creación de un nuevo contacto en el Diario Jottache mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala siempre que el usuario pida agregar, registrar o crear un contacto, familiar, amigo o persona.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'name': {'type': 'STRING', 'description': 'Nombre completo o de pila del contacto.'},
-                'nickname': {'type': 'STRING', 'description': 'Apodo o sobrenombre opcional.'},
-                'relationship': {'type': 'STRING', 'description': 'Vínculo o relación (ej: "Hermano", "Amigo", "Compañero", "Madre").'},
-                'phone': {'type': 'STRING', 'description': 'Número de teléfono o WhatsApp.'},
-                'age': {'type': 'INTEGER', 'description': 'Edad en años si el usuario la menciona (ej: 38).'},
-                'birthdate': {'type': 'STRING', 'description': 'Fecha de nacimiento en formato YYYY-MM-DD si se conoce.'},
-                'notes': {'type': 'STRING', 'description': 'Notas o detalles adicionales.'},
-              },
-              'required': ['name'],
-            },
-          },
-          {
-            'name': 'proposeCreateReminder',
-            'description': 'Propone la creación de un nuevo recordatorio o tarea en Recordatorios mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo. Úsala cuando el usuario pida crear o agendar una tarea o recordatorio.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'title': {'type': 'STRING', 'description': 'Título o concepto de la tarea/recordatorio.'},
-                'priority': {'type': 'STRING', 'description': 'Prioridad: p1_urgent, p2_high, p3_medium, p4_low.'},
-                'recurrence': {'type': 'STRING', 'description': 'Recurrencia opcional: none, daily, weekly, biweekly, monthly, yearly.'},
-                'dueAt': {'type': 'STRING', 'description': 'Fecha y hora estimada (formato ISO 8601 ej: "2026-09-15T10:00:00").'},
-                'notes': {'type': 'STRING', 'description': 'Notas o comentarios adicionales.'},
-              },
-              'required': ['title'],
-            },
-          },
-          {
-            'name': 'proposeCreateHabit',
-            'description': 'Propone la creación de un nuevo hábito o rutina personal en Hábitos mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'title': {'type': 'STRING', 'description': 'Nombre del hábito (ej: "Meditar 10 min", "No comer azúcar").'},
-                'isNegative': {'type': 'BOOLEAN', 'description': 'true si es un mal hábito a evitar/romper, false si es positivo para construir.'},
-              },
-              'required': ['title'],
-            },
-          },
-          {
-            'name': 'proposeCreateTransaction',
-            'description': 'Propone registrar un nuevo movimiento financiero (gasto o ingreso) en Finanzas Quebrado mostrando una tarjeta interactiva en el chat con botones de Confirmar y Negar antes de guardarlo.',
-            'parameters': {
-              'type': 'OBJECT',
-              'properties': {
-                'title': {'type': 'STRING', 'description': 'Descripción o concepto del movimiento (ej: "Almuerzo", "Cobro freelance").'},
-                'amount': {'type': 'NUMBER', 'description': 'Monto del movimiento financiero.'},
-                'type': {'type': 'STRING', 'description': 'Tipo de transacción: "expense" (gasto) o "income" (ingreso).'},
-                'currency': {'type': 'STRING', 'description': 'Moneda: "usd" o "ves".'},
-                'accountName': {'type': 'STRING', 'description': 'Nombre de la cuenta si se especificó (ej: "Banesco", "Zelle", "Efectivo").'},
-              },
-              'required': ['title', 'amount'],
-            },
-          },
+          // Herramientas de escritura (spec 03), misma fuente que el SDK.
+          ...writeToolDeclarationsJson(),
         ],
       },
     ];
@@ -755,7 +970,7 @@ $rolesSummary
   }
 
   /// Ejecución local de herramientas y generación automática de Artefactos estructurados
-  Future<ToolExecutionResult> executeFunctionCall(
+  Future<ToolExecutionResult> _executeReadTool(
     String functionName,
     Map<String, dynamic> arguments, {
     required String sessionId,
@@ -1180,13 +1395,17 @@ $rolesSummary
           },
         );
 
+        // Lectura de la lista blanca (S3-01): al modelo solo le llegan los
+        // nombres saneados, como en los catálogos del contexto.
         return ToolExecutionResult(
           resultData: {
             'totalBalanceUsd': totalUsd,
             'totalBalanceBs': totalBs,
             'bcvRate': appState.bcvRate,
             'euroRate': appState.euroRate,
-            'accounts': accountsData,
+            'accounts': [
+              for (final a in accountsData) {...a, 'name': contextLine(a['name'] as String)},
+            ],
             'pendingPaymentsCount': appState.pendingPaymentsToday.length,
           },
           generatedArtifact: artifact,
@@ -1308,35 +1527,6 @@ $rolesSummary
 
         return ToolExecutionResult(
           resultData: {'count': list.length, 'reminders': remindersData},
-        );
-
-      case 'createReminder':
-        final title = arguments['title']?.toString() ?? 'Nuevo recordatorio';
-        final pStr = arguments['priority']?.toString();
-        final rStr = arguments['recurrence']?.toString();
-
-        final priority = ReminderPriority.fromString(pStr);
-        final recurrence = ReminderRecurrence.fromRrule(rStr);
-
-        final newReminder = ReminderModel(
-          id: const Uuid().v4(),
-          title: title,
-          priority: priority,
-          rrule: recurrence.rruleString,
-          dueAt: DateTime.now().add(const Duration(hours: 2)),
-        );
-
-        await remindersState.saveReminder(newReminder);
-
-        return ToolExecutionResult(
-          resultData: {
-            'success': true,
-            'createdReminder': {
-              'title': newReminder.title,
-              'priority': newReminder.priority.label,
-              'dueAt': newReminder.formattedDueTime,
-            },
-          },
         );
 
       case 'getWeeklySchedule':
@@ -1558,283 +1748,6 @@ $rolesSummary
             'status': 'proposed',
             'action': 'schedule_big_rock',
             'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para agendar la Gran Roca "$title" en tu rol ${matchedRole?.name ?? "vital"} el día $dayLabel.',
-            'summary': summaryList,
-          },
-          generatedArtifact: artifact,
-        );
-
-      case 'proposeCreateDiarioEntry':
-        final title = (arguments['title']?.toString() ?? '').trim();
-        final contentText = (arguments['contentText']?.toString() ?? '').trim();
-        final contactName = arguments['contactName']?.toString().trim();
-        final category = arguments['category']?.toString().trim() ?? 'salud';
-        final templateName = arguments['templateName']?.toString().trim() ??
-            arguments['model']?.toString().trim();
-
-        final dateStr = arguments['date']?.toString().trim();
-        DateTime entryDate = DateTime.now();
-        if (dateStr != null && dateStr.isNotEmpty) {
-          final parsed = DateTime.tryParse(dateStr);
-          if (parsed != null) entryDate = parsed;
-        }
-
-        final now = DateTime.now();
-        final isToday = entryDate.year == now.year && entryDate.month == now.month && entryDate.day == now.day;
-        final months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-        final formattedDateStr = isToday ? 'Hoy' : '${entryDate.day} ${months[entryDate.month - 1]} ${entryDate.year}';
-
-        DiarioContact? targetContact;
-        if (contactName != null && contactName.isNotEmpty) {
-          targetContact = _findContact(contactName);
-        }
-
-        final contactDisplay = targetContact != null
-            ? targetContact.name
-            : (contactName != null && contactName.isNotEmpty ? contactName : 'General');
-
-        final templateDisplay = (templateName != null &&
-                templateName.isNotEmpty &&
-                templateName.toLowerCase() != 'nota simple' &&
-                !templateName.toLowerCase().contains('sin modelo'))
-            ? templateName
-            : 'Nota simple (Sin modelo)';
-
-        final autoMentionIds = diarioState.extractMentionedContactIds(contentText);
-        if (targetContact != null) {
-          autoMentionIds.remove(targetContact.id);
-        }
-
-        final summaryList = <Map<String, String>>[
-          if (title.isNotEmpty) {'label': 'Título', 'value': title},
-          {'label': 'Contacto', 'value': contactDisplay},
-          if (autoMentionIds.isNotEmpty)
-            {
-              'label': 'Menciones',
-              'value': autoMentionIds
-                  .map((id) => diarioState.getContactById(id)?.name)
-                  .whereType<String>()
-                  .join(', ')
-            },
-          {'label': 'Fecha', 'value': formattedDateStr},
-          {'label': 'Modelo', 'value': templateDisplay},
-          {'label': 'Detalle', 'value': contentText.length > 80 ? '${contentText.substring(0, 80)}...' : contentText},
-        ];
-
-        final artifactTitle = title.isNotEmpty
-            ? 'Nueva Entrada: $title'
-            : (contactDisplay != 'General' ? 'Nueva Nota para $contactDisplay' : 'Nueva Nota');
-
-        final artifact = ChatArtifactModel(
-          id: const Uuid().v4(),
-          sessionId: sessionId,
-          type: ArtifactType.actionProposal,
-          title: artifactTitle,
-          content: 'Por favor confirma si deseas registrar esta entrada en tu Diario Jottache para $contactDisplay.',
-          metadata: {
-            'action': 'create_diario_entry',
-            'status': 'pending',
-            'summary': summaryList,
-            'data': {
-              'title': title,
-              'contentText': contentText,
-              if (contactName != null && contactName.isNotEmpty) 'contactName': contactName,
-              if (targetContact != null) 'contactId': targetContact.id,
-              if (autoMentionIds.isNotEmpty) 'mentionedContactIds': autoMentionIds,
-              'date': entryDate.toIso8601String(),
-              'category': category,
-              'templateName': templateDisplay,
-            },
-          },
-        );
-
-        return ToolExecutionResult(
-          resultData: {
-            'status': 'proposed',
-            'action': 'create_diario_entry',
-            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para registrar la entrada "$title" en el Diario Jottache para $contactDisplay. Pide al usuario que confirme mediante el botón.',
-            'summary': summaryList,
-          },
-          generatedArtifact: artifact,
-        );
-
-      case 'proposeCreateContact':
-        final name = (arguments['name']?.toString() ?? '').trim();
-        final nickname = arguments['nickname']?.toString().trim();
-        final relationship = arguments['relationship']?.toString().trim();
-        final phone = arguments['phone']?.toString().trim();
-        final notes = arguments['notes']?.toString().trim();
-        final age = arguments['age'] is num
-            ? (arguments['age'] as num).toInt()
-            : int.tryParse(arguments['age']?.toString() ?? '');
-        String? birthdate = arguments['birthdate']?.toString().trim();
-
-        if ((birthdate == null || birthdate.isEmpty) && age != null && age > 0) {
-          final now = DateTime.now();
-          birthdate = '${now.year - age}-01-01';
-        }
-
-        final summaryList = <Map<String, String>>[
-          {'label': 'Nombre', 'value': name.isNotEmpty ? name : 'Sin especificar'},
-          if (nickname != null && nickname.isNotEmpty) {'label': 'Apodo', 'value': nickname},
-          if (relationship != null && relationship.isNotEmpty) {'label': 'Relación', 'value': relationship},
-          if (phone != null && phone.isNotEmpty) {'label': 'Teléfono', 'value': phone},
-          if (age != null && age > 0) {'label': 'Edad aprox.', 'value': '$age años'},
-          if (birthdate != null && birthdate.isNotEmpty) {'label': 'Cumpleaños', 'value': birthdate},
-          if (notes != null && notes.isNotEmpty) {'label': 'Notas', 'value': notes},
-        ];
-
-        final artifact = ChatArtifactModel(
-          id: const Uuid().v4(),
-          sessionId: sessionId,
-          type: ArtifactType.actionProposal,
-          title: 'Nuevo Contacto: ${name.isNotEmpty ? name : "Sin nombre"}',
-          content: 'Por favor confirma si los datos son correctos para registrar este contacto en tu Diario Jottache.',
-          metadata: {
-            'action': 'create_contact',
-            'status': 'pending',
-            'summary': summaryList,
-            'data': {
-              'name': name,
-              if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
-              if (relationship != null && relationship.isNotEmpty) 'relationship': relationship,
-              if (phone != null && phone.isNotEmpty) 'phone': phone,
-              if (birthdate != null && birthdate.isNotEmpty) 'birthdate': birthdate,
-              if (notes != null && notes.isNotEmpty) 'notes': notes,
-            },
-          },
-        );
-
-        return ToolExecutionResult(
-          resultData: {
-            'status': 'proposed',
-            'action': 'create_contact',
-            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para crear el contacto "$name". Pide al usuario que confirme mediante el botón.',
-            'summary': summaryList,
-          },
-          generatedArtifact: artifact,
-        );
-
-      case 'proposeCreateReminder':
-        final title = (arguments['title']?.toString() ?? 'Nuevo recordatorio').trim();
-        final priority = arguments['priority']?.toString().trim();
-        final recurrence = arguments['recurrence']?.toString().trim();
-        final dueAt = arguments['dueAt']?.toString().trim();
-        final notes = arguments['notes']?.toString().trim();
-
-        final summaryList = <Map<String, String>>[
-          {'label': 'Título', 'value': title},
-          if (priority != null && priority.isNotEmpty) {'label': 'Prioridad', 'value': priority},
-          if (dueAt != null && dueAt.isNotEmpty) {'label': 'Fecha/Hora', 'value': dueAt},
-          if (recurrence != null && recurrence.isNotEmpty) {'label': 'Recurrencia', 'value': recurrence},
-          if (notes != null && notes.isNotEmpty) {'label': 'Notas', 'value': notes},
-        ];
-
-        final artifact = ChatArtifactModel(
-          id: const Uuid().v4(),
-          sessionId: sessionId,
-          type: ArtifactType.actionProposal,
-          title: 'Nuevo Recordatorio: $title',
-          content: 'Por favor confirma si deseas programar este recordatorio en el sistema.',
-          metadata: {
-            'action': 'create_reminder',
-            'status': 'pending',
-            'summary': summaryList,
-            'data': {
-              'title': title,
-              if (priority != null && priority.isNotEmpty) 'priority': priority,
-              if (recurrence != null && recurrence.isNotEmpty) 'recurrence': recurrence,
-              if (dueAt != null && dueAt.isNotEmpty) 'dueAt': dueAt,
-              if (notes != null && notes.isNotEmpty) 'notes': notes,
-            },
-          },
-        );
-
-        return ToolExecutionResult(
-          resultData: {
-            'status': 'proposed',
-            'action': 'create_reminder',
-            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para crear el recordatorio "$title".',
-            'summary': summaryList,
-          },
-          generatedArtifact: artifact,
-        );
-
-      case 'proposeCreateHabit':
-        final title = (arguments['title']?.toString() ?? 'Nuevo hábito').trim();
-        final isNegative = arguments['isNegative'] == true || arguments['isNegative']?.toString().toLowerCase() == 'true';
-
-        final summaryList = <Map<String, String>>[
-          {'label': 'Hábito', 'value': title},
-          {'label': 'Tipo', 'value': isNegative ? 'Evitar / Romper mal hábito' : 'Construir hábito positivo'},
-          {'label': 'Frecuencia', 'value': 'Diario'},
-        ];
-
-        final artifact = ChatArtifactModel(
-          id: const Uuid().v4(),
-          sessionId: sessionId,
-          type: ArtifactType.actionProposal,
-          title: 'Nuevo Hábito: $title',
-          content: 'Por favor confirma si deseas registrar este hábito en tu seguimiento de Hábitos.',
-          metadata: {
-            'action': 'create_habit',
-            'status': 'pending',
-            'summary': summaryList,
-            'data': {
-              'title': title,
-              'isNegative': isNegative,
-            },
-          },
-        );
-
-        return ToolExecutionResult(
-          resultData: {
-            'status': 'proposed',
-            'action': 'create_habit',
-            'message': 'Se ha generado una tarjeta interactiva en el chat con los botones Confirmar o Negar para el hábito "$title".',
-            'summary': summaryList,
-          },
-          generatedArtifact: artifact,
-        );
-
-      case 'proposeCreateTransaction':
-        final title = (arguments['title']?.toString() ?? 'Transacción').trim();
-        final amount = (arguments['amount'] as num?)?.toDouble() ?? 0.0;
-        final type = arguments['type']?.toString().toLowerCase() == 'income' ? 'income' : 'expense';
-        final currency = arguments['currency']?.toString().toLowerCase() ?? 'usd';
-        final accountName = arguments['accountName']?.toString().trim();
-
-        final summaryList = <Map<String, String>>[
-          {'label': 'Concepto', 'value': title},
-          {'label': 'Tipo', 'value': type == 'income' ? 'Ingreso (+)' : 'Gasto (-)'},
-          {'label': 'Monto', 'value': '${amount.toStringAsFixed(2)} ${currency.toUpperCase()}'},
-          if (accountName != null && accountName.isNotEmpty) {'label': 'Cuenta', 'value': accountName},
-        ];
-
-        final artifact = ChatArtifactModel(
-          id: const Uuid().v4(),
-          sessionId: sessionId,
-          type: ArtifactType.actionProposal,
-          title: '${type == "income" ? "Ingreso" : "Gasto"}: $title',
-          content: 'Por favor confirma si deseas registrar este movimiento financiero en Finanzas Quebrado.',
-          metadata: {
-            'action': 'create_transaction',
-            'status': 'pending',
-            'summary': summaryList,
-            'data': {
-              'amount': amount,
-              'type': type,
-              'currency': currency,
-              'description': title,
-              if (accountName != null && accountName.isNotEmpty) 'accountName': accountName,
-            },
-          },
-        );
-
-        return ToolExecutionResult(
-          resultData: {
-            'status': 'proposed',
-            'action': 'create_transaction',
-            'message': 'Se ha generado una tarjeta interactiva en el chat para registrar el movimiento de ${amount.toStringAsFixed(2)} ${currency.toUpperCase()}.',
             'summary': summaryList,
           },
           generatedArtifact: artifact,

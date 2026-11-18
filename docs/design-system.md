@@ -218,7 +218,7 @@ Sin cambios en la spec 01.
 ### 7.2 Patrones de layout
 
 - **Shell de la suite** (`widgets/responsive_suite_scaffold.dart`, `ResponsiveSuiteScaffold`, montado por `widgets/suite_router.dart`): menú ☰ (`SuiteDrawer`) en `< 840` y riel en `≥ 840`. El inicio (`/`) es la conversación con Ortiz (`screens/ortiz_home_screen.dart`, vía `SuiteOrtizHome`). El launcher y el command center se borraron en la spec 02.
-- **Sheets responsivos** (`widgets/responsive_sheet_helper.dart`, `showResponsiveSheet`): en móvil `showModalBottomSheet`; en escritorio **panel lateral derecho** (ancho por defecto 480, mínimo 380, máximo 90 % de la ventana), radio `OrtizRadius.sheet` a la izquierda y fondo `surface`, con **Navigator anidado** para abrir subpantallas dentro del panel. Usar siempre este helper para sheets nuevos (hoy convive con 63 `showModalBottomSheet` directos).
+- **Sheets responsivos** (`widgets/responsive_sheet_helper.dart`, `showResponsiveSheet`): en móvil `showModalBottomSheet`; en escritorio **panel lateral derecho** (ancho por defecto 480, mínimo 380, máximo 90 % de la ventana), radio `OrtizRadius.sheet` a la izquierda y fondo `surface`, con **Navigator anidado** para abrir subpantallas dentro del panel. Barrita de arrastre: `showDragHandle: true` (color `dragHandleColor` = `line` del tema, solo en la hoja inferior) junto con `backgroundColor: null` para que la hoja pinte `surface` y la barrita quede sobre ella; el contenido no pinta su propio fondo. Usar siempre este helper para sheets nuevos (hoy convive con 63 `showModalBottomSheet` directos).
 - **Scroll horizontal en escritorio** (`ResponsiveHorizontalScroll`, mismo archivo): en escritorio añade botones ◀ ▶ a filas de chips/filtros que en móvil se desplazan con el dedo.
 - **Dos columnas en escritorio**: Finanzas (dashboard + subnav), Hábitos (lista + métricas en vivo), Diario (contactos + detalle maestro-detalle). Patrón: columna izquierda de lista/navegación, derecha de detalle o métricas. Sin tarjetas: las columnas se separan con una línea `line` de 1 px.
 
@@ -228,7 +228,7 @@ Sin cambios en la spec 01.
 | --- | --- | --- |
 | `OrtizTheme`, `OrtizTokens`, `SuiteApp`, `OrtizType`/`OrtizFontSize`, `OrtizSpace`/`OrtizRadius`/`OrtizIconSize`/`OrtizStroke`/`OrtizSize`, `OrtizMotion` | `theme/` | Siempre (§2–6). `OrtizFontSize.micro` (9) solo en vistas muy densas (celdas de calendario, badges). |
 | `OrtizSection` | `widgets/ortiz/ortiz_section.dart` | Agrupar contenido **sin tarjeta**: título `caption` `muted`, separación `xxl`; `divided` para líneas entre filas; `surface` solo para el bloque que de verdad debe destacarse. |
-| `OrtizListRow` | `widgets/ortiz/ortiz_list_row.dart` | Fila de lista con punto de color (app, bolsillo, categoría), subtítulo y acción; hover/foco visibles; alto mínimo 48. |
+| `OrtizListRow` | `widgets/ortiz/ortiz_list_row.dart` | Fila de lista con punto de color (app, bolsillo, categoría), subtítulo y acción; hover/foco visibles; alto mínimo 48. En un selector, la opción vigente lleva `selected: true, autofocus: true` para que el teclado empiece ahí. |
 | `OrtizPill` | `widgets/ortiz/ortiz_pill.dart` | Estado, moneda o etiqueta; elige solo el color de texto con contraste. |
 | `OrtizAmount` | `widgets/ortiz/ortiz_amount.dart` | Montos (cifras tabulares); `animate` cuenta hasta el valor; `format:` para reutilizar `formatUSD`/`formatBs`. |
 | `OrtizProgressBar` | `widgets/ortiz/ortiz_progress.dart` | Avance de metas; el color del bolsillo va aquí y en el punto, no de fondo. |

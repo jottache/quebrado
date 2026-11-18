@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../widgets/claymorphic_background.dart';
+import '../widgets/default_account_settings.dart';
 import 'category_management_screen.dart';
 import '../theme/colors.dart';
 import 'account_management_screen.dart';
@@ -111,6 +112,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _buildSectionFooter(
               "Cambia de contabilidad, crea nuevos libros aislados para tus negocios o renómbralos.",
+            ),
+            SizedBox(height: OrtizSpace.xxl),
+
+            // Cuentas predeterminadas por moneda (spec 03, U1): van junto al
+            // libro activo porque valen solo para él.
+            _buildSectionHeader("Cuentas predeterminadas por moneda"),
+            const DefaultAccountRows(),
+            _buildSectionFooter(
+              "Ortiz usa estas cuentas cuando le pides registrar algo sin decir la cuenta. "
+              "Valen solo para el libro «${appState.activeProfileName}».",
             ),
             SizedBox(height: OrtizSpace.xxl),
 

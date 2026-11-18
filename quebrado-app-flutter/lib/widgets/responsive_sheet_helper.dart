@@ -4,13 +4,19 @@ import '../theme/ortiz_space.dart';
 import '../theme/ortiz_tokens.dart';
 
 /// Helper universal para abrir BottomSheets en móvil y Drawer/Side-Sheets en Desktop/Web.
+///
+/// [showDragHandle] pinta la barrita de arrastre del tema
+/// (`bottomSheetTheme.dragHandleColor`) solo en la hoja inferior (`< 840`);
+/// el panel lateral no la lleva. Con ella, la hoja pinta su fondo: pasa
+/// `backgroundColor: null` (superficie del tema) en vez de pintarlo dentro.
 Future<T?> showResponsiveSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isScrollControlled = true,
-  Color backgroundColor = Colors.transparent,
+  Color? backgroundColor = Colors.transparent,
   double desktopWidth = 480,
   String? title,
+  bool showDragHandle = false,
 }) {
   // Mismo Navigator que antes: la hoja inferior usa el más cercano
   // (`showModalBottomSheet`) y el panel lateral, el raíz (`showGeneralDialog`).
@@ -22,6 +28,7 @@ Future<T?> showResponsiveSheet<T>({
       isScrollControlled: isScrollControlled,
       backgroundColor: backgroundColor,
       desktopWidth: desktopWidth,
+      showDragHandle: showDragHandle,
     ),
   );
 }
@@ -32,14 +39,17 @@ Future<T?> showResponsiveSheet<T>({
 ///
 /// La usan también las rutas de detalle del router (`SuiteSheetPage`), que
 /// pasan la propia `Page` como [settings].
+///
+/// [showDragHandle]: barrita de arrastre del tema, solo en la hoja inferior.
 Route<T> buildResponsiveSheetRoute<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isScrollControlled = true,
-  Color backgroundColor = Colors.transparent,
+  Color? backgroundColor = Colors.transparent,
   double desktopWidth = 480,
   bool sidePanelOnDesktop = true,
   RouteSettings? settings,
+  bool showDragHandle = false,
 }) {
   final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
@@ -55,6 +65,7 @@ Route<T> buildResponsiveSheetRoute<T>({
       barrierOnTapHint: localizations.scrimOnTapHint(localizations.bottomSheetLabel),
       backgroundColor: backgroundColor,
       modalBarrierColor: Theme.of(context).bottomSheetTheme.modalBarrierColor,
+      showDragHandle: showDragHandle,
       settings: settings,
     );
   }

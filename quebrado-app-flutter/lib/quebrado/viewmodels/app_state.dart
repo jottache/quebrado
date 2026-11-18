@@ -331,6 +331,8 @@ class AppState extends ChangeNotifier {
         final allPartials = await DatabaseHelper.instance.getAllPartials();
         partialPayments = allPartials.map((e) => RecurringPaymentPartial.fromMap(e)).toList();
 
+        await _loadLocalDefaultAccounts();
+
         _loadStringSet(
           await DatabaseHelper.instance.getSetting(fulfilledSuggestionsSettingKey),
           _fulfilledPocketSuggestions,
@@ -378,6 +380,12 @@ class AppState extends ChangeNotifier {
     }
     _loadStringSet(spSettings[fulfilledSuggestionsSettingKey], _fulfilledPocketSuggestions);
     _loadStringSet(spSettings['manual_savings_confirmed'], _manualSavingsConfirmed);
+    // La tabla `settings` es global: cada clave lleva el libro (spec 03, PA-01).
+    for (final entry in spSettings.entries) {
+      if (entry.key.startsWith(defaultAccountSettingPrefix)) {
+        _applyDefaultAccountSetting(entry.key, entry.value);
+      }
+    }
   }
 
   Future<void> _ensureDefaultAccountsForActiveProfile() async {
@@ -3457,6 +3465,8 @@ class AppState extends ChangeNotifier {
     // Recibe el movimiento registrado (solo si [actualAmount] > 0), para que
     // quien confirma pueda devolverlo (acciones rápidas, «Ver»).
     void Function(Transaction transaction)? onTransactionRecorded,
+    // Fecha del movimiento («ya pagué el internet ayer»); por defecto, ahora.
+    DateTime? transactionDate,
   }) async {
     final dateToConfirm = occurrenceDate ?? DateTime.now();
     final today = dateToConfirm.copyWith(
@@ -3493,7 +3503,7 @@ class AppState extends ChangeNotifier {
     if (actualAmount > 0.0) {
       final newTx = Transaction(
         id: "${DateTime.now().millisecondsSinceEpoch}_rec",
-        date: DateTime.now(),
+        date: transactionDate ?? DateTime.now(),
         amount: actualAmount,
         currency: targetCurrency,
         destinationPocketId: payment.pocketId,
@@ -3543,6 +3553,11 @@ class AppState extends ChangeNotifier {
     double? customExchangeRate,
     String? customNote,
     String? overrideAccountId,
+    // Recibe el movimiento y el parcial registrados, para que quien registra
+    // pueda deshacerlos (Ortiz: `deleteTransaction` + [deletePartialPayment]).
+    void Function(Transaction transaction, RecurringPaymentPartial partial)? onRecorded,
+    // Fecha del movimiento («pagué 400 del internet ayer»); por defecto, ahora.
+    DateTime? transactionDate,
   }) async {
     final today = occurrenceDate.copyWith(
       hour: 0,
@@ -3606,7 +3621,7 @@ class AppState extends ChangeNotifier {
     final txId = "${DateTime.now().millisecondsSinceEpoch}_partial";
     final newTx = Transaction(
       id: txId,
-      date: DateTime.now(),
+      date: transactionDate ?? DateTime.now(),
       amount: txAmount,
       currency: targetCurrency,
       destinationPocketId: payment.pocketId,
@@ -3635,8 +3650,44 @@ class AppState extends ChangeNotifier {
       await DatabaseHelper.instance.insertPartial(partialObj.toMap());
     }
     partialPayments.add(partialObj);
+    onRecorded?.call(newTx, partialObj);
 
     // Update pending list
+    await updatePendingPaymentsToday();
+    notifyListeners();
+  }
+
+  /// `yyyy-MM-dd` de una ocurrencia, el mismo formato con el que se guardan
+  /// confirmaciones y parciales.
+  static String _occurrenceDateKey(DateTime date) =>
+      "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+  /// Quita la confirmación de [paymentId] en el día de [occurrenceDate]
+  /// (Deshacer de Ortiz). No borra el movimiento: eso lo hace
+  /// [deleteTransaction] aparte.
+  Future<void> undoRecurringConfirmation(String paymentId, DateTime occurrenceDate) async {
+    final dateStr = _occurrenceDateKey(occurrenceDate);
+    if (_usesSupabase) {
+      await SupabaseService.instance.deleteConfirmation(paymentId, dateStr);
+    }
+    if (!kIsWeb) {
+      await DatabaseHelper.instance.deleteConfirmation(paymentId, dateStr);
+    }
+    _confirmedKeys.remove("${paymentId}_$dateStr");
+    await updatePendingPaymentsToday();
+    notifyListeners();
+  }
+
+  /// Borra un pago parcial (Deshacer de Ortiz). No borra su movimiento: eso lo
+  /// hace [deleteTransaction] aparte.
+  Future<void> deletePartialPayment(String partialId) async {
+    if (_usesSupabase) {
+      await SupabaseService.instance.deletePartial(partialId);
+    }
+    if (!kIsWeb) {
+      await DatabaseHelper.instance.deletePartial(partialId);
+    }
+    partialPayments.removeWhere((p) => p.id == partialId);
     await updatePendingPaymentsToday();
     notifyListeners();
   }
@@ -3754,7 +3805,122 @@ class AppState extends ChangeNotifier {
       accounts.removeWhere((a) => a.id == id);
     }
     _cachedAccounts[_activeDbName] = List<Account>.from(accounts);
+
+    // Si era la predeterminada de su moneda, el libro queda sin predeterminada.
+    final defaults = _defaultAccountIds[_activeDbName];
+    if (defaults != null) {
+      final cleared = defaults.entries.where((e) => e.value == id).map((e) => e.key).toList();
+      for (final currency in cleared) {
+        defaults.remove(currency);
+        await _saveSetting(defaultAccountSettingKey(_activeDbName, currency), '');
+      }
+    }
     notifyListeners();
+  }
+
+  // MARK: - Cuenta predeterminada por moneda (spec 03, PA-01)
+
+  /// Prefijo de la clave de ajuste `default_account:<profileId>:<currency>`.
+  ///
+  /// `<profileId>` es [activeDbName] en los dos modos: el `profile_id` de
+  /// Supabase y el nombre del archivo SQLite del libro son el mismo id
+  /// (`quebrado.db`, `quebrado_<ms>.db`). `<currency>` es [CurrencyType.name]
+  /// (`usd`, `bsBCV`, `eur`). El valor es el id de la cuenta; `''` = ninguna.
+  static const String defaultAccountSettingPrefix = 'default_account:';
+
+  static String defaultAccountSettingKey(String profileId, CurrencyType currency) =>
+      '$defaultAccountSettingPrefix$profileId:${currency.name}';
+
+  /// Libro → moneda → id de cuenta, tal como está guardado (sin validar).
+  final Map<String, Map<CurrencyType, String>> _defaultAccountIds = {};
+
+  /// Cuenta predeterminada de [currency] en el libro activo, o null si no hay,
+  /// si la cuenta ya no existe o si ya no es de esa moneda.
+  Account? defaultAccountFor(CurrencyType currency) {
+    final id = _defaultAccountIds[_activeDbName]?[currency];
+    if (id == null || id.isEmpty) return null;
+    final account = accounts.where((a) => a.id == id).firstOrNull;
+    return account?.currency == currency ? account : null;
+  }
+
+  /// Id de [defaultAccountFor], con la misma validación.
+  String? defaultAccountIdFor(CurrencyType currency) => defaultAccountFor(currency)?.id;
+
+  /// Fija (o quita, con [accountId] null) la cuenta predeterminada de
+  /// [currency] en el libro activo. Lanza [ArgumentError] si la cuenta no
+  /// existe en el libro activo o no es de esa moneda.
+  ///
+  /// Guarda primero y cambia la memoria solo si se guardó: devuelve `false`
+  /// (sin cambiar nada) si falló el guardado, para que la pantalla lo diga.
+  Future<bool> setDefaultAccount(CurrencyType currency, String? accountId) async {
+    if (accountId != null) {
+      final account = accounts.where((a) => a.id == accountId).firstOrNull;
+      if (account == null) {
+        throw ArgumentError.value(accountId, 'accountId', 'La cuenta no existe en el libro activo');
+      }
+      if (account.currency != currency) {
+        throw ArgumentError.value(accountId, 'accountId', 'La cuenta no es de la moneda ${currency.name}');
+      }
+    }
+    final profileId = _activeDbName;
+    try {
+      await saveDefaultAccountSetting(
+          defaultAccountSettingKey(profileId, currency), accountId ?? '');
+    } catch (e) {
+      if (kDebugMode) print('Error saving default account: $e');
+      return false;
+    }
+    _setDefaultAccountInMemory(profileId, currency, accountId);
+    notifyListeners();
+    return true;
+  }
+
+  /// Guarda la clave de cuenta predeterminada y **lanza** si falla (a
+  /// diferencia de [_saveSetting], que se traga los errores): en Supabase si
+  /// está activo (la SQLite es copia y su fallo no cuenta); si no, en SQLite.
+  /// Sobrescribible en tests para simular el fallo.
+  @protected
+  @visibleForTesting
+  Future<void> saveDefaultAccountSetting(String key, String value) async {
+    if (_usesSupabase) {
+      await SupabaseService.instance.saveSettingOrThrow(key, value);
+      if (!kIsWeb) {
+        try {
+          await DatabaseHelper.instance.setSetting(key, value);
+        } catch (_) {}
+      }
+      return;
+    }
+    if (!kIsWeb) await DatabaseHelper.instance.setSetting(key, value);
+  }
+
+  void _setDefaultAccountInMemory(String profileId, CurrencyType currency, String? accountId) {
+    if (accountId == null || accountId.isEmpty) {
+      _defaultAccountIds[profileId]?.remove(currency);
+    } else {
+      (_defaultAccountIds[profileId] ??= {})[currency] = accountId;
+    }
+  }
+
+  /// Aplica una clave `default_account:<profileId>:<currency>` leída de
+  /// Supabase. Ignora las claves mal formadas.
+  void _applyDefaultAccountSetting(String key, String value) {
+    final rest = key.substring(defaultAccountSettingPrefix.length);
+    final sep = rest.lastIndexOf(':');
+    if (sep <= 0) return;
+    final currencyName = rest.substring(sep + 1);
+    final currency = CurrencyType.values.where((c) => c.name == currencyName).firstOrNull;
+    if (currency == null) return;
+    _setDefaultAccountInMemory(rest.substring(0, sep), currency, value);
+  }
+
+  /// Lee de la SQLite del libro activo sus claves de cuenta predeterminada.
+  Future<void> _loadLocalDefaultAccounts() async {
+    final profileId = _activeDbName;
+    for (final currency in CurrencyType.values) {
+      final value = await DatabaseHelper.instance.getSetting(defaultAccountSettingKey(profileId, currency));
+      _setDefaultAccountInMemory(profileId, currency, value);
+    }
   }
 
   // MARK: - Exchange Manager
@@ -4133,6 +4299,7 @@ class AppState extends ChangeNotifier {
       _cachedCategories[_activeDbName] = List<TransactionCategory>.from(categories);
       _cachedTransactions[_activeDbName] = List<Transaction>.from(transactions);
       _cachedRecurring[_activeDbName] = List<RecurringPayment>.from(recurringPayments);
+      await _loadLocalDefaultAccounts();
       await updatePendingPaymentsToday();
       notifyListeners();
     }
@@ -4176,7 +4343,17 @@ class AppState extends ChangeNotifier {
     _cachedCategories.remove(id);
     _cachedTransactions.remove(id);
     _cachedRecurring.remove(id);
-    
+
+    // Cuentas predeterminadas del libro: en Supabase la tabla `settings` es
+    // global, así que se vacían sus claves (`''` = ninguna; no hay borrado de
+    // ajustes). En SQLite viven en el archivo del libro, que se borra abajo.
+    _defaultAccountIds.remove(id);
+    if (_usesSupabase) {
+      for (final currency in CurrencyType.values) {
+        await SupabaseService.instance.saveSetting(defaultAccountSettingKey(id, currency), '');
+      }
+    }
+
     if (_activeDbName == id) {
       await switchProfile('quebrado.db');
     } else {
