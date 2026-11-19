@@ -99,6 +99,14 @@ void main() {
     expect(params, isNot(contains('age')));
   });
 
+  test('registerTransaction acepta bookName opcional y payRecurringPayment no', () {
+    List<String> params(String tool) =>
+        writeToolSpecByName(tool)!.params.map((p) => p.name).toList();
+    expect(params('registerTransaction'), contains('bookName'));
+    expect(writeToolSpecByName('registerTransaction')!.requiredParams, isNot(contains('bookName')));
+    expect(params('payRecurringPayment'), isNot(contains('bookName')));
+  });
+
   test('writeToolSpecByName devuelve null si no existe', () {
     expect(writeToolSpecByName('proposeCreateTransaction'), isNull);
   });

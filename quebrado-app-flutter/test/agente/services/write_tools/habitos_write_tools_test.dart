@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrado_app_flutter/agente/services/write_tools/habitos_write_tools.dart';
 import 'package:quebrado_app_flutter/agente/services/write_tools/write_tool_contract.dart';
 import 'package:quebrado_app_flutter/agente/services/write_tools/write_tool_specs.dart';
+import 'package:quebrado_app_flutter/diario/diario.dart';
 import 'package:quebrado_app_flutter/habitos/models/habit_log_model.dart';
 import 'package:quebrado_app_flutter/habitos/models/habit_model.dart';
 import 'package:quebrado_app_flutter/habitos/services/habitos_supabase_service.dart';
@@ -41,6 +42,35 @@ class _FakeHabitosService extends HabitosSupabaseService {
   Future<void> deleteHabit(String habitId) async => deletedHabits.add(habitId);
 }
 
+/// Diario sin red con contactos inventados (para vincular hábitos).
+class _FakeDiarioService extends DiarioSupabaseService {
+  _FakeDiarioService() : super.forTesting();
+
+  @override
+  bool get isReady => false;
+
+  @override
+  Future<List<DiarioContact>> getContacts() async => [
+        DiarioContact(id: 'c-tomas', name: 'Tomás Rivas', nickname: 'Profe'),
+        DiarioContact(id: 'c-mateo-r', name: 'Mateo Rojas'),
+        DiarioContact(id: 'c-mateo-s', name: 'Mateo Salas'),
+      ];
+
+  @override
+  Future<List<DiarioTemplate>> getTemplates() async => [];
+
+  @override
+  Future<List<DiarioEntry>> getEntries() async => [];
+}
+
+Future<DiarioState> _diario() async {
+  final state = DiarioState(service: _FakeDiarioService());
+  while (state.isLoading) {
+    await Future<void>.delayed(Duration.zero);
+  }
+  return state;
+}
+
 const _today = '2026-11-18';
 
 Future<HabitosState> _state(_FakeHabitosService service) async {
@@ -56,14 +86,12 @@ void main() {
   final now = DateTime(2026, 11, 18, 10);
   WriteContext ctx({
     bool untrusted = false,
-    bool second = false,
     bool confirmed = false,
     String userText = 'ya leí hoy',
   }) =>
       WriteContext(
         userText: userText,
         untrustedRead: untrusted,
-        directWriteDone: second,
         confirmedByUser: confirmed,
         now: () => now,
       );
@@ -258,19 +286,19 @@ void main() {
       expect(state.isCompleted('h-leer', _today), isFalse);
     });
 
-    test('segunda escritura del turno sale como tarjeta y al confirmar se guarda', () async {
+    test('tras leer texto libre sale como tarjeta y al confirmar se guarda', () async {
       final (state, _, tools) = await setup([leer]);
 
-      final out = await tools.execute(WriteToolNames.markHabitDone, {'habitName': 'Leer'}, ctx(second: true));
+      final out = await tools.execute(WriteToolNames.markHabitDone, {'habitName': 'Leer'}, ctx(untrusted: true));
       expect(out.result.isProposal, isTrue);
-      expect(out.result.reasons, ['multiple_writes']);
+      expect(out.result.reasons, ['read_untrusted_text']);
       expect(out.commitArgs, {'habitId': 'h-leer', 'habitName': 'Leer', 'date': _today});
       expect(state.isCompleted('h-leer', _today), isFalse);
 
       final confirmed = await tools.execute(
         WriteToolNames.markHabitDone,
         out.commitArgs!,
-        ctx(second: true, confirmed: true),
+        ctx(untrusted: true, confirmed: true),
       );
       expect(confirmed.result.isSaved, isTrue);
       expect(state.isCompleted('h-leer', _today), isTrue);
@@ -362,6 +390,131 @@ void main() {
       final confirmed = await tools.execute(WriteToolNames.createHabit, out.commitArgs!, ctx(confirmed: true));
       expect(confirmed.result.isSaved, isTrue);
       expect(state.habits, hasLength(2));
+    });
+
+    group('tipo, meta y contacto', () {
+      Future<(HabitosState, HabitosWriteTools)> setupWithDiario() async {
+        final state = await _state(_FakeHabitosService(habits: []));
+        return (state, HabitosWriteTools(state, diario: await _diario()));
+      }
+
+      test('«contador» crea un hábito de contador vinculado al contacto nombrado', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final out = await tools.execute(
+          WriteToolNames.createHabit,
+          {'title': 'Clases de guitarra', 'habitType': 'counter', 'contactName': 'profe'},
+          ctx(userText: 'crea un hábito de tipo contador llamado "Clases de guitarra", asígnaselo al profe'),
+        );
+
+        expect(out.result.isSaved, isTrue);
+        final created = state.habits.single;
+        expect(created.type, HabitType.counter);
+        expect(created.contactId, 'c-tomas');
+        expect(out.summaryParts.map((p) => p.text), ['Hábito por construir', 'Contador', 'Tomás Rivas']);
+      });
+
+      test('un contacto que la persona no nombró sale como tarjeta y al confirmar se vincula', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final out = await tools.execute(
+          WriteToolNames.createHabit,
+          {'title': 'Llamar', 'contactName': 'Tomás Rivas'},
+          ctx(userText: 'crea el hábito llamar'),
+        );
+        expect(out.result.isProposal, isTrue);
+        expect(out.result.reasons, ['contact_not_in_user_text']);
+        expect(out.commitArgs, {'title': 'Llamar', 'isNegative': false, 'contactName': 'Tomás Rivas'});
+        expect(state.habits, isEmpty);
+
+        final confirmed = await tools.execute(WriteToolNames.createHabit, out.commitArgs!, ctx(confirmed: true));
+        expect(confirmed.result.isSaved, isTrue);
+        expect(state.habits.single.contactId, 'c-tomas');
+      });
+
+      test('contacto ambiguo pide elegir entre los parecidos', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final ambiguous = await tools.execute(
+            WriteToolNames.createHabit, {'title': 'Visitar', 'contactName': 'Mateo'}, ctx(userText: 'visitar a Mateo'));
+        expect(ambiguous.result.isMissing, isTrue);
+        expect(ambiguous.result.missing, ['contactName']);
+        expect(state.habits, isEmpty);
+      });
+
+      test('contacto inexistente sale como tarjeta con «Sin contacto» y al elegirla se crea sin vincular', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final unknown = await tools.execute(
+            WriteToolNames.createHabit, {'title': 'Visitar', 'contactName': 'Zoe'}, ctx(userText: 'visitar a Zoe'));
+        expect(unknown.result.isProposal, isTrue);
+        expect(unknown.result.reasons, ['contact_not_found']);
+        expect(unknown.result.options['contactName'], contains('Sin contacto'));
+        expect(unknown.commitArgs!['contactName'], 'Zoe');
+        expect(state.habits, isEmpty);
+
+        // Confirmar sin elegir a nadie: hay que elegir.
+        final still = await tools.execute(WriteToolNames.createHabit, unknown.commitArgs!, ctx(confirmed: true));
+        expect(still.result.isMissing, isTrue);
+
+        final none = await tools.execute(
+          WriteToolNames.createHabit,
+          {...unknown.commitArgs!, 'contactName': 'Sin contacto'},
+          ctx(confirmed: true),
+        );
+        expect(none.result.isSaved, isTrue);
+        expect(state.habits.single.contactId, isNull);
+      });
+
+      test('«Sin contacto» dicho por la persona (sin tarjeta) crea el hábito sin vincular, sin bucle', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final out = await tools.execute(
+            WriteToolNames.createHabit, {'title': 'Visitar', 'contactName': 'Sin contacto'}, ctx(userText: 'sin contacto'));
+        expect(out.result.isSaved, isTrue);
+        expect(state.habits.single.contactId, isNull);
+      });
+
+      test('cantidad sin meta pide la meta; con meta guarda meta y unidad', () async {
+        final (state, tools) = await setupWithDiario();
+
+        final sinMeta = await tools.execute(
+            WriteToolNames.createHabit, {'title': 'Agua', 'habitType': 'quantity'}, ctx(userText: 'hábito de agua'));
+        expect(sinMeta.result.isMissing, isTrue);
+        expect(sinMeta.result.missing, ['target']);
+
+        final conMeta = await tools.execute(
+          WriteToolNames.createHabit,
+          {'title': 'Agua', 'habitType': 'quantity', 'target': 2000, 'unit': 'ml'},
+          ctx(userText: 'hábito de agua, 2000 ml'),
+        );
+        expect(conMeta.result.isSaved, isTrue);
+        final agua = state.habits.single;
+        expect(agua.type, HabitType.quantitative);
+        expect(agua.targetValue, 2000);
+        expect(agua.unit, 'ml');
+      });
+
+      test('tiempo usa minutos por defecto', () async {
+        final (state, tools) = await setupWithDiario();
+        await tools.execute(
+          WriteToolNames.createHabit,
+          {'title': 'Meditar', 'habitType': 'timer', 'target': 15},
+          ctx(userText: 'meditar 15 minutos'),
+        );
+        expect(state.habits.single.type, HabitType.timer);
+        expect(state.habits.single.unit, 'min');
+      });
+
+      test('un mal hábito ignora el tipo y sigue siendo negativo', () async {
+        final (state, tools) = await setupWithDiario();
+        await tools.execute(
+          WriteToolNames.createHabit,
+          {'title': 'Fumar', 'isNegative': true, 'habitType': 'counter'},
+          ctx(userText: 'dejar de fumar'),
+        );
+        expect(state.habits.single.type, HabitType.negative);
+      });
     });
 
     test('sin título pide el título', () async {

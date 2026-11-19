@@ -4,10 +4,13 @@ library;
 
 import 'package:uuid/uuid.dart';
 
+import '../../../diario/models/diario_contact.dart';
+import '../../../diario/viewmodels/diario_state.dart';
 import '../../../habitos/models/habit_model.dart';
 import '../../../habitos/viewmodels/habitos_state.dart';
 import '../../../quebrado/widgets/helpers.dart' show formatDate;
 import '../../../widgets/suite_router.dart' show SuiteRoutes;
+import 'diario_write_tools.dart' show DiarioWriteTools;
 import 'ortiz_resolver.dart';
 import 'write_tool_contract.dart';
 import 'write_tool_result.dart';
@@ -20,12 +23,24 @@ abstract final class HabitosWriteReason {
 
   /// S3-02: el hábito no salió de lo que escribió la persona.
   static const nameNotInUserText = 'name_not_in_user_text';
+
+  /// S3-02: el contacto del hábito no salió de lo que escribió la persona.
+  static const contactNotInUserText = 'contact_not_in_user_text';
+
+  /// El contacto pedido no existe: la tarjeta deja elegir uno parecido o
+  /// «Sin contacto» (igual que en el Diario).
+  static const contactNotFound = 'contact_not_found';
 }
 
 class HabitosWriteTools implements WriteToolHandler {
   final HabitosState habitos;
 
-  HabitosWriteTools(this.habitos);
+  /// Contactos para vincular un hábito nuevo (`contactName`). Sin él, todo
+  /// contacto pedido sale como tarjeta `contact_not_found` con la opción
+  /// «Sin contacto».
+  final DiarioState? diario;
+
+  HabitosWriteTools(this.habitos, {this.diario});
 
   /// Color con el que la app ya crea los malos hábitos (semillas y tarjeta).
   static const String _negativeColorHex = '#FF3B30';
@@ -272,22 +287,93 @@ class HabitosWriteTools implements WriteToolHandler {
     const action = WriteToolNames.createHabit;
     final title = _text(args['title']);
     final isNegative = _bool(args['isNegative']);
-    if (title == null) {
+    final kind = isNegative ? null : _habitKind(_text(args['habitType']));
+    final type = isNegative ? HabitType.negative : (kind?.type ?? HabitType.binary);
+    final target = _number(args['target']);
+    final unit = _text(args['unit']) ??
+        (type == HabitType.timer ? 'min' : null);
+    final contactName = _text(args['contactName']);
+
+    final missing = <String>[];
+    final options = <String, List<String>>{};
+    final resolved = <String, dynamic>{'isNegative': isNegative};
+    if (title == null) missing.add('title');
+    if (kind != null) resolved['habitType'] = kind.code;
+    // Cantidad y tiempo necesitan una meta: no se inventa (como los montos).
+    final needsTarget = type == HabitType.quantitative || type == HabitType.timer;
+    if (needsTarget) {
+      if (target == null || target <= 0) {
+        missing.add('target');
+      } else {
+        resolved['target'] = target;
+      }
+    }
+    if (unit != null && type != HabitType.binary && type != HabitType.negative) {
+      resolved['unit'] = unit;
+    }
+
+    DiarioContact? contact;
+    final reasons = <String>[];
+    // «Sin contacto» (de la tarjeta o dicho por la persona) = sin vincular.
+    final wantsContact = contactName != null &&
+        norm(contactName) != norm(DiarioWriteTools.noContactOption);
+    var contactNotFound = false;
+    if (wantsContact) {
+      final contacts = diario?.contacts ?? const <DiarioContact>[];
+      final res = DiarioWriteTools.resolveContact(contactName, contacts);
+      switch (res.status) {
+        case ResolutionStatus.resolved:
+          contact = contacts.firstWhere((c) => c.id == res.value!.id);
+          resolved['contactName'] = contact.name;
+          // S3-02: solo directo si la persona nombró al contacto.
+          final names = [contact.name, contact.nickname];
+          if (!ctx.confirmedByUser &&
+              !names.any((n) => ctx.termInUserText(n) || nameWordInText(n, ctx.userText))) {
+            reasons.add(HabitosWriteReason.contactNotInUserText);
+          }
+        case ResolutionStatus.missing:
+        case ResolutionStatus.proposal:
+          missing.add('contactName');
+          options['contactName'] = res.options;
+        case ResolutionStatus.notFound:
+          // Como en el Diario: tarjeta con los parecidos y «Sin contacto»
+          // (un `missing` aquí volvería al modelo y podría repetirse).
+          options['contactName'] = [
+            ...mostSimilar(contactName, DiarioWriteTools.contactItems(contacts)).map((c) => c.name),
+            DiarioWriteTools.noContactOption,
+          ];
+          resolved['requestedContactName'] = contactName;
+          if (ctx.confirmedByUser) {
+            missing.add('contactName');
+          } else {
+            contactNotFound = true;
+            reasons.add(HabitosWriteReason.contactNotFound);
+          }
+      }
+    }
+
+    if (missing.isNotEmpty || title == null) {
       return WriteOutcome(WriteToolResult.missing(
         action: action,
-        missing: const ['title'],
-        resolved: {'isNegative': isNegative},
+        missing: missing,
+        resolved: {...resolved, 'title': ?title},
+        options: options,
       ));
     }
 
-    final parts = [SummaryPart(isNegative ? 'Hábito por dejar' : 'Hábito por construir')];
+    final parts = [
+      SummaryPart(isNegative ? 'Hábito por dejar' : 'Hábito por construir'),
+      if (kind != null && kind != _HabitKind.check) SummaryPart(_kindLabel(type, target, unit)),
+      if (contact != null) SummaryPart(contact.name),
+      if (contactNotFound) SummaryPart(contactName!),
+    ];
     final summary = _join(title, parts);
     final isDuplicate = habitos.allHabits.any((h) => norm(h.title) == norm(title));
-    final reasons = [
+    reasons.insertAll(0, [
       if (isDuplicate && !ctx.confirmedByUser) HabitosWriteReason.duplicateName,
-      ...ctx.forcedProposalReasons,
-    ];
-    final resolved = {'title': title, 'isNegative': isNegative};
+    ]);
+    reasons.addAll(ctx.forcedProposalReasons);
+    resolved['title'] = title;
     if (reasons.isNotEmpty) {
       return WriteOutcome(
         WriteToolResult.proposal(
@@ -295,10 +381,20 @@ class HabitosWriteTools implements WriteToolHandler {
           reasons: reasons,
           summary: summary,
           resolved: resolved,
+          options: options,
         ),
         summaryTitle: title,
         summaryParts: parts,
-        commitArgs: resolved,
+        // S3-07: solo los campos que usa `execute`, nunca `args` crudo.
+        commitArgs: {
+          'title': title,
+          'isNegative': isNegative,
+          if (kind != null && kind != _HabitKind.check) 'habitType': kind.code,
+          if (resolved.containsKey('target')) 'target': target,
+          if (resolved.containsKey('unit')) 'unit': unit,
+          if (contact != null) 'contactName': contact.name,
+          if (contactNotFound) 'contactName': contactName,
+        },
       );
     }
 
@@ -311,9 +407,17 @@ class HabitosWriteTools implements WriteToolHandler {
           isNegative: true,
           type: HabitType.negative,
           colorHex: _negativeColorHex,
+          contactId: contact?.id,
         );
       } else {
-        await habitos.addHabit(id: id, title: title);
+        await habitos.addHabit(
+          id: id,
+          title: title,
+          type: type,
+          targetValue: needsTarget ? target! : 1.0,
+          unit: resolved['unit'] as String?,
+          contactId: contact?.id,
+        );
       }
     } catch (_) {
       try {
@@ -365,6 +469,50 @@ class HabitosWriteTools implements WriteToolHandler {
     if (target == DateTime(today.year, today.month, today.day - 1)) return 'ayer';
     return formatDate(target);
   }
+}
+
+/// Tipo de hábito que puede pedir Ortiz (`habitType` de `createHabit`).
+enum _HabitKind {
+  check('check', HabitType.binary),
+  counter('counter', HabitType.counter),
+  quantity('quantity', HabitType.quantitative),
+  timer('timer', HabitType.timer);
+
+  const _HabitKind(this.code, this.type);
+  final String code;
+  final HabitType type;
+}
+
+_HabitKind? _habitKind(String? code) {
+  if (code == null) return null;
+  final c = code.trim().toLowerCase();
+  for (final k in _HabitKind.values) {
+    if (k.code == c) return k;
+  }
+  return null;
+}
+
+/// «Contador», «Meta: 20 páginas» o «Meta: 15 min».
+String _kindLabel(HabitType type, double? target, String? unit) {
+  switch (type) {
+    case HabitType.counter:
+      return 'Contador';
+    case HabitType.quantitative:
+    case HabitType.timer:
+      final n = target == null
+          ? ''
+          : (target == target.roundToDouble() ? target.toInt().toString() : target.toString());
+      return ['Meta:', n, ?unit].where((s) => s.isNotEmpty).join(' ');
+    case HabitType.binary:
+    case HabitType.negative:
+      return 'Check';
+  }
+}
+
+double? _number(Object? value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value.trim().replaceAll(',', '.'));
+  return null;
 }
 
 String? _text(Object? value) {

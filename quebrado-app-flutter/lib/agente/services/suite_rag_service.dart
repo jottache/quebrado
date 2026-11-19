@@ -65,7 +65,17 @@ class SuiteRagService {
   /// Se leyó texto libre en el turno anterior: se hereda un turno y luego se
   /// limpia (S3-03).
   bool _inheritedUntrustedRead = false;
+
+  /// Ya hubo una escritura directa en este turno (bloquea deshacer).
   bool _directWriteDone = false;
+
+  /// Escrituras directas de este turno.
+  int _directWrites = 0;
+
+  /// Tope de escrituras directas por mensaje: desde la siguiente salen como
+  /// tarjeta (`too_many_writes`). Alto para no estorbar el uso normal
+  /// (auditoría del 2026-11-19, I-2).
+  static const int maxDirectWritesPerMessage = 5;
 
   /// Lista blanca (S3-01): lecturas que solo devuelven números, fechas y
   /// nombres saneados como los del contexto ([contextLine]). Son las únicas
@@ -135,7 +145,7 @@ class SuiteRagService {
               [
                 FinanzasWriteTools(appState),
                 DiarioWriteTools(diarioState),
-                HabitosWriteTools(habitosState),
+                HabitosWriteTools(habitosState, diario: diarioState),
                 RemindersWriteTools(remindersState),
                 if (animoState != null) AnimoWriteTools(animoState),
                 if (notasState != null) NotasWriteTools(notasState),
@@ -147,7 +157,7 @@ class SuiteRagService {
   WriteContext get turnContext => WriteContext(
         userText: _turnUserText,
         untrustedRead: turnUntrusted,
-        directWriteDone: _directWriteDone,
+        writeLimitReached: _directWrites >= maxDirectWritesPerMessage,
       );
 
   /// `true` si este turno o el anterior leyeron texto libre (CA-10, S3-03).
@@ -162,6 +172,7 @@ class SuiteRagService {
     _inheritedUntrustedRead = _untrustedRead;
     _untrustedRead = false;
     _directWriteDone = false;
+    _directWrites = 0;
   }
 
   /// `true` si [toolName] es una lectura que marca el turno: toda la que no
@@ -267,6 +278,7 @@ class SuiteRagService {
     String? undoId;
     if (result.isSaved) {
       _directWriteDone = true;
+      _directWrites++;
       undoId = result.undoId ??
           (outcome.undoPayload != null ? _uuid.v4() : null);
       if (undoId != null) resultData['undoId'] = undoId;
@@ -305,8 +317,9 @@ class SuiteRagService {
     } else if (handler == null) {
       result = const UndoResult.failed(nothingToUndoMessage);
     } else if (_directWriteDone) {
-      // Deshacer cuenta como la escritura directa del mensaje: una sola
-      // por mensaje (§7, medida 3).
+      // Tras escribir en este mensaje, Ortiz no deshace (lo hace la persona
+      // con el botón). Un deshacer exitoso marca el turno igual, pero ya no
+      // impide escribir después: el tope es [maxDirectWritesPerMessage].
       result = const UndoResult.failed(undoBlockedMessage);
     } else {
       result = await handler(undoId == null || undoId.isEmpty ? null : undoId);
@@ -489,9 +502,19 @@ ${generateRegistrationCatalogs(now: now)}''';
         ? const <String>[]
         : [for (final c in notasState!.categories) contextLine(c.name)];
 
+    // Libros de Finanzas para `bookName` (el abierto marcado).
+    final books = [
+      for (final p in appState.profiles)
+        if ((p['name'] ?? '').trim().isNotEmpty)
+          '${contextLine(p['name']!)}'
+              '${p['id'] == appState.activeDbName ? ' [abierto]' : ''}',
+    ];
+
     return '''
 ### CATÁLOGOS PARA REGISTRAR (libro ${contextLine(appState.activeProfileName)}):
 - Fecha de hoy: $iso ($readable)
+- Libros de Finanzas (bookName; categorías y cuentas de abajo son del libro abierto):
+${_catalogList(books)}
 - Categorías de gasto:
 ${_catalogList(categoryNames(TransactionCategoryType.expense))}
 - Categorías de ingreso:

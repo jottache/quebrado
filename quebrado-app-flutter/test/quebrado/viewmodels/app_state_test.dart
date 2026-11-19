@@ -6,7 +6,9 @@ import 'package:quebrado_app_flutter/quebrado/models/recurring_payment.dart';
 import 'package:quebrado_app_flutter/quebrado/models/recurring_payment_partial.dart';
 import 'package:quebrado_app_flutter/quebrado/models/transaction.dart';
 import 'package:quebrado_app_flutter/quebrado/services/db_helper.dart';
+import 'package:quebrado_app_flutter/quebrado/models/transaction_category.dart';
 import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
+import 'package:quebrado_app_flutter/services/supabase_service.dart';
 
 // Spec 05 (CA-07): se elimina la confirmación deslizante. Las operaciones de
 // dinero se confirman siempre con el botón normal, sin ningún ajuste previo.
@@ -15,6 +17,24 @@ class _DefaultSaveFails extends AppState {
   @override
   Future<void> saveDefaultAccountSetting(String key, String value) async =>
       throw Exception('sin conexión');
+}
+
+/// Supabase falso para escribir en otro libro: anota lo guardado sin red.
+class _FakeBookService extends SupabaseService {
+  _FakeBookService() : super.forTesting();
+
+  final inserted = <String>[];
+  final accountUpdates = <(String?, String, double)>[];
+  final deleted = <String>[];
+
+  @override
+  Future<void> insertTransaction(Transaction transaction, {String profileId = 'quebrado.db'}) async =>
+      inserted.add('$profileId/${transaction.id}');
+  @override
+  Future<void> updateAccount(Account account, {String? profileId}) async =>
+      accountUpdates.add((profileId, account.id, account.balance));
+  @override
+  Future<void> deleteTransaction(String id) async => deleted.add(id);
 }
 
 void main() {
@@ -287,6 +307,93 @@ void main() {
 
     await app.confirmRecurringPayment(payment: sinMonto, actualAmount: 0, onTransactionRecorded: recorded.add);
     expect(recorded, hasLength(1), reason: 'con saldo existente (monto 0) no se registra movimiento');
+  });
+
+  group('movimientos en otro libro (Ortiz, sin cambiar el libro abierto)', () {
+    const libroB = 'libro_b_test.db';
+    Account cuenta(String id, CurrencyType c, double balance) =>
+        Account(id: id, name: 'Cuenta $id', currency: c, balance: balance, colorHex: '#2FA084', icon: 'creditcard');
+    Transaction gasto(String id, String accountId, double amount, CurrencyType c) => Transaction(
+          id: id,
+          date: DateTime(2026, 9, 28, 12),
+          amount: amount,
+          currency: c,
+          accountId: accountId,
+          note: 'Gasto de prueba',
+          type: TransactionType.expense,
+          exchangeRate: 200,
+        );
+
+    (AppState, Account) conLibroB({SupabaseService? service}) {
+      final app = AppState()..debugSetRates(bcv: 200, euro: 220);
+      final usd = cuenta('acc_b_usd', CurrencyType.usd, 100);
+      app.debugSeedBook(libroB, name: 'Libro B', accounts: [usd], categories: [
+        TransactionCategory(id: 'cat_b', name: 'Gasto', icon: 'tag', colorHex: '#2FA084', type: TransactionCategoryType.expense),
+      ]);
+      app.debugOtherBookService = service;
+      return (app, usd);
+    }
+
+    test('lee nombre, categorías y cuenta predeterminada del libro sin abrirlo', () {
+      final (app, usd) = conLibroB();
+      app.applyRemoteSettings({AppState.defaultAccountSettingKey(libroB, CurrencyType.usd): usd.id});
+
+      expect(app.profileNameFor(libroB), 'Libro B');
+      expect(app.profileNameFor('no_existe.db'), isNull);
+      expect(app.getCategoriesForProfile(libroB).map((c) => c.name), ['Gasto']);
+      expect(app.defaultAccountIdForProfile(libroB, CurrencyType.usd), usd.id);
+      expect(app.defaultAccountIdForProfile(libroB, CurrencyType.bsBCV), isNull);
+      expect(app.activeDbName, isNot(libroB));
+    });
+
+    test('sin Supabase no se puede escribir en otro libro y addTransactionToProfile lanza', () async {
+      final (app, usd) = conLibroB();
+
+      expect(app.canWriteToProfile(app.activeDbName), isTrue);
+      expect(app.canWriteToProfile(libroB), isFalse);
+      await expectLater(app.addTransactionToProfile(libroB, gasto('tx_b0', usd.id, 5, CurrencyType.usd)), throwsStateError);
+      expect(usd.balance, 100);
+    });
+
+    test('con Supabase guarda en ese libro, cambia su saldo y borrar lo revierte; el activo no cambia', () async {
+      final service = _FakeBookService();
+      final (app, usd) = conLibroB(service: service);
+      final activo = app.activeDbName;
+      final antes = List.of(app.transactions);
+      var avisos = 0;
+      app.addListener(() => avisos++);
+
+      expect(app.canWriteToProfile(libroB), isTrue);
+      expect(app.canWriteToProfile('no_existe.db'), isFalse);
+
+      final tx = gasto('tx_b1', usd.id, 35, CurrencyType.usd);
+      await app.addTransactionToProfile(libroB, tx);
+
+      expect(service.inserted, ['$libroB/tx_b1']);
+      expect(service.accountUpdates.single, (libroB, usd.id, 65.0));
+      expect(usd.balance, closeTo(65, 0.001));
+      expect(app.getTransactionsForProfile(libroB).map((t) => t.id), ['tx_b1']);
+      expect(app.transactionsByBook[libroB]!.map((t) => t.id), ['tx_b1'], reason: 'la ruta del movimiento lo encuentra');
+      expect(app.transactions, antes);
+      expect(app.activeDbName, activo);
+      expect(avisos, 1);
+
+      await app.deleteTransactionFromProfile(libroB, tx);
+
+      expect(service.deleted, ['tx_b1']);
+      expect(usd.balance, closeTo(100, 0.001));
+      expect(app.getTransactionsForProfile(libroB), isEmpty);
+      expect(app.activeDbName, activo);
+      expect(avisos, 2);
+    });
+
+    test('un gasto en Bs en una cuenta en dólares del otro libro descuenta con su tasa', () async {
+      final (app, usd) = conLibroB(service: _FakeBookService());
+
+      await app.addTransactionToProfile(libroB, gasto('tx_b2', usd.id, 2000, CurrencyType.bsBCV));
+
+      expect(usd.balance, closeTo(90, 0.001), reason: 'Bs. 2000 / 200 = \$10');
+    });
   });
 
   group('cuenta predeterminada por moneda (spec 03, PA-01)', () {

@@ -72,16 +72,18 @@ void main() {
   });
 
   group('WriteContext.forcedProposalReasons', () {
-    test('lectura de texto libre y segunda escritura obligan a tarjeta', () {
+    test('la lectura de texto libre y el tope de escrituras obligan a tarjeta', () {
       expect(WriteContext().forcedProposalReasons, isEmpty);
       expect(WriteContext(untrustedRead: true).forcedProposalReasons,
           ['read_untrusted_text']);
-      expect(WriteContext(directWriteDone: true).forcedProposalReasons,
-          ['multiple_writes']);
+      expect(WriteContext(writeLimitReached: true).forcedProposalReasons,
+          ['too_many_writes']);
+      expect(WriteContext(writeLimitReached: true).copyWith(confirmedByUser: true).forcedProposalReasons,
+          isEmpty);
     });
 
     test('al confirmar la persona no se fuerza tarjeta', () {
-      final ctx = WriteContext(untrustedRead: true, directWriteDone: true)
+      final ctx = WriteContext(untrustedRead: true)
           .copyWith(confirmedByUser: true);
       expect(ctx.forcedProposalReasons, isEmpty);
       expect(ctx.untrustedRead, isTrue);
@@ -90,10 +92,10 @@ void main() {
     test('copyWith conserva texto y reloj', () {
       final fixed = DateTime(2026, 11, 18);
       final ctx = WriteContext(userText: 'hola', now: () => fixed)
-          .copyWith(directWriteDone: true);
+          .copyWith(untrustedRead: true);
       expect(ctx.userText, 'hola');
       expect(ctx.now(), fixed);
-      expect(ctx.directWriteDone, isTrue);
+      expect(ctx.untrustedRead, isTrue);
     });
   });
 

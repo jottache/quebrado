@@ -150,3 +150,10 @@ Revisado en la rama `spec-03-ortiz-registra` contra `spec-02-ortiz-al-centro`, c
 - [ ] **S3-09:** quitar el término del modelo del ancla y añadir un test. Bloquea la fusión.
 - [ ] S3-10 llevado a `docs/pendientes.md` (o corregido junto con S3-09).
 - [x] S3-06 y S3-07 corregidos. S3-08 está en P-59.
+
+## Cambios del 2026-11-19 (rama `fix/ortiz-contexto-y-registros`)
+Decisiones de la persona tras probar el chat:
+- **Varios registros por mensaje se guardan todos directo** (se retira la medida 3 de CA-10, motivo `multiple_writes`). Siguen: lectura de texto libre (en el turno o heredada) → toda escritura del mensaje sale como tarjeta; anclas de monto y nombre; deshacer bloqueado tras escribir en el mismo turno. Tope de seguridad (auditoría I-2): desde la 6.ª escritura directa del mensaje sale tarjeta `too_many_writes` (`SuiteRagService.maxDirectWritesPerMessage`).
+- **Registrar en otro libro de Finanzas** (`registerTransaction.bookName`), siempre como tarjeta `other_book`. **S3-05 se mantiene** para el resto: una tarjeta creada sin `bookName` y confirmada con otro libro abierto sigue dando «Cambia al libro X para confirmarlo», y deshacer en otro libro solo vale para lo registrado con `bookName` (`otherBook` en `commitArgs`/`undoPayload`). Tests en `finanzas_write_tools_test.dart`.
+- **Historial con registros:** los mensajes de Ortiz llevan «[Registros de este mensaje: …]». Las tarjetas pendientes que nacieron de texto leído no reenvían su resumen (I-1) y el resumen pierde `[]«»` (M-1). El prompt prohíbe volver a llamar a una herramienta cuya tarjeta espera confirmación.
+- Pendientes nuevos: P-78 a P-81.

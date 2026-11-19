@@ -106,6 +106,8 @@ final List<WriteToolSpec> writeToolSpecs = List.unmodifiable([
       WriteToolParam('accountName', WriteToolParamType.string,
           'Nombre de la cuenta si la persona la dijo. Si no, omítela: se usa la predeterminada de la moneda.'),
       WriteToolParam('date', WriteToolParamType.string, _dateParamDescription),
+      WriteToolParam('bookName', WriteToolParamType.string,
+          'Libro de Finanzas si la persona lo nombró: "contabilidad de mamá" → "Mamá". Si no, omítelo: se usa el libro abierto.'),
     ],
   ),
   const WriteToolSpec(
@@ -182,13 +184,23 @@ final List<WriteToolSpec> writeToolSpecs = List.unmodifiable([
   ),
   const WriteToolSpec(
     name: WriteToolNames.createHabit,
-    description: 'Crea un hábito nuevo en Hábitos. $_resultHint',
+    description:
+        'Crea un hábito nuevo en Hábitos, con su tipo y, si es de o para alguien, vinculado a un contacto. Para sumarle o marcarle algo hoy, llama después a markHabitDone. $_resultHint',
     params: [
       WriteToolParam('title', WriteToolParamType.string,
           'Nombre del hábito (ej: "Meditar 10 min", "No comer azúcar").',
           required: true),
       WriteToolParam('isNegative', WriteToolParamType.boolean,
           'true si es un mal hábito que se quiere dejar; false si es uno que se quiere construir.'),
+      WriteToolParam('habitType', WriteToolParamType.string,
+          'Tipo, solo si la persona lo dijo: "check" (sí/no cada día), "counter" (contador libre o infinito: cuántas veces pasa algo), "quantity" (meta numérica: 2000 ml, 20 páginas) o "timer" (minutos). Si no lo dijo, omítelo (check).',
+          enumValues: ['check', 'counter', 'quantity', 'timer']),
+      WriteToolParam('target', WriteToolParamType.number,
+          'Meta diaria para "quantity" o "timer", tal como la dijo la persona. Si no la dijo, omítela: se devuelve "missing".'),
+      WriteToolParam('unit', WriteToolParamType.string,
+          'Unidad si la persona la dijo (ej: "ml", "páginas", "min", "veces").'),
+      WriteToolParam('contactName', WriteToolParamType.string,
+          'Nombre o apodo del contacto al que se vincula el hábito (ej: "asígnaselo a mi papá"), si aplica.'),
     ],
   ),
   const WriteToolSpec(

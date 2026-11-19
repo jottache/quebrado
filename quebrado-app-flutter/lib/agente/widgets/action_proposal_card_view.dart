@@ -249,8 +249,27 @@ Widget _summaryDetail(
       );
     case 'read_untrusted_text':
       return ('Leí tus notas o tu diario en este mensaje; confírmalo tú antes de guardar.', null);
+    case 'contact_not_in_user_text':
+      final contact = _str(args['contactName']);
+      return (
+        contact == null
+            ? 'No nombraste a ese contacto en tu mensaje. Revísalo.'
+            : 'No nombraste a «$contact» en tu mensaje. Revísalo.',
+        null,
+      );
+    case 'too_many_writes':
+      return ('Ya guardé varios registros en este mensaje; confirma tú este.', null);
+    // Tarjetas guardadas antes del 2026-11-19 (ya no se generan).
     case 'multiple_writes':
       return ('Es el segundo registro de este mensaje; confírmalo tú.', null);
+    case 'other_book':
+      final book = _str(resolved['bookName']) ?? _str(args['profileName']);
+      return (
+        book == null
+            ? 'Es de otro libro, no del que tienes abierto.'
+            : 'Es del libro $book, no del que tienes abierto.',
+        'Se guarda allí sin cambiar el libro abierto.',
+      );
     default:
       return ('Revisa los datos antes de confirmar.', null);
   }

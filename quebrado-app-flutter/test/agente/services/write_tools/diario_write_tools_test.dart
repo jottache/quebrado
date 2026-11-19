@@ -70,7 +70,6 @@ final DateTime _now = DateTime(2026, 11, 18, 15, 30);
 
 WriteContext _ctx({
   bool untrustedRead = false,
-  bool directWriteDone = false,
   bool confirmed = false,
   // La persona nombra a los contactos que usan los tests (S3-02).
   String userText = 'anota lo de Lucía Pérez y lo de Bruno Díaz',
@@ -78,7 +77,6 @@ WriteContext _ctx({
     WriteContext(
       userText: userText,
       untrustedRead: untrustedRead,
-      directWriteDone: directWriteDone,
       confirmedByUser: confirmed,
       now: () => _now,
     );
@@ -391,11 +389,11 @@ void main() {
       expect(state.getContactById(out.result.recordId!)!.relationship, 'Prima');
     });
 
-    test('la segunda escritura del turno sale como tarjeta', () async {
-      final out = await create({'name': 'Elena Mora'}, _ctx(directWriteDone: true));
+    test('tras leer texto libre en el turno sale como tarjeta', () async {
+      final out = await create({'name': 'Elena Mora'}, _ctx(untrustedRead: true));
 
       expect(out.result.status, WriteToolStatus.proposal);
-      expect(out.result.reasons, ['multiple_writes']);
+      expect(out.result.reasons, ['read_untrusted_text']);
       expect(state.contacts.any((c) => c.name == 'Elena Mora'), isFalse);
     });
 
