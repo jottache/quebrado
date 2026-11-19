@@ -8,6 +8,9 @@ enum ArtifactType {
   habitReport,
   table,
   actionProposal,
+
+  /// Resumen del día (spec 04): `metadata` = `DailyBriefing.toArtifactMetadata()`.
+  dailyBriefing,
   note;
 
   String get code {
@@ -26,6 +29,8 @@ enum ArtifactType {
         return 'table';
       case ArtifactType.actionProposal:
         return 'action_proposal';
+      case ArtifactType.dailyBriefing:
+        return 'daily_briefing';
       case ArtifactType.note:
         return 'note';
     }
@@ -47,6 +52,8 @@ enum ArtifactType {
         return 'Tabla Comparativa';
       case ArtifactType.actionProposal:
         return 'Propuesta de Acción';
+      case ArtifactType.dailyBriefing:
+        return 'Resumen del día';
       case ArtifactType.note:
         return 'Nota / Resumen';
     }
@@ -75,6 +82,8 @@ enum ArtifactType {
       case 'proposal':
       case 'action':
         return ArtifactType.actionProposal;
+      case 'daily_briefing':
+        return ArtifactType.dailyBriefing;
       case 'note':
       default:
         return ArtifactType.note;

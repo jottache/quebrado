@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../models/daily_briefing.dart';
 import '../viewmodels/agente_state.dart';
 import 'action_proposal_card_view.dart' show ChatInputFocus;
+import 'briefing_block.dart' show BriefingScanIndicator;
 import 'chat_message_bubble.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
 
 /// Chat con Ortiz sin `Scaffold` (docs/design/ortiz-home.md §2.4–2.5): la
 /// lista de mensajes de [AgenteState] y el campo «Pregúntale algo a Ortiz…».
@@ -122,6 +125,11 @@ class _OrtizChatViewState extends State<OrtizChatView> {
       _lastMessageCount = messages.length;
       _scrollToBottom();
     }
+    // Resumen del día (spec 04, U3): mientras Ortiz revisa las apps y aún no
+    // llegó su mensaje con las filas, «Revisando tus apps» al final. Lo
+    // decide el ViewModel, no el texto del mensaje.
+    final scanning = agenteState.isBriefingScanning;
+    final itemCount = messages.length + (scanning ? 1 : 0);
 
     return Column(
       children: [
@@ -131,13 +139,16 @@ class _OrtizChatViewState extends State<OrtizChatView> {
               : ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
-                  itemCount: messages.length,
+                  itemCount: itemCount,
                   itemBuilder: (context, index) => _ReadingColumn(
                     padding: OrtizSpace.lg,
-                    child: ChatInputFocus(
-                      focusNode: _focusNode,
-                      child: ChatMessageBubble(message: messages[index]),
-                    ),
+                    child: index >= messages.length
+                        ? _BriefingScanBubble(
+                            readyApps: briefingReadyApps(agenteState.todayBriefing))
+                        : ChatInputFocus(
+                            focusNode: _focusNode,
+                            child: ChatMessageBubble(message: messages[index]),
+                          ),
                   ),
                 ),
         ),
@@ -248,6 +259,44 @@ class _OrtizChatViewState extends State<OrtizChatView> {
               : const Icon(Icons.arrow_upward_rounded, size: OrtizIconSize.md),
         ),
       ],
+    );
+  }
+}
+
+/// Apps cuyos datos del resumen ya cargaron, para encender sus píldoras en
+/// «Revisando tus apps» (U3). Notas siempre: no aporta filas.
+@visibleForTesting
+Set<SuiteApp> briefingReadyApps(DailyBriefing? b) {
+  bool ready(BriefingStatus s) => s != BriefingStatus.loading;
+  return {
+    if (b != null && ready(b.payments.status) && ready(b.rates.status)) SuiteApp.finanzas,
+    if (b != null && ready(b.diario.status) && ready(b.mood.status) && ready(b.birthdays.status))
+      SuiteApp.diario,
+    if (b != null && ready(b.habits.status)) SuiteApp.habitos,
+    if (b != null && ready(b.reminders.status)) SuiteApp.recordatorios,
+    SuiteApp.notas,
+  };
+}
+
+/// Burbuja de Ortiz con «Revisando tus apps» mientras carga el resumen.
+class _BriefingScanBubble extends StatelessWidget {
+  const _BriefingScanBubble({required this.readyApps});
+
+  final Set<SuiteApp> readyApps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs, horizontal: OrtizSpace.md),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: ChatMessageBubble.maxWidthOf(context)),
+          padding: ChatMessageBubble.bubblePadding,
+          decoration: ChatMessageBubble.bubbleDecoration(isUser: false),
+          child: BriefingScanIndicator(readyApps: readyApps),
+        ),
+      ),
     );
   }
 }

@@ -28,6 +28,8 @@ class ArtifactCardView extends StatelessWidget {
         return Icons.track_changes_outlined;
       case ArtifactType.table:
         return Icons.table_chart_outlined;
+      case ArtifactType.dailyBriefing:
+        return Icons.today_outlined;
       case ArtifactType.note:
         return Icons.description_outlined;
     }
@@ -50,6 +52,7 @@ class ArtifactCardView extends StatelessWidget {
       case ArtifactType.actionProposal:
       case ArtifactType.calculation:
       case ArtifactType.table:
+      case ArtifactType.dailyBriefing:
         return AgenteColors.primary;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 import 'package:quebrado_app_flutter/theme/suite_apps.dart';
 import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_pill.dart';
@@ -60,6 +61,52 @@ void main() {
     expect(_fondo(tester), OrtizPill.backgroundFor(_t.muted));
     final texto = tester.widget<Text>(find.text('USD')).style!.color!;
     expect(_peorContraste(texto, _fondo(tester)), greaterThanOrEqualTo(kOrtizMinTextContrast));
+  });
+
+  group('variante con dotColor (franja de hoy)', () {
+    BoxDecoration decoracion(WidgetTester tester, int i) => tester
+        .widgetList<DecoratedBox>(find.descendant(of: find.byType(OrtizPill), matching: find.byType(DecoratedBox)))
+        .elementAt(i)
+        .decoration as BoxDecoration;
+
+    testWidgets('fondo surface, punto del color y texto muted legible', (tester) async {
+      await pumpApp(tester, OrtizPill(label: 'Pago vencido', dotColor: SuiteApp.finanzas.color));
+      expect(decoracion(tester, 0).color, _t.surface);
+      final punto = decoracion(tester, 1);
+      expect(punto.color, SuiteApp.finanzas.color);
+      expect(punto.shape, BoxShape.circle);
+      final punto0 = find.descendant(of: find.byType(OrtizPill), matching: find.byType(ExcludeSemantics));
+      final caja = find.descendant(of: punto0, matching: find.byType(SizedBox));
+      expect(tester.getSize(caja), const Size.square(OrtizSize.dot));
+      final texto = tester.widget<Text>(find.text('Pago vencido')).style!.color!;
+      expect(texto, _t.muted);
+      expect(ortizContrastRatio(texto, _t.surface), greaterThanOrEqualTo(kOrtizMinTextContrast));
+    });
+
+    testWidgets('el punto no se anuncia: el lector solo oye la etiqueta', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpApp(tester, OrtizPill(label: 'Cumpleaños', dotColor: SuiteApp.diario.color));
+      expect(find.bySemanticsLabel('Cumpleaños'), findsOneWidget);
+      expect(find.descendant(of: find.byType(OrtizPill), matching: find.byType(ExcludeSemantics)), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('sin dotColor no hay punto', (tester) async {
+      await pumpApp(tester, const OrtizPill(label: 'USD'));
+      expect(find.descendant(of: find.byType(OrtizPill), matching: find.byType(DecoratedBox)), findsOneWidget);
+    });
+
+    test('color y dotColor a la vez no se permiten', () {
+      expect(() => OrtizPill(label: 'x', color: _t.ok, dotColor: _t.ok), throwsAssertionError);
+    });
+
+    testWidgets('con punto y etiqueta larga no desborda en poco espacio', (tester) async {
+      await pumpApp(
+        tester,
+        SizedBox(width: 80, child: Row(children: [Flexible(child: OrtizPill(label: 'Pendiente de revisión', dotColor: _t.warn))])),
+      );
+      expect(tester.takeException(), isNull);
+    });
   });
 
   for (final window in [WindowClass.compact, WindowClass.expanded]) {

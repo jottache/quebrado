@@ -22,12 +22,28 @@ double ortizContrastRatio(Color a, Color b) {
 }
 
 /// Etiqueta corta de estado o moneda. Sin [color], usa `muted`.
+///
+/// Variante neutra con [dotColor] (spec 04, franja de hoy): fondo `surface`,
+/// un punto `OrtizSize.dot` del color y texto `muted` (el color no tiñe ni el
+/// fondo ni el texto). El punto es decorativo: el texto ya dice qué es.
 class OrtizPill extends StatelessWidget {
-  const OrtizPill({super.key, required this.label, this.color, this.icon});
+  const OrtizPill({
+    super.key,
+    required this.label,
+    this.color,
+    this.icon,
+    this.dotColor,
+  }) : assert(
+          color == null || dotColor == null,
+          'OrtizPill: usa color (tinte) o dotColor (punto), no ambos',
+        );
 
   final String label;
   final Color? color;
   final IconData? icon;
+
+  /// Si no es nulo, píldora neutra con un punto de este color.
+  final Color? dotColor;
 
   // Alpha de tinte de la suite (el mismo de los `xxxTint`), leído de un tono
   // ya derivado para no repetir el número.
@@ -50,22 +66,38 @@ class OrtizPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = OrtizTokens.of(context);
+    final dot = dotColor;
     final base = color ?? t.muted;
-    final fg = foregroundFor(base, t);
+    // Variante con punto: `muted` sobre `surface` opaco (5,8:1 en oscuro).
+    final fg = dot != null ? t.muted : foregroundFor(base, t);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: backgroundFor(base),
+        color: dot != null ? t.surface : backgroundFor(base),
         borderRadius: BorderRadius.circular(OrtizRadius.pill),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: OrtizSpace.sm,
-          vertical: OrtizSpace.xxs,
+          vertical: dot != null ? OrtizSpace.xs : OrtizSpace.xxs,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (dot != null) ...[
+              ExcludeSemantics(
+                child: SizedBox.square(
+                  dimension: OrtizSize.dot,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: dot,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: OrtizSpace.xs),
+            ],
             if (icon != null) ...[
               Icon(icon, size: OrtizIconSize.xs, color: fg),
               const SizedBox(width: OrtizSpace.xs),

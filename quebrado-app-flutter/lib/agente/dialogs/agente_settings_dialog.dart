@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 import '../services/gemini_config.dart';
+import '../services/gemini_service.dart' show kDailyBriefingDefaultInstruction;
 import '../theme/agente_colors.dart';
+import '../viewmodels/agente_state.dart';
+import 'prompt_editor_dialog.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
@@ -172,6 +177,22 @@ class _AgenteSettingsDialogState extends State<AgenteSettingsDialog> {
                 ],
               ),
 
+              const SizedBox(height: OrtizSpace.xl),
+
+              // Instrucción editable del resumen del día (spec 04, §5.1)
+              Text(
+                'INSTRUCCIONES DE ORTIZ',
+                style: OrtizType.caption.copyWith(color: OrtizPalette.muted),
+              ),
+              const SizedBox(height: OrtizSpace.sm),
+              OrtizListRow(
+                leading: const Icon(Icons.wb_twilight_rounded, size: OrtizIconSize.md),
+                title: 'Resumen del día',
+                subtitle: 'Cómo te cuenta Ortiz tu día',
+                trailing: const Icon(Icons.chevron_right_rounded, size: OrtizIconSize.md),
+                onTap: _editDailyBriefingInstruction,
+              ),
+
               const SizedBox(height: OrtizSpace.xxl),
 
               // Save Button
@@ -205,6 +226,21 @@ class _AgenteSettingsDialogState extends State<AgenteSettingsDialog> {
         ),
       ),
     );
+  }
+
+  Future<void> _editDailyBriefingInstruction() async {
+    final agente = context.read<AgenteState>();
+    final text = await PromptEditorDialog.showInstruction(
+      context,
+      title: 'Resumen del día',
+      subtitle: 'Lo que Ortiz sigue al contarte tu día',
+      text: agente.dailyBriefingInstruction,
+      restoreText: kDailyBriefingDefaultInstruction,
+    );
+    if (text == null) return;
+    await agente.saveDailyBriefingInstruction(text);
+    if (!mounted) return;
+    showOrtizNotice(context, 'Instrucción del resumen guardada');
   }
 
   Widget _buildModelOption({

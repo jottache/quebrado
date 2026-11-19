@@ -34,4 +34,12 @@ Cuando una spec cierre una decisión de negocio, se añade aquí con fecha y spe
 
 | Fecha | Regla | Origen |
 | --- | --- | --- |
-| — | — | — |
+| 2026-11-18 | Resumen del día: se pide con el botón, no se abre solo. | Spec 04, C6 |
+| 2026-11-18 | Resumen del día según la hora: antes de las 18:00 «lo que viene hoy»; desde las 18:00:00 «lo que faltó hoy» (sin diario, sin ánimo, hábitos sin hacer) y lo de mañana. | Spec 04, C12 + PA-01 |
+| 2026-11-18 | Gasto pendiente = ocurrencias sin pagar de pagos recurrentes de **gasto** (los cobros quedan fuera) con vencimiento entre hoy y hoy + 7 días, más todas las vencidas; los parciales cuentan por lo que falta. Una fila por pago; «Pagar» abre la ocurrencia más antigua. | Spec 04, C13 + Q5a + Q8 |
+| 2026-11-18 | Cumpleaños de contactos del Diario entre hoy y hoy + 7 días. | Spec 04, C14 |
+| 2026-11-18 | Diario: cuenta todas las entradas creadas hoy (personales y de contactos) sin los elementos de lista; ánimo: si hay registro propio hoy. Hábitos: hechos y pendientes entre los activos programados hoy; los que estás dejando solo como racha, nunca pendientes. Recordatorios: vencidos sin completar y de hoy; los de mañana solo de noche. Tasas BCV, paralelo y euro con variación si hay registro anterior. Sin lista del mercado. | Spec 04, C15 + Q3/Q4/Q6 |
+| 2026-11-18 | Montos del resumen en $ con su equivalente en Bs (tasa BCV); los pagos en Bs se convierten a $ con su monto en Bs al lado; los pagos en € se convierten con la tasa euro y muestran también el monto en €. Formato de la app («$25.00 · Bs. 6250.00»). | Spec 04, C16 + Q5b + U1 |
+| 2026-11-18 | El resumen usa solo el libro activo. | Spec 04, PA-02 |
+| 2026-11-18 | A Gemini solo va el resumen (conteos, nombres de pagos, montos, nombres de contactos con cumpleaños, títulos de recordatorios); nunca texto del diario ni nombres de hábitos. | Spec 04 |
+| 2026-11-19 | Las filas del resumen no se guardan en el historial del chat; al reabrir se ve solo la fecha. | Spec 04, S4-02 |
