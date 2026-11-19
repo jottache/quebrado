@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
+import '../theme/ortiz_space.dart';
 import 'rich_editor_colors.dart';
 
 /// Una opción mencionable: un contacto (@) o una nota (#).
@@ -92,7 +93,7 @@ Future<bool> _showMentionMenu(
             getName: () => option.label,
             icon: (editorState, isSelected, style) => Icon(
               trigger == '@' ? Icons.person_outline_rounded : Icons.sticky_note_2_outlined,
-              size: 18,
+              size: OrtizIconSize.md,
               color: isSelected ? style.selectionMenuItemSelectedIconColor : style.selectionMenuItemIconColor,
             ),
             keywords: [option.label.toLowerCase(), if (option.subtitle != null) option.subtitle!.toLowerCase()],

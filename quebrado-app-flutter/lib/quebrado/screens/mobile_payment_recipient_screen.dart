@@ -3,8 +3,12 @@ import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../models/mobile_payment_recipient.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
 import '../theme/colors.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 List<Map<String, String>> venezuelanBanks = [
   {"code": "0102", "name": "Banco de Venezuela"},
@@ -63,20 +67,18 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Padding(
-          padding: EdgeInsets.only(right: 0),
-          child: Image.asset(
-            'assets/images/quebrado/logo_quebrado.png',
-            height: 50,
-            fit: BoxFit.contain,
-          ),
+        title: Image.asset(
+          'assets/images/quebrado/logo_quebrado.png',
+          height: 50,
+          fit: BoxFit.contain,
         ),
         actions: [
           IconButton(
-            icon: Icon(
+            tooltip: "Nuevo contacto",
+            icon: const Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
-              size: 28,
+              size: OrtizIconSize.lg,
             ),
             onPressed: () => _openRecipientFormSheet(context, appState, null),
           ),
@@ -87,35 +89,31 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.sm),
               child: Text(
                 "Agenda Pago Móvil",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardText,
                 ),
               ),
             ),
+            // Campo de búsqueda del tema (sin tarjeta alrededor).
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ClaymorphicCard(
-                cornerRadius: 16,
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: "Buscar por nombre, banco, cédula...",
-                    border: InputBorder.none,
-                    icon: Icon(Icons.search_rounded, color: AppColors.primary),
-                  ),
-                  style: TextStyle(fontSize: 14, color: AppColors.cardText),
-                  onChanged: (val) {
-                    setState(() {
-                      _searchQuery = val;
-                    });
-                  },
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: "Buscar por nombre, banco, cédula...",
+                  prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary),
                 ),
+                style: const TextStyle(color: AppColors.cardText),
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                },
               ),
             ),
             Expanded(
@@ -133,114 +131,30 @@ class _MobilePaymentRecipientScreenState extends State<MobilePaymentRecipientScr
     List<MobilePaymentRecipient> list,
   ) {
     if (list.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.contact_phone_rounded, size: 64, color: Colors.grey[400]),
-              SizedBox(height: 16),
-              Text(
-                _searchQuery.isEmpty ? "Sin contactos guardados" : "Sin resultados",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                _searchQuery.isEmpty
-                    ? "Registra contactos de Pago Móvil presionando el botón '+' en la esquina superior derecha."
-                    : "Intenta con un término de búsqueda diferente.",
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return OrtizEmptyState(
+        icon: Icons.contact_phone_rounded,
+        title: _searchQuery.isEmpty ? "Sin contactos guardados" : "Sin resultados",
+        message: _searchQuery.isEmpty
+            ? "Registra contactos de Pago Móvil presionando el botón '+' en la esquina superior derecha."
+            : "Intenta con un término de búsqueda diferente.",
       );
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16.0),
+    // Lista sin tarjetas: filas sobre el fondo separadas por líneas.
+    return ListView.separated(
+      padding: const EdgeInsets.all(OrtizSpace.lg),
       itemCount: list.length,
+      separatorBuilder: (context, index) => const Divider(height: OrtizStroke.hairline),
       itemBuilder: (context, index) {
         final recipient = list[index];
 
-        return Padding(
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: GestureDetector(
-            onTap: () => _openRecipientFormSheet(context, appState, recipient),
-            child: ClaymorphicCard(
-              cornerRadius: 18,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              backgroundColor: AppColors.getAlternateCardColor(index),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.primary,
-                      size: 22,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipient.alias,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.cardText,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "${recipient.bankName} (${recipient.bankCode})",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          "${recipient.identityCard} • ${recipient.phoneNumber}",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.black54,
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return OrtizListRow(
+          leading: const Icon(Icons.person_rounded, color: AppColors.primary),
+          title: recipient.alias,
+          subtitle: "${recipient.bankName} (${recipient.bankCode})\n"
+              "${recipient.identityCard} • ${recipient.phoneNumber}",
+          trailing: const Icon(Icons.chevron_right_rounded, color: OrtizPalette.muted),
+          onTap: () => _openRecipientFormSheet(context, appState, recipient),
         );
       },
     );
@@ -368,18 +282,18 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
     final isEditing = widget.editingRecipient != null;
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: 0.85,
@@ -392,12 +306,12 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -405,19 +319,20 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
               children: [
                 Text(
                   isEditing ? "Editar Destinatario" : "Nuevo Destinatario",
-                  style: TextStyle(
-                    fontSize: 20,
+                  style: const TextStyle(
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close_rounded),
+                  tooltip: "Cerrar",
+                  icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Scrollable form
             Expanded(
@@ -426,65 +341,63 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    // Grupo sin tarjeta, directo sobre la hoja.
+                    Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "DETALLES DE PAGO MÓVIL",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: OrtizSpace.lg),
                           
                           // Alias
                           Text(
                             "Nombre o Alias",
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           TextField(
                             controller: _aliasController,
                             decoration: InputDecoration(
                               hintText: "Ej. Mamá, Juan Pérez, CANTV",
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 14),
+                          SizedBox(height: OrtizSpace.md),
 
                           // Banco Receptor
                           Text(
                             "Banco Receptor",
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           DropdownButtonFormField<String>(
                             initialValue: _selectedBankCode,
                             decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            dropdownColor: Colors.white,
-                            style: TextStyle(color: AppColors.cardText, fontSize: 14),
+                            dropdownColor: OrtizPalette.surface,
+                            style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.body),
                             items: venezuelanBanks.map((b) {
                               return DropdownMenuItem<String>(
                                 value: b["code"],
@@ -498,27 +411,27 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                               setState(() => _selectedBankCode = code);
                             },
                           ),
-                          SizedBox(height: 14),
+                          SizedBox(height: OrtizSpace.md),
 
                           // Cédula o RIF
                           Text(
                             "Cédula de Identidad / RIF",
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           Row(
                             children: [
                               Container(
                                 width: 80,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: OrtizPalette.surfaceHigh,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
                                     value: _selectedIdPrefix,
-                                    dropdownColor: Colors.white,
+                                    dropdownColor: OrtizPalette.surface,
                                     style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold),
                                     items: ["V", "E", "J", "G"].map((prefix) {
                                       return DropdownMenuItem<String>(
@@ -534,81 +447,80 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 8),
+                              SizedBox(width: OrtizSpace.sm),
                               Expanded(
                                 child: TextField(
                                   controller: _idCardController,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     hintText: "Número de identificación",
-                                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                    contentPadding: EdgeInsets.all(14),
+                                    hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                                    contentPadding: EdgeInsets.all(OrtizSpace.md),
                                     filled: true,
-                                    fillColor: Colors.grey[100],
+                                    fillColor: OrtizPalette.surfaceHigh,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                                       borderSide: BorderSide.none,
                                     ),
                                   ),
-                                  style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 14),
+                          SizedBox(height: OrtizSpace.md),
 
                           // Número de Teléfono
                           Text(
                             "Número de Teléfono",
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: OrtizSpace.xs),
                           TextField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               hintText: "Ej. 04121234567",
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                           ),
                         ],
-                      ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: OrtizSpace.xxl),
 
                     // Actions
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: OrtizPalette.onAccent,
                         elevation: 0,
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                       ),
                       onPressed: _saveRecipient,
                       child: Text(
                         isEditing ? "Guardar Cambios" : "Guardar Destinatario",
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                       ),
                     ),
                     if (isEditing) ...[
-                      SizedBox(height: 12),
+                      SizedBox(height: OrtizSpace.md),
                       TextButton.icon(
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.expense,
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                         ),
                         onPressed: () {
@@ -616,12 +528,12 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                             context: context,
                             builder: (dialogCtx) => AlertDialog(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(OrtizRadius.sheet),
                               ),
                               title: Text("¿Eliminar Destinatario?", style: TextStyle(fontWeight: FontWeight.bold)),
                               content: Text(
                                 "¿Estás seguro de que deseas eliminar a ${_aliasController.text.trim()} de tus contactos?",
-                                style: TextStyle(fontSize: 13),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm),
                               ),
                               actions: [
                                 TextButton(
@@ -640,7 +552,7 @@ class _RecipientFormBottomSheetState extends State<_RecipientFormBottomSheet> {
                             ),
                           );
                         },
-                        icon: Icon(Icons.delete_outline_rounded, size: 18),
+                        icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.md),
                         label: Text("Eliminar Destinatario", style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],

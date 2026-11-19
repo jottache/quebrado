@@ -2,6 +2,7 @@ import 'package:appflowy_editor/appflowy_editor.dart' show Document;
 import '../services/note_document_converter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../theme/notas_colors.dart';
 import 'note_block.dart';
 
 class NoteItem {
@@ -76,7 +77,7 @@ class NoteItem {
       final hex = colorHex.replaceAll('#', '');
       return Color(int.parse('FF$hex', radix: 16));
     } catch (_) {
-      return const Color(0xFF6366F1);
+      return NotasColors.categoryDefault;
     }
   }
 

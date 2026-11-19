@@ -4,6 +4,10 @@ import '../models/mood_catalog.dart';
 import '../theme/diario_colors.dart';
 import '../viewmodels/animo_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Tendencia de ánimo: valor diario (puntos) + media móvil de 7 días (línea).
 class MoodTrendChart extends StatefulWidget {
   final String? contactId;
@@ -47,7 +51,7 @@ class _MoodTrendChartState extends State<MoodTrendChart> {
                 avg == null
                     ? 'Sin datos en este rango'
                     : 'Promedio ${MoodCatalog.metaForAverage(avg).emoji} ${avg.toStringAsFixed(1)} · ${points.length} días',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DiarioColors.textSecondary),
+                style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: DiarioColors.textSecondary),
               ),
             ),
             SegmentedButton<int>(
@@ -63,19 +67,19 @@ class _MoodTrendChartState extends State<MoodTrendChart> {
                 visualDensity: VisualDensity.compact,
                 selectedBackgroundColor: DiarioColors.primaryLight,
                 selectedForegroundColor: DiarioColors.primary,
-                textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+                textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.caption),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: OrtizSpace.md),
         SizedBox(
           height: widget.height,
           child: points.length < 2
               ? const Center(
                   child: Text(
                     'Registra al menos 2 días para ver tu tendencia',
-                    style: TextStyle(fontSize: 12, color: DiarioColors.textMuted, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textMuted, fontWeight: FontWeight.w700),
                   ),
                 )
               : LineChart(
@@ -89,7 +93,9 @@ class _MoodTrendChartState extends State<MoodTrendChart> {
                       drawVerticalLine: false,
                       horizontalInterval: 1,
                       getDrawingHorizontalLine: (value) => FlLine(
-                        color: Colors.black.withOpacity(value.round() == 0 ? 0.12 : 0.05),
+                        color: value.round() == 0
+                            ? OrtizPalette.line
+                            : OrtizPalette.line.withValues(alpha: 0.5),
                         strokeWidth: 1,
                       ),
                     ),
@@ -105,20 +111,20 @@ class _MoodTrendChartState extends State<MoodTrendChart> {
                           reservedSize: 28,
                           getTitlesWidget: (value, meta) {
                             if (value != value.roundToDouble() || value.abs() > 2) return const SizedBox.shrink();
-                            return Text(MoodCatalog.valenceMeta(value.round()).emoji, style: const TextStyle(fontSize: 13));
+                            return Text(MoodCatalog.valenceMeta(value.round()).emoji, style: const TextStyle(fontSize: OrtizFontSize.bodySm));
                           },
                         ),
                       ),
                     ),
                     lineTouchData: LineTouchData(
                       touchTooltipData: LineTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey[900]!,
+                        tooltipBgColor: OrtizPalette.surfaceHigh,
                         getTooltipItems: (spots) => spots.map((s) {
                           final d = DateTime(start.year, start.month, start.day + s.x.round());
                           final isAvg = s.barIndex == 1;
                           return LineTooltipItem(
                             '${d.day}/${d.month}\n${isAvg ? "Media 7d" : MoodCatalog.metaForAverage(s.y).label} ${s.y.toStringAsFixed(1)}',
-                            const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                            const TextStyle(color: OrtizPalette.fg, fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w700),
                           );
                         }).toList(),
                       ),

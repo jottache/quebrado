@@ -11,13 +11,19 @@ import '../models/currency_type.dart';
 import '../widgets/helpers.dart';
 import '../widgets/add_market_item_bottom_sheet.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
 import '../services/biometric_service.dart';
 import '../widgets/add_market_store_bottom_sheet.dart';
 import 'market_trip_store_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../../widgets/responsive_breakpoints.dart';
 import '../../widgets/responsive_sheet_helper.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+String _formatBsShort(double v) => "Bs ${v.toStringAsFixed(2)}";
 
 class MarketTripScreen extends StatelessWidget {
   final String tripId;
@@ -79,7 +85,8 @@ class MarketTripScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete_outline, color: Colors.red[300]),
+            icon: const Icon(Icons.delete_outline, color: OrtizPalette.bad),
+            tooltip: 'Eliminar sesión',
             onPressed: () {
               _confirmDeleteTrip(context, appState, trip);
             },
@@ -90,111 +97,70 @@ class MarketTripScreen extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ClaymorphicCard(
-                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "TOTAL SESIÓN",
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: OrtizType.caption.copyWith(
                             fontWeight: FontWeight.w900,
-                            color: AppColors.cardSubtitleText,
+                            color: OrtizPalette.muted,
                             letterSpacing: 1.0,
                           ),
                         ),
-                        SizedBox(height: 2),
-                        Text(
-                          "\$${totalUSD.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        const SizedBox(height: OrtizSpace.xxs),
+                        OrtizAmount(
+                          value: totalUSD,
+                          currencySymbol: '\$',
+                          format: formatUSD,
+                          style: OrtizType.amountLg,
                         ),
                       ],
                     ),
-                    Text(
-                      "Bs ${totalVES.toStringAsFixed(2)}",
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  OrtizAmount(
+                    value: totalVES,
+                    currencySymbol: 'Bs',
+                    format: _formatBsShort,
+                    color: OrtizPalette.muted,
+                  ),
+                ],
               ),
             ),
+            const Divider(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Tus Compras",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Colors.grey[700],
+                  style: OrtizType.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: OrtizPalette.muted,
                   ),
                 ),
               ),
             ),
             Expanded(
               child: itemsByStore.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                trip.transactionId != null ? Icons.receipt_long : Icons.storefront_outlined,
-                                size: 40,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              trip.transactionId != null
-                                  ? "Sesión Registrada"
-                                  : "Sin Productos Registrados",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.cardText,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              trip.transactionId != null
-                                  ? "Esta sesión fue finalizada y guardada como un gasto de \$${totalUSD.toStringAsFixed(2)} (Bs ${totalVES.toStringAsFixed(2)}).\n\nLos ítems individuales no estaban desglosados en este respaldo, pero el monto total del gasto está guardado en tu cuenta."
-                                  : "No has registrado compras en ningún establecimiento.",
-                              style: TextStyle(
-                                color: AppColors.cardSubtitleText,
-                                fontSize: 13,
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
+                  ? OrtizEmptyState(
+                      icon: trip.transactionId != null ? Icons.receipt_long : Icons.storefront_outlined,
+                      title: trip.transactionId != null
+                          ? "Sesión Registrada"
+                          : "Sin Productos Registrados",
+                      message: trip.transactionId != null
+                          ? "Esta sesión fue finalizada y guardada como un gasto de \$${totalUSD.toStringAsFixed(2)} (Bs ${totalVES.toStringAsFixed(2)}).\n\nLos ítems individuales no estaban desglosados en este respaldo, pero el monto total del gasto está guardado en tu cuenta."
+                          : "No has registrado compras en ningún establecimiento.",
                     )
-                  : ListView.builder(
-                      padding: EdgeInsets.only(bottom: 100),
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, 0, OrtizSpace.lg, OrtizSpace.xxxl),
+                      separatorBuilder: (context, index) => const Divider(height: OrtizStroke.hairline),
                       itemCount: itemsByStore.keys.length,
                       itemBuilder: (context, index) {
                         final storeId = itemsByStore.keys.elementAt(index);
@@ -206,9 +172,13 @@ class MarketTripScreen extends StatelessWidget {
                         final storeTotalUSD = storeItems.fold(0.0, (sum, i) => sum + i.priceUSD);
                         final storeTotalVES = storeItems.fold(0.0, (sum, i) => sum + i.priceVES);
                         
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                          child: GestureDetector(
+                        return ortizStaggered(
+                          context,
+                          index,
+                          OrtizListRow(
+                            leading: const Icon(Icons.storefront),
+                            title: store.name,
+                            subtitle: "${storeItems.length} productos",
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -220,67 +190,23 @@ class MarketTripScreen extends StatelessWidget {
                                 ),
                               );
                             },
-                            child: ClaymorphicCard(
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(Icons.storefront, color: AppColors.primary, size: 20),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          store.name,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: AppColors.primary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          "${storeItems.length} productos",
-                                          style: TextStyle(
-                                            color: AppColors.cardSubtitleText,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "\$${storeTotalUSD.toStringAsFixed(2)}",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 18,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Bs ${storeTotalVES.toStringAsFixed(2)}",
-                                        style: TextStyle(
-                                          color: AppColors.cardSubtitleText,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                            trailing: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                OrtizAmount(
+                                  value: storeTotalUSD,
+                                  currencySymbol: '\$',
+                                  format: formatUSD,
+                                ),
+                                OrtizAmount(
+                                  value: storeTotalVES,
+                                  currencySymbol: 'Bs',
+                                  format: _formatBsShort,
+                                  style: OrtizType.caption,
+                                  color: OrtizPalette.muted,
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -292,7 +218,7 @@ class MarketTripScreen extends StatelessWidget {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(OrtizSpace.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: trip.isActive ? [
@@ -308,39 +234,39 @@ class MarketTripScreen extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
-                      fontSize: 12,
+                      fontSize: OrtizFontSize.bodySm,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: OrtizPalette.surfaceHigh,
                     foregroundColor: AppColors.primary,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: OrtizSpace.sm),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     _confirmFinishTrip(context, appState, trip);
                   },
-                  icon: Icon(Icons.check_circle, color: Colors.white),
+                  icon: Icon(Icons.check_circle, color: OrtizPalette.onAccent),
                   label: Text(
                     "FINALIZAR SESIÓN",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.0, fontSize: 12),
+                    style: TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold, letterSpacing: 1.0, fontSize: OrtizFontSize.bodySm),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: OrtizPalette.onAccent,
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                     ),
                   ),
                 ),
@@ -356,18 +282,18 @@ class MarketTripScreen extends StatelessWidget {
                       SnackBar(content: Text("Sesión reabierta")),
                     );
                   },
-                  icon: Icon(Icons.refresh, color: Colors.white),
+                  icon: Icon(Icons.refresh, color: OrtizPalette.onAccent),
                   label: Text(
                     "REABRIR SESIÓN",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.0, fontSize: 12),
+                    style: TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold, letterSpacing: 1.0, fontSize: OrtizFontSize.bodySm),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: OrtizPalette.onAccent,
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
                     ),
                   ),
                 ),
@@ -423,14 +349,14 @@ class MarketTripScreen extends StatelessWidget {
           decoration: InputDecoration(
             hintText: "Título de la sesión",
             filled: true,
-            fillColor: Colors.grey[100],
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            fillColor: OrtizPalette.surfaceHigh,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip), borderSide: BorderSide.none),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
           ),
           TextButton(
             onPressed: () async {
@@ -453,26 +379,26 @@ class MarketTripScreen extends StatelessWidget {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          color: OrtizPalette.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
         ),
         child: Column(
           children: [
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Container(
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
+                color: OrtizPalette.faint,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(OrtizSpace.xl),
               child: Text(
                 "Selecciona un establecimiento",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
@@ -480,23 +406,24 @@ class MarketTripScreen extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
                 itemCount: appState.marketStores.length,
                 itemBuilder: (context, index) {
                   final store = appState.marketStores[index];
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: ClaymorphicCard(
+                    padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
+                    child: Padding(
+                      padding: const EdgeInsets.all(OrtizSpace.lg),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                           child: Icon(Icons.storefront, color: AppColors.primary),
                         ),
                         title: Text(
                           store.name,
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                        trailing: Icon(Icons.chevron_right, color: OrtizPalette.muted),
                         onTap: () {
                           Navigator.pop(context); // close bottom sheet
                           Navigator.push(
@@ -517,7 +444,7 @@ class MarketTripScreen extends StatelessWidget {
             ),
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(OrtizSpace.lg),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -546,16 +473,16 @@ class MarketTripScreen extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.0,
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                       ),
                     ),
                   ),
@@ -574,37 +501,37 @@ class MarketTripScreen extends StatelessWidget {
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: OrtizPalette.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
           ),
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(OrtizSpace.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "¿Eliminar Sesión?",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red,
+                  color: OrtizPalette.bad,
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
               Text(
                 "Se eliminarán todos los productos registrados en esta sesión. Esta acción no se puede deshacer.",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: OrtizPalette.muted),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancelar", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                      child: Text("Cancelar", style: TextStyle(color: OrtizPalette.muted, fontWeight: FontWeight.bold)),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -619,13 +546,13 @@ class MarketTripScreen extends StatelessWidget {
                         Navigator.pop(context); // Go back to market screen
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[400],
-                        foregroundColor: Colors.white,
+                        backgroundColor: OrtizPalette.bad,
+                        foregroundColor: OrtizPalette.onAccent,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       ),
                       child: Text("Eliminar", style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
@@ -804,15 +731,15 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -824,12 +751,12 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Color(0xFFD6D6D6),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.chip)),
               ),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Header
           Row(
@@ -838,9 +765,9 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
               Text(
                 "Finalizar Compra",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+                  color: OrtizPalette.fg,
                 ),
               ),
               IconButton(
@@ -849,64 +776,64 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
               ),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Claymorphic Total Card
-          ClaymorphicCard(
-            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: OrtizSpace.xl, horizontal: OrtizSpace.lg),
             child: Column(
               children: [
                 Text(
                   "TOTAL A REGISTRAR",
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardSubtitleText,
                     letterSpacing: 1.0,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: OrtizSpace.sm),
                 Text(
                   formattedTotal,
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: OrtizFontSize.displayLg,
                     fontWeight: FontWeight.w900,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "Equivalente a: \$${widget.totalUSD.toStringAsFixed(2)} / Bs. ${widget.totalVES.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                    fontSize: OrtizFontSize.bodySm,
+                    color: OrtizPalette.muted,
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: OrtizSpace.xl),
 
           // Account selector dropdown
           Text(
             "Cuenta para el pago",
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: OrtizSpace.xs),
           DropdownButtonFormField<Account>(
             value: _selectedAccount,
             isExpanded: true,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: OrtizPalette.surfaceHigh,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 borderSide: BorderSide.none,
               ),
             ),
-            dropdownColor: Colors.white,
-            style: TextStyle(color: AppColors.cardText, fontSize: 13),
+            dropdownColor: OrtizPalette.surface,
+            style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
             items: widget.appState.accounts.map((acc) {
               String symbol = acc.currency.symbol;
               return DropdownMenuItem(
@@ -920,36 +847,36 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
               });
             },
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Category selector dropdown
           Text(
             "Categoría del gasto",
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: OrtizSpace.xs),
           DropdownButtonFormField<TransactionCategory>(
             value: _selectedCategory,
             isExpanded: true,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: OrtizPalette.surfaceHigh,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 borderSide: BorderSide.none,
               ),
             ),
-            dropdownColor: Colors.white,
-            style: TextStyle(color: AppColors.cardText, fontSize: 13),
+            dropdownColor: OrtizPalette.surface,
+            style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
             items: widget.appState.categories.map((cat) {
               return DropdownMenuItem(
                 value: cat,
                 child: Row(
                   children: [
                     if (cat.icon != null) ...[
-                      Icon(getIconData(cat.icon!), color: AppColors.primary, size: 16),
-                      SizedBox(width: 8),
+                      Icon(getIconData(cat.icon!), color: AppColors.primary, size: OrtizIconSize.sm),
+                      SizedBox(width: OrtizSpace.sm),
                     ],
                     Text(cat.name),
                   ],
@@ -962,40 +889,40 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
               });
             },
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Description text field
           Text(
             "Descripción / Nota",
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: OrtizSpace.xs),
           TextField(
             controller: _descriptionController,
-            style: TextStyle(fontSize: 13, color: AppColors.cardText),
+            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: OrtizPalette.surfaceHigh,
               hintText: "Descripción de la compra...",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 borderSide: BorderSide.none,
               ),
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
 
           // Confirm button
           ElevatedButton(
             onPressed: _loading ? null : _finishSession,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
+              foregroundColor: OrtizPalette.onAccent,
+              padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
             ),
             child: _loading
@@ -1003,7 +930,7 @@ class _FinishMarketTripBottomSheetState extends State<FinishMarketTripBottomShee
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                      color: Colors.white,
+                      color: OrtizPalette.onAccent,
                       strokeWidth: 2,
                     ),
                   )

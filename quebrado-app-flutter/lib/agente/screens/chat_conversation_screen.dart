@@ -4,6 +4,10 @@ import '../viewmodels/agente_state.dart';
 import '../theme/agente_colors.dart';
 import '../widgets/chat_message_bubble.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class ChatConversationScreen extends StatefulWidget {
   const ChatConversationScreen({super.key});
 
@@ -58,7 +62,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     return Scaffold(
       backgroundColor: AgenteColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AgenteColors.background,
         elevation: 0,
         centerTitle: false,
         title: Column(
@@ -67,9 +71,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             Text(
               sessionTitle,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: OrtizFontSize.titleSm,
                 fontWeight: FontWeight.w900,
-                color: Colors.black87,
+                color: OrtizPalette.fg,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -77,17 +81,17 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             Row(
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: OrtizSize.dot,
+                  height: OrtizSize.dot,
                   decoration: const BoxDecoration(
                     color: AgenteColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: OrtizSpace.xs),
                 const Text(
                   'Gemini AI • Conectado a la suite',
-                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                 ),
               ],
             ),
@@ -100,20 +104,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           if (agenteState.isGenerating && agenteState.statusMessage.isNotEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xs),
               color: AgenteColors.primaryLight,
               child: Row(
                 children: [
                   const SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AgenteColors.primary),
+                    width: OrtizIconSize.xs,
+                    height: OrtizIconSize.xs,
+                    child: CircularProgressIndicator(strokeWidth: OrtizStroke.focus, color: AgenteColors.primary),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   Text(
                     agenteState.statusMessage,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.bold,
                       color: AgenteColors.primaryDark,
                     ),
@@ -130,29 +134,30 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
+                          padding: const EdgeInsets.all(OrtizSpace.lg),
+                          decoration: const BoxDecoration(
                             color: AgenteColors.primaryLight,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.auto_awesome_rounded, size: 36, color: AgenteColors.primary),
+                          child: const Icon(Icons.auto_awesome_rounded, size: OrtizIconSize.xl, color: AgenteColors.primary),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: OrtizSpace.md),
                         const Text(
                           'Inicia la conversación',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: OrtizPalette.fg),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: OrtizSpace.xs),
+                        const Text(
                           'Escribe lo que deseas saber sobre tus cuentas, personas o hábitos.',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       return ChatMessageBubble(message: messages[index]);
@@ -162,19 +167,21 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
           // Bottom Input Bar
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.sm, OrtizSpace.lg, OrtizSpace.xxl),
             decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+              color: AgenteColors.background,
+              border: Border(top: BorderSide(color: OrtizPalette.line)),
             ),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
+                    // Campo del chat: flota sobre `surface`.
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(24),
+                        color: AgenteColors.surface,
+                        borderRadius: BorderRadius.circular(OrtizRadius.sheet),
+                        border: Border.all(color: OrtizPalette.line),
                       ),
                       child: TextField(
                         controller: _textController,
@@ -183,28 +190,29 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         onSubmitted: (_) => _sendMessage(agenteState),
                         decoration: const InputDecoration(
                           hintText: 'Pregúntale al Agente Ortiz...',
-                          hintStyle: TextStyle(fontSize: 13.5, color: Colors.black45),
-                          prefixIcon: Icon(Icons.auto_awesome_rounded, size: 18, color: AgenteColors.primary),
+                          hintStyle: TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.muted),
+                          prefixIcon: Icon(Icons.auto_awesome_rounded, size: OrtizIconSize.md, color: AgenteColors.primary),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   Container(
                     decoration: const BoxDecoration(
                       color: AgenteColors.primary,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
+                      tooltip: 'Enviar',
                       icon: agenteState.isGenerating
                           ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: OrtizIconSize.md,
+                              height: OrtizIconSize.md,
+                              child: CircularProgressIndicator(strokeWidth: OrtizStroke.focus, color: OrtizPalette.onAccent),
                             )
-                          : const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 20),
+                          : const Icon(Icons.arrow_upward_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
                       onPressed: agenteState.isGenerating ? null : () => _sendMessage(agenteState),
                     ),
                   ),

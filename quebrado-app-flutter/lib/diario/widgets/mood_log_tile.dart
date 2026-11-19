@@ -8,6 +8,8 @@ import '../viewmodels/animo_state.dart';
 import '../viewmodels/diario_state.dart';
 import 'mood_checkin_sheet.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Un registro de ánimo en un timeline: emoji, emociones, contexto, nota y menú.
 class MoodLogTile extends StatelessWidget {
   final MoodLog log;
@@ -55,18 +57,15 @@ class MoodLogTile extends StatelessWidget {
     final subjectName = (!log.isSelf && showSubject) ? diario?.getContactById(log.contactId!)?.name : null;
     final isPending = animo?.isPending(log.id) ?? false;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DiarioColors.cardBorder),
-      ),
+    // Sin tarjeta (spec 05): fila sobre el fondo; al pasar o pulsar, `surfaceHigh`.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        hoverColor: DiarioColors.surfaceHover,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         onTap: () => showMoodCheckinSheet(context, existing: log),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.sm, OrtizSpace.xs, OrtizSpace.sm),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -75,9 +74,9 @@ class MoodLogTile extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(color: meta.lightColor, shape: BoxShape.circle),
                 alignment: Alignment.center,
-                child: Text(meta.emoji, style: const TextStyle(fontSize: 22)),
+                child: Text(meta.emoji, style: const TextStyle(fontSize: OrtizFontSize.display)),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,29 +88,29 @@ class MoodLogTile extends StatelessWidget {
                             subjectName != null ? '$subjectName · ${meta.label}' : meta.label,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                            style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                           ),
                         ),
                         if (log.isDaily) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: OrtizSpace.xs),
                           _badge('Balance del día'),
                         ],
                         if (!log.isSelf) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: OrtizSpace.xs),
                           _badge(log.perspective == MoodPerspective.told ? '💬 Me lo contó' : '👁 Percibido'),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: OrtizSpace.xxs),
                     Text(
                       [
                         _formatWhen(log.loggedAt, showDate),
                         if (log.energy != null) 'Energía ${MoodCatalog.energyLabel(log.energy!).toLowerCase()}',
                       ].join(' · '),
-                      style: const TextStyle(fontSize: 11, color: DiarioColors.textMuted, fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textMuted, fontWeight: FontWeight.w600),
                     ),
                     if (log.emotions.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: OrtizSpace.xs),
                       Wrap(
                         spacing: 4,
                         runSpacing: 4,
@@ -119,33 +118,33 @@ class MoodLogTile extends StatelessWidget {
                           final emotion = MoodCatalog.emotionByKey(key);
                           final color = emotion?.color ?? DiarioColors.primary;
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: color.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(8),
+                              color: color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Text(
                               MoodCatalog.emotionLabel(key),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: color),
                             ),
                           );
                         }).toList(),
                       ),
                     ],
                     if (tagLabels.isNotEmpty || people.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: OrtizSpace.xs),
                       Text(
                         [...tagLabels, ...people.map((p) => '@$p')].join('  '),
-                        style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary, fontWeight: FontWeight.w600),
                       ),
                     ],
                     if (log.note != null && log.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: OrtizSpace.xs),
                       Text(
                         log.note!,
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12.5, color: DiarioColors.textPrimary, height: 1.35),
+                        style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textPrimary, height: 1.35),
                       ),
                     ],
                   ],
@@ -153,15 +152,15 @@ class MoodLogTile extends StatelessWidget {
               ),
               if (isPending)
                 const Padding(
-                  padding: EdgeInsets.only(top: 4),
+                  padding: EdgeInsets.only(top: OrtizSpace.xs),
                   child: Tooltip(
                     message: 'Pendiente de sincronizar',
-                    child: Icon(Icons.cloud_off_rounded, size: 15, color: DiarioColors.textMuted),
+                    child: Icon(Icons.cloud_off_rounded, size: OrtizIconSize.sm, color: DiarioColors.textMuted),
                   ),
                 ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, size: 18, color: DiarioColors.textMuted),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                icon: const Icon(Icons.more_vert_rounded, size: OrtizIconSize.md, color: DiarioColors.textMuted),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                 onSelected: (v) {
                   if (v == 'edit') showMoodCheckinSheet(context, existing: log);
                   if (v == 'delete') _delete(context);
@@ -183,9 +182,9 @@ class MoodLogTile extends StatelessWidget {
 
   static Widget _badge(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(color: DiarioColors.surfaceHover, borderRadius: BorderRadius.circular(6)),
-      child: Text(text, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary)),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
+      decoration: BoxDecoration(color: DiarioColors.surfaceHover, borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+      child: Text(text, style: const TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary)),
     );
   }
 

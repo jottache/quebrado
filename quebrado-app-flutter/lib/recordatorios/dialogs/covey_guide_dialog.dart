@@ -3,6 +3,12 @@ import '../theme/reminders_colors.dart';
 import 'role_manager_dialog.dart';
 import 'sunday_planning_wizard_dialog.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+
 class CoveyGuideDialog extends StatefulWidget {
   const CoveyGuideDialog({super.key});
 
@@ -18,42 +24,42 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
       title: 'Roles Vitales & Brújula',
       subtitle: 'La dirección (la brújula) siempre precede a la velocidad (el reloj)',
       icon: Icons.explore_rounded,
-      color: const Color(0xFF3B82F6),
+      color: RemindersColors.primary,
       contentBuilder: (context) => const _RolesGuideContent(),
     ),
     _GuideStepData(
       title: 'El Ritual Dominical',
       subtitle: 'El hábito sagrado semanal de planificación y conexión con tu misión',
       icon: Icons.wb_sunny_rounded,
-      color: const Color(0xFFD97706),
+      color: OrtizPalette.warn,
       contentBuilder: (context) => const _SundayRitualGuideContent(),
     ),
     _GuideStepData(
       title: 'Grandes Rocas vs Arena',
       subtitle: 'Coloca primero las piedras grandes en tu jarra; la arena se acomodará sola',
       icon: Icons.star_rounded,
-      color: const Color(0xFF10B981),
+      color: OrtizPalette.ok,
       contentBuilder: (context) => const _BigRocksGuideContent(),
     ),
     _GuideStepData(
       title: 'Agenda Semanal Flexible',
       subtitle: 'Organización a escala semanal con Drag & Drop y Bandeja sin asignar',
       icon: Icons.calendar_view_week_rounded,
-      color: const Color(0xFF6366F1),
+      color: RemindersColors.primary,
       contentBuilder: (context) => const _WeeklyScheduleGuideContent(),
     ),
     _GuideStepData(
       title: 'La Matriz de Covey (2x2)',
       subtitle: 'El Cuadrante II (Importante, No Urgente) es el núcleo de la alta eficacia',
       icon: Icons.grid_view_rounded,
-      color: const Color(0xFF059669),
+      color: RemindersColors.quadrantImportantNotUrgent,
       contentBuilder: (context) => const _MatrixGuideContent(),
     ),
     _GuideStepData(
       title: 'Captura NLP y Coach Ortiz',
       subtitle: 'Comandos ultrarrápidos de captura y supervisión proactiva con IA',
       icon: Icons.psychology_rounded,
-      color: const Color(0xFF8B5CF6),
+      color: RemindersColors.primary,
       contentBuilder: (context) => const _NlpAndAgentGuideContent(),
     ),
   ];
@@ -61,11 +67,12 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
   @override
   Widget build(BuildContext context) {
     final activeStep = _steps[_currentStep];
+    final t = OrtizTokens.of(context);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+      backgroundColor: t.surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: 860,
@@ -77,23 +84,21 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
             // HEADER PRINCIPAL
             // ==========================================
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xxl, OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.lg),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                border: Border(bottom: BorderSide(color: t.line)),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(OrtizSpace.sm),
                     decoration: BoxDecoration(
-                      color: activeStep.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: activeStep.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
-                    child: Icon(activeStep.icon, color: activeStep.color, size: 24),
+                    child: Icon(activeStep.icon, color: activeStep.color, size: OrtizIconSize.lg),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,48 +108,48 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
                             Text(
                               'GUÍA PASO A PASO: HÁBITO 3',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.8,
                                 color: activeStep.color,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: OrtizSpace.sm),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(6),
+                                color: t.surfaceHigh,
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Text(
                                 'Paso ${_currentStep + 1} de ${_steps.length}',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade700,
+                                  color: t.muted,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: OrtizSpace.xxs),
                         Text(
                           activeStep.title,
                           style: const TextStyle(
-                            fontSize: 19,
+                            fontSize: OrtizFontSize.title,
                             fontWeight: FontWeight.w900,
                             color: RemindersColors.textPrimary,
                           ),
                         ),
                         Text(
                           activeStep.subtitle,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: t.muted),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                    icon: Icon(Icons.close_rounded, color: t.muted),
                     tooltip: 'Cerrar Guía',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
@@ -156,10 +161,9 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
             // BARRA DE PASOS HORIZONTAL
             // ==========================================
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                border: Border(bottom: BorderSide(color: t.line)),
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -168,34 +172,35 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
                     final s = _steps[idx];
                     final isSelected = idx == _currentStep;
                     return Padding(
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.only(right: OrtizSpace.xs),
                       child: InkWell(
                         onTap: () => setState(() => _currentStep = idx),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          duration: OrtizMotion.of(context, OrtizMotion.fast),
+                          curve: OrtizMotion.ease,
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           decoration: BoxDecoration(
-                            color: isSelected ? s.color.withOpacity(0.12) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            color: isSelected ? s.color.withValues(alpha: 0.12) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             border: Border.all(
-                              color: isSelected ? s.color.withOpacity(0.5) : Colors.transparent,
+                              color: isSelected ? s.color.withValues(alpha: 0.5) : Colors.transparent,
                             ),
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 s.icon,
-                                size: 14,
-                                color: isSelected ? s.color : Colors.grey.shade500,
+                                size: OrtizIconSize.sm,
+                                color: isSelected ? s.color : t.muted,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: OrtizSpace.xs),
                               Text(
                                 '${idx + 1}. ${s.title.split(" ")[0]}',
                                 style: TextStyle(
-                                  fontSize: 11.5,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? s.color : Colors.grey.shade600,
+                                  color: isSelected ? s.color : t.muted,
                                 ),
                               ),
                             ],
@@ -213,7 +218,7 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
             // ==========================================
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(OrtizSpace.xxl),
                 child: activeStep.contentBuilder(context),
               ),
             ),
@@ -222,70 +227,66 @@ class _CoveyGuideDialogState extends State<CoveyGuideDialog> {
             // BARRA INFERIOR DE NAVEGACIÓN Y ACCIONES
             // ==========================================
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl, vertical: OrtizSpace.md),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                border: Border(top: BorderSide(color: t.line)),
               ),
               child: Row(
                 children: [
                   if (_currentStep > 0)
                     OutlinedButton.icon(
                       onPressed: () => setState(() => _currentStep--),
-                      icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                      label: const Text('Anterior', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      icon: const Icon(Icons.arrow_back_rounded, size: OrtizIconSize.sm),
+                      label: const Text('Anterior', style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
                       style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                       ),
                     ),
                   const Spacer(),
                   // Botón de acción rápida contextual
+                  // Acción contextual secundaria (contorno): el único botón en
+                  // `accent` de la vista es el de avanzar.
                   if (_currentStep == 0)
-                    FilledButton.icon(
+                    OutlinedButton.icon(
                       onPressed: () {
                         Navigator.of(context).pop();
                         showDialog(context: context, builder: (_) => const RoleManagerDialog());
                       },
-                      icon: const Icon(Icons.pie_chart_outline_rounded, size: 15),
-                      label: const Text('Configurar Mis Roles Vitales', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      icon: const Icon(Icons.pie_chart_outline_rounded, size: OrtizIconSize.sm),
+                      label: const Text('Configurar Mis Roles Vitales', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                       ),
                     )
                   else if (_currentStep == 1 || _currentStep == 2)
-                    FilledButton.icon(
+                    OutlinedButton.icon(
                       onPressed: () {
                         Navigator.of(context).pop();
                         showDialog(context: context, builder: (_) => const SundayPlanningWizardDialog());
                       },
-                      icon: const Icon(Icons.wb_sunny_rounded, size: 15),
-                      label: const Text('Abrir Ritual Dominical', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFD97706),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      icon: const Icon(Icons.wb_sunny_rounded, size: OrtizIconSize.sm),
+                      label: const Text('Abrir Ritual Dominical', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                       ),
                     ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: OrtizSpace.sm),
                   if (_currentStep < _steps.length - 1)
                     FilledButton.icon(
                       onPressed: () => setState(() => _currentStep++),
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                      label: const Text('Siguiente Paso', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      icon: const Icon(Icons.arrow_forward_rounded, size: OrtizIconSize.sm),
+                      label: const Text('Siguiente Paso', style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
                       style: FilledButton.styleFrom(
-                        backgroundColor: RemindersColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                       ),
                     )
                   else
                     FilledButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                       ),
-                      child: const Text('¡Listo para Empezar!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      child: const Text('¡Listo para Empezar!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
                     ),
                 ],
               ),
@@ -328,20 +329,20 @@ class _RolesGuideContent extends StatelessWidget {
           quote: '«La mayoría de los sistemas de tiempo se concentran en la velocidad: hacer las cosas más rápido (el reloj). '
               'El Hábito 3 se concentra en la dirección: asegurarte de que la escalera esté apoyada en la pared correcta (la brújula).»',
           author: 'Stephen R. Covey',
-          color: const Color(0xFF3B82F6),
+          color: RemindersColors.primary,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           '1. ¿Qué es un Rol Vital?',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           'No eres solo tu trabajo o tus estudios. Una vida plena abarca múltiples dimensiones de responsabilidad y significado. '
           'Tus Roles Vitales son las facetas fundamentales en las que quieres dejar un legado y mantener un equilibrio ecológico.',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, height: 1.4),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
 
         // Tarjetas de Dimensiones de Covey
         Row(
@@ -352,23 +353,23 @@ class _RolesGuideContent extends StatelessWidget {
                 title: 'Dimensión Física',
                 roleExample: 'Salud & Vitalidad',
                 icon: Icons.fitness_center_rounded,
-                color: const Color(0xFF10B981),
+                color: OrtizPalette.ok,
                 desc: 'Ejercicio, descanso reparador, nutrición y prevención médica.',
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: _buildRoleCard(
                 title: 'Dimensión Mental',
                 roleExample: 'Profesional & Aprendiz',
                 icon: Icons.psychology_rounded,
-                color: const Color(0xFF3B82F6),
+                color: RemindersColors.primary,
                 desc: 'Lectura, proyectos de valor, capacitación continua y foco.',
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -377,28 +378,26 @@ class _RolesGuideContent extends StatelessWidget {
                 title: 'Dimensión Espiritual',
                 roleExample: 'Individuo / Conexión',
                 icon: Icons.spa_rounded,
-                color: const Color(0xFF8B5CF6),
+                color: RemindersColors.primary,
                 desc: 'Meditación, valores centrales, clarificación de visión y paz mental.',
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: _buildRoleCard(
                 title: 'Dimensión Social/Emocional',
                 roleExample: 'Familia & Relaciones',
                 icon: Icons.favorite_rounded,
-                color: const Color(0xFFEF4444),
+                color: RemindersColors.quadrantUrgentImportant,
                 desc: 'Tiempo de calidad sin distracciones con las personas que amas.',
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: OrtizSpace.lg),
         _buildNoticeBanner(
           icon: Icons.warning_amber_rounded,
-          color: const Color(0xFFD97706),
-          bgColor: const Color(0xFFFFFBEB),
-          title: 'Regla de Oro: Ningún rol en 0',
+          color: OrtizPalette.warn,          title: 'Regla de Oro: Ningún rol en 0',
           desc: 'Si durante la semana tienes 0 Grandes Rocas en un rol vital, el sistema y el Agente Ortiz te mostrarán una Alerta de Desbalance. El éxito en un área nunca compensa el fracaso en tu hogar o tu salud.',
         ),
       ],
@@ -421,38 +420,38 @@ class _SundayRitualGuideContent extends StatelessWidget {
           quote: '«La perspectiva semanal es el puente ideal entre el día a día caótico y los grandes objetivos a largo plazo. '
               'Planificar por semanas permite mantener el rumbo de la brújula y la flexibilidad del reloj.»',
           author: 'Stephen R. Covey',
-          color: const Color(0xFFD97706),
+          color: OrtizPalette.warn,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           'El Hábito Sagrado: 20 a 30 minutos cada Domingo',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           'No esperes al lunes por la mañana para decidir qué harás; el lunes las urgencias ajenas ya habrán tomado el control. '
           'El Ritual Dominical es tu espacio de tranquilidad para diseñar tu semana de forma proactiva.',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, height: 1.4),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
 
         _buildStepTimelineItem(
           number: '1',
           title: 'Conectar y Evaluar (Retrospectiva)',
           desc: 'Revisa tu semana anterior: ¿Qué Grandes Rocas lograste? ¿Qué imprevistos surgieron? Reflexiona sobre tu enunciado de misión personal.',
-          color: const Color(0xFF3B82F6),
+          color: RemindersColors.primary,
         ),
         _buildStepTimelineItem(
           number: '2',
           title: 'Seleccionar Grandes Rocas por Rol',
           desc: 'Para cada rol vital, pregúntate: "¿Qué es lo ÚNICO o más importante que puedo hacer esta semana para generar el mayor impacto positivo?". Elige de 1 a 3 Grandes Rocas.',
-          color: const Color(0xFFD97706),
+          color: OrtizPalette.warn,
         ),
         _buildStepTimelineItem(
           number: '3',
           title: 'Agendar en Días Específicos (Reservar el Espacio)',
           desc: 'Asigna cada roca a un día concreto de la semana. Bloquea ese tiempo sagrado como si fuera una cita ineludible con un médico.',
-          color: const Color(0xFF10B981),
+          color: OrtizPalette.ok,
           isLast: true,
         ),
       ],
@@ -474,54 +473,47 @@ class _BigRocksGuideContent extends StatelessWidget {
         _buildHighlightQuote(
           quote: '«La clave no es priorizar lo que está en tu agenda, sino agendar tus prioridades.»',
           author: 'Stephen R. Covey',
-          color: const Color(0xFF10B981),
+          color: OrtizPalette.ok,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           'La Metáfora del Frasco de Cristal',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
+        const SizedBox(height: OrtizSpace.sm),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
           child: Row(
             children: [
-              const Icon(Icons.science_outlined, size: 36, color: Color(0xFF475569)),
-              const SizedBox(width: 14),
+              const Icon(Icons.science_outlined, size: OrtizIconSize.xl, color: OrtizPalette.muted),
+              const SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: Text(
                   'Si primero llenas el frasco con grava y arena (mensajes, redes sociales, llamadas irrelevantes, pedidos imprevistos), '
                   'luego no habrá espacio para las piedras grandes. '
                   'Pero si colocas las piedras grandes PRIMERO, toda la arena y la grava encontrarán su lugar alrededor.',
-                  style: TextStyle(fontSize: 12.5, color: Colors.grey.shade800, height: 1.35),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.fg, height: 1.35),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           '¿Cómo distinguir una Gran Roca de una simple tarea?',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: OrtizSpace.sm),
         _buildComparisonRow(
           good: 'Gran Roca (No Negociable):',
           goodExample: '«Entrenar 45 min en gimnasio», «Reunión estratégica Q3 con socio», «Cena exclusiva con mi pareja»',
           bad: 'Arena / Grava (Tareas cotidianas):',
           badExample: '«Responder 20 emails», «Comprar café», «Revisar notificaciones de Slack»',
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
         _buildNoticeBanner(
           icon: Icons.star_rounded,
-          color: const Color(0xFFD97706),
-          bgColor: const Color(0xFFFFFBEB),
-          title: 'Distintivo Visual de Gran Roca',
+          color: OrtizPalette.warn,          title: 'Distintivo Visual de Gran Roca',
           desc: 'En la aplicación, las Grandes Rocas tienen un fondo dorado cálido, borde ambarino y una estrella ★ distintiva. Al capturar, puedes escribir *rock* o !rock para marcarla al instante.',
         ),
       ],
@@ -544,27 +536,27 @@ class _WeeklyScheduleGuideContent extends StatelessWidget {
           quote: '«Una agenda rígida se rompe ante el primer imprevisto. '
               'Un marco semanal flexible permite adaptarse a los cambios manteniendo la brújula en mente.»',
           author: 'Stephen R. Covey',
-          color: const Color(0xFF6366F1),
+          color: RemindersColors.primary,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           'Características de la Agenda Semanal (7 Días)',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         _buildFeatureExplainer(
           icon: Icons.touch_app_rounded,
           title: 'Drag & Drop Interactivo entre Días',
           desc: '¿Tuvo tu hijo una urgencia el martes? No hay problema: simplemente arrastra la Gran Roca al miércoles o jueves. El sistema actualiza el día agendado de forma inmediata.',
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
         _buildFeatureExplainer(
           icon: Icons.inbox_rounded,
           title: 'Bandeja Semanal Sin Asignar (Drawer Inferior)',
           desc: 'Si capturas una tarea durante la semana y aún no sabes qué día realizarla, se guarda en la Bandeja Semanal. Desde allí, puedes arrastrarla al día que consideres más conveniente.',
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
         _buildFeatureExplainer(
           icon: Icons.explore_rounded,
           title: 'Sidebar de Brújula Siempre Visible',
@@ -589,14 +581,14 @@ class _MatrixGuideContent extends StatelessWidget {
         _buildHighlightQuote(
           quote: '«Lo que es importante rara vez es urgente, y lo que es urgente rara vez es importante.»',
           author: 'Dwight D. Eisenhower (Popularizado por Stephen Covey)',
-          color: const Color(0xFF059669),
+          color: RemindersColors.quadrantImportantNotUrgent,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           'Los 4 Cuadrantes del Tiempo',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         // Grid 2x2 visual
         Row(
@@ -607,25 +599,21 @@ class _MatrixGuideContent extends StatelessWidget {
                 title: 'CRISIS',
                 subtitle: 'Urgente & Importante',
                 desc: 'Problemas apremiantes, fechas límite inminentes, emergencias. Debes resolverlo, pero vivir aquí genera agotamiento y estrés continuo.',
-                color: const Color(0xFFEF4444),
-                bgColor: const Color(0xFFFEF2F2),
-              ),
+                color: RemindersColors.quadrantUrgentImportant,              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: _buildQuadrantCard(
                 code: 'C2 ★',
                 title: 'EFICACIA & LIDERAZGO',
                 subtitle: 'Importante, NO Urgente',
                 desc: 'Prevención, salud, construcción de relaciones, planificación, aprendizaje. ¡El cuadrante donde ocurre el crecimiento real! Apunta a tener >60% aquí.',
-                color: const Color(0xFF059669),
-                bgColor: const Color(0xFFECFDF5),
-                isHighlight: true,
+                color: RemindersColors.quadrantImportantNotUrgent,                isHighlight: true,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
         Row(
           children: [
             Expanded(
@@ -634,29 +622,23 @@ class _MatrixGuideContent extends StatelessWidget {
                 title: 'EL ENGAÑO',
                 subtitle: 'Urgente, NO Importante',
                 desc: 'Interrupciones, llamadas innecesarias, urgencias de otras personas. Parece importante porque es urgente, pero no contribuye a tu misión. Aprende a decir NO.',
-                color: const Color(0xFFF59E0B),
-                bgColor: const Color(0xFFFFFBEB),
-              ),
+                color: RemindersColors.quadrantUrgentNotImportant,              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: _buildQuadrantCard(
                 code: 'C4',
                 title: 'DESPERDICIO',
                 subtitle: 'Ni Urgente ni Importante',
                 desc: 'Procrastinación, scroll infinito, televisión pasiva sin propósito, actividades de escape. Minimizalo o elimínalo de tu vida.',
-                color: const Color(0xFF64748B),
-                bgColor: const Color(0xFFF8FAFC),
-              ),
+                color: RemindersColors.quadrantNotUrgentNotImportant,              ),
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
         _buildNoticeBanner(
           icon: Icons.bolt_rounded,
-          color: const Color(0xFF059669),
-          bgColor: const Color(0xFFECFDF5),
-          title: 'Medidor de Enfoque en C2',
+          color: RemindersColors.quadrantImportantNotUrgent,          title: 'Medidor de Enfoque en C2',
           desc: 'En la vista de Matriz 2x2 encontrarás una barra superior que calcula en tiempo real qué porcentaje de tus tareas pertenece al Cuadrante II. La meta es superar el 60% para lograr alta eficacia.',
         ),
       ],
@@ -678,19 +660,19 @@ class _NlpAndAgentGuideContent extends StatelessWidget {
         _buildHighlightQuote(
           quote: '«Capturar tus ideas y prioridades en segundos libera tu mente para pensar, crear y actuar con intención.»',
           author: 'Filosofía Super-App Jottache',
-          color: const Color(0xFF8B5CF6),
+          color: RemindersColors.primary,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           '1. Atajos de Captura Ultrarrápida (NLP)',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           'Escribe en lenguaje natural en la barra superior. El motor extraerá automáticamente cuadrantes, roles, rocas y fechas:',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         _buildNlpCheatSheetItem(
           code: '!c1, !c2, !c3, !c4',
@@ -713,24 +695,24 @@ class _NlpAndAgentGuideContent extends StatelessWidget {
           example: 'Lectura libro Hábito 3 ~45m',
         ),
 
-        const SizedBox(height: 18),
+        const SizedBox(height: OrtizSpace.lg),
         const Text(
           '2. El Agente Ortiz como tu Coach del Hábito 3',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           'En el chat de la super-app, el Agente Ortiz tiene acceso a tu brújula semanal y cronograma en tiempo real:',
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         _buildFeatureExplainer(
           icon: Icons.question_answer_rounded,
           title: 'Consultas inteligentes',
           desc: 'Pregúntale: "¿Cómo está mi balance de roles esta semana?", "¿Tengo algún rol descuidado?" o "¿Qué Grandes Rocas tengo programadas para mañana?".',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: OrtizSpace.sm),
         _buildFeatureExplainer(
           icon: Icons.flash_on_rounded,
           title: 'Propuesta de Rocas en 1 Toque',
@@ -751,11 +733,10 @@ Widget _buildHighlightQuote({
   required Color color,
 }) {
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
+    // Cita sin tarjeta: solo la barra lateral del color del paso.
     decoration: BoxDecoration(
-      color: color.withOpacity(0.06),
-      borderRadius: BorderRadius.circular(12),
-      border: Border(left: BorderSide(color: color, width: 4)),
+      border: Border(left: BorderSide(color: color, width: OrtizSpace.xs)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -763,19 +744,19 @@ Widget _buildHighlightQuote({
         Text(
           quote,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: OrtizFontSize.bodySm,
             fontStyle: FontStyle.italic,
-            color: Colors.grey.shade800,
+            color: OrtizPalette.fg,
             height: 1.35,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: OrtizSpace.xs),
         Align(
           alignment: Alignment.centerRight,
           child: Text(
             '— $author',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: OrtizFontSize.caption,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -793,58 +774,47 @@ Widget _buildRoleCard({
   required Color color,
   required String desc,
 }) {
-  return Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade200),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.02),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
+  // Sin tarjeta: el bloque va sobre la superficie del diálogo.
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(OrtizSpace.xs),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
-              child: Icon(icon, color: color, size: 16),
+              child: Icon(icon, color: color, size: OrtizIconSize.sm),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(6),
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
           child: Text(
             'Ej: $roleExample',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: color),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           desc,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600, height: 1.25),
+          style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted, height: 1.25),
         ),
       ],
     ),
@@ -854,34 +824,33 @@ Widget _buildRoleCard({
 Widget _buildNoticeBanner({
   required IconData icon,
   required Color color,
-  required Color bgColor,
   required String title,
   required String desc,
 }) {
+  // Aviso: fondo suave del color, sin borde ni sombra.
   return Container(
-    padding: const EdgeInsets.all(12),
+    padding: const EdgeInsets.all(OrtizSpace.md),
     decoration: BoxDecoration(
-      color: bgColor,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: color.withOpacity(0.3)),
+      color: color.withValues(alpha: SuiteAppColors.tintAlpha / 0xFF),
+      borderRadius: BorderRadius.circular(OrtizRadius.field),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(width: 10),
+        Icon(icon, size: OrtizIconSize.md, color: color),
+        const SizedBox(width: OrtizSpace.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: color),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: OrtizSpace.xxs),
               Text(
                 desc,
-                style: TextStyle(fontSize: 11.5, color: Colors.grey.shade800, height: 1.3),
+                style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.fg, height: 1.3),
               ),
             ],
           ),
@@ -904,8 +873,8 @@ Widget _buildStepTimelineItem({
       Column(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: OrtizIconSize.xl,
+            height: OrtizIconSize.xl,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
@@ -913,33 +882,33 @@ Widget _buildStepTimelineItem({
             child: Center(
               child: Text(
                 number,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
               ),
             ),
           ),
           if (!isLast)
             Container(
-              width: 2,
-              height: 48,
-              color: Colors.grey.shade300,
+              width: OrtizStroke.focus,
+              height: OrtizIconSize.xxl,
+              color: OrtizPalette.line,
             ),
         ],
       ),
-      const SizedBox(width: 14),
+      const SizedBox(width: OrtizSpace.md),
       Expanded(
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: RemindersColors.textPrimary),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: OrtizSpace.xs),
               Text(
                 desc,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700, height: 1.35),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, height: 1.35),
               ),
             ],
           ),
@@ -955,24 +924,20 @@ Widget _buildComparisonRow({
   required String bad,
   required String badExample,
 }) {
+  // Sin cajas de color: el icono (ok/bad) marca cada lado.
   return Column(
     children: [
-      Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFECFDF5),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFA7F3D0)),
-        ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF059669)),
-            const SizedBox(width: 8),
+            const Icon(Icons.check_circle_rounded, size: OrtizIconSize.sm, color: OrtizPalette.ok),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF065F46)),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.fg),
                   children: [
                     TextSpan(text: '$good ', style: const TextStyle(fontWeight: FontWeight.bold)),
                     TextSpan(text: goodExample),
@@ -983,23 +948,18 @@ Widget _buildComparisonRow({
           ],
         ),
       ),
-      const SizedBox(height: 6),
-      Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFFECACA)),
-        ),
+      const SizedBox(height: OrtizSpace.xs),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.cancel_rounded, size: 16, color: Color(0xFFDC2626)),
-            const SizedBox(width: 8),
+            const Icon(Icons.cancel_rounded, size: OrtizIconSize.sm, color: OrtizPalette.bad),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF991B1B)),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.fg),
                   children: [
                     TextSpan(text: '$bad ', style: const TextStyle(fontWeight: FontWeight.bold)),
                     TextSpan(text: badExample),
@@ -1019,37 +979,33 @@ Widget _buildFeatureExplainer({
   required String title,
   required String desc,
 }) {
-  return Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade200),
-    ),
+  // Fila sin tarjeta: icono en `muted` sobre `surfaceHigh`, título y texto.
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(OrtizSpace.sm),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(10),
+            color: OrtizPalette.surfaceHigh,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
-          child: Icon(icon, size: 18, color: const Color(0xFF475569)),
+          child: Icon(icon, size: OrtizIconSize.md, color: OrtizPalette.muted),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: OrtizSpace.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: OrtizSpace.xxs),
               Text(
                 desc,
-                style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600, height: 1.3),
+                style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted, height: 1.3),
               ),
             ],
           ),
@@ -1065,17 +1021,18 @@ Widget _buildQuadrantCard({
   required String subtitle,
   required String desc,
   required Color color,
-  required Color bgColor,
   bool isHighlight = false,
 }) {
+  // Sin tarjeta: una barra lateral del color del cuadrante (más gruesa en el
+  // cuadrante destacado) separa cada bloque.
   return Container(
-    padding: const EdgeInsets.all(12),
+    padding: const EdgeInsets.only(left: OrtizSpace.md, top: OrtizSpace.xs, bottom: OrtizSpace.xs),
     decoration: BoxDecoration(
-      color: bgColor,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: isHighlight ? color : color.withOpacity(0.3),
-        width: isHighlight ? 2 : 1,
+      border: Border(
+        left: BorderSide(
+          color: color,
+          width: isHighlight ? OrtizSpace.xs : OrtizStroke.focus,
+        ),
       ),
     ),
     child: Column(
@@ -1085,43 +1042,43 @@ Widget _buildQuadrantCard({
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
               child: Text(
                 code,
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: OrtizPalette.onAccent, fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
               ),
             ),
             if (isHighlight)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
                 child: Text(
                   'FOCO PRINCIPAL',
-                  style: TextStyle(color: color, fontSize: 8.5, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: color, fontSize: OrtizFontSize.micro, fontWeight: FontWeight.bold),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           title,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: color),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm, color: color),
         ),
         Text(
           subtitle,
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w600, color: OrtizPalette.muted),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: OrtizSpace.xs),
         Text(
           desc,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade800, height: 1.25),
+          style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.fg, height: 1.25),
         ),
       ],
     ),
@@ -1133,45 +1090,41 @@ Widget _buildNlpCheatSheetItem({
   required String label,
   required String example,
 }) {
+  // Fila sin tarjeta: el atajo en mono sobre el tinte de la app.
   return Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+    padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
             decoration: BoxDecoration(
-              color: const Color(0xFFEDE9FE),
-              borderRadius: BorderRadius.circular(6),
+              color: RemindersColors.primaryLight,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
             ),
             child: Text(
               code,
               style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 11,
+                fontFamily: OrtizType.fontMono,
+                fontSize: OrtizFontSize.caption,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF6D28D9),
+                color: RemindersColors.primary,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   'Ejemplo: "$example"',
-                  style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                 ),
               ],
             ),

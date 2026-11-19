@@ -7,7 +7,6 @@ import '../models/timeline_day_summary.dart';
 import '../models/currency_type.dart';
 import '../models/transaction.dart';
 import '../theme/colors.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../widgets/timeline_event_row.dart';
 import '../widgets/currency_pill.dart';
@@ -15,6 +14,10 @@ import '../dialogs/purchase_simulation_bottom_sheet.dart';
 import '../services/db_helper.dart';
 import '../dialogs/day_actions_dialog.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
 
@@ -132,11 +135,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -148,85 +151,85 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizPalette.line,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Sobre la Proyección Financiera",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "¿Qué es el Dinero Seguro?",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "Es el saldo líquido mínimo proyectado que tendrán tus cuentas consolidadas en los próximos 12 meses. Este saldo define dos límites clave para hoy:\n\n"
                   "• Límite de Ahorro: El monto máximo que puedes mover a tus bolsillos de reserva. Al guardarlo allí, tu patrimonio neto no disminuye y proteges tu dinero para metas futuras.\n\n"
                   "• Límite de Gasto: El monto máximo que puedes gastar libremente hoy en cualquier consumo. Esto reduce tu patrimonio permanentemente, pero es seguro hacerlo porque no afectará tus pagos y obligaciones proyectadas.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "¿Cómo funciona la Proyección a 1 Año?",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "El Timeline simula día a día tus transacciones recurrentes registradas (como sueldos, alquileres, cuotas de Cashea o suscripciones). En cada evento verás un balance proyectado estimado, lo que te permite anticipar momentos de bajo flujo de caja.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Importancia de la Cuenta/Bolsillo",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "• Los eventos asociados a una cuenta afectan directamente tu dinero disponible en tus cuentas.\n• Los eventos asociados a un bolsillo se descuentan del ahorro acumulado en ese bolsillo, protegiendo tu dinero del día a día.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: OrtizSpace.xxl),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
@@ -280,12 +283,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
         daysToDeficit,
       ),
       child: Container(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         decoration: BoxDecoration(
-          color: AppColors.expense.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(24),
+          color: AppColors.expense.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(OrtizRadius.sheet),
           border: Border.all(
-            color: AppColors.expense.withOpacity(0.25),
+            color: AppColors.expense.withValues(alpha: 0.25),
             width: 1.5,
           ),
         ),
@@ -295,23 +298,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(OrtizSpace.sm),
                   decoration: BoxDecoration(
                     color: AppColors.expense,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.storefront_rounded,
-                    color: Colors.white,
-                    size: 20,
+                    color: OrtizPalette.onAccent,
+                    size: OrtizIconSize.md,
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Meta Diaria de Ventas / Trabajo",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.bold,
                       color: AppColors.expense,
                     ),
@@ -320,36 +323,36 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: AppColors.expense,
-                  size: 14,
+                  size: OrtizIconSize.sm,
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Text(
               "Generar ${formatUSD(dailyRequiredIncome)} extra / día",
               style: TextStyle(
-                fontSize: 22,
+                fontSize: OrtizFontSize.display,
                 fontWeight: FontWeight.w900,
                 color: AppColors.expense,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Text(
               "Para cubrir '$minReason' el ${formatDate(minDate)} sin caer en saldo negativo, necesitas producir un promedio de ${formatUSD(dailyRequiredIncome)} diarios adicionales sobre tu mínimo habitual de ${formatUSD(baseIncome)}.\n\nMeta diaria total recomendada: ${formatUSD(totalDailyTarget)} al día (durante los próximos $daysToDeficit días).",
               style: TextStyle(
-                fontSize: 12,
-                color: AppColors.expense.withOpacity(0.9),
+                fontSize: OrtizFontSize.bodySm,
+                color: AppColors.expense.withValues(alpha: 0.9),
                 height: 1.4,
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
             Center(
               child: Text(
                 "Toca aquí para ver la explicación detallada paso a paso",
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.expense.withOpacity(0.8),
+                  color: AppColors.expense.withValues(alpha: 0.8),
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -463,11 +466,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -479,32 +482,32 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizPalette.line,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.all(OrtizSpace.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.expense.withOpacity(0.12),
+                        color: AppColors.expense.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.storefront_rounded,
                         color: AppColors.expense,
-                        size: 20,
+                        size: OrtizIconSize.md,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         "Explicación de tu Meta Diaria",
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: OrtizFontSize.titleSm,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
@@ -512,16 +515,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 Text(
                   "Aquí tienes el desglose paso a paso de tus cuentas para entender de dónde sale esta meta:",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
 
                 // PASO 1
                 _buildStepCard(
@@ -533,49 +536,49 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Text(
                           "Reservas para tus Bolsillos:",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         ...pocketDetails.map(
                           (det) => Padding(
                             padding: EdgeInsets.only(
-                              left: 8.0,
-                              bottom: 4.0,
+                              left: OrtizSpace.sm,
+                              bottom: OrtizSpace.xs,
                             ),
                             child: Text(
                               det,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: OrtizFontSize.bodySm,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 8),
+                        SizedBox(height: OrtizSpace.sm),
                       ],
                       if (expenseDetails.isNotEmpty) ...[
                         Text(
                           "Gastos programados en el período:",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         ...expenseDetails.map(
                           (det) => Padding(
                             padding: EdgeInsets.only(
-                              left: 8.0,
-                              bottom: 4.0,
+                              left: OrtizSpace.sm,
+                              bottom: OrtizSpace.xs,
                             ),
                             child: Text(
                               det,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: OrtizFontSize.bodySm,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
@@ -589,7 +592,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Total necesario:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -597,7 +600,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             formatUSD(totalNeeded),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.expense,
                             ),
@@ -620,41 +623,41 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Dinero disponible en tus cuentas hoy:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardSubtitleText,
                             ),
                           ),
                           Text(
                             formatUSD(initialLiquid),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 6),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "Ingresos mínimos estimados en el período:",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       if (incomeDetails.isNotEmpty)
                         ...incomeDetails.map(
                           (det) => Padding(
                             padding: EdgeInsets.only(
-                              left: 8.0,
-                              bottom: 4.0,
+                              left: OrtizSpace.sm,
+                              bottom: OrtizSpace.xs,
                             ),
                             child: Text(
                               det,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: OrtizFontSize.bodySm,
                                 color: AppColors.cardSubtitleText,
                               ),
                             ),
@@ -662,11 +665,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         )
                       else
                         Padding(
-                          padding: EdgeInsets.only(left: 8.0),
+                          padding: EdgeInsets.only(left: OrtizSpace.sm),
                           child: Text(
                             "• Sin ingresos programados",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardSubtitleText,
                             ),
                           ),
@@ -678,7 +681,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Total disponible estimado:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -686,7 +689,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             formatUSD(totalAvailable),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                             ),
@@ -709,35 +712,35 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Dinero necesario para cubrir todo:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardSubtitleText,
                             ),
                           ),
                           Text(
                             formatUSD(totalNeeded),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Total disponible estimado:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardSubtitleText,
                             ),
                           ),
                           Text(
                             formatUSD(totalAvailable),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardText,
                               fontWeight: FontWeight.w600,
                             ),
@@ -751,7 +754,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Faltante a cubrir:",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -759,7 +762,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             formatUSD(deficit),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.expense,
                             ),
@@ -773,42 +776,42 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 // PASO 4
                 _buildStepCard(
                   title: "Paso 4: La Solución (Tu meta de ventas)",
-                  backgroundColor: AppColors.primary.withOpacity(0.08),
-                  borderColor: AppColors.primary.withOpacity(0.2),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                  borderColor: AppColors.primary.withValues(alpha: 0.2),
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Para conseguir los ${formatUSD(deficit)} que te faltan antes del día del pago, dividimos ese monto entre los $daysToDeficit días que te quedan para trabajar:",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
                       ),
-                      SizedBox(height: 6),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "• ${formatUSD(deficit)} / $daysToDeficit días = ${formatUSD(dailyRequiredIncome)} diarios adicionales.",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      SizedBox(height: OrtizSpace.sm),
                       Text(
                         "Por lo tanto, tu meta de ventas o ingresos diarios totales recomendada para cubrir todo sin deudas es de:",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
                       ),
-                      SizedBox(height: 6),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "• ${formatUSD(baseIncome)} (Tu mínimo habitual) + ${formatUSD(dailyRequiredIncome)} (El extra necesario) = ${formatUSD(totalDailyTarget)} al día.",
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
                         ),
@@ -816,23 +819,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     ),
                     child: Text(
                       "Entendido",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: OrtizFontSize.body,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -945,11 +948,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: SingleChildScrollView(
             physics: BouncingScrollPhysics(),
@@ -961,32 +964,32 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizPalette.line,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.all(OrtizSpace.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.12),
+                        color: AppColors.primary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.analytics_outlined,
                         color: AppColors.primary,
-                        size: 22,
+                        size: OrtizIconSize.lg,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         "Resumen de Proyección",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: OrtizFontSize.title,
                           fontWeight: FontWeight.bold,
                           color: AppColors.cardText,
                         ),
@@ -994,40 +997,40 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Este resumen analiza tus cuentas físicas y bolsillos durante los próximos 30 días para ayudarte a tomar decisiones financieras inteligentes.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
 
                 Text(
                   "Saldos Actuales en Cuentas",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: OrtizSpace.sm),
                 ...accounts.map((acc) {
                   final balanceFormatted = acc.currency == CurrencyType.usd
                       ? "\$${acc.balance.toStringAsFixed(2)}"
                       : "${acc.balance.toStringAsFixed(2)} Bs.";
                   return Container(
-                    margin: EdgeInsets.only(bottom: 8),
+                    margin: EdgeInsets.only(bottom: OrtizSpace.sm),
                     padding: EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
+                      horizontal: OrtizSpace.md,
+                      vertical: OrtizSpace.sm,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.black.withOpacity(0.05)),
+                      color: OrtizPalette.surfaceHigh,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      border: Border.all(color: OrtizPalette.line),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1035,7 +1038,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Text(
                           acc.name,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
                           ),
@@ -1043,7 +1046,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Text(
                           balanceFormatted,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.w600,
                             color: AppColors.cardText,
                           ),
@@ -1052,24 +1055,24 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   );
                 }),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
 
                 // Cash flow period breakdown section
                 Text(
                   "Análisis del Flujo de Caja (Próximos 30 Días)",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: OrtizSpace.sm),
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(OrtizSpace.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.02),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black.withOpacity(0.05)),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
+                    border: Border.all(color: OrtizPalette.line),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1081,9 +1084,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             Icon(
                               Icons.history_toggle_off_rounded,
                               color: AppColors.expense,
-                              size: 18,
+                              size: OrtizIconSize.sm,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: OrtizSpace.sm),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1091,17 +1094,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                   Text(
                                     "Período Pre-Cobro (Hoy al cobro)",
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  SizedBox(height: OrtizSpace.xs),
                                   Text(
                                     "Tienes ${preCobroExpenses.length} egresos programados antes de tu próximo ingreso. Suman un equivalente aproximado de \$${totalPreCobroExpensesUSD.toStringAsFixed(2)}.\n"
                                     "${preCobroExpenses.isNotEmpty ? 'Egresos: ${preCobroExpenses.map((e) => e.title).join(', ')}.' : 'Sin egresos programados.'}",
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: OrtizFontSize.caption,
                                       color: AppColors.cardSubtitleText,
                                       height: 1.4,
                                     ),
@@ -1118,9 +1121,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             Icon(
                               Icons.arrow_downward_rounded,
                               color: AppColors.income,
-                              size: 18,
+                              size: OrtizIconSize.sm,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: OrtizSpace.sm),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1128,17 +1131,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                   Text(
                                     "Día de Cobro (${formatDate(firstIncomeEvent.date)})",
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  SizedBox(height: OrtizSpace.xs),
                                   Text(
                                     "Se proyecta recibir '${firstIncomeEvent.title}' de ${firstIncomeEvent.currency == CurrencyType.usd ? '\$' : ''}${firstIncomeEvent.amount.toStringAsFixed(2)}${firstIncomeEvent.currency == CurrencyType.bsBCV ? ' Bs.' : ''}.\n"
                                     "Esto incrementará tu balance líquido proyectado.",
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: OrtizFontSize.caption,
                                       color: AppColors.cardSubtitleText,
                                       height: 1.4,
                                     ),
@@ -1155,9 +1158,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             Icon(
                               Icons.trending_up_rounded,
                               color: AppColors.primary,
-                              size: 18,
+                              size: OrtizIconSize.sm,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: OrtizSpace.sm),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1165,16 +1168,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                   Text(
                                     "Período Post-Cobro",
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.cardText,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  SizedBox(height: OrtizSpace.xs),
                                   Text(
                                     "Posterior a tu cobro, la app continuará descontando los gastos programados y provisionando tus bolsillos de ahorro automáticamente.",
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: OrtizFontSize.caption,
                                       color: AppColors.cardSubtitleText,
                                       height: 1.4,
                                     ),
@@ -1190,14 +1193,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             Icon(
                               Icons.info_outline_rounded,
                               color: AppColors.primary,
-                              size: 18,
+                              size: OrtizIconSize.sm,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: OrtizSpace.sm),
                             Expanded(
                               child: Text(
                                 "No se proyectan ingresos recurrentes en los próximos 30 días. Tu presupuesto dependerá completamente del saldo actual disponible en tus cuentas.",
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: OrtizFontSize.caption,
                                   color: AppColors.cardSubtitleText,
                                   height: 1.4,
                                 ),
@@ -1209,18 +1212,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
 
                 if (deficitAccounts.isNotEmpty) ...[
                   Text(
                     "Sugerencias de Transferencia e Intercambio",
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: OrtizSpace.sm),
                   ...deficitAccounts.map((acc) {
                     final defAmount = -minBalances[acc.id]!;
                     final defUSD = acc.currency == CurrencyType.usd
@@ -1257,13 +1260,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     }
 
                     return Container(
-                      margin: EdgeInsets.only(bottom: 12),
-                      padding: EdgeInsets.all(16),
+                      margin: EdgeInsets.only(bottom: OrtizSpace.md),
+                      padding: EdgeInsets.all(OrtizSpace.lg),
                       decoration: BoxDecoration(
-                        color: AppColors.expense.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.expense.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                         border: Border.all(
-                          color: AppColors.expense.withOpacity(0.2),
+                          color: AppColors.expense.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Column(
@@ -1274,14 +1277,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               Icon(
                                 Icons.swap_horiz_rounded,
                                 color: AppColors.expense,
-                                size: 20,
+                                size: OrtizIconSize.md,
                               ),
-                              SizedBox(width: 8),
+                              SizedBox(width: OrtizSpace.sm),
                               Expanded(
                                 child: Text(
                                   "Déficit Proyectado en ${acc.name}",
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.expense,
                                   ),
@@ -1289,21 +1292,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: OrtizSpace.sm),
                           Text(
                             "Tu balance en '${acc.name}' caerá a -$amountFormatted (aprox. -$usdEquivFormatted) el $dateStr debido al gasto '$reason'.",
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               color: AppColors.cardSubtitleText,
                               height: 1.4,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Container(
-                            padding: EdgeInsets.all(8),
+                            padding: EdgeInsets.all(OrtizSpace.sm),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
+                              color: OrtizPalette.surfaceHigh,
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1311,14 +1314,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                 Icon(
                                   Icons.lightbulb_outline_rounded,
                                   color: AppColors.primary,
-                                  size: 16,
+                                  size: OrtizIconSize.sm,
                                 ),
-                                SizedBox(width: 6),
+                                SizedBox(width: OrtizSpace.xs),
                                 Expanded(
                                   child: Text(
                                     solutionText,
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: OrtizFontSize.caption,
                                       color: AppColors.cardText,
                                       height: 1.4,
                                       fontWeight: FontWeight.w600,
@@ -1332,63 +1335,63 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     );
                   }),
-                  SizedBox(height: 20),
+                  SizedBox(height: OrtizSpace.xl),
                 ],
 
                 if (bsNeeded > 0 || exchangeEvents.isNotEmpty) ...[
                   Text(
                     "Bolívares (30 Días)",
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                    style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: OrtizSpace.sm),
                   Container(
                     key: ValueKey('projection_bs_summary'),
                     width: double.infinity,
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(OrtizSpace.md),
                     decoration: BoxDecoration(
-                      color: Colors.deepPurple.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                      color: OrtizPalette.warnTint,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      border: Border.all(color: OrtizPalette.warnBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Gastos en Bs: Bs. ${bsNeeded.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
-                        Text("Ingresos en Bs: Bs. ${bsIncoming.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
-                        Text("Bs disponibles hoy: Bs. ${appState.liquidBalanceBs.toStringAsFixed(2)}", style: TextStyle(fontSize: 12, color: AppColors.cardText)),
-                        SizedBox(height: 6),
+                        Text("Gastos en Bs: Bs. ${bsNeeded.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
+                        Text("Ingresos en Bs: Bs. ${bsIncoming.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
+                        Text("Bs disponibles hoy: Bs. ${appState.liquidBalanceBs.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText)),
+                        SizedBox(height: OrtizSpace.xs),
                         Text(
                           exchangeEvents.isEmpty
                               ? "Tus Bs alcanzan: no necesitas vender dólares."
                               : "Tendrás que vender \$${totalToSellUSD.toStringAsFixed(2)} en total:",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.warn),
                         ),
                         ...exchangeEvents.map((ev) => Text(
                               "• ${formatDate(ev.date)}: \$${ev.amount.toStringAsFixed(2)} → Bs. ${(ev.exchangeAmountBs ?? 0).toStringAsFixed(2)}",
-                              style: TextStyle(fontSize: 12, color: AppColors.cardText),
+                              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText),
                             )),
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: OrtizSpace.xl),
                 ],
 
                 Text(
                   "Retenciones Proyectadas para Bolsillos (30 Días)",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: OrtizSpace.sm),
                 if (pocketProvisions.isEmpty)
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                     child: Text(
                       "No se proyectan retenciones automáticas de bolsillos en los próximos 30 días.",
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         color: AppColors.cardSubtitleText,
                       ),
                     ),
@@ -1396,16 +1399,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 else
                   ...pocketProvisions.entries.map((entry) {
                     return Container(
-                      margin: EdgeInsets.only(bottom: 8),
+                      margin: EdgeInsets.only(bottom: OrtizSpace.sm),
                       padding: EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                        horizontal: OrtizSpace.md,
+                        vertical: OrtizSpace.sm,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(12),
+                        color: OrtizPalette.accentTint,
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                         border: Border.all(
-                          color: Colors.blue.withOpacity(0.12),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -1414,7 +1417,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "Apartar para '${entry.key}'",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -1422,24 +1425,24 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Text(
                             "\$${entry.value.toStringAsFixed(2)}",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w900,
-                              color: Colors.blue,
+                              color: OrtizPalette.accent,
                             ),
                           ),
                         ],
                       ),
                     );
                   }),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
 
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(OrtizSpace.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.primary.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                     ),
                   ),
                   child: Column(
@@ -1450,24 +1453,24 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           Icon(
                             Icons.shield_rounded,
                             color: AppColors.primary,
-                            size: 18,
+                            size: OrtizIconSize.sm,
                           ),
-                          SizedBox(width: 8),
+                          SizedBox(width: OrtizSpace.sm),
                           Text(
                             "Dinero Seguro actual: \$${appState.liquidBalanceUSD.toStringAsFixed(2)}",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: OrtizSpace.sm),
                       Text(
                         "El Dinero Seguro representa la cantidad de efectivo neto que te queda libre después de restar los saldos reservados para tus bolsillos de ahorro. Si mantienes tus retenciones en orden, nunca correrás el riesgo de quedar en saldo negativo.",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: OrtizFontSize.caption,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
@@ -1475,7 +1478,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: OrtizSpace.xxl),
 
                 SizedBox(
                   width: double.infinity,
@@ -1483,16 +1486,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     ),
                     child: Text(
                       "Cerrar Resumen",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: OrtizFontSize.body,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1513,18 +1516,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Color? borderColor,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: OrtizSpace.lg),
+      padding: EdgeInsets.all(OrtizSpace.lg),
       width: double.infinity,
       decoration: BoxDecoration(
-        color:
-            backgroundColor ??
-            Colors.white.withOpacity(
-              0.04,
-            ), // use subtle white transparency to look glassmorphic on dark/light backgrounds
-        borderRadius: BorderRadius.circular(16),
+        color: backgroundColor ?? OrtizPalette.surfaceHigh,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         border: Border.all(
-          color: borderColor ?? Colors.black.withOpacity(0.06),
+          color: borderColor ?? OrtizPalette.line,
           width: 1,
         ),
       ),
@@ -1534,12 +1533,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
           Text(
             title,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.bold,
               color: AppColors.cardText,
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: OrtizSpace.sm),
           content,
         ],
       ),
@@ -1566,7 +1565,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               _buildFilterChip(
                 label: "Ingresos",
                 selected: _selectedType == 'income',
@@ -1576,7 +1575,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               _buildFilterChip(
                 label: "Gastos",
                 selected: _selectedType == 'expense',
@@ -1586,7 +1585,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               _buildFilterChip(
                 label: "Sugerencias",
                 selected: _selectedType == 'suggestion',
@@ -1596,7 +1595,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _selectedPocketId = null;
                 }),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: OrtizSpace.sm),
               _buildFilterChip(
                 label: "Cambios \$→Bs",
                 selected: _selectedType == 'exchange',
@@ -1611,21 +1610,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ),
         
         // Filtro por moneda de pago
-        SizedBox(height: 8),
+        SizedBox(height: OrtizSpace.sm),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: BouncingScrollPhysics(),
           child: Row(
             children: [
-              Text("Moneda:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardSubtitleText)),
-              SizedBox(width: 8),
+              Text("Moneda:", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardSubtitleText)),
+              SizedBox(width: OrtizSpace.sm),
               for (final option in const [('all', 'Todas'), ('usd', 'Dólares \$'), ('bs', 'Bolívares Bs')]) ...[
                 _buildFilterChip(
                   label: option.$2,
                   selected: _selectedCurrencyFilter == option.$1,
                   onTap: () => setState(() => _selectedCurrencyFilter = option.$1),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: OrtizSpace.sm),
               ],
             ],
           ),
@@ -1633,7 +1632,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
         // Secondary filter row
         if (_selectedType == 'income' || _selectedType == 'expense') ...[
-          SizedBox(height: 10),
+          SizedBox(height: OrtizSpace.sm),
           Builder(
             builder: (context) {
               final typeFilter = _selectedType == 'income' ? TransactionType.income : TransactionType.expense;
@@ -1653,7 +1652,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                     ...relevantRecurrents.map((p) {
                       return Padding(
-                        padding: EdgeInsets.only(left: 8.0),
+                        padding: EdgeInsets.only(left: OrtizSpace.sm),
                         child: _buildFilterChip(
                           label: p.name,
                           selected: _selectedRecurringId == p.id,
@@ -1667,7 +1666,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             }
           ),
         ] else if (_selectedType == 'suggestion') ...[
-          SizedBox(height: 10),
+          SizedBox(height: OrtizSpace.sm),
           Builder(
             builder: (context) {
               final relevantPockets = appState.pockets;
@@ -1685,7 +1684,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                     ...relevantPockets.map((p) {
                       return Padding(
-                        padding: EdgeInsets.only(left: 8.0),
+                        padding: EdgeInsets.only(left: OrtizSpace.sm),
                         child: _buildFilterChip(
                           label: p.name,
                           selected: _selectedPocketId == p.id,
@@ -1712,17 +1711,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : AppColors.nestedTabTrackBg,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.bold,
-            color: selected ? Colors.white : AppColors.mainTabInactiveText,
+            color: selected ? OrtizPalette.onAccent : AppColors.mainTabInactiveText,
           ),
         ),
       ),
@@ -1953,33 +1952,31 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 key: _dineroSeguroKey,
                 title: "Dinero Seguro y Límites",
                 description: "Muestra tu 'Dinero Seguro', que es el dinero disponible actual libre de obligaciones. Si tu saldo cae por debajo de cero en el futuro, verás una meta diaria recomendada para cubrir el déficit.",
-                child: ClaymorphicCard(
-                  cornerRadius: 24,
-                  padding: EdgeInsets.all(20.0),
-                  backgroundColor: AppColors.cardBackground,
-                  child: Column(
+                child: OrtizSection(
+                  children: [
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.all(8),
+                            padding: EdgeInsets.all(OrtizSpace.sm),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.shield_rounded,
                               color: AppColors.primary,
-                              size: 20,
+                              size: OrtizIconSize.md,
                             ),
                           ),
-                          SizedBox(width: 10),
+                          SizedBox(width: OrtizSpace.sm),
                           Expanded(
                             child: Text(
                               "Planificación de Dinero Seguro",
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: OrtizFontSize.body,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.cardText,
                               ),
@@ -1989,7 +1986,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             icon: Icon(
                               Icons.info_outline_rounded,
                               color: AppColors.primary,
-                              size: 20,
+                              size: OrtizIconSize.md,
                             ),
                             onPressed: () => _showTimelineInfo(context),
                             constraints: BoxConstraints(),
@@ -1997,14 +1994,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Container(
-                        padding: EdgeInsets.all(16),
+                        padding: EdgeInsets.all(OrtizSpace.lg),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.primary.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(OrtizRadius.block),
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             width: 1,
                           ),
                         ),
@@ -2016,34 +2013,34 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                 Icon(
                                   Icons.monetization_on_rounded,
                                   color: AppColors.primary,
-                                  size: 16,
+                                  size: OrtizIconSize.sm,
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: OrtizSpace.sm),
                                 Text(
                                   "Ahorro o Gasto Libre Extra",
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primary,
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 12),
+                            SizedBox(height: OrtizSpace.md),
                             Text(
                               formatUSD(maxToSave),
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: OrtizFontSize.display,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.primary,
                                 letterSpacing: -0.5,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             Text(
                               "Dinero adicional que puedes ahorrar en tus bolsillos o gastar libremente en antojos hoy sin afectar tus pagos planificados.",
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 color: AppColors.cardSubtitleText,
                                 height: 1.3,
                               ),
@@ -2051,7 +2048,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 12),
+                      SizedBox(height: OrtizSpace.md),
                       Text(
                         safeAmount < 0
                             ? "¡Alerta de déficit! Tu dinero proyectado caerá por debajo de cero, llegando a ${formatUSD(safeAmount)} el ${formatDate(minDate!)} debido al compromiso '$minReason'. No deberías ahorrar ni realizar gastos discrecionales hasta solucionar este déficit."
@@ -2063,12 +2060,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                         ? "Tienes gastos programados, pero tus ingresos proyectados los cubren por completo. ¡Es seguro destinar tu dinero disponible actual al ahorro en bolsillos o a gastos libres!"
                                         : "No tienes gastos programados en tu agenda. ¡Es seguro destinar todo tu dinero disponible actual al ahorro en bolsillos o a gastos libres!")),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           color: AppColors.cardSubtitleText,
                           height: 1.4,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Row(
                         children: [
                           Expanded(
@@ -2084,31 +2081,31 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               },
                               icon: Icon(
                                 Icons.shopping_cart_checkout_rounded,
-                                size: 18,
+                                size: OrtizIconSize.sm,
                               ),
                               label: Text("Simular"),
                               style: TextButton.styleFrom(
                                 foregroundColor: AppColors.primary,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                backgroundColor: AppColors.primary.withOpacity(0.08),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 ),
                               ),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          SizedBox(width: OrtizSpace.md),
                           Expanded(
                             child: TextButton.icon(
                               onPressed: () => _showTimelineSummaryBottomSheet(context),
-                              icon: Icon(Icons.analytics_outlined, size: 18),
+                              icon: Icon(Icons.analytics_outlined, size: OrtizIconSize.sm),
                               label: Text("Resumen"),
                               style: TextButton.styleFrom(
                                 foregroundColor: AppColors.primary,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                backgroundColor: AppColors.primary.withOpacity(0.08),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 ),
                               ),
                             ),
@@ -2117,13 +2114,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     ],
                   ),
+                  ],
                 ),
               ),
               if (safeAmount < 0 && minDate != null) ...[
-                SizedBox(height: 16),
                 _buildSalesGoalCard(context, safeAmount, minDate, minReason ?? ''),
               ],
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
 
               // Timeline header
               Row(
@@ -2133,14 +2130,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     height: 16,
                     decoration: BoxDecoration(
                       color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: OrtizSpace.sm),
                   Text(
                     "Timeline de Proyección ($periodTitle)",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardText,
                       letterSpacing: 0.5,
@@ -2148,7 +2145,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
 
               // Filters UI
               Showcase(
@@ -2157,7 +2154,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 description: "Filtra el listado por ingresos, gastos o 'Sugerencias'. Las Sugerencias son recomendaciones automáticas que te indican cuándo y cuánto transferir a tus bolsillos de ahorro para pre-fondear cuotas futuras y proteger tu saldo líquido.",
                 child: _buildFilterChips(),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
             ]
           );
         }
@@ -2167,51 +2164,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
             key: _timelineListKey,
             title: "Agenda de Proyección Futura",
             description: "Aquí verás la evolución de tus saldos día a día. Actualmente está vacía porque no tienes obligaciones recurrentes registradas. Cuando agregues cobros o pagos programados en la pestaña 'Recurrentes', verás el flujo proyectado y sugerencias inteligentes de ahorro.",
-            child: ClaymorphicCard(
-              padding: EdgeInsets.symmetric(
-                vertical: 36.0,
-                horizontal: 24.0,
-              ),
-              width: double.infinity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.timeline_rounded,
-                      size: 38,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Sin Proyecciones",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardText,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "No hay transacciones programadas para el filtro seleccionado en este período.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.cardSubtitleText,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
+            child: OrtizEmptyState(
+              icon: Icons.timeline_rounded,
+              title: "Sin Proyecciones",
+              message:
+                  "No hay transacciones programadas para el filtro seleccionado en este período.",
             ),
           );
         }
@@ -2221,10 +2178,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
         if (item is String) {
           return Padding(
             padding: EdgeInsets.only(
-              top: 20.0,
-              bottom: 8.0,
-              left: 4.0,
-              right: 4.0,
+              top: OrtizSpace.xl,
+              bottom: OrtizSpace.sm,
+              left: OrtizSpace.xs,
+              right: OrtizSpace.xs,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2239,11 +2196,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: OrtizSpace.sm),
                     Text(
                       item,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.w900,
                         color: AppColors.primary,
                         letterSpacing: 0.5,
@@ -2255,7 +2212,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   icon: Icon(
                     Icons.more_horiz_rounded,
                     color: AppColors.primary,
-                    size: 20,
+                    size: OrtizIconSize.md,
                   ),
                   onPressed: () {
                     final dayEvents = events
@@ -2279,87 +2236,87 @@ class _TimelineScreenState extends State<TimelineScreen> {
           );
         } else if (item is TimelineDaySummaryEvent) {
           return Padding(
-            padding: EdgeInsets.only(top: 8, bottom: 24),
+            padding: EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xxl),
             child: Row(
               children: [
                 SizedBox(width: 48), // 40 (timeline) + 8 (spacing in TimelineEventRow)
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(OrtizSpace.md),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      color: OrtizPalette.surfaceHigh,
+                      borderRadius: BorderRadius.circular(OrtizRadius.block),
+                      border: Border.all(color: OrtizPalette.line),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Resumen del Día", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                        SizedBox(height: 8),
+                        Text("Resumen del Día", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                        SizedBox(height: OrtizSpace.sm),
                         
                         // Ingresos
                         if (item.incomeNativeUSD > 0 || item.incomeNativeBs > 0 || item.incomeNativeEur > 0) ...[
-                          Text("Ingresos:", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                          Text("Ingresos:", style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText)),
                           if (item.incomeNativeUSD > 0)
-                            Text("  - USD: \$${item.incomeNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
+                            Text("  - USD: \$${item.incomeNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.income)),
                           if (item.incomeNativeBs > 0)
-                            Text("  - Bs: ${item.incomeNativeBs.toStringAsFixed(2)} (BCV: \$${item.incomeBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
+                            Text("  - Bs: ${item.incomeNativeBs.toStringAsFixed(2)} (BCV: \$${item.incomeBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.income)),
                           if (item.incomeNativeEur > 0)
-                            Text("  - EUR: ${item.incomeNativeEur.toStringAsFixed(2)} (BCV: \$${item.incomeEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.income)),
-                          SizedBox(height: 6),
+                            Text("  - EUR: ${item.incomeNativeEur.toStringAsFixed(2)} (BCV: \$${item.incomeEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.income)),
+                          SizedBox(height: OrtizSpace.xs),
                         ],
 
                         // Gastos
                         if (item.expenseNativeUSD > 0 || item.expenseNativeBs > 0 || item.expenseNativeEur > 0) ...[
-                          Text("Gastos:", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
+                          Text("Gastos:", style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText)),
                           if (item.expenseNativeUSD > 0)
-                            Text("  - USD: \$${item.expenseNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                            Text("  - USD: \$${item.expenseNativeUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.expense)),
                           if (item.expenseNativeBs > 0)
-                            Text("  - Bs: ${item.expenseNativeBs.toStringAsFixed(2)} (BCV: \$${item.expenseBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                            Text("  - Bs: ${item.expenseNativeBs.toStringAsFixed(2)} (BCV: \$${item.expenseBsConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.expense)),
                           if (item.expenseNativeEur > 0)
-                            Text("  - EUR: ${item.expenseNativeEur.toStringAsFixed(2)} (BCV: \$${item.expenseEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.expense)),
-                          SizedBox(height: 6),
+                            Text("  - EUR: ${item.expenseNativeEur.toStringAsFixed(2)} (BCV: \$${item.expenseEurConvertedUsd.toStringAsFixed(2)})", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.expense)),
+                          SizedBox(height: OrtizSpace.xs),
                         ],
 
                         if (item.exchangeUSD > 0) ...[
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Vender \$ (sugerido):", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
-                              Text("\$${item.exchangeUSD.toStringAsFixed(2)} → Bs. ${item.exchangeBs.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                              Text("Vender \$ (sugerido):", style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText)),
+                              Text("\$${item.exchangeUSD.toStringAsFixed(2)} → Bs. ${item.exchangeBs.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.warn)),
                             ],
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: OrtizSpace.xs),
                         ],
                         if (item.pocketUSD > 0) ...[
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Bolsillos (Sugerido):", style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText)),
-                              Text("\$${item.pocketUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
+                              Text("Bolsillos (Sugerido):", style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText)),
+                              Text("\$${item.pocketUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.accent)),
                             ],
                           ),
                         ],
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Container(height: 1, color: AppColors.primary.withOpacity(0.1)),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
+                          child: Container(height: 1, color: AppColors.primary.withValues(alpha: 0.1)),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Balance General Final:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
-                            Text("\$${item.finalBalanceUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                            Text("Balance General Final:", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                            Text("\$${item.finalBalanceUSD.toStringAsFixed(2)}", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: AppColors.cardText)),
                           ],
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Dinero Libre Final:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.cardText)),
+                            Text("Dinero Libre Final:", style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: AppColors.cardText)),
                             Text(
                               "\$${item.finalLiquidBalanceUSD.toStringAsFixed(2)}"
                               "${item.finalBsBalance.abs() >= 0.01 ? ' · Bs. ${item.finalBsBalance.toStringAsFixed(2)}' : ''}",
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.primary),
+                              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w900, color: AppColors.primary),
                             ),
                           ],
                         ),
@@ -2376,7 +2333,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             event: event,
             isFirst: listIndex == firstEventIndex,
             isLast: listIndex == lastEventIndex,
-          );
+          ).ortizStaggered(context, listIndex);
           if (listIndex == firstEventIndex) {
             return Showcase(
               key: _timelineListKey,

@@ -3,6 +3,9 @@ import 'package:uuid/uuid.dart';
 import '../models/agente_prompt_model.dart';
 import '../theme/agente_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class PromptEditorDialog extends StatefulWidget {
   final AgentePromptModel? initialPrompt;
 
@@ -67,13 +70,13 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.sheet)),
+      backgroundColor: AgenteColors.surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.xl),
           child: Form(
             key: _formKey,
             child: Column(
@@ -84,14 +87,14 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(OrtizSpace.sm),
                       decoration: BoxDecoration(
                         color: AgenteColors.primaryLight,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
-                      child: const Icon(Icons.bolt_rounded, color: AgenteColors.primary, size: 20),
+                      child: const Icon(Icons.bolt_rounded, color: AgenteColors.primary, size: OrtizIconSize.md),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,62 +102,63 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                           Text(
                             isEditing ? 'Editar Prompt Rápido' : 'Nuevo Prompt Rápido',
                             style: const TextStyle(
-                              fontSize: 17,
+                              fontSize: OrtizFontSize.titleSm,
                               fontWeight: FontWeight.w900,
-                              color: Colors.black87,
+                              color: OrtizPalette.fg,
                             ),
                           ),
                           const Text(
                             'Aparecerá en el dock inferior del launcher',
-                            style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                            style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20, color: Colors.grey),
+                      tooltip: 'Cerrar',
+                      icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: OrtizSpace.lg),
 
                 // Prompt Text
                 const Text(
                   'CONTENIDO DEL PROMPT *',
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w800,
                     color: AgenteColors.primary,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: OrtizSpace.xs),
                 TextFormField(
                   controller: _textController,
                   autofocus: true,
                   maxLines: 3,
                   minLines: 2,
                   textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     hintText: 'Ej: ¿Cuáles son los próximos 3 cumpleaños?',
-                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13.5),
+                    hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.body),
                     filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.all(14),
+                    fillColor: AgenteColors.background,
+                    contentPadding: const EdgeInsets.all(OrtizSpace.md),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.cardBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.cardBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AgenteColors.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.primary, width: OrtizStroke.focus),
                     ),
                   ),
                   validator: (value) {
@@ -165,45 +169,45 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                   },
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: OrtizSpace.md),
 
                 // Alias / Label (Opcional)
                 const Text(
                   'ALIAS / ETIQUETA CORTA (OPCIONAL)',
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF64748B),
+                    color: OrtizPalette.muted,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: OrtizSpace.xs),
                 TextFormField(
                   controller: _labelController,
                   textCapitalization: TextCapitalization.words,
-                  style: const TextStyle(fontSize: 13.5),
+                  style: const TextStyle(fontSize: OrtizFontSize.body),
                   decoration: InputDecoration(
                     hintText: 'Ej: Cumpleaños, Finanzas, Gastos',
-                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    hintStyle: const TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
                     filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    fillColor: AgenteColors.background,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.cardBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.cardBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AgenteColors.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
+                      borderSide: const BorderSide(color: AgenteColors.primary, width: OrtizStroke.focus),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: OrtizSpace.xl),
 
                 // Botones
                 Row(
@@ -212,31 +216,31 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                          side: const BorderSide(color: AgenteColors.cardBorder),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                         child: const Text(
                           'Cancelar',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.grey),
+                          style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w700, color: OrtizPalette.muted),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       flex: 2,
                       child: ElevatedButton(
                         onPressed: _save,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AgenteColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          foregroundColor: OrtizPalette.onAccent,
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                         child: Text(
                           isEditing ? 'Guardar Cambios' : 'Crear Prompt',
-                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+                          style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ),

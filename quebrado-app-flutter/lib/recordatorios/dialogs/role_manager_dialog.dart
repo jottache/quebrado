@@ -5,6 +5,11 @@ import '../models/role_model.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+
 class RoleManagerDialog extends StatefulWidget {
   const RoleManagerDialog({super.key});
 
@@ -54,7 +59,7 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
           return AlertDialog(
             title: Text(
               existing == null ? 'Nuevo Rol Vital' : 'Editar Rol Vital',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.title),
             ),
             content: SizedBox(
               width: 440,
@@ -65,43 +70,43 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                   children: [
                     const Text(
                       'Nombre del Rol (ej. "Salud y Bienestar", "Líder de Proyecto")',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: OrtizSpace.xs),
                     TextField(
                       controller: nameCtrl,
                       decoration: InputDecoration(
                         hintText: 'Nombre del rol',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: OrtizSpace.lg),
                     const Text(
                       'Declaración de Propósito / Misión de este Rol',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: OrtizSpace.xs),
                     const Text(
                       '¿Qué significa el éxito y la plenitud en esta dimensión?',
-                      style: TextStyle(fontSize: 11, color: RemindersColors.textMuted),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: OrtizSpace.xs),
                     TextField(
                       controller: purposeCtrl,
                       maxLines: 2,
                       decoration: InputDecoration(
                         hintText: 'ej. Mantener energía física y paz mental para rendir al máximo...',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: OrtizSpace.lg),
                     const Text(
                       'Ícono Representativo',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: OrtizSpace.sm),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -116,32 +121,32 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                         );
                         return InkWell(
                           onTap: () => setSheetState(() => selectedIcon = iconName),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(OrtizSpace.sm),
                             decoration: BoxDecoration(
-                              color: isSelected ? RemindersColors.primaryLight : Colors.grey.shade100,
+                              color: isSelected ? RemindersColors.primaryLight : OrtizPalette.surfaceHigh,
                               border: Border.all(
                                 color: isSelected ? RemindersColors.primary : Colors.transparent,
-                                width: 2,
+                                width: OrtizStroke.focus,
                               ),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Icon(
                               dummyRole.iconData,
-                              size: 20,
-                              color: isSelected ? RemindersColors.primary : Colors.grey.shade700,
+                              size: OrtizIconSize.md,
+                              color: isSelected ? RemindersColors.primary : RemindersColors.textSecondary,
                             ),
                           ),
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: OrtizSpace.lg),
                     const Text(
                       'Color de Identificación',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: RemindersColors.textSecondary),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: OrtizSpace.sm),
                     Wrap(
                       spacing: 10,
                       children: _availableColors.map((hex) {
@@ -149,7 +154,7 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                         final color = RoleModel.parseColorHex(hex);
                         return InkWell(
                           onTap: () => setSheetState(() => selectedColor = hex),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                           child: Container(
                             width: 32,
                             height: 32,
@@ -157,12 +162,12 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                               color: color,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSelected ? Colors.black87 : Colors.transparent,
-                                width: 2.5,
+                                color: isSelected ? OrtizPalette.fg : Colors.transparent,
+                                width: OrtizStroke.focus,
                               ),
                             ),
                             child: isSelected
-                                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                ? const Icon(Icons.check, size: OrtizIconSize.sm, color: OrtizPalette.onAccent)
                                 : null,
                           ),
                         );
@@ -212,11 +217,11 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
     final roles = state.roles;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 580, maxHeight: 680),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(OrtizSpace.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -226,24 +231,24 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(OrtizSpace.sm),
                         decoration: BoxDecoration(
                           color: RemindersColors.primaryLight,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                         child: const Icon(Icons.pie_chart_outline, color: RemindersColors.primary),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: OrtizSpace.md),
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Roles de Vida (Brújula)',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
+                            style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
                           ),
                           Text(
                             'Los 7 Hábitos: Equilibrio vital y liderazgo personal',
-                            style: TextStyle(fontSize: 12, color: RemindersColors.textMuted),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textMuted),
                           ),
                         ],
                       ),
@@ -255,28 +260,23 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: const Row(
+              const SizedBox(height: OrtizSpace.lg),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
+                child: Row(
                   children: [
-                    Icon(Icons.lightbulb_outline, size: 20, color: RemindersColors.primary),
-                    SizedBox(width: 10),
+                    Icon(Icons.lightbulb_outline, size: OrtizIconSize.md, color: RemindersColors.primary),
+                    SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Text(
                         'Stephen Covey enseña que no podemos ser exitosos en el trabajo si descuidamos la salud o la familia. Cada semana debes nutrir cada uno de tus roles.',
-                        style: TextStyle(fontSize: 12, color: RemindersColors.textSecondary, height: 1.3),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textSecondary, height: 1.3),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               Expanded(
                 child: roles.isEmpty
                     ? const Center(
@@ -287,59 +287,54 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                       )
                     : ListView.separated(
                         itemCount: roles.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        // Filas sin tarjeta, separadas por una línea fina.
+                        separatorBuilder: (_, __) => const Divider(height: OrtizStroke.hairline),
                         itemBuilder: (context, index) {
                           final role = roles[index];
                           final count = state.countBigRocksForRole(role.id);
                           final hasRock = count > 0;
+                          final rockColor = hasRock ? RemindersColors.completed : RemindersColors.snoozed;
 
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
+                          return Material(
+                            type: MaterialType.transparency,
                             child: ListTile(
                               leading: Container(
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: role.color.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: role.color.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
-                                child: Icon(role.iconData, color: role.color, size: 22),
+                                child: Icon(role.iconData, color: role.color, size: OrtizIconSize.lg),
                               ),
                               title: Row(
                                 children: [
                                   Text(
                                     role.name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: OrtizSpace.sm),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                                     decoration: BoxDecoration(
-                                      color: hasRock ? Colors.green.shade50 : Colors.amber.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: hasRock ? Colors.green.shade300 : Colors.amber.shade400,
-                                      ),
+                                      color: rockColor.withValues(alpha: SuiteAppColors.tintAlpha / 0xFF),
+                                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
                                           hasRock ? Icons.star : Icons.warning_amber_rounded,
-                                          size: 12,
-                                          color: hasRock ? Colors.green.shade700 : Colors.amber.shade800,
+                                          size: OrtizIconSize.xs,
+                                          color: rockColor,
                                         ),
-                                        const SizedBox(width: 4),
+                                        const SizedBox(width: OrtizSpace.xs),
                                         Text(
                                           hasRock ? '$count Gran Roca' : '0 Rocas (Desatendido)',
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.bold,
-                                            color: hasRock ? Colors.green.shade800 : Colors.amber.shade900,
+                                            color: rockColor,
                                           ),
                                         ),
                                       ],
@@ -349,12 +344,12 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                               ),
                               subtitle: role.purposeStatement != null && role.purposeStatement!.isNotEmpty
                                   ? Padding(
-                                      padding: const EdgeInsets.only(top: 4),
+                                      padding: const EdgeInsets.only(top: OrtizSpace.xs),
                                       child: Text(
                                         role.purposeStatement!,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textSecondary, fontStyle: FontStyle.italic),
                                       ),
                                     )
                                   : null,
@@ -362,12 +357,12 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 20, color: RemindersColors.textSecondary),
+                                    icon: const Icon(Icons.edit_outlined, size: OrtizIconSize.md, color: RemindersColors.textSecondary),
                                     onPressed: () => _showEditRoleSheet(context, existing: role),
                                     tooltip: 'Editar rol',
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                                    icon: const Icon(Icons.delete_outline, size: OrtizIconSize.md, color: RemindersColors.overdue),
                                     onPressed: () {
                                       showDialog(
                                         context: context,
@@ -380,7 +375,10 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                                               child: const Text('Cancelar'),
                                             ),
                                             FilledButton(
-                                              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                              style: FilledButton.styleFrom(
+                                                backgroundColor: OrtizPalette.bad,
+                                                foregroundColor: OrtizPalette.onAccent,
+                                              ),
                                               onPressed: () {
                                                 state.deleteRole(role.id);
                                                 Navigator.pop(c);
@@ -400,17 +398,17 @@ class _RoleManagerDialogState extends State<RoleManagerDialog> {
                         },
                       ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '${roles.length} roles configurados',
-                    style: const TextStyle(fontSize: 12, color: RemindersColors.textMuted),
+                    style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textMuted),
                   ),
                   FilledButton.icon(
                     onPressed: () => _showEditRoleSheet(context),
-                    icon: const Icon(Icons.add, size: 18),
+                    icon: const Icon(Icons.add, size: OrtizIconSize.md),
                     label: const Text('Agregar Rol'),
                   ),
                 ],

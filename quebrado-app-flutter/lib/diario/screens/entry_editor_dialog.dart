@@ -12,6 +12,9 @@ import '../../notas/notas.dart';
 import '../../rich_editor/plain_text.dart';
 import '../../rich_editor/rich_document_editor.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// Editor de entradas de Diario (registro de un contacto o nota personal).
 /// Ocupa el 90 % de la pantalla en escritorio, usa el editor enriquecido
 /// (formato, listas, "/" para bloques, @ contactos, # notas) y guarda borrador.
@@ -322,7 +325,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       child: Form(
         key: _formKey,
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: DiarioColors.surface,
           body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -343,7 +346,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
                                   child: ColoredBox(
                                     color: DiarioColors.background,
                                     child: SingleChildScrollView(
-                                      padding: const EdgeInsets.all(18),
+                                      padding: const EdgeInsets.all(OrtizSpace.lg),
                                       child: _buildDetails(templates, activeTemplate),
                                     ),
                                   ),
@@ -363,12 +366,17 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
   Widget _buildTopBar(DiarioTemplate? activeTemplate, {required bool desktop}) {
     final isEditing = widget.entry != null;
     return Padding(
-      padding: EdgeInsets.fromLTRB(desktop ? 20 : 8, 12, desktop ? 16 : 8, 12),
+      padding: EdgeInsets.fromLTRB(
+        desktop ? OrtizSpace.xl : OrtizSpace.sm,
+        OrtizSpace.md,
+        desktop ? OrtizSpace.lg : OrtizSpace.sm,
+        OrtizSpace.md,
+      ),
       child: Row(
         children: [
           if (!desktop)
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 22),
+              icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg),
               tooltip: 'Cerrar (se guarda como borrador)',
               onPressed: closeKeepingDraft,
             ),
@@ -378,17 +386,17 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
               height: 42,
               decoration: BoxDecoration(
                 color: DiarioColors.primaryLight,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: Icon(
                 _isPersonal
                     ? Icons.note_alt_rounded
                     : (activeTemplate != null ? activeTemplate.iconData : Icons.post_add_rounded),
                 color: DiarioColors.primary,
-                size: 22,
+                size: OrtizIconSize.lg,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: OrtizSpace.md),
           ],
           Expanded(
             child: Column(
@@ -398,7 +406,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
                   isEditing
                       ? (_isPersonal ? 'Editar Nota Personal' : 'Editar Registro')
                       : (_isPersonal ? 'Nueva Nota Personal' : 'Nuevo Registro'),
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
+                  style: const TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.w900, color: DiarioColors.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
@@ -407,38 +415,38 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
                       : (activeTemplate != null
                           ? 'Modelo: ${activeTemplate.name}'
                           : 'Registro libre o usando un modelo predefinido'),
-                  style: const TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           buildDictationButton(compact: !desktop),
-          const SizedBox(width: 8),
+          const SizedBox(width: OrtizSpace.sm),
           if (desktop)
             TextButton(
               key: const ValueKey('diario_entry_cancel'),
               onPressed: cancelAndDiscardDraft,
               child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
             ),
-          const SizedBox(width: 4),
+          const SizedBox(width: OrtizSpace.xs),
           ElevatedButton.icon(
             key: const ValueKey('diario_entry_save'),
             onPressed: _save,
-            icon: const Icon(Icons.save_rounded, size: 18),
+            icon: const Icon(Icons.save_rounded, size: OrtizIconSize.md),
             label: Text(desktop ? (isEditing ? 'Guardar Cambios' : 'Registrar Entrada') : 'Guardar'),
             style: ElevatedButton.styleFrom(
               backgroundColor: DiarioColors.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: desktop ? 20 : 14, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              foregroundColor: OrtizPalette.onAccent,
+              padding: EdgeInsets.symmetric(horizontal: desktop ? OrtizSpace.xl : OrtizSpace.md, vertical: OrtizSpace.md),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               elevation: 0,
             ),
           ),
           if (desktop) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: OrtizSpace.xs),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 22),
+              icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg),
               tooltip: 'Cerrar (se guarda como borrador)',
               onPressed: closeKeepingDraft,
             ),
@@ -462,39 +470,39 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
           ? 'Notas adicionales… (@ personas, # notas, / bloques)'
           : 'Escribe o dicta… (@ personas, # notas, / bloques)',
       header: Padding(
-        padding: EdgeInsets.fromLTRB(horizontal, 18, horizontal, 4),
+        padding: EdgeInsets.fromLTRB(horizontal, OrtizSpace.lg, horizontal, OrtizSpace.xs),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ?banner,
             if (!desktop && templates != null) ...[
               _buildMobileDetails(templates, activeTemplate),
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
             ],
             TextField(
               key: const ValueKey('diario_entry_title'),
               controller: _titleController,
               maxLines: null,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: OrtizFontSize.display,
                 fontWeight: FontWeight.w900,
                 color: DiarioColors.textPrimary,
                 letterSpacing: -0.4,
               ),
               decoration: InputDecoration(
                 hintText: activeTemplate != null ? 'Título (opcional): Toyota Corolla, Pasta…' : 'Título (opcional)',
-                hintStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFCBD5E1)),
+                hintStyle: const TextStyle(fontSize: OrtizFontSize.display, fontWeight: FontWeight.w900, color: DiarioColors.textMuted),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),
             ),
             if (isListening) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.sm),
               _buildListeningHint(),
             ],
-            const SizedBox(height: 10),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.sm),
+            const Divider(height: 1, color: DiarioColors.cardBorder),
+            const SizedBox(height: OrtizSpace.xs),
           ],
         ),
       ),
@@ -503,20 +511,20 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
 
   Widget _buildListeningHint() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFCA5A5)),
+        color: DiarioColors.roseLight,
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
+        border: Border.all(color: DiarioColors.rose),
       ),
       child: const Row(
         children: [
-          Icon(Icons.fiber_manual_record_rounded, size: 10, color: Color(0xFFEF4444)),
-          SizedBox(width: 8),
+          Icon(Icons.fiber_manual_record_rounded, size: OrtizIconSize.xs, color: DiarioColors.rose),
+          SizedBox(width: OrtizSpace.sm),
           Expanded(
             child: Text(
               'Dictado activo: lo que digas se escribe donde está el cursor.',
-              style: TextStyle(fontSize: 11, color: Color(0xFF991B1B), fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.rose, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -535,25 +543,25 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
     return Container(
       decoration: BoxDecoration(
         color: DiarioColors.background,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         border: Border.all(color: DiarioColors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
             onTap: () => setState(() => _detailsExpanded = !_detailsExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
               child: Row(
                 children: [
-                  const Icon(Icons.tune_rounded, size: 18, color: DiarioColors.primary),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.tune_rounded, size: OrtizIconSize.md, color: DiarioColors.primary),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       summary,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
+                      style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -567,7 +575,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
           ),
           if (_detailsExpanded)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.md, 0, OrtizSpace.md, OrtizSpace.md),
               child: _buildDetails(templates, activeTemplate),
             ),
         ],
@@ -583,33 +591,33 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
         InputDecorator(
           decoration: InputDecoration(
             labelText: 'Modelo / Plantilla',
-            prefixIcon: const Icon(Icons.extension_outlined, size: 20),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            prefixIcon: const Icon(Icons.extension_outlined, size: OrtizIconSize.md),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            fillColor: DiarioColors.background,
+            contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String?>(
               isExpanded: true,
               value: activeTemplate?.id,
-              hint: const Text('Nota simple (sin modelo)', style: TextStyle(fontSize: 13)),
+              hint: const Text('Nota simple (sin modelo)', style: TextStyle(fontSize: OrtizFontSize.bodySm)),
               items: [
                 const DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Nota simple (sin modelo)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  child: Text('Nota simple (sin modelo)', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                 ),
                 ...templates.map((tpl) {
                   return DropdownMenuItem<String?>(
                     value: tpl.id,
                     child: Row(
                       children: [
-                        Icon(tpl.iconData, size: 18, color: tpl.color),
-                        const SizedBox(width: 8),
+                        Icon(tpl.iconData, size: OrtizIconSize.md, color: tpl.color),
+                        const SizedBox(width: OrtizSpace.sm),
                         Flexible(
                           child: Text(
                             tpl.name,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -622,33 +630,33 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: OrtizSpace.md),
         InkWell(
           onTap: _pickDate,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(OrtizRadius.field),
           child: InputDecorator(
             decoration: InputDecoration(
               labelText: 'Fecha del Registro',
-              prefixIcon: const Icon(Icons.calendar_today_rounded, size: 20, color: DiarioColors.primary),
-              suffixIcon: const Icon(Icons.edit_calendar_rounded, size: 18, color: DiarioColors.textSecondary),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              prefixIcon: const Icon(Icons.calendar_today_rounded, size: OrtizIconSize.md, color: DiarioColors.primary),
+              suffixIcon: const Icon(Icons.edit_calendar_rounded, size: OrtizIconSize.md, color: DiarioColors.textSecondary),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              fillColor: DiarioColors.background,
+              contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
             ),
             child: Text(
               _formatSelectedDate(_selectedDate),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: OrtizSpace.lg),
         if (activeTemplate != null && activeTemplate.fields.isNotEmpty) ...[
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(OrtizSpace.md),
             decoration: BoxDecoration(
               color: activeTemplate.color.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               border: Border.all(color: activeTemplate.color.withValues(alpha: 0.20)),
             ),
             child: Column(
@@ -656,13 +664,13 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
               children: [
                 Row(
                   children: [
-                    Icon(activeTemplate.iconData, size: 16, color: activeTemplate.color),
-                    const SizedBox(width: 6),
+                    Icon(activeTemplate.iconData, size: OrtizIconSize.sm, color: activeTemplate.color),
+                    const SizedBox(width: OrtizSpace.xs),
                     Expanded(
                       child: Text(
                         'CAMPOS DEL MODELO (${activeTemplate.name.toUpperCase()})',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.w800,
                           color: activeTemplate.color,
                           letterSpacing: 0.5,
@@ -672,19 +680,19 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 ...activeTemplate.fields.map((f) => _buildDynamicField(f)),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: OrtizSpace.lg),
         ],
         _buildPhotoAttachmentSection(),
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Fijar al inicio de la sección', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          subtitle: const Text('Aparecerá destacado en la parte superior', style: TextStyle(fontSize: 11)),
+          title: const Text('Fijar al inicio de la sección', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
+          subtitle: const Text('Aparecerá destacado en la parte superior', style: TextStyle(fontSize: OrtizFontSize.caption)),
           value: _isPinned,
           activeThumbColor: DiarioColors.primary,
           onChanged: (val) => _update(() => _isPinned = val),
@@ -699,18 +707,18 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
     switch (field.type) {
       case TemplateFieldType.select:
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.md),
           child: DropdownButtonFormField<String>(
             value: field.options.contains(existingValue) ? existingValue : null,
             decoration: InputDecoration(
               labelText: '${field.label}${field.required ? ' *' : ''}',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              fillColor: DiarioColors.background,
+              contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
             ),
             items: field.options.map((opt) {
-              return DropdownMenuItem(value: opt, child: Text(opt, style: const TextStyle(fontSize: 13)));
+              return DropdownMenuItem(value: opt, child: Text(opt, style: const TextStyle(fontSize: OrtizFontSize.bodySm)));
             }).toList(),
             onChanged: (val) {
               if (val != null) {
@@ -724,16 +732,16 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       case TemplateFieldType.number:
         final ctrl = _getController(field.key, existingValue);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.md),
           child: TextFormField(
             controller: ctrl,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: '${field.label}${field.required ? ' *' : ''}',
               hintText: field.placeholder,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: DiarioColors.background,
             ),
             validator: field.required ? (val) => val == null || val.trim().isEmpty ? 'Campo requerido' : null : null,
           ),
@@ -742,16 +750,16 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       case TemplateFieldType.multiline:
         final ctrl = _getController(field.key, existingValue);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.md),
           child: TextFormField(
             controller: ctrl,
             maxLines: 2,
             decoration: InputDecoration(
               labelText: '${field.label}${field.required ? ' *' : ''}',
               hintText: field.placeholder,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: DiarioColors.background,
             ),
             validator: field.required ? (val) => val == null || val.trim().isEmpty ? 'Campo requerido' : null : null,
           ),
@@ -760,10 +768,10 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       case TemplateFieldType.boolean:
         final bool isChecked = _formData[field.key] == true || _formData[field.key] == 'true';
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.md),
           child: SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(field.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            title: Text(field.label, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
             value: isChecked,
             activeColor: DiarioColors.primary,
             onChanged: (val) => _update(() => _formData[field.key] = val),
@@ -774,15 +782,15 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
       default:
         final ctrl = _getController(field.key, existingValue);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.md),
           child: TextFormField(
             controller: ctrl,
             decoration: InputDecoration(
               labelText: '${field.label}${field.required ? ' *' : ''}',
               hintText: field.placeholder,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: DiarioColors.background,
             ),
             validator: field.required ? (val) => val == null || val.trim().isEmpty ? 'Campo requerido' : null : null,
           ),
@@ -801,12 +809,12 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
           children: [
             const Row(
               children: [
-                Icon(Icons.photo_camera_outlined, size: 16, color: DiarioColors.primary),
-                SizedBox(width: 6),
+                Icon(Icons.photo_camera_outlined, size: OrtizIconSize.sm, color: DiarioColors.primary),
+                SizedBox(width: OrtizSpace.xs),
                 Text(
                   'FOTOGRAFÍA DEL REGISTRO',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w800,
                     color: DiarioColors.textSecondary,
                     letterSpacing: 0.5,
@@ -816,10 +824,10 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
             ),
             if (hasPhoto)
               TextButton.icon(
-                icon: const Icon(Icons.delete_outline_rounded, size: 16, color: DiarioColors.rose),
+                icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: DiarioColors.rose),
                 label: const Text(
                   'Quitar foto',
-                  style: TextStyle(color: DiarioColors.rose, fontSize: 11, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: DiarioColors.rose, fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                 ),
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
@@ -830,54 +838,54 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: OrtizSpace.sm),
         if (!hasPhoto)
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(OrtizSpace.md),
             decoration: BoxDecoration(
               color: DiarioColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               border: Border.all(color: DiarioColors.cardBorder, width: 1.2),
             ),
             child: Column(
               children: [
                 const Text(
                   '¿Deseas adjuntar una foto a este registro?',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: DiarioColors.textPrimary),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: OrtizSpace.xs),
                 const Text(
                   'Fotografía de la comida, prenda, artículo, lugar o recuerdo',
-                  style: TextStyle(fontSize: 11, color: DiarioColors.textSecondary),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, color: DiarioColors.textSecondary),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 Row(
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _pickImage(ImageSource.camera),
-                        icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                        icon: const Icon(Icons.camera_alt_rounded, size: OrtizIconSize.md),
                         label: const Text('Cámara'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: DiarioColors.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: OrtizPalette.onAccent,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _pickImage(ImageSource.gallery),
-                        icon: const Icon(Icons.photo_library_rounded, size: 18),
+                        icon: const Icon(Icons.photo_library_rounded, size: OrtizIconSize.md),
                         label: const Text('Galería'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: DiarioColors.primary,
                           side: const BorderSide(color: DiarioColors.primary, width: 1.2),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                       ),
                     ),
@@ -890,14 +898,14 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(OrtizRadius.block),
                 child: Container(
                   height: 180,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: DiarioColors.surfaceHover,
                     border: Border.all(color: DiarioColors.cardBorder),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
                   ),
                   child: GestureDetector(
                     onTap: () => DiarioImageHelper.openFullScreenImage(
@@ -925,7 +933,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
                         title: _titleController.text.isNotEmpty ? _titleController.text : 'Foto del Registro',
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: OrtizSpace.xs),
                     _imageOverlayAction(
                       icon: Icons.edit_outlined,
                       tooltip: 'Cambiar fotografía',
@@ -947,13 +955,14 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> with DiarioRichEd
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.65),
+        // Velo oscuro sobre la foto para que el icono se lea encima.
+        color: DiarioColors.background.withValues(alpha: 0.65),
         shape: BoxShape.circle,
       ),
       child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 18),
+        icon: Icon(icon, color: DiarioColors.textPrimary, size: OrtizIconSize.md),
         tooltip: tooltip,
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(OrtizSpace.xs),
         constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         onPressed: onTap,
       ),

@@ -4,8 +4,12 @@ import '../models/saving_pocket.dart';
 import '../models/recurring_payment.dart';
 import '../models/transaction.dart';
 import '../viewmodels/app_state.dart';
-import '../theme/colors.dart';
 import '../widgets/helpers.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class PocketDetailsBottomSheet extends StatefulWidget {
   final SavingPocket pocket;
@@ -114,253 +118,172 @@ class _PocketDetailsBottomSheetState extends State<PocketDetailsBottomSheet> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    final themeColor = parseHexColor(widget.pocket.colorHex);
-    final isLight = themeColor == Colors.white ||
-        themeColor == AppColors.cardBackground ||
-        HSLColor.fromColor(themeColor).lightness >= 0.75;
-    final pocketAccent = parseHexColor(widget.pocket.colorHex);
+    final t = OrtizTokens.of(context);
+    // El color del bolsillo es dato (lo elige la persona): marca el icono, no
+    // el fondo de la hoja (spec 05, PA-02).
+    final pocketColor = parseHexColor(widget.pocket.colorHex);
+    final pocketPayments = Provider.of<AppState>(context, listen: false)
+        .recurringPayments
+        .where((p) => p.pocketId == widget.pocket.id)
+        .toList();
 
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
       child: Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Handle bar
-            Center(
-              child: Container(
-                margin: EdgeInsets.only(top: 12, bottom: 20),
-                width: 48,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10),
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Asa de la hoja.
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: OrtizSpace.md, bottom: OrtizSpace.xl),
+                  width: OrtizSize.minTouch,
+                  height: OrtizSpace.xs,
+                  decoration: BoxDecoration(
+                    color: t.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                  ),
                 ),
               ),
-            ),
-            
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: themeColor.withOpacity(isLight ? 0.2 : 0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      getIconData(widget.pocket.icon),
-                      color: isLight ? pocketAccent : Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.pocket.name,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.cardText,
-                          ),
-                        ),
-                        Text(
-                          "Detalles del bolsillo",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.cardSubtitleText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close_rounded, color: AppColors.cardSubtitleText),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
 
-            // Action Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        widget.onWithdraw();
-                      },
-                      icon: Icon(Icons.remove_rounded, color: Colors.white, size: 20),
-                      label: Text("Retirar", style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        widget.onAdd();
-                      },
-                      icon: Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                      label: Text("Abonar", style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                "Obligaciones Asociadas",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.cardText,
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // Obligations List
-            if (Provider.of<AppState>(context, listen: false).recurringPayments.where((p) => p.pocketId == widget.pocket.id).isEmpty)
+              // Encabezado.
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
-                child: Text(
-                  "No hay gastos ni ingresos recurrentes asociados a este bolsillo.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.cardSubtitleText,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              )
-            else
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 24.0),
-                  itemCount: Provider.of<AppState>(context, listen: false).recurringPayments.where((p) => p.pocketId == widget.pocket.id).length,
-                  itemBuilder: (context, index) {
-                    final payment = Provider.of<AppState>(context, listen: false).recurringPayments.where((p) => p.pocketId == widget.pocket.id).toList()[index];
-                    final isExpense = payment.type == TransactionType.expense;
-                    final payColor = isExpense ? AppColors.expense : AppColors.income;
-
-                    return Container(
-                      margin: EdgeInsets.only(bottom: 12),
-                      padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
+                child: Row(
+                  children: [
+                    Container(
+                      width: OrtizSize.minTouch,
+                      height: OrtizSize.minTouch,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                        color: OrtizPill.backgroundFor(pocketColor),
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
+                      child: Icon(
+                        getIconData(widget.pocket.icon),
+                        color: OrtizPill.foregroundFor(pocketColor, t),
+                        size: OrtizIconSize.lg,
+                      ),
+                    ),
+                    const SizedBox(width: OrtizSpace.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: payColor.withOpacity(0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              getIconData(payment.icon),
-                              color: payColor,
-                              size: 18,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  payment.name,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.cardText,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  payment.frequency.value,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.cardSubtitleText,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          Text(
+                            widget.pocket.name,
+                            style: OrtizType.title.copyWith(color: t.fg),
                           ),
                           Text(
-                            "${isExpense ? '-' : '+'}${formatCurrency(payment.amount, payment.currency)}",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: payColor,
-                            ),
+                            "Detalles del bolsillo",
+                            style: OrtizType.bodySm.copyWith(color: t.muted),
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                    IconButton(
+                      tooltip: 'Cerrar',
+                      icon: Icon(Icons.close_rounded, color: t.muted),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
               ),
-            SizedBox(height: 24),
-          ],
+              const SizedBox(height: OrtizSpace.xxl),
+
+              // Acciones: abonar es la principal (accent); retirar, secundaria.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onWithdraw();
+                        },
+                        icon: const Icon(Icons.remove_rounded, size: OrtizIconSize.md),
+                        label: const Text("Retirar", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: OrtizSpace.lg),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onAdd();
+                        },
+                        icon: const Icon(Icons.add_rounded, size: OrtizIconSize.md),
+                        label: const Text("Abonar", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: OrtizSpace.xxxl),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
+                child: Text(
+                  "Obligaciones Asociadas",
+                  style: OrtizType.titleSm.copyWith(color: t.fg),
+                ),
+              ),
+              const SizedBox(height: OrtizSpace.sm),
+
+              // Lista de obligaciones, sin tarjetas: filas sobre la hoja.
+              if (pocketPayments.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl, vertical: OrtizSpace.xl),
+                  child: Text(
+                    "No hay gastos ni ingresos recurrentes asociados a este bolsillo.",
+                    style: OrtizType.body.copyWith(color: t.muted),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    // xxl − el margen propio de la fila: el texto queda
+                    // alineado con el título de la sección.
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md),
+                    itemCount: pocketPayments.length,
+                    itemBuilder: (context, index) {
+                      final payment = pocketPayments[index];
+                      final isExpense = payment.type == TransactionType.expense;
+                      final payColor = isExpense ? t.expense : t.income;
+
+                      return OrtizListRow(
+                        leading: Icon(getIconData(payment.icon), color: payColor),
+                        title: payment.name,
+                        subtitle: payment.frequency.value,
+                        trailing: OrtizAmount(
+                          value: payment.amount,
+                          currencySymbol: '',
+                          color: payColor,
+                          format: (v) =>
+                              "${isExpense ? '-' : '+'}${formatCurrency(v, payment.currency)}",
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              const SizedBox(height: OrtizSpace.xxl),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

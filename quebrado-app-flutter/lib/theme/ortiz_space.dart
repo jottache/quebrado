@@ -13,6 +13,7 @@ import 'package:flutter/painting.dart';
 
 /// Escala de espaciado en píxeles lógicos: 4 · 8 · 12 · 16 · 20 · 24 · 32.
 abstract final class OrtizSpace {
+  static const double xxs = 2; // separación mínima (ajustes finos, badges)
   static const double xs = 4; // icono ↔ texto, chips apretados
   static const double sm = 8; // entre elementos de una misma fila
   static const double md = 12; // entre filas de un grupo
@@ -22,7 +23,38 @@ abstract final class OrtizSpace {
   static const double xxxl = 32; // entre secciones grandes
 
   /// La escala completa, de menor a mayor.
-  static const List<double> scale = [xs, sm, md, lg, xl, xxl, xxxl];
+  static const List<double> scale = [xxs, xs, sm, md, lg, xl, xxl, xxxl];
+}
+
+/// Tamaños de icono: 12 · 16 · 20 · 24 · 32 · 48.
+abstract final class OrtizIconSize {
+  static const double xs = 12; // dentro de chips y badges
+  static const double sm = 16; // junto a texto pequeño
+  static const double md = 20; // listas y filas (por defecto)
+  static const double lg = 24; // acciones de barra
+  static const double xl = 32; // estados vacíos pequeños, avatares
+  static const double xxl = 48; // estados vacíos e ilustraciones
+
+  /// La escala completa, de menor a mayor.
+  static const List<double> scale = [xs, sm, md, lg, xl, xxl];
+}
+
+/// Grosores de línea: separadores y anillo de foco de teclado.
+abstract final class OrtizStroke {
+  static const double hairline = 1; // `Divider`, bordes de campo en reposo
+  static const double focus = 2; // anillo de foco visible (web/escritorio)
+}
+
+/// Medidas fijas de componentes que no son espacio ni icono.
+abstract final class OrtizSize {
+  /// Punto de color de app, bolsillo o categoría (`OrtizListRow.dotColor`).
+  static const double dot = 8;
+
+  /// Objetivo táctil mínimo (= `kMinInteractiveDimension` de Material).
+  static const double minTouch = 48;
+
+  /// Ancho máximo de un texto centrado (estado vacío) en ventanas anchas.
+  static const double readableWidth = 420;
 }
 
 /// Radios de esquina por tipo de elemento.

@@ -7,6 +7,10 @@ import 'habit_terminal_editor_dialog.dart';
 import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/models/diario_contact.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class HabitDetailCliDialog extends StatefulWidget {
   final HabitModel habit;
 
@@ -38,9 +42,9 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
     final unit = habit.unit ?? 'veces';
 
     return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      backgroundColor: OrtizPalette.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.sheet)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 660),
         child: Column(
@@ -49,23 +53,23 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
           children: [
             // Cabecera Minimalista
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.md),
               child: Row(
                 children: [
                   Container(
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: habit.isNegative ? HabitosColors.amberLight : HabitosColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
+                      color: habit.isNegative ? OrtizPalette.warnTint : HabitosColors.primaryLight,
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: Icon(
                       habit.isNegative ? Icons.shield_outlined : Icons.track_changes_rounded,
-                      color: habit.isNegative ? HabitosColors.amber : HabitosColors.primary,
-                      size: 20,
+                      color: habit.isNegative ? OrtizPalette.warn : HabitosColors.primary,
+                      size: OrtizIconSize.md,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,9 +77,9 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                         Text(
                           habit.title,
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: OrtizFontSize.titleSm,
                             fontWeight: FontWeight.w900,
-                            color: HabitosColors.textPrimary,
+                            color: OrtizPalette.fg,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -84,113 +88,105 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                             habit.description!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
                           ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20, color: HabitosColors.textSecondary),
+                    icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: OrtizPalette.muted),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: HabitosColors.cardBorder),
+            const Divider(height: 1, color: OrtizPalette.line),
 
             // Contenido de estadísticas
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(OrtizSpace.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Resumen Métricas
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: HabitosColors.background,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: HabitosColors.cardBorder),
-                      ),
-                      child: Column(
+                    // Resumen de métricas: filas separadas por líneas, sin tarjeta.
+                    Column(
                         children: [
                           _metricRow('Tipo de hábito', habit.type.label),
-                          const Divider(height: 16, color: HabitosColors.cardBorder),
+                          const Divider(height: 16, color: OrtizPalette.line),
                           if (linkedContact != null) ...[
                             _metricRow('Contacto vinculado', linkedContact.name, isHighlight: true),
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                           ],
                           if (habit.isNegative) ...[
                             _metricRow(
                               'Recaídas hoy',
                               '${state.getRelapseCount(habit.id, state.todayKey)} $unit',
                               isHighlight: true,
-                              color: state.getRelapseCount(habit.id, state.todayKey) > 0 ? HabitosColors.rose : null,
+                              color: state.getRelapseCount(habit.id, state.todayKey) > 0 ? OrtizPalette.bad : null,
                             ),
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow('Días libre de recaída', '$cleanDays ${cleanDays == 1 ? "día" : "días"} invicto', isHighlight: true),
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow(
                               'Días limpios · $_rangeLabel',
                               '${stats.successDays} de ${stats.trackedDays} (${(stats.successRate * 100).round()}%)',
                             ),
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow(
                               'Recaídas · $_rangeLabel',
                               '${stats.relapseDays} ${stats.relapseDays == 1 ? "día" : "días"} · ${stats.relapseCount} $unit',
-                              color: stats.relapseDays > 0 ? HabitosColors.rose : null,
+                              color: stats.relapseDays > 0 ? OrtizPalette.bad : null,
                             ),
                           ] else ...[
                             if (habit.type == HabitType.counter) ...[
                               _metricRow('Total hoy', '${state.getValue(habit.id, state.todayKey).toInt()} $unit', isHighlight: true),
-                              const Divider(height: 16, color: HabitosColors.cardBorder),
+                              const Divider(height: 16, color: OrtizPalette.line),
                               _metricRow('Total · $_rangeLabel', '${stats.totalValue.toInt()} $unit'),
-                              const Divider(height: 16, color: HabitosColors.cardBorder),
+                              const Divider(height: 16, color: OrtizPalette.line),
                             ],
-                            _metricRow('Racha actual', '$streak días seguidos', isHighlight: true),
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            _metricRow('Racha actual', '$streak días seguidos', isHighlight: true, color: HabitosColors.amber),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow(
                               'Consistencia · $_rangeLabel',
                               '${(stats.successRate * 100).round()}% (${stats.successDays} de ${stats.trackedDays} días)',
                             ),
                           ],
                           if (habit.type == HabitType.quantitative) ...[
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow('Meta diaria', '${habit.targetValue.toInt()} ${habit.unit ?? ""}'),
                           ],
                           if (habit.type == HabitType.timer) ...[
-                            const Divider(height: 16, color: HabitosColors.cardBorder),
+                            const Divider(height: 16, color: OrtizPalette.line),
                             _metricRow('Tiempo objetivo', '${(habit.targetValue / 60).round()} minutos'),
                           ],
                         ],
-                      ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: OrtizSpace.xl),
 
                     // Actividad por rango
                     Row(
                       children: [
-                        const Icon(Icons.calendar_month_outlined, size: 16, color: HabitosColors.textSecondary),
-                        const SizedBox(width: 6),
+                        const Icon(Icons.calendar_month_outlined, size: OrtizIconSize.sm, color: OrtizPalette.muted),
+                        const SizedBox(width: OrtizSpace.xs),
                         Expanded(
                           child: Text(
                             'Actividad · $_rangeLabel (toca un día para ver o corregir)',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w800,
-                              color: HabitosColors.textPrimary,
+                              color: OrtizPalette.fg,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: OrtizSpace.sm),
                     _buildRangeSelector(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: OrtizSpace.md),
                     _rangeDays <= 30 ? _build30DayGrid(context, state) : _buildHeatmap(context, state),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: OrtizSpace.sm),
                     _buildLegend(),
                   ],
                 ),
@@ -198,40 +194,40 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
             ),
 
             // Acciones inferiores (Eliminar & Editar)
-            const Divider(height: 1, color: HabitosColors.cardBorder),
+            const Divider(height: 1, color: OrtizPalette.line),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton.icon(
-                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: HabitosColors.rose),
-                    label: const Text('Eliminar', style: TextStyle(color: HabitosColors.rose, fontWeight: FontWeight.w700)),
+                    icon: const Icon(Icons.delete_outline_rounded, size: OrtizIconSize.sm, color: OrtizPalette.bad),
+                    label: const Text('Eliminar', style: TextStyle(color: OrtizPalette.bad, fontWeight: FontWeight.w700)),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          backgroundColor: OrtizPalette.surface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
                           title: const Text(
                             '¿Eliminar hábito?',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm),
                           ),
                           content: Text(
                             'Se eliminarán el hábito "${habit.title}" y todos sus registros históricos.',
-                            style: const TextStyle(fontSize: 13, color: HabitosColors.textSecondary),
+                            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancelar', style: TextStyle(color: HabitosColors.textSecondary)),
+                              child: const Text('Cancelar', style: TextStyle(color: OrtizPalette.muted)),
                             ),
                             ElevatedButton(
                               onPressed: () => Navigator.of(ctx).pop(true),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: HabitosColors.rose,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                backgroundColor: OrtizPalette.bad,
+                                foregroundColor: OrtizPalette.onAccent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                               ),
                               child: const Text('Eliminar'),
                             ),
@@ -246,14 +242,14 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                     },
                   ),
                   ElevatedButton.icon(
-                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    icon: const Icon(Icons.edit_outlined, size: OrtizIconSize.sm),
                     label: const Text('Editar Hábito', style: TextStyle(fontWeight: FontWeight.w800)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: HabitosColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -280,18 +276,18 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, fontWeight: FontWeight.w500),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: OrtizSpace.md),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.right,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.w800,
-              color: color ?? (isHighlight ? HabitosColors.primary : HabitosColors.textPrimary),
+              color: color ?? (isHighlight ? HabitosColors.primary : OrtizPalette.fg),
             ),
           ),
         ),
@@ -312,13 +308,13 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
           showCheckmark: false,
           onSelected: (_) => setState(() => _rangeDays = e.key),
           selectedColor: HabitosColors.primary,
-          backgroundColor: Colors.white,
+          backgroundColor: OrtizPalette.surface,
           labelStyle: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-            color: selected ? Colors.white : HabitosColors.textPrimary,
+            color: selected ? OrtizPalette.onAccent : OrtizPalette.fg,
           ),
-          side: BorderSide(color: selected ? HabitosColors.primary : HabitosColors.cardBorder),
+          side: BorderSide(color: selected ? HabitosColors.primary : OrtizPalette.line),
           visualDensity: VisualDensity.compact,
         );
       }).toList(),
@@ -329,17 +325,17 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
   ({Color bg, Color border, Color text}) _dayColors(HabitDayStatus s) {
     switch (s.kind) {
       case HabitDayKind.relapse:
-        return (bg: HabitosColors.rose, border: HabitosColors.rose, text: Colors.white);
+        return (bg: OrtizPalette.bad, border: OrtizPalette.bad, text: OrtizPalette.onAccent);
       case HabitDayKind.clean:
         return (bg: HabitosColors.primaryLight, border: HabitosColors.primaryBorder, text: HabitosColors.primary);
       case HabitDayKind.completed:
-        return (bg: HabitosColors.primary, border: HabitosColors.primary, text: Colors.white);
+        return (bg: HabitosColors.primary, border: HabitosColors.primary, text: OrtizPalette.onAccent);
       case HabitDayKind.partial:
-        return (bg: HabitosColors.primary.withOpacity(0.45), border: HabitosColors.primary, text: Colors.white);
+        return (bg: HabitosColors.primary.withValues(alpha: 0.45), border: HabitosColors.primary, text: OrtizPalette.fg);
       case HabitDayKind.beforeCreation:
-        return (bg: Colors.transparent, border: HabitosColors.cardBorder.withOpacity(0.6), text: HabitosColors.textMuted);
+        return (bg: Colors.transparent, border: OrtizPalette.line.withValues(alpha: 0.6), text: OrtizPalette.muted);
       case HabitDayKind.none:
-        return (bg: const Color(0xFFF3F4F6), border: HabitosColors.cardBorder, text: HabitosColors.textSecondary);
+        return (bg: OrtizPalette.surfaceHigh, border: OrtizPalette.line, text: OrtizPalette.muted);
     }
   }
 
@@ -350,10 +346,10 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
             Container(
               width: 10,
               height: 10,
-              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(3), border: Border.all(color: border)),
+              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(OrtizRadius.chip), border: Border.all(color: border)),
             ),
-            const SizedBox(width: 4),
-            Text(label, style: const TextStyle(fontSize: 10.5, color: HabitosColors.textSecondary, fontWeight: FontWeight.w600)),
+            const SizedBox(width: OrtizSpace.xs),
+            Text(label, style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted, fontWeight: FontWeight.w600)),
           ],
         );
 
@@ -363,13 +359,13 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
       children: habit.isNegative
           ? [
               item(HabitosColors.primaryLight, HabitosColors.primaryBorder, 'Día limpio'),
-              item(HabitosColors.rose, HabitosColors.rose, 'Recaída (número = veces)'),
-              item(Colors.transparent, HabitosColors.cardBorder, 'Antes de crear el hábito'),
+              item(OrtizPalette.bad, OrtizPalette.bad, 'Recaída (número = veces)'),
+              item(Colors.transparent, OrtizPalette.line, 'Antes de crear el hábito'),
             ]
           : [
               item(HabitosColors.primary, HabitosColors.primary, 'Cumplido'),
-              item(HabitosColors.primary.withOpacity(0.45), HabitosColors.primary, 'Parcial'),
-              item(const Color(0xFFF3F4F6), HabitosColors.cardBorder, 'Sin registro'),
+              item(HabitosColors.primary.withValues(alpha: 0.45), HabitosColors.primary, 'Parcial'),
+              item(OrtizPalette.surfaceHigh, OrtizPalette.line, 'Sin registro'),
             ],
     );
   }
@@ -397,10 +393,12 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
               final idx = w * 7 + d;
               final status = idx < cells.length ? cells[idx] : null;
               final colors = status == null ? null : _dayColors(status);
+              // Sin separación bajo el domingo (última fila).
+              final bottomGap = d < 6 ? gap : 0.0;
               final box = Container(
                 width: cell,
                 height: cell,
-                margin: EdgeInsets.only(bottom: d < 6 ? gap : 0),
+                margin: EdgeInsets.only(bottom: bottomGap),
                 decoration: BoxDecoration(
                   color: colors?.bg ?? Colors.transparent,
                   borderRadius: BorderRadius.circular(cell > 10 ? 3 : 1.5),
@@ -408,7 +406,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                 ),
                 alignment: Alignment.center,
                 child: (status != null && status.relapseCount > 1 && cell >= 14)
-                    ? Text('${status.relapseCount}', style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w900))
+                    ? Text('${status.relapseCount}', style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.onAccent, fontWeight: FontWeight.w900))
                     : null,
               );
               if (status == null) return box;
@@ -437,7 +435,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                 ? OverflowBox(
                     alignment: Alignment.centerLeft,
                     maxWidth: 40,
-                    child: Text(months[m - 1], style: const TextStyle(fontSize: 9, color: HabitosColors.textMuted, fontWeight: FontWeight.w700)),
+                    child: Text(months[m - 1], style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted, fontWeight: FontWeight.w700)),
                   )
                 : null,
           ));
@@ -450,7 +448,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
               padding: const EdgeInsets.only(left: labelWidth),
               child: SizedBox(height: 12, child: Row(children: monthLabels)),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: OrtizSpace.xxs),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -461,7 +459,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                       const labels = ['L', '', 'M', '', 'V', '', 'D'];
                       return SizedBox(
                         height: cell + (d < 6 ? gap : 0),
-                        child: Text(labels[d], style: const TextStyle(fontSize: 8, color: HabitosColors.textMuted)),
+                        child: Text(labels[d], style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted)),
                       );
                     }),
                   ),
@@ -509,13 +507,13 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
           child: InkWell(
             key: ValueKey('habit_day_${status.dateKey}'),
             onTap: () => _showDayMetricPopover(context, state, status),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
             child: Container(
               width: 30,
               height: 30,
               decoration: BoxDecoration(
                 color: colors.bg,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 border: Border.all(color: colors.border, width: 1),
               ),
               child: Stack(
@@ -523,7 +521,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                   Center(
                     child: Text(
                       '${status.date.day}',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: colors.text),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: colors.text),
                     ),
                   ),
                   if (status.kind == HabitDayKind.relapse)
@@ -532,7 +530,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
                       top: 1,
                       child: Text(
                         '×${status.relapseCount}',
-                        style: const TextStyle(fontSize: 7.5, fontWeight: FontWeight.w900, color: Colors.white),
+                        style: const TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.w900, color: OrtizPalette.onAccent),
                       ),
                     ),
                 ],
@@ -571,41 +569,41 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
             subtitle = !canEdit
                 ? 'El hábito aún no existía'
                 : (relapses == 0 ? '✓ Sin recaídas este día' : 'Recaídas registradas este día');
-            accent = relapses == 0 ? HabitosColors.primary : HabitosColors.rose;
+            accent = relapses == 0 ? HabitosColors.primary : OrtizPalette.bad;
           } else {
             headline = '${value.toInt()} $unit';
             subtitle = isCompleted || value > 0 ? '✓ Día con actividad registrada' : 'Sin actividad este día';
-            accent = isCompleted || value > 0 ? HabitosColors.primary : HabitosColors.textMuted;
+            accent = isCompleted || value > 0 ? HabitosColors.primary : OrtizPalette.muted;
           }
 
           return AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            backgroundColor: OrtizPalette.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
+            titlePadding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.sm),
+            contentPadding: const EdgeInsets.fromLTRB(OrtizSpace.xl, 0, OrtizSpace.xl, OrtizSpace.xl),
             title: Row(
               children: [
                 Container(
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: habit.isNegative && relapses > 0 ? HabitosColors.roseLight : HabitosColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
+                    color: habit.isNegative && relapses > 0 ? OrtizPalette.badTint : HabitosColors.primaryLight,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
-                  child: Icon(Icons.event_note_rounded, color: accent, size: 18),
+                  child: Icon(Icons.event_note_rounded, color: accent, size: OrtizIconSize.sm),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         formattedDate,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: HabitosColors.textPrimary),
+                        style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w900, color: OrtizPalette.fg),
                       ),
                       Text(
                         habit.title,
-                        style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -616,61 +614,61 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Divider(height: 16, color: HabitosColors.cardBorder),
+                const Divider(height: 16, color: OrtizPalette.line),
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(OrtizSpace.md),
+                  // Bloque destacado del diálogo: `surfaceHigh`, sin borde.
                   decoration: BoxDecoration(
-                    color: HabitosColors.background,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: HabitosColors.cardBorder),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                   child: Column(
                     children: [
                       Text(
                         habit.isNegative ? 'RECAÍDAS' : 'VECES MARCADO',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: OrtizPalette.muted),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: OrtizSpace.xs),
                       Text(
                         headline,
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: accent, letterSpacing: -0.5),
+                        style: TextStyle(fontSize: OrtizFontSize.display, fontWeight: FontWeight.w900, color: accent, letterSpacing: -0.5),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: OrtizSpace.xxs),
                       Text(
                         subtitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: accent),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w700, color: accent),
                       ),
                     ],
                   ),
                 ),
                 if (canEdit && (habit.isNegative || habit.type == HabitType.counter)) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: OrtizSpace.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if ((habit.isNegative ? relapses : value) > 0) ...[
                         OutlinedButton.icon(
                           key: const ValueKey('habit_day_minus'),
-                          icon: const Icon(Icons.remove, size: 16),
+                          icon: const Icon(Icons.remove, size: OrtizIconSize.sm),
                           label: const Text('-1'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: HabitosColors.textPrimary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            foregroundColor: OrtizPalette.fg,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                           ),
                           onPressed: () => live.updateHabitValue(habit.id, -1, dateStr),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: OrtizSpace.md),
                       ],
                       ElevatedButton.icon(
                         key: const ValueKey('habit_day_plus'),
-                        icon: const Icon(Icons.add, size: 16),
+                        icon: const Icon(Icons.add, size: OrtizIconSize.sm),
                         label: Text(habit.isNegative ? '+1 recaída' : '+1 Toque'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: habit.isNegative ? HabitosColors.rose : HabitosColors.primary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: habit.isNegative ? OrtizPalette.bad : HabitosColors.primary,
+                          foregroundColor: OrtizPalette.onAccent,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                         ),
                         onPressed: () => live.updateHabitValue(habit.id, 1, dateStr),
                       ),
@@ -682,7 +680,7 @@ class _HabitDetailCliDialogState extends State<HabitDetailCliDialog> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cerrar', style: TextStyle(color: HabitosColors.textSecondary, fontWeight: FontWeight.bold)),
+                child: const Text('Cerrar', style: TextStyle(color: OrtizPalette.muted, fontWeight: FontWeight.bold)),
               ),
             ],
           );

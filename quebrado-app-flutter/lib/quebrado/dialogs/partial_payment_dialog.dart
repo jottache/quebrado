@@ -6,10 +6,14 @@ import '../models/recurring_payment.dart';
 import '../models/transaction.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
-import '../widgets/claymorphic_card.dart';
+import '../widgets/currency_pill.dart';
 import '../widgets/helpers.dart';
-import '../widgets/slide_to_confirm_button.dart';
 import '../services/biometric_service.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class PartialPaymentBottomSheet extends StatefulWidget {
   final PendingOccurrence occurrence;
@@ -103,21 +107,22 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle_outline_rounded, color: Colors.white),
-              SizedBox(width: 8),
+              const Icon(Icons.check_circle_outline_rounded, color: OrtizPalette.onAccent),
+              const SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Text(
                   p.type == TransactionType.income
                       ? "Abono de ${p.currency == CurrencyType.usd ? formatUSD(amount) : formatBs(amount)} registrado con éxito para el ingreso '${p.name}'"
                       : "Abono de ${p.currency == CurrencyType.usd ? formatUSD(amount) : formatBs(amount)} registrado con éxito para el gasto '${p.name}'",
+                  style: const TextStyle(color: OrtizPalette.onAccent),
                 ),
               ),
             ],
           ),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.field)),
           ),
         ),
       );
@@ -160,18 +165,18 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
     return Container(
       constraints: BoxConstraints(maxHeight: size.height * 0.9),
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: 20 + keyboardPadding,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: OrtizSpace.xl,
+        bottom: OrtizSpace.xl + keyboardPadding,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: Form(
             key: _formKey,
             child: Column(
@@ -183,48 +188,47 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.cardBorderColor,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
-                Text(
+                const SizedBox(height: OrtizSpace.lg),
+                const Text(
                   "Registrar Pago Parcial",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                  style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold, color: AppColors.cardText),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: OrtizSpace.sm),
                 Text(
                   "Restante: ${p.currency == CurrencyType.usd ? formatUSD(widget.occurrence.remainingAmount) : formatBs(widget.occurrence.remainingAmount)}",
-                  style: TextStyle(fontSize: 14, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardSubtitleText, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: OrtizSpace.xl),
 
-                ClaymorphicCard(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
+                OrtizSection(
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "MONTO PARCIAL",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: AppColors.cardSubtitleText,
                             letterSpacing: 0.8,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         TextFormField(
                           controller: _amountController,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          style: const TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold),
                           decoration: InputDecoration(
                             hintText: p.currency == CurrencyType.usd ? "0.00 \$" : (p.currency == CurrencyType.eur ? "0.00 €" : "0.00 Bs."),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.black12),
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.field)),
+                              borderSide: BorderSide(color: AppColors.cardBorderColor),
                             ),
                           ),
                           onChanged: (_) => setState(() {}),
@@ -237,51 +241,40 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           },
                         ),
                         
-                        SizedBox(height: 16),
+                        SizedBox(height: OrtizSpace.lg),
                         Text(
                           "CUENTA ASOCIADA",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: AppColors.cardSubtitleText,
                             letterSpacing: 0.8,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        SizedBox(height: OrtizSpace.sm),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[50],
+                            border: Border.all(color: AppColors.cardBorderColor),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
+                            color: OrtizPalette.surfaceHigh,
                           ),
                           child: Row(
                             children: [
-                              Icon(getIconData(targetAccount.icon), size: 18, color: parseHexColor(targetAccount.colorHex)),
-                              SizedBox(width: 10),
+                              Icon(getIconData(targetAccount.icon), size: OrtizIconSize.sm, color: parseHexColor(targetAccount.colorHex)),
+                              const SizedBox(width: OrtizSpace.sm),
                               Expanded(
                                 child: Text(
                                   targetAccount.name,
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                               ),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: targetAccount.currency == CurrencyType.usd 
-                                      ? AppColors.primary.withOpacity(0.1) 
-                                      : AppColors.secondary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  targetAccount.currency == CurrencyType.usd ? "USD" : "VES",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: targetAccount.currency == CurrencyType.usd 
-                                        ? AppColors.primary 
-                                        : AppColors.secondary,
-                                  ),
+                              // Distintivo de moneda con el color fijo de la moneda
+                              // (`currencyColor`), no con un segundo acento.
+                              Flexible(
+                                child: OrtizPill(
+                                  label: targetAccount.currency == CurrencyType.usd ? "USD" : "VES",
+                                  color: currencyColor(targetAccount.currency),
                                 ),
                               ),
                             ],
@@ -289,22 +282,22 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                         ),
 
                         if (needsConversion) ...[
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           Text(
                             "TASA DE CAMBIO",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 0.8,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: OrtizSpace.sm),
                           Container(
-                            padding: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(OrtizSpace.xs),
                             decoration: BoxDecoration(
                               color: AppColors.nestedTabTrackBg,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Row(
                               children: [
@@ -312,17 +305,17 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _isCustomRate = false),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: !_isCustomRate ? AppColors.nestedTabActiveBg : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "BCV (${appState.bcvRate.toStringAsFixed(2)})",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: !_isCustomRate ? AppColors.nestedTabActiveText : AppColors.nestedTabInactiveText,
                                         ),
                                       ),
@@ -333,17 +326,17 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                                   child: GestureDetector(
                                     onTap: () => setState(() => _isCustomRate = true),
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: _isCustomRate ? AppColors.nestedTabActiveBg : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       alignment: Alignment.center,
                                       child: Text(
                                         "Personalizada",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           color: _isCustomRate ? AppColors.nestedTabActiveText : AppColors.nestedTabInactiveText,
                                         ),
                                       ),
@@ -354,14 +347,14 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                             ),
                           ),
                           if (_isCustomRate) ...[
-                            SizedBox(height: 12),
+                            SizedBox(height: OrtizSpace.md),
                             TextFormField(
                               controller: _rateController,
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: "Tasa personalizada Bs.",
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 ),
                               ),
                               onChanged: (_) => setState(() {}),
@@ -375,60 +368,53 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
                           ],
                         ],
 
-                        SizedBox(height: 16),
+                        SizedBox(height: OrtizSpace.lg),
                         Text(
                           "NOTA (OPCIONAL)",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w900,
                             color: AppColors.cardSubtitleText,
                             letterSpacing: 0.8,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        SizedBox(height: OrtizSpace.sm),
                         TextFormField(
                           controller: _noteController,
                           textCapitalization: TextCapitalization.sentences,
                           decoration: InputDecoration(
                             hintText: "Ej. Adelanto de la semana",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.black12),
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.field)),
+                              borderSide: BorderSide(color: AppColors.cardBorderColor),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                
-                SizedBox(height: 20),
+
                 _buildSummarySection(p, inputAmount, targetAccount, activeRate, needsConversion, isIncome),
 
-                SizedBox(height: 20),
-                appState.useSlideToConfirm
-                    ? SlideToConfirmButton(
-                        enabled: inputAmount > 0 && inputAmount <= widget.occurrence.remainingAmount,
-                        label: "Desliza para registrar parcial",
-                        onConfirmed: () => _submitPartialPayment(appState, p, needsConversion, activeRate),
-                      )
-                    : SizedBox(
+                const SizedBox(height: OrtizSpace.xl),
+                SizedBox(
                         width: double.infinity,
-                        height: 48,
+                        height: OrtizSize.minTouch,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                            foregroundColor: OrtizPalette.onAccent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.field),
                             ),
                           ),
                           onPressed: (inputAmount > 0 && inputAmount <= widget.occurrence.remainingAmount)
                               ? () => _submitPartialPayment(appState, p, needsConversion, activeRate)
                               : null,
-                          child: Text(
+                          child: const Text(
                             "Registrar Parcial",
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -449,105 +435,110 @@ class _PartialPaymentBottomSheetState extends State<PartialPaymentBottomSheet> {
     bool isIncome,
   ) {
     final remainingAfter = widget.occurrence.remainingAmount - inputAmount;
+    // Mismo formato que antes: USD con `formatUSD`, cualquier otra moneda con `formatBs`.
+    final String Function(double) fmt = p.currency == CurrencyType.usd ? formatUSD : formatBs;
 
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.04)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "RESUMEN DEL ADELANTO",
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: AppColors.cardSubtitleText,
-              letterSpacing: 1.0,
-            ),
+    return OrtizSection(
+      surface: true,
+      children: [
+        const Text(
+          "RESUMEN DEL ADELANTO",
+          style: TextStyle(
+            fontSize: OrtizFontSize.caption,
+            fontWeight: FontWeight.w900,
+            color: AppColors.cardSubtitleText,
+            letterSpacing: 1.0,
           ),
-          SizedBox(height: 12),
+        ),
+        const SizedBox(height: OrtizSpace.md),
+        _buildSummaryRow(
+          "Fecha Proyectada:",
+          value: formatDate(widget.occurrence.occurrenceDate),
+        ),
+        _buildSummaryRow(
+          "Cuenta destino:",
+          value: targetAccount.name,
+          icon: getIconData(targetAccount.icon),
+          iconColor: parseHexColor(targetAccount.colorHex),
+        ),
+        _buildSummaryRow(
+          "Monto original de la cuota:",
+          amount: p.amount,
+          format: fmt,
+        ),
+        if (widget.occurrence.partialAmountPaid > 0)
           _buildSummaryRow(
-            "Fecha Proyectada:",
-            formatDate(widget.occurrence.occurrenceDate),
+            "Abonado anteriormente:",
+            amount: widget.occurrence.partialAmountPaid,
+            format: fmt,
           ),
+        _buildSummaryRow(
+          "Adelanto (Abono hoy):",
+          amount: inputAmount,
+          format: fmt,
+          valueColor: AppColors.primary,
+          isBoldValue: true,
+        ),
+        if (needsConversion)
           _buildSummaryRow(
-            "Cuenta destino:",
-            targetAccount.name,
-            icon: getIconData(targetAccount.icon),
-            iconColor: parseHexColor(targetAccount.colorHex),
-          ),
-          _buildSummaryRow(
-            "Monto original de la cuota:",
-            p.currency == CurrencyType.usd ? formatUSD(p.amount) : formatBs(p.amount),
-          ),
-          if (widget.occurrence.partialAmountPaid > 0)
-            _buildSummaryRow(
-              "Abonado anteriormente:",
-              p.currency == CurrencyType.usd 
-                  ? formatUSD(widget.occurrence.partialAmountPaid) 
-                  : formatBs(widget.occurrence.partialAmountPaid),
-            ),
-          _buildSummaryRow(
-            "Adelanto (Abono hoy):",
-            p.currency == CurrencyType.usd ? formatUSD(inputAmount) : formatBs(inputAmount),
+            "Conversión en Bs. (Tasa ${activeRate.toStringAsFixed(2)}):",
+            amount: inputAmount * activeRate,
+            format: formatBs,
             valueColor: AppColors.primary,
-            isBoldValue: true,
           ),
-          if (needsConversion)
-            _buildSummaryRow(
-              "Conversión en Bs. (Tasa ${activeRate.toStringAsFixed(2)}):",
-              formatBs(inputAmount * activeRate),
-              valueColor: AppColors.primary,
-            ),
-          Divider(height: 16, color: AppColors.cardBorderColor),
-          _buildSummaryRow(
-            "Restante para el próximo pago:",
-            p.currency == CurrencyType.usd 
-                ? formatUSD(remainingAfter) 
-                : formatBs(remainingAfter),
-            valueColor: isIncome ? AppColors.primary : AppColors.expense,
-            isBoldValue: true,
-            isLargeValue: true,
-          ),
-        ],
-      ),
+        const Divider(height: OrtizSpace.lg, color: AppColors.cardBorderColor),
+        _buildSummaryRow(
+          "Restante para el próximo pago:",
+          amount: remainingAfter,
+          format: fmt,
+          valueColor: isIncome ? AppColors.primary : AppColors.expense,
+          isBoldValue: true,
+          isLargeValue: true,
+        ),
+      ],
     );
   }
 
+  /// Fila del resumen: [value] para texto, o [amount] + [format] para un monto
+  /// (se pinta con `OrtizAmount`, cifras tabulares).
   Widget _buildSummaryRow(
-    String label,
-    String value, {
+    String label, {
+    String? value,
+    double? amount,
+    String Function(double)? format,
     Color? valueColor,
     bool isBoldValue = false,
     bool isLargeValue = false,
     IconData? icon,
     Color? iconColor,
   }) {
+    final valueStyle = TextStyle(
+      fontSize: isLargeValue ? OrtizFontSize.body : OrtizFontSize.bodySm,
+      fontWeight: (isBoldValue || isLargeValue) ? FontWeight.w900 : FontWeight.bold,
+      color: valueColor ?? AppColors.cardText,
+    );
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
       child: Row(
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+            style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
           ),
-          Spacer(),
+          const Spacer(),
           if (icon != null) ...[
-            Icon(icon, size: 14, color: iconColor ?? AppColors.cardSubtitleText),
-            SizedBox(width: 4),
+            Icon(icon, size: OrtizIconSize.xs, color: iconColor ?? AppColors.cardSubtitleText),
+            const SizedBox(width: OrtizSpace.xs),
           ],
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isLargeValue ? 14 : 12,
-              fontWeight: (isBoldValue || isLargeValue) ? FontWeight.w900 : FontWeight.bold,
-              color: valueColor ?? AppColors.cardText,
-            ),
-          ),
+          if (amount != null)
+            OrtizAmount(
+              value: amount,
+              currencySymbol: '',
+              format: format,
+              style: OrtizType.amount.merge(valueStyle),
+            )
+          else
+            Text(value ?? '', style: valueStyle),
         ],
       ),
     );

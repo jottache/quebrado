@@ -7,6 +7,10 @@ import '../models/role_model.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class CoveyMatrixView extends StatefulWidget {
   const CoveyMatrixView({super.key});
 
@@ -27,43 +31,42 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
   void _showMoveQuadrantModal(BuildContext context, RemindersState state, ReminderModel reminder) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.dialog))),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.swap_horiz_rounded, size: 20, color: RemindersColors.primary),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.swap_horiz_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       'Reclasificar "${reminder.title}" a:',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: OrtizSpace.md),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: CoveyQuadrant.values.map((q) {
                   final isCurrent = reminder.quadrant == q;
                   return ActionChip(
-                    avatar: isCurrent ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                    avatar: isCurrent ? const Icon(Icons.check, size: OrtizIconSize.xs, color: OrtizPalette.onAccent) : null,
                     label: Text('${q.shortLabel} - ${q.title}'),
-                    backgroundColor: isCurrent ? q.color : q.color.withOpacity(0.08),
+                    backgroundColor: isCurrent ? q.color : q.color.withValues(alpha: 0.08),
                     labelStyle: TextStyle(
-                      fontSize: 12,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
-                      color: isCurrent ? Colors.white : q.color,
+                      color: isCurrent ? OrtizPalette.onAccent : q.color,
                     ),
                     onPressed: () {
                       state.moveReminderToQuadrant(reminder.id, q);
@@ -72,7 +75,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.sm),
             ],
           ),
         ),
@@ -84,6 +87,10 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
   Widget build(BuildContext context) {
     final state = Provider.of<RemindersState>(context);
     final q2Percentage = state.q2FocusPercentage;
+    final t = OrtizTokens.of(context);
+    // Foco en C2: verde si llega a la meta (65 %), ámbar si no.
+    final focusColor = q2Percentage >= 65 ? t.ok : t.warn;
+    final okTint = t.ok.withValues(alpha: 0.16);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -91,22 +98,10 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
 
         return Column(
           children: [
-            // Banner Superior de Métricas Covey
+            // Banner Superior de Métricas Covey (sobre el fondo, sin tarjeta)
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+              margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.sm),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
               child: isMobile
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,20 +109,20 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(8),
+                                color: okTint,
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
-                              child: const Icon(Icons.grid_view_rounded, color: Color(0xFF059669), size: 18),
+                              child: const Icon(Icons.grid_view_rounded, color: OrtizPalette.ok, size: OrtizIconSize.sm),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: OrtizSpace.sm),
                             const Expanded(
                               child: Text(
                                 'Matriz Stephen Covey (Hábito 3)',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   color: RemindersColors.textPrimary,
                                 ),
                               ),
@@ -135,23 +130,21 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                             Text(
                               '${q2Percentage.toStringAsFixed(0)}% en C2',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
-                                color: q2Percentage >= 65 ? const Color(0xFF059669) : const Color(0xFFD97706),
+                                color: focusColor,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           child: LinearProgressIndicator(
                             value: (q2Percentage / 100).clamp(0.0, 1.0),
-                            backgroundColor: Colors.grey.shade200,
+                            backgroundColor: t.line,
                             minHeight: 6,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              q2Percentage >= 65 ? const Color(0xFF059669) : const Color(0xFFD97706),
-                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(focusColor),
                           ),
                         ),
                       ],
@@ -159,14 +152,14 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                   : Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(OrtizSpace.sm),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(8),
+                            color: okTint,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
-                          child: const Icon(Icons.grid_view_rounded, color: Color(0xFF059669), size: 20),
+                          child: const Icon(Icons.grid_view_rounded, color: OrtizPalette.ok, size: OrtizIconSize.md),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: OrtizSpace.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,26 +170,26 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                                     'Matriz de Administración del Tiempo',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                      fontSize: OrtizFontSize.body,
                                       color: RemindersColors.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: OrtizSpace.sm),
                                   Text(
                                     'Stephen Covey (Hábito 3)',
-                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, color: t.muted),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: OrtizSpace.xs),
                               Text(
                                 'Arrastra tarjetas entre cuadrantes para reclasificarlas. Tu objetivo es maximizar el tiempo en el Cuadrante II.',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: OrtizFontSize.caption, color: t.muted),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: OrtizSpace.lg),
                         // Indicador de Foco en Cuadrante II
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -207,30 +200,28 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                                 Text(
                                   '${q2Percentage.toStringAsFixed(0)}%',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: OrtizFontSize.titleSm,
                                     fontWeight: FontWeight.bold,
-                                    color: q2Percentage >= 65 ? const Color(0xFF059669) : const Color(0xFFD97706),
+                                    color: focusColor,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: OrtizSpace.xs),
                                 const Text(
                                   'en C2',
-                                  style: TextStyle(fontSize: 11, color: RemindersColors.textMuted),
+                                  style: TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: OrtizSpace.xs),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               child: SizedBox(
                                 width: 100,
                                 height: 6,
                                 child: LinearProgressIndicator(
                                   value: (q2Percentage / 100).clamp(0.0, 1.0),
-                                  backgroundColor: Colors.grey.shade200,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    q2Percentage >= 65 ? const Color(0xFF059669) : const Color(0xFFD97706),
-                                  ),
+                                  backgroundColor: t.line,
+                                  valueColor: AlwaysStoppedAnimation<Color>(focusColor),
                                 ),
                               ),
                             ),
@@ -256,17 +247,18 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
   // VISTA MÓVIL: Selector de Cuadrantes + Tarjeta Completa
   // ===========================================================================
   Widget _buildMobileMatrixContent(BuildContext context, RemindersState state) {
+    final t = OrtizTokens.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xs),
       child: Column(
         children: [
           // Selector horizontal de los 4 cuadrantes
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(OrtizSpace.xs),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              color: t.surface,
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
+              border: Border.all(color: t.line),
             ),
             child: Row(
               children: CoveyQuadrant.values.map((q) {
@@ -277,24 +269,15 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                 return Expanded(
                   child: InkWell(
                     onTap: () => setState(() => _selectedQuadrantMobile = q),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs, horizontal: OrtizSpace.xxs),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+                        color: isSelected ? t.surfaceHigh : Colors.transparent,
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         border: isSelected && isQ2
-                            ? Border.all(color: const Color(0xFF059669), width: 1.5)
-                            : null,
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ]
+                            ? Border.all(color: t.ok, width: 1.5)
                             : null,
                       ),
                       child: Column(
@@ -306,30 +289,30 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                               Text(
                                 q.shortLabel,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? q.color : Colors.grey.shade600,
+                                  color: isSelected ? q.color : t.muted,
                                 ),
                               ),
                               if (isQ2) ...[
-                                const SizedBox(width: 2),
-                                const Icon(Icons.star, size: 10, color: Color(0xFFD97706)),
+                                const SizedBox(width: OrtizSpace.xxs),
+                                const Icon(Icons.star, size: OrtizIconSize.xs, color: OrtizPalette.warn),
                               ],
                             ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: OrtizSpace.xxs),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: isSelected ? q.color.withOpacity(0.12) : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(8),
+                              color: isSelected ? q.color.withValues(alpha: 0.12) : t.surfaceHigh,
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: Text(
                               '$count',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? q.color : Colors.grey.shade700,
+                                color: isSelected ? q.color : t.muted,
                               ),
                             ),
                           ),
@@ -342,7 +325,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: OrtizSpace.sm),
 
           // Tarjeta del Cuadrante Seleccionado
           Expanded(
@@ -354,7 +337,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
               isMobile: true,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
         ],
       ),
     );
@@ -365,7 +348,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
   // ===========================================================================
   Widget _buildDesktopMatrixContent(BuildContext context, RemindersState state) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
       child: Row(
         children: [
           // Columna 1: Urgente (Q1 arriba, Q3 abajo)
@@ -381,7 +364,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                     isMobile: false,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 Expanded(
                   child: _buildQuadrantCard(
                     context,
@@ -394,7 +377,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: OrtizSpace.md),
           // Columna 2: No Urgente (Q2 arriba [DESTACADO], Q4 abajo)
           Expanded(
             child: Column(
@@ -408,7 +391,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                     isMobile: false,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 Expanded(
                   child: _buildQuadrantCard(
                     context,
@@ -437,6 +420,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
     required bool isMobile,
   }) {
     final reminders = state.remindersForQuadrant(quadrant);
+    final t = OrtizTokens.of(context);
 
     return DragTarget<ReminderModel>(
       onWillAcceptWithDetails: (details) => details.data.quadrant != quadrant,
@@ -450,39 +434,30 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: isDroppingHere
-                ? quadrant.color.withOpacity(0.08)
+                ? quadrant.color.withValues(alpha: 0.08)
                 : isHighlighted
-                    ? const Color(0xFFF9FBF9)
-                    : Colors.white,
-            borderRadius: BorderRadius.circular(14),
+                    ? t.surfaceHigh
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
             border: Border.all(
               color: isDroppingHere
                   ? quadrant.color
                   : isHighlighted
-                      ? const Color(0xFF059669)
-                      : Colors.grey.shade300,
+                      ? t.ok
+                      : t.line,
               width: isHighlighted || isDroppingHere ? 2 : 1,
             ),
-            boxShadow: isHighlighted
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF059669).withOpacity(0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Encabezado del Cuadrante
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: isHighlighted ? const Color(0xFFECFDF5) : Colors.grey.shade50,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                  color: isHighlighted ? t.ok.withValues(alpha: 0.16) : Colors.transparent,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.field)),
+                  border: Border(bottom: BorderSide(color: t.line)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -490,56 +465,56 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
                             color: quadrant.color,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Text(
                             quadrant.shortLabel,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
+                              color: OrtizPalette.onAccent,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: OrtizSpace.sm),
                         Text(
                           quadrant.title,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
-                            color: isHighlighted ? const Color(0xFF065F46) : RemindersColors.textPrimary,
+                            color: isHighlighted ? t.ok : RemindersColors.textPrimary,
                           ),
                         ),
                         if (isHighlighted) ...[
-                          const SizedBox(width: 6),
-                          const Icon(Icons.star, size: 14, color: Color(0xFFD97706)),
+                          const SizedBox(width: OrtizSpace.xs),
+                          const Icon(Icons.star, size: OrtizIconSize.sm, color: OrtizPalette.warn),
                         ],
                       ],
                     ),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(10),
+                            color: t.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Text(
                             '${reminders.length}',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
+                              color: t.fg,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: OrtizSpace.xs),
                         IconButton(
                           icon: const Icon(Icons.add_circle_outline_rounded,
-                              color: RemindersColors.primary, size: 20),
+                              color: RemindersColors.primary, size: OrtizIconSize.md),
                           tooltip: 'Nueva tarea en este cuadrante',
                           visualDensity: VisualDensity.compact,
                           onPressed: () {
@@ -560,10 +535,10 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
 
               // Subtítulo con la esencia del cuadrante
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 4),
+                padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.xs, OrtizSpace.md, OrtizSpace.xs),
                 child: Text(
                   quadrant.description,
-                  style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, color: t.muted, fontStyle: FontStyle.italic),
                 ),
               ),
 
@@ -572,21 +547,21 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                 child: reminders.isEmpty
                     ? Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(OrtizSpace.xl),
                           child: Text(
                             isHighlighted
                                 ? '⭐ Este es el corazón de tu efectividad.\nAgrega o arrastra metas y Grandes Rocas aquí.'
                                 : 'No hay actividades en este cuadrante',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 11,
-                              color: isHighlighted ? const Color(0xFF059669).withOpacity(0.7) : Colors.grey.shade400,
+                              fontSize: OrtizFontSize.caption,
+                              color: isHighlighted ? t.ok : t.muted,
                             ),
                           ),
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(OrtizSpace.sm),
                         itemCount: reminders.length,
                         itemBuilder: (context, index) {
                           final reminder = reminders[index];
@@ -596,18 +571,18 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                             data: reminder,
                             feedback: Material(
                               elevation: 6,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               child: Container(
                                 width: 260,
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(OrtizSpace.sm),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: t.surfaceHigh,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   border: Border.all(color: quadrant.color, width: 2),
                                 ),
                                 child: Text(
                                   reminder.title,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                 ),
                               ),
                             ),
@@ -634,22 +609,18 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
     RoleModel? role, {
     required bool isMobile,
   }) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: reminder.isBigRock ? const Color(0xFFF59E0B) : Colors.grey.shade200,
-          width: reminder.isBigRock ? 1.5 : 1,
-        ),
-      ),
-      color: reminder.isBigRock ? const Color(0xFFFFFBEB) : Colors.white,
+    final t = OrtizTokens.of(context);
+    // Fila sin tarjeta: las Grandes Rocas se distinguen con el tono ámbar.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
+      child: Material(
+      color: reminder.isBigRock ? OrtizPalette.warnTint : Colors.transparent,
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: InkWell(
         onTap: () => _openEditor(context, reminder),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -659,21 +630,21 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                     onTap: () => state.toggleCompleted(reminder.id),
                     child: Icon(
                       reminder.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                      size: 16,
-                      color: reminder.isCompleted ? Colors.green : Colors.grey.shade400,
+                      size: OrtizIconSize.sm,
+                      color: reminder.isCompleted ? t.ok : t.muted,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       reminder.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.w600,
                         decoration: reminder.isCompleted ? TextDecoration.lineThrough : null,
-                        color: reminder.isCompleted ? Colors.grey : RemindersColors.textPrimary,
+                        color: reminder.isCompleted ? t.muted : RemindersColors.textPrimary,
                       ),
                     ),
                   ),
@@ -681,49 +652,50 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                     onTap: () => state.toggleBigRock(reminder.id),
                     child: Icon(
                       reminder.isBigRock ? Icons.star : Icons.star_border,
-                      size: 16,
-                      color: reminder.isBigRock ? const Color(0xFFD97706) : Colors.grey.shade300,
+                      size: OrtizIconSize.sm,
+                      color: reminder.isBigRock ? t.warn : t.muted,
                     ),
                   ),
                   if (isMobile)
                     InkWell(
                       onTap: () => _showMoveQuadrantModal(context, state, reminder),
                       child: const Padding(
-                        padding: EdgeInsets.only(left: 6),
-                        child: Icon(Icons.more_vert_rounded, size: 16, color: Colors.grey),
+                        padding: EdgeInsets.only(left: OrtizSpace.xs),
+                        child: Icon(Icons.more_vert_rounded, size: OrtizIconSize.sm, color: OrtizPalette.muted),
                       ),
                     ),
                 ],
               ),
               if (role != null || reminder.dueAt != null) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: OrtizSpace.xs),
                 Row(
                   children: [
                     if (role != null) ...[
-                      Icon(role.iconData, size: 12, color: role.color),
-                      const SizedBox(width: 4),
+                      Icon(role.iconData, size: OrtizIconSize.xs, color: role.color),
+                      const SizedBox(width: OrtizSpace.xs),
                       Text(
                         role.name,
-                        style: TextStyle(fontSize: 10, color: role.color, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, color: role.color, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: OrtizSpace.sm),
                     ],
                     if (reminder.isPinned) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs, vertical: OrtizSpace.xxs),
                         decoration: BoxDecoration(
-                          color: RemindersColors.primary.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(4),
+                          color: RemindersColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.push_pin_rounded, size: 8, color: RemindersColors.primary),
-                            SizedBox(width: 2),
+                            // Icono al tamaño del texto micro de la etiqueta.
+                            Icon(Icons.push_pin_rounded, size: OrtizFontSize.micro, color: RemindersColors.primary),
+                            SizedBox(width: OrtizSpace.xxs),
                             Text(
                               'Fijado',
                               style: TextStyle(
-                                fontSize: 8,
+                                fontSize: OrtizFontSize.micro,
                                 fontWeight: FontWeight.bold,
                                 color: RemindersColors.primary,
                               ),
@@ -731,17 +703,17 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: OrtizSpace.xs),
                     ],
                     if (reminder.dueAt != null)
                       Text(
                         reminder.formattedDueTime,
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, color: t.muted),
                       ),
                     const Spacer(),
                     Text(
                       '~${reminder.estimatedDurationMinutes}m',
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                      style: TextStyle(fontSize: OrtizFontSize.caption, color: t.muted),
                     ),
                   ],
                 ),
@@ -749,6 +721,7 @@ class _CoveyMatrixViewState extends State<CoveyMatrixView> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

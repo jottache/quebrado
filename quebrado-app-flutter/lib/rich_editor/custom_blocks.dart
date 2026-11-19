@@ -6,6 +6,7 @@ import '../theme/ortiz_tokens.dart';
 import '../theme/ortiz_type.dart';
 import 'rich_editor_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 /// Bloques propios para AppFlowy Editor que no trae el paquete:
 /// desplegable (toggle), destacado (callout) y código.
 
@@ -124,11 +125,11 @@ class _ToggleBlockComponentWidgetState extends State<ToggleBlockComponentWidget>
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Padding(
-                padding: const EdgeInsets.only(right: 2),
+                padding: const EdgeInsets.only(right: OrtizSpace.xxs),
                 child: AnimatedRotation(
                   turns: collapsed ? 0.0 : 0.25,
                   duration: const Duration(milliseconds: 150),
-                  child: Icon(Icons.arrow_right_rounded, size: 24, color: RichEditorColors.accent),
+                  child: Icon(Icons.arrow_right_rounded, size: OrtizIconSize.lg, color: RichEditorColors.accent),
                 ),
               ),
             ),
@@ -154,10 +155,10 @@ class _ToggleBlockComponentWidgetState extends State<ToggleBlockComponentWidget>
           ),
           if (collapsed && node.children.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(left: 6, top: 3),
+              padding: const EdgeInsets.only(left: OrtizSpace.xs, top: OrtizSpace.xxs),
               child: Text(
                 '${node.children.length}',
-                style: const TextStyle(fontSize: 11, color: RichEditorColors.textMuted, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: OrtizFontSize.caption, color: RichEditorColors.textMuted, fontWeight: FontWeight.w700),
               ),
             ),
         ],
@@ -331,10 +332,10 @@ class _CalloutBlockComponentWidgetState extends State<CalloutBlockComponentWidge
 
     Widget child = Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.sm, OrtizSpace.sm, OrtizSpace.md, OrtizSpace.sm),
       decoration: BoxDecoration(
         color: RichEditorColors.calloutBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         border: Border.all(color: RichEditorColors.calloutBorder, width: 1.2),
       ),
       child: Row(
@@ -346,8 +347,8 @@ class _CalloutBlockComponentWidgetState extends State<CalloutBlockComponentWidge
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(icon, style: const TextStyle(fontSize: 18)),
+                padding: const EdgeInsets.only(right: OrtizSpace.sm),
+                child: Text(icon, style: const TextStyle(fontSize: OrtizFontSize.title)),
               ),
             ),
           ),
@@ -488,13 +489,14 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
       width: double.infinity,
       decoration: BoxDecoration(
         color: OrtizPalette.surfaceHigh,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
         border: Border.all(color: OrtizPalette.line),
       ),
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 40, 12),
+            // A la derecha deja sitio al botón «Copiar código».
+            padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.md, OrtizSpace.xxxl + OrtizSpace.sm, OrtizSpace.md),
             child: AppFlowyRichText(
               key: forwardKey,
               delegate: this,

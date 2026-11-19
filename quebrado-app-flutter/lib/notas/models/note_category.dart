@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/notas_colors.dart';
+
 class NoteCategory {
   final String id;
   final String? userId;
@@ -71,7 +73,7 @@ class NoteCategory {
       final hex = colorHex.replaceAll('#', '');
       return Color(int.parse('FF$hex', radix: 16));
     } catch (_) {
-      return const Color(0xFF6366F1);
+      return NotasColors.categoryDefault;
     }
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/diario_colors.dart';
+
 /// Catálogo fijo del módulo Ánimo: escala de valencia, energía y emociones.
 /// Las claves (`key`) se guardan en Supabase, así que nunca deben cambiar.
 
@@ -14,7 +16,7 @@ class MoodValenceMeta {
 
   const MoodValenceMeta(this.value, this.emoji, this.label, this.color);
 
-  Color get lightColor => color.withOpacity(0.16);
+  Color get lightColor => color.withValues(alpha: 0.16);
 }
 
 class MoodCatalog {
@@ -25,11 +27,11 @@ class MoodCatalog {
   static const int maxEmotionsPerLog = 3;
 
   static const List<MoodValenceMeta> valences = [
-    MoodValenceMeta(-2, '😞', 'Muy mal', Color(0xFF7048E8)),
-    MoodValenceMeta(-1, '😕', 'Mal', Color(0xFF4DABF7)),
-    MoodValenceMeta(0, '😐', 'Normal', Color(0xFFADB5BD)),
-    MoodValenceMeta(1, '🙂', 'Bien', Color(0xFF51CF66)),
-    MoodValenceMeta(2, '😄', 'Excelente', Color(0xFFFCC419)),
+    MoodValenceMeta(-2, '😞', 'Muy mal', DiarioColors.moodValenceVeryLow),
+    MoodValenceMeta(-1, '😕', 'Mal', DiarioColors.moodValenceLow),
+    MoodValenceMeta(0, '😐', 'Normal', DiarioColors.moodValenceNeutral),
+    MoodValenceMeta(1, '🙂', 'Bien', DiarioColors.moodValenceHigh),
+    MoodValenceMeta(2, '😄', 'Excelente', DiarioColors.moodValenceVeryHigh),
   ];
 
   static MoodValenceMeta valenceMeta(int valence) {
@@ -149,10 +151,12 @@ class MoodCatalog {
 }
 
 enum MoodQuadrant {
-  highPleasant('Energía alta · Agradable', Color(0xFFF59F00), true, true),
-  lowPleasant('Energía baja · Agradable', Color(0xFF2F9E44), true, false),
-  highUnpleasant('Energía alta · Desagradable', Color(0xFFE03131), false, true),
-  lowUnpleasant('Energía baja · Desagradable', Color(0xFF1C7ED6), false, false);
+  highPleasant('Energía alta · Agradable', DiarioColors.moodQuadrantHighPleasant, true, true),
+  lowPleasant('Energía baja · Agradable', DiarioColors.moodQuadrantLowPleasant, true, false),
+  highUnpleasant(
+      'Energía alta · Desagradable', DiarioColors.moodQuadrantHighUnpleasant, false, true),
+  lowUnpleasant(
+      'Energía baja · Desagradable', DiarioColors.moodQuadrantLowUnpleasant, false, false);
 
   final String label;
   final Color color;

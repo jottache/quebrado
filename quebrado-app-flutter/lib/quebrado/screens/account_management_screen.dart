@@ -4,10 +4,13 @@ import '../viewmodels/app_state.dart';
 import '../models/account.dart';
 import '../models/currency_type.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/add_account_dialog.dart';
 import '../theme/colors.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class AccountManagementScreen extends StatefulWidget {
   const AccountManagementScreen({super.key});
@@ -26,20 +29,18 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Padding(
-          padding: EdgeInsets.only(right: 0),
-          child: Image.asset(
-            'assets/images/quebrado/logo_quebrado.png',
-            height: 50,
-            fit: BoxFit.contain,
-          ),
+        title: Image.asset(
+          'assets/images/quebrado/logo_quebrado.png',
+          height: 50,
+          fit: BoxFit.contain,
         ),
         actions: [
           IconButton(
-            icon: Icon(
+            tooltip: "Nueva cuenta",
+            icon: const Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
-              size: 28,
+              size: OrtizIconSize.lg,
             ),
             onPressed: () {
               showModalBottomSheet(
@@ -56,12 +57,12 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.sm),
               child: Text(
                 "Cuentas y Bancos",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.cardText,
                 ),
@@ -82,121 +83,47 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     List<Account> accounts,
   ) {
     if (accounts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.account_balance_wallet_rounded, size: 64, color: Colors.grey[400]),
-              SizedBox(height: 16),
-              Text(
-                "Sin cuentas registradas",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "Crea una nueva cuenta presionando el botón '+' en la esquina superior derecha.",
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return const OrtizEmptyState(
+        icon: Icons.account_balance_wallet_rounded,
+        title: "Sin cuentas registradas",
+        message: "Crea una nueva cuenta presionando el botón '+' en la esquina superior derecha.",
       );
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16.0),
+    // Lista sin tarjetas: filas sobre el fondo separadas por líneas.
+    return ListView.separated(
+      padding: const EdgeInsets.all(OrtizSpace.lg),
       itemCount: accounts.length,
+      separatorBuilder: (context, index) => const Divider(height: OrtizStroke.hairline),
       itemBuilder: (context, index) {
         final account = accounts[index];
         final color = parseHexColor(account.colorHex);
         final isUsd = account.currency == CurrencyType.usd;
         final balanceText = isUsd ? formatUSD(account.balance) : formatBs(account.balance);
 
-        return Padding(
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: GestureDetector(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => AddAccountBottomSheet(editingAccount: account),
-              );
-            },
-            child: ClaymorphicCard(
-              cornerRadius: 18,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
+        return OrtizListRow(
+          leading: Icon(getIconData(account.icon), color: color),
+          title: account.name,
+          subtitle: isUsd ? "Dólares (\$)" : "Bolívares (Bs.)",
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                balanceText,
+                style: OrtizType.amount.copyWith(color: color),
               ),
-              backgroundColor: AppColors.getAlternateCardColor(index),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      getIconData(account.icon),
-                      color: color,
-                      size: 18,
-                    ),
-                  ),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          account.name,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.cardText,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          isUsd ? "Dólares (\$)" : "Bolívares (Bs.)",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    balanceText,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: color,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.black54,
-                  ),
-                ],
-              ),
-            ),
+              const SizedBox(width: OrtizSpace.sm),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.cardSubtitleText),
+            ],
           ),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => AddAccountBottomSheet(editingAccount: account),
+            );
+          },
         );
       },
     );

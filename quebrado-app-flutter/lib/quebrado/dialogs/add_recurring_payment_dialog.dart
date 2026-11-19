@@ -5,10 +5,13 @@ import '../theme/colors.dart';
 import '../models/recurring_payment.dart';
 import '../models/currency_type.dart';
 import '../models/transaction.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../models/account.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 class AddRecurringPaymentBottomSheet extends StatefulWidget {
   final RecurringPayment? editingPayment;
 
@@ -200,11 +203,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -215,12 +218,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardBorderColor,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Flexible(
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
@@ -229,30 +232,30 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     children: [
                       Text(
                         "¿Cómo funcionan las Asociaciones?",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                        style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Bolsillo Asociado (Opcional)",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "• Si es un Ingreso: El simulador sumará este monto periódicamente al balance del bolsillo de ahorro seleccionado para ver cómo crece.\n• Si es un Gasto/Deuda (ej. Cashea): El simulador restará este cobro directamente del fondo del bolsillo, en lugar de consumirte el efectivo libre de tu cuenta.",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, height: 1.4),
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: OrtizPalette.onAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: Text("Entendido"),
@@ -273,11 +276,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -288,12 +291,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardBorderColor,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Flexible(
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
@@ -302,50 +305,50 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     children: [
                       Text(
                         "¿Cómo funciona la Información Básica?",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                        style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Planificación Recurrente vs Única",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "Te permite programar ingresos o egresos a futuro. Pueden ocurrir una sola vez (Pago Único) o repetirse periódicamente (Frecuencia recurrente como mensual, quincenal, etc.).",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Cuenta Asociada",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "Define de qué cuenta física (efectivo o banco) ingresará o se debitará el dinero real cuando se ejecute la transacción programada.",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Tipo de Gasto / Cuotas",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "• Pago Único: Se ejecuta una sola vez en la fecha indicada.\n• Cuotas: Permite definir una cantidad limitada de pagos (ej. 6 cuotas de Cashea). Deja el campo vacío si el cobro es ilimitado (ej. suscripciones como Netflix).",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, height: 1.4),
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: OrtizPalette.onAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: Text("Entendido"),
@@ -366,11 +369,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -381,12 +384,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardBorderColor,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Flexible(
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
@@ -395,40 +398,40 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                     children: [
                       Text(
                         "Proyecciones y Cuotas",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                        style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Frecuencia e Inicio",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "Indica cada cuánto tiempo se repite el movimiento y la fecha en la que se cobrará o recibirá el primer pago.",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       Text(
                         "Deuda Finita / Cuotas Limitadas",
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         "Ideal para compras a cuotas (ej. Cashea a 6 cuotas). Si activas esta opción, el simulador dejará de proyectar gastos una vez que se alcance el número de cuotas establecido, mostrando cada cuota numerada (ej. Cuota 2/6) en el Timeline.",
-                        style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText, height: 1.4),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText, height: 1.4),
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: OrtizPalette.onAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: Text("Entendido"),
@@ -466,15 +469,15 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: 0.85,
@@ -487,12 +490,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.cardBorderColor,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -501,9 +504,9 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 Text(
                   widget.editingPayment == null ? "Nuevo Pago / Ingreso" : "Editar Registro",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: AppColors.cardText,
                   ),
                 ),
                 IconButton(
@@ -512,7 +515,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Scrollable fields
             Expanded(
@@ -523,10 +526,10 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                   children: [
                     // Type selector tab (Ingreso / Gasto)
                     Container(
-                      padding: EdgeInsets.all(4),
+                      padding: EdgeInsets.all(OrtizSpace.xs),
                       decoration: BoxDecoration(
                         color: AppColors.nestedTabTrackBg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                       child: Row(
                         children: [
@@ -534,21 +537,21 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             child: GestureDetector(
                               onTap: () => setState(() => _selectedType = TransactionType.income),
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                 decoration: BoxDecoration(
                                   color: _selectedType == TransactionType.income
-                                      ? AppColors.primary.withOpacity(0.85)
+                                      ? AppColors.primary.withValues(alpha: 0.85)
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   _isOnce ? "Ingreso Programado" : "Ingreso Recurrente",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     color: _selectedType == TransactionType.income
-                                        ? Colors.white
+                                        ? OrtizPalette.onAccent
                                         : AppColors.nestedTabInactiveText,
                                   ),
                                 ),
@@ -559,21 +562,21 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             child: GestureDetector(
                               onTap: () => setState(() => _selectedType = TransactionType.expense),
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                 decoration: BoxDecoration(
                                   color: _selectedType == TransactionType.expense
-                                      ? AppColors.expense.withOpacity(0.85)
+                                      ? AppColors.expense.withValues(alpha: 0.85)
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "Gasto / Deuda",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     color: _selectedType == TransactionType.expense
-                                        ? Colors.white
+                                        ? OrtizPalette.onAccent
                                         : AppColors.nestedTabInactiveText,
                                   ),
                                 ),
@@ -583,13 +586,11 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         ],
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: OrtizSpace.md),
 
                     // Information Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -598,33 +599,33 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               Text(
                                 "INFORMACIÓN BÁSICA",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.cardSubtitleText,
                                   letterSpacing: 1.0,
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: const Icon(Icons.info_outline_rounded, size: OrtizIconSize.sm, color: AppColors.primary),
                                 onPressed: () => _showBasicInfo(context),
                                 constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Cuenta Asociada",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               DropdownButton<String>(
                                 value: _selectedAccountId,
                                 underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                 items: filteredAccounts.map((acc) {
                                   final symbol = acc.currency == CurrencyType.usd ? "\$" : "Bs.";
                                   return DropdownMenuItem(
@@ -646,7 +647,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ),
                             ],
                           ),
-                          Divider(height: 20, color: Colors.black.withOpacity(0.08)),
+                          const Divider(height: OrtizSpace.xl, color: AppColors.cardBorderColor),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
@@ -657,19 +658,19 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                   : (_selectedType == TransactionType.income
                                       ? "Nombre (ej. Sueldo Quincenal, Freelance)"
                                       : "Nombre (ej. Cashea Compra, Netflix, Alquiler)"),
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           TextField(
                             controller: _amountController,
                             keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -677,39 +678,39 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               hintText: (_selectedType == TransactionType.income && _isVariable) 
                                   ? (_selectedCurrency == CurrencyType.eur ? "Monto Mínimo €" : (_selectedCurrency == CurrencyType.usd ? "Monto Mínimo \$" : "Monto Mínimo Bs.")) 
                                   : (_selectedCurrency == CurrencyType.eur ? "0.00 €" : (_selectedCurrency == CurrencyType.usd ? "0.00 \$" : "0.00 Bs.")),
-                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                              contentPadding: EdgeInsets.all(14),
+                              hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                            style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           if (!isAccVES) ...[
                             // USD account: non-interactive tab for USD
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                 decoration: BoxDecoration(
                                   color: AppColors.nestedTabActiveBg,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "USD (\$)",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     color: AppColors.nestedTabActiveText,
                                   ),
                                 ),
@@ -718,10 +719,10 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                           ] else ...[
                             // Cuenta en Bs: monto fijo en Bs, o indexado a USD/EUR (se paga en Bs a la tasa BCV del día)
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                               child: Row(
                                 children: [
@@ -734,12 +735,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                         key: ValueKey('recurring_currency_${option.$1.name}'),
                                         onTap: () => setState(() => _selectedCurrency = option.$1),
                                         child: Container(
-                                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm, horizontal: OrtizSpace.xs),
                                           decoration: BoxDecoration(
                                             color: _selectedCurrency == option.$1
                                                 ? AppColors.nestedTabActiveBg
                                                 : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           ),
                                           alignment: Alignment.center,
                                           child: Text(
@@ -747,7 +748,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 12,
+                                              fontSize: OrtizFontSize.bodySm,
                                               color: _selectedCurrency == option.$1
                                                   ? AppColors.nestedTabActiveText
                                                   : AppColors.nestedTabInactiveText,
@@ -759,24 +760,24 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 ],
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: OrtizSpace.xs),
                             Text(
                               _convertedFromBs
                                   ? "Este pago estaba guardado en Bs: lo pasamos a dólares con la tasa BCV de hoy. Revisa el monto y guarda."
                                   : "El monto está en ${_selectedCurrency == CurrencyType.eur ? 'euros' : 'dólares'} y se paga en Bs a la tasa BCV del día.",
-                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                              style: const TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                             ),
                           ],
 
                           if (_selectedType == TransactionType.income && !_isOnce) ...[
-                            SizedBox(height: 12),
+                            SizedBox(height: OrtizSpace.md),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   "¿Monto variable (Rango Mín-Máx)?",
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: OrtizFontSize.bodySm,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.cardText,
                                   ),
@@ -796,37 +797,34 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ],
                             ),
                             if (_isVariable) ...[
-                              SizedBox(height: 12),
+                              SizedBox(height: OrtizSpace.md),
                               TextField(
                                 controller: _maxAmountController,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                                 decoration: InputDecoration(
                                   hintText: _selectedCurrency == CurrencyType.eur ? "Monto Máximo €" : (_selectedCurrency == CurrencyType.usd ? "Monto Máximo \$" : "Monto Máximo Bs."),
-                                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: EdgeInsets.all(14),
+                                  hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                  contentPadding: EdgeInsets.all(OrtizSpace.md),
                                   filled: true,
-                                  fillColor: Colors.grey[100],
+                                  fillColor: OrtizPalette.surfaceHigh,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
-                                style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
                           ],
 
                         ],
-                      ),
+                      )],
                     ),
-                    SizedBox(height: 20),
 
                     // Associations (Account & Pockets)
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -835,37 +833,37 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               Text(
                                 "ASOCIACIONES",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.cardSubtitleText,
                                   letterSpacing: 1.0,
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: const Icon(Icons.info_outline_rounded, size: OrtizIconSize.sm, color: AppColors.primary),
                                 onPressed: () => _showAssociationsInfo(context),
                                 constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Bolsillo Asociado",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               DropdownButton<String?>(
                                 value: _selectedPocketId,
                                 underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                 items: [
                                   DropdownMenuItem(
                                     value: null,
-                                    child: Text("Ninguno", style: TextStyle(color: Colors.grey)),
+                                    child: Text("Ninguno", style: TextStyle(color: AppColors.cardSubtitleText)),
                                   ),
                                   ...appState.pockets.map((p) {
                                     return DropdownMenuItem(
@@ -881,15 +879,12 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             ],
                           ),
                         ],
-                      ),
+                      )],
                     ),
-                    SizedBox(height: 20),
 
                     // Frecuencia y Alertas Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -898,37 +893,37 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               Text(
                                 "FRECUENCIA Y PROYECCIÓN",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.cardSubtitleText,
                                   letterSpacing: 1.0,
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                                icon: const Icon(Icons.info_outline_rounded, size: OrtizIconSize.sm, color: AppColors.primary),
                                 onPressed: () => _showProjectionsInfo(context),
                                 constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           if (_selectedType == TransactionType.expense) ...[
                             Text(
                               "TIPO DE GASTO",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.cardSubtitleText,
                                 letterSpacing: 1.0,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: OrtizSpace.sm),
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(OrtizSpace.xs),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                               ),
                               child: Row(
                                 children: [
@@ -940,19 +935,19 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                         _installmentsController.clear();
                                       }),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _expenseType == 'recurrent'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "Recurrente",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _expenseType == 'recurrent'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -968,19 +963,19 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                         _isOnce = false;
                                       }),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                                         decoration: BoxDecoration(
                                           color: _expenseType == 'installments'
                                               ? AppColors.nestedTabActiveBg
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
                                           "Cuotas",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: OrtizFontSize.bodySm,
                                             color: _expenseType == 'installments'
                                                 ? AppColors.nestedTabActiveText
                                                 : AppColors.nestedTabInactiveText,
@@ -993,26 +988,26 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ),
                             ),
                             if (_expenseType == 'installments') ...[
-                              SizedBox(height: 12),
+                              SizedBox(height: OrtizSpace.md),
                               TextField(
                                 controller: _installmentsController,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   hintText: "Cantidad de cuotas (ej. 6)",
-                                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                                  contentPadding: EdgeInsets.all(14),
+                                  hintStyle: const TextStyle(color: AppColors.cardSubtitleText, fontSize: OrtizFontSize.bodySm),
+                                  contentPadding: EdgeInsets.all(OrtizSpace.md),
                                   filled: true,
-                                  fillColor: Colors.grey[100],
+                                  fillColor: OrtizPalette.surfaceHigh,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
-                                style: TextStyle(fontSize: 14, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.body, color: AppColors.cardText),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
-                            SizedBox(height: 16),
+                            SizedBox(height: OrtizSpace.lg),
                           ],
                           if (!_isOnce) ...[
                             Row(
@@ -1020,13 +1015,13 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               children: [
                                 Text(
                                   "Frecuencia",
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                  style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                 ),
                                 DropdownButton<SubscriptionFrequency>(
                                   value: _selectedFrequency,
                                   underline: SizedBox(),
                                   dropdownColor: AppColors.cardBackground,
-                                  style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                   items: SubscriptionFrequency.values.where((freq) => freq != SubscriptionFrequency.once).map((freq) {
                                     return DropdownMenuItem(
                                       value: freq,
@@ -1042,13 +1037,13 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                               ],
                             ),
                             if (_selectedFrequency == SubscriptionFrequency.custom) ...[
-                              SizedBox(height: 8),
+                              SizedBox(height: OrtizSpace.sm),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "Intervalo en Días",
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                    style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                   ),
                                   Row(
                                     children: [
@@ -1060,43 +1055,43 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                           keyboardType: TextInputType.number,
                                           textAlign: TextAlign.center,
                                           decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                            contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.sm, horizontal: OrtizSpace.sm),
                                             filled: true,
-                                            fillColor: Colors.grey[100],
+                                            fillColor: OrtizPalette.surfaceHigh,
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                               borderSide: BorderSide.none,
                                             ),
                                           ),
-                                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                           onChanged: (val) => setState(() {}),
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: OrtizSpace.sm),
                                       Text(
                                         "días",
-                                        style: TextStyle(fontSize: 13, color: AppColors.cardSubtitleText),
+                                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
                             ],
-                            Divider(height: 20, color: Colors.black.withOpacity(0.08)),
+                            const Divider(height: OrtizSpace.xl, color: AppColors.cardBorderColor),
                           ],
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 _isOnce ? "Fecha de Pago" : "Fecha de Inicio / Próximo",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                               ),
                               TextButton(
                                 style: TextButton.styleFrom(
                                   backgroundColor: AppColors.nestedTabTrackBg,
                                   foregroundColor: AppColors.primary,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+                                  padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                 ),
                                 onPressed: () async {
                                   final date = await showDatePicker(
@@ -1111,24 +1106,24 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                 },
                                 child: Text(
                                   formatDate(_startDate),
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                 ),
                               ),
                             ],
                           ),
-                          Divider(height: 20, color: Colors.black.withOpacity(0.08)),
+                          const Divider(height: OrtizSpace.xl, color: AppColors.cardBorderColor),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Recordatorio Alerta",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                                               ),
                               DropdownButton<NotificationOption>(
                                 value: _selectedNotification,
                                 underline: SizedBox(),
                                 dropdownColor: AppColors.cardBackground,
-                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: 13),
+                                style: TextStyle(color: AppColors.cardText, fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                                 items: NotificationOption.values.map((opt) {
                                   return DropdownMenuItem(
                                     value: opt,
@@ -1144,27 +1139,24 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             ],
                           ),
                         ],
-                      ),
+                      )],
                     ),
-                    SizedBox(height: 20),
 
                     // Icon section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "ICONO",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           GridView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
@@ -1184,40 +1176,37 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? themeColor
-                                        : themeColor.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
+                                        : themeColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                   ),
                                   child: Icon(
                                     getIconData(icon),
-                                    color: isSelected ? Colors.white : themeColor,
-                                    size: 20,
+                                    color: isSelected ? OrtizPalette.onAccent : themeColor,
+                                    size: OrtizIconSize.md,
                                   ),
                                 ),
                               );
                             },
                           ),
                         ],
-                      ),
+                      )],
                     ),
-                    SizedBox(height: 20),
 
                     // Color Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "COLOR",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -1232,7 +1221,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                                     color: color,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: isSelected ? Colors.black87 : Colors.transparent,
+                                      color: isSelected ? AppColors.cardText : Colors.transparent,
                                       width: isSelected ? 2.5 : 0,
                                     ),
                                   ),
@@ -1241,34 +1230,33 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                             }).toList(),
                           ),
                         ],
-                      ),
+                      )],
                     ),
-                    SizedBox(height: 20),
 
                     // Destructive Delete Button
                     if (widget.editingPayment != null) ...[
-                      SizedBox(height: 12),
+                      SizedBox(height: OrtizSpace.md),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.expense.withOpacity(0.08),
+                          backgroundColor: AppColors.expense.withValues(alpha: 0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                         onPressed: () => _deletePayment(appState),
                         child: Text(
                           "Eliminar Registro",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: OrtizSpace.xxxl),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Save / Cancel Buttons Row
             Row(
@@ -1276,25 +1264,25 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       "Cancelar",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey),
+                      style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold, color: AppColors.cardSubtitleText),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     onPressed: (_nameController.text.trim().isEmpty || 
                             (double.tryParse(_amountController.text) ?? 0.0) <= 0 ||
@@ -1304,7 +1292,7 @@ class _AddRecurringPaymentBottomSheetState extends State<AddRecurringPaymentBott
                         : () => _savePayment(appState),
                     child: Text(
                       "Guardar",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

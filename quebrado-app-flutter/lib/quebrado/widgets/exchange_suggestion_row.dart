@@ -5,12 +5,18 @@ import '../models/currency_type.dart';
 import '../models/timeline_event.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
-import 'claymorphic_card.dart';
 import 'currency_pill.dart';
 import 'helpers.dart';
+import 'timeline_event_row.dart';
 
-/// Color de los cambios de divisa sugeridos en la proyección.
-const Color exchangeSuggestionColor = Color(0xFF7C3AED);
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+/// Color de los cambios de divisa sugeridos en la proyección (los propone la
+/// app, como Ortiz: coral).
+const Color exchangeSuggestionColor = OrtizPalette.accent;
 
 /// Fila de la proyección para un cambio sugerido: vender $ el día de un gasto en Bs
 /// que los Bs proyectados no alcanzan a cubrir.
@@ -31,36 +37,16 @@ class ExchangeSuggestionRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            width: 40,
-            child: Column(
-              children: [
-                Expanded(child: Container(width: 2, color: isFirst ? Colors.transparent : Colors.grey[300])),
-                Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: exchangeSuggestionColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-                Expanded(child: Container(width: 2, color: isLast ? Colors.transparent : Colors.grey[300])),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
+          TimelineRail(color: exchangeSuggestionColor, isFirst: isFirst, isLast: isLast),
+          const SizedBox(width: OrtizSpace.sm),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
               child: GestureDetector(
                 key: ValueKey('exchange_suggestion_${event.date.toIso8601String()}'),
                 onTap: () => showExchangeSuggestionSheet(context, event),
-                child: ClaymorphicCard(
-                  cornerRadius: 16,
-                  padding: const EdgeInsets.all(12.0),
-                  borderColor: exchangeSuggestionColor.withOpacity(0.5),
-                  borderWidth: 1.5,
+                child: TimelineRowBody(
+                  borderColor: exchangeSuggestionColor.withValues(alpha: 0.5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -71,62 +57,68 @@ class ExchangeSuggestionRow extends StatelessWidget {
                             Row(
                               children: [
                                 const CurrencyPill(CurrencyType.usd, to: CurrencyType.bsBCV),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: OrtizSpace.xs),
                                 Expanded(
                                   child: Text(
                                     "Vender dólares para pagar en Bs",
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                                    style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: OrtizSpace.xs),
                             if (forWhat.isNotEmpty)
                               Text(
                                 "Para: $forWhat",
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                               ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: OrtizSpace.xs),
                             Text(
                               projectedBalanceLabel(event),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
-                                color: event.projectedLiquidBalanceUSD < 0 ? AppColors.expense : Colors.grey[700],
+                                color: event.projectedLiquidBalanceUSD < 0 ? AppColors.expense : OrtizPalette.muted,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: OrtizSpace.sm),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            "−${formatUSD(event.amount)}",
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: exchangeSuggestionColor),
+                          OrtizAmount(
+                            value: event.amount,
+                            currencySymbol: r'$',
+                            format: (v) => "−${formatUSD(v)}",
+                            color: exchangeSuggestionColor,
+                            style: OrtizType.amount.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "+${formatBs(bs)}",
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.cardSubtitleText),
+                          const SizedBox(height: OrtizSpace.xxs),
+                          OrtizAmount(
+                            value: bs,
+                            currencySymbol: 'Bs.',
+                            format: (v) => "+${formatBs(v)}",
+                            color: AppColors.cardSubtitleText,
+                            style: OrtizType.amount.copyWith(fontSize: OrtizFontSize.caption),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: OrtizSpace.xs),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                             decoration: BoxDecoration(
-                              color: exchangeSuggestionColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
+                              color: exchangeSuggestionColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                             ),
                             child: const Text(
                               "Cambio sugerido",
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: exchangeSuggestionColor),
+                              style: TextStyle(fontSize: OrtizFontSize.micro, fontWeight: FontWeight.bold, color: exchangeSuggestionColor),
                             ),
                           ),
                         ],
@@ -167,9 +159,9 @@ void showExchangeSuggestionSheet(BuildContext context, TimelineEvent event) {
     builder: (sheetContext) => Container(
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(OrtizSpace.xl),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -178,59 +170,59 @@ void showExchangeSuggestionSheet(BuildContext context, TimelineEvent event) {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(OrtizSpace.sm),
                   decoration: BoxDecoration(
-                    color: exchangeSuggestionColor.withOpacity(0.12),
+                    color: exchangeSuggestionColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.currency_exchange_rounded, color: exchangeSuggestionColor, size: 22),
+                  child: const Icon(Icons.currency_exchange_rounded, color: exchangeSuggestionColor, size: OrtizIconSize.md),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     "Cambio sugerido · ${formatDate(event.date)}",
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                    style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold, color: AppColors.cardText),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: OrtizSpace.md),
             Text(
               "Los bolívares que tendrás ese día no alcanzan para tus pagos en Bs. "
               "Vende ${formatUSD(event.amount)} y recibirás ${formatBs(bs)}.",
-              style: TextStyle(fontSize: 13, color: AppColors.cardText, height: 1.4),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText, height: 1.4),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
             ...reasons.map((r) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
+                  padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
                   child: Row(
                     children: [
-                      Expanded(child: Text(r.name, style: TextStyle(fontSize: 12, color: AppColors.cardText))),
-                      Text(r.detail, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.cardText)),
+                      Expanded(child: Text(r.name, style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardText))),
+                      Text(r.detail, style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: AppColors.cardText)),
                     ],
                   ),
                 )),
             const Divider(height: 20),
             Text(
               "Tasa usada: BCV ${rate.toStringAsFixed(2)} Bs/\$ (la de hoy; puede cambiar).",
-              style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
+              style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
             ),
             Text(
               "Después del cambio: ${projectedBalanceLabel(event)}",
-              style: TextStyle(fontSize: 11, color: AppColors.cardSubtitleText),
+              style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 key: const ValueKey('exchange_suggestion_do'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: exchangeSuggestionColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  foregroundColor: OrtizPalette.onAccent,
+                  padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                 ),
-                icon: const Icon(Icons.currency_exchange_rounded, size: 18),
+                icon: const Icon(Icons.currency_exchange_rounded, size: OrtizIconSize.sm),
                 label: Text(isToday ? "Hacer cambio ahora" : "Hacer cambio (adelantado)"),
                 onPressed: () {
                   Navigator.pop(sheetContext);

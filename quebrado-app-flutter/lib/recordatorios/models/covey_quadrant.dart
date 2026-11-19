@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/suite_apps.dart';
+import '../theme/reminders_colors.dart';
+
 /// Cuadrantes de Covey (Hábito 3: "Primero lo Primero").
 enum CoveyQuadrant {
   q1UrgentImportant,      // Cuadrante I: Crisis, problemas apremiantes, fechas límite
@@ -62,41 +65,24 @@ enum CoveyQuadrant {
   Color get color {
     switch (this) {
       case CoveyQuadrant.q1UrgentImportant:
-        return const Color(0xFFDC2626); // Carmesí / Rojo
+        return RemindersColors.quadrantUrgentImportant;
       case CoveyQuadrant.q2ImportantNotUrgent:
-        return const Color(0xFF059669); // Esmeralda / Verde (Foco primordial)
+        return RemindersColors.quadrantImportantNotUrgent; // Foco primordial
       case CoveyQuadrant.q3UrgentNotImportant:
-        return const Color(0xFFD97706); // Ámbar / Naranja
+        return RemindersColors.quadrantUrgentNotImportant;
       case CoveyQuadrant.q4NotUrgentNotImportant:
-        return const Color(0xFF64748B); // Pizarra / Gris
+        return RemindersColors.quadrantNotUrgentNotImportant;
     }
   }
 
-  Color get lightBackgroundColor {
-    switch (this) {
-      case CoveyQuadrant.q1UrgentImportant:
-        return const Color(0xFFFEF2F2);
-      case CoveyQuadrant.q2ImportantNotUrgent:
-        return const Color(0xFFECFDF5);
-      case CoveyQuadrant.q3UrgentNotImportant:
-        return const Color(0xFFFFFBEB);
-      case CoveyQuadrant.q4NotUrgentNotImportant:
-        return const Color(0xFFF8FAFC);
-    }
-  }
+  /// Fondo suave del cuadrante (el nombre viene del tema claro): su [color]
+  /// con el alpha de los tintes de la suite.
+  Color get lightBackgroundColor =>
+      color.withValues(alpha: SuiteAppColors.tintAlpha / 0xFF);
 
-  Color get borderColor {
-    switch (this) {
-      case CoveyQuadrant.q1UrgentImportant:
-        return const Color(0xFFFCA5A5);
-      case CoveyQuadrant.q2ImportantNotUrgent:
-        return const Color(0xFF6EE7B7);
-      case CoveyQuadrant.q3UrgentNotImportant:
-        return const Color(0xFFFCD34D);
-      case CoveyQuadrant.q4NotUrgentNotImportant:
-        return const Color(0xFFCBD5E1);
-    }
-  }
+  /// Borde del cuadrante: su [color] con el alpha de borde de la suite.
+  Color get borderColor =>
+      color.withValues(alpha: SuiteAppColors.borderAlpha / 0xFF);
 
   String get label => '$shortLabel $title';
   String get description => subtitle;

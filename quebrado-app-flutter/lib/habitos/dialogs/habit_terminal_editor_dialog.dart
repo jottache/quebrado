@@ -8,6 +8,10 @@ import '../../diario/models/diario_contact.dart';
 import '../../diario/theme/diario_colors.dart';
 import '../../diario/widgets/diario_image_helper.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class HabitTerminalEditorDialog extends StatefulWidget {
   final HabitModel? habit;
   final String? initialContactId;
@@ -116,9 +120,9 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
     final isEditing = widget.habit != null;
 
     return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      backgroundColor: HabitosColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.sheet)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
         child: Column(
@@ -127,7 +131,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
           children: [
             // Cabecera Minimalista
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.md),
               child: Row(
                 children: [
                   Container(
@@ -135,20 +139,20 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: HabitosColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Icon(
                       isEditing ? Icons.edit_note_rounded : Icons.add_task_rounded,
                       color: HabitosColors.primary,
-                      size: 20,
+                      size: OrtizIconSize.md,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: Text(
                       isEditing ? 'Editar Hábito' : 'Nuevo Hábito',
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: OrtizFontSize.title,
                         fontWeight: FontWeight.w900,
                         color: HabitosColors.textPrimary,
                         letterSpacing: -0.3,
@@ -156,7 +160,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20, color: HabitosColors.textSecondary),
+                    icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md, color: HabitosColors.textSecondary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -167,7 +171,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
             // Formulario
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.xl),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -176,9 +180,9 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                       // Tipo de hábito (Construir vs Romper)
                       const Text(
                         'NATURALEZA DEL HÁBITO',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: OrtizSpace.sm),
                       Row(
                         children: [
                           Expanded(
@@ -195,7 +199,7 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: OrtizSpace.sm),
                           Expanded(
                             child: _natureRadioCard(
                               title: 'Negativo',
@@ -215,43 +219,43 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                         ],
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: OrtizSpace.lg),
 
                       // Título
                       const Text(
                         'NOMBRE DEL HÁBITO',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: OrtizSpace.sm),
                       TextFormField(
                         controller: _titleController,
                         decoration: _inputDecoration(hint: 'Ej. Decir groserías, Leer 20 páginas...'),
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w700),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa el nombre del hábito' : null,
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: OrtizSpace.lg),
 
                       // Descripción
                       const Text(
                         'NOTAS O MOTIVACIÓN (OPCIONAL)',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: OrtizSpace.sm),
                       TextFormField(
                         controller: _descController,
                         maxLines: 2,
                         decoration: _inputDecoration(hint: '¿Por qué es importante para ti?'),
-                        style: const TextStyle(fontSize: 13),
+                        style: const TextStyle(fontSize: OrtizFontSize.bodySm),
                       ),
 
                       // Método de seguimiento
-                      const SizedBox(height: 18),
+                      const SizedBox(height: OrtizSpace.lg),
                       const Text(
                         'MÉTODO DE SEGUIMIENTO',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                        style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: OrtizSpace.sm),
                       if (!_isNegative)
                         Wrap(
                           spacing: 8,
@@ -274,21 +278,21 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                         ),
 
                       if (_selectedType == HabitType.counter) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: OrtizSpace.lg),
                         const Text(
                           'UNIDAD O ETIQUETA (OPCIONAL)',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: OrtizSpace.xs),
                         TextFormField(
                           controller: _unitController,
                           decoration: _inputDecoration(hint: 'veces, groserías, cafés, vasos...'),
-                          style: const TextStyle(fontSize: 14),
+                          style: const TextStyle(fontSize: OrtizFontSize.body),
                         ),
                       ],
 
                       if (_selectedType == HabitType.quantitative) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: OrtizSpace.lg),
                         Row(
                           children: [
                             Expanded(
@@ -298,19 +302,19 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                                 children: [
                                   const Text(
                                     'META DIARIA',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: OrtizSpace.xs),
                                   TextFormField(
                                     controller: _targetController,
                                     keyboardType: TextInputType.number,
                                     decoration: _inputDecoration(hint: '2000'),
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                                    style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w800),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: OrtizSpace.sm),
                             Expanded(
                               flex: 3,
                               child: Column(
@@ -318,13 +322,13 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                                 children: [
                                   const Text(
                                     'UNIDAD',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: OrtizSpace.xs),
                                   TextFormField(
                                     controller: _unitController,
                                     decoration: _inputDecoration(hint: 'ml, págs, flexiones...'),
-                                    style: const TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: OrtizFontSize.body),
                                   ),
                                 ],
                               ),
@@ -334,28 +338,28 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                       ],
 
                       if (_selectedType == HabitType.timer) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: OrtizSpace.lg),
                         const Text(
                           'TIEMPO OBJETIVO (MINUTOS)',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: OrtizSpace.xs),
                         TextFormField(
                           controller: _targetController,
                           keyboardType: TextInputType.number,
                           decoration: _inputDecoration(hint: '25'),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                          style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w800),
                         ),
                       ],
 
                       // Vincular contacto del diario (opcional)
                       if (diarioState.contacts.isNotEmpty) ...[
-                        const SizedBox(height: 18),
+                        const SizedBox(height: OrtizSpace.lg),
                         const Text(
                           'VINCULAR CONTACTO DEL DIARIO (OPCIONAL)',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
@@ -370,12 +374,12 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
 
                       // Rutina / Stack
                       if (state.stacks.isNotEmpty) ...[
-                        const SizedBox(height: 18),
+                        const SizedBox(height: OrtizSpace.lg),
                         const Text(
                           'ASIGNAR A UNA RUTINA (OPCIONAL)',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: OrtizSpace.sm),
                         Wrap(
                           spacing: 8,
                           children: [
@@ -393,26 +397,26 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
             // Botones de acción inferiores
             const Divider(height: 1, color: HabitosColors.cardBorder),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                     ),
                     child: const Text('Cancelar', style: TextStyle(color: HabitosColors.textSecondary, fontWeight: FontWeight.w700)),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   ElevatedButton(
                     onPressed: _save,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: HabitosColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     child: Text(
                       isEditing ? 'Guardar Cambios' : 'Crear Hábito',
@@ -437,12 +441,12 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(OrtizRadius.field),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(OrtizSpace.md),
         decoration: BoxDecoration(
-          color: isSelected ? HabitosColors.primaryLight : Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? HabitosColors.primaryLight : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.field),
           border: Border.all(
             color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
             width: isSelected ? 1.5 : 1.0,
@@ -452,10 +456,10 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: OrtizIconSize.md,
               color: isSelected ? HabitosColors.primary : HabitosColors.textSecondary,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,14 +467,14 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.w800,
                       color: isSelected ? HabitosColors.primary : HabitosColors.textPrimary,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 10, color: HabitosColors.textSecondary),
+                    style: const TextStyle(fontSize: OrtizFontSize.caption, color: HabitosColors.textSecondary),
                   ),
                 ],
               ),
@@ -491,14 +495,14 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         if (val) setState(() => _selectedType = type);
       },
       selectedColor: HabitosColors.primary,
-      backgroundColor: Colors.white,
+      backgroundColor: HabitosColors.surface,
       labelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: OrtizFontSize.bodySm,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? Colors.white : HabitosColors.textSecondary,
+        color: isSelected ? OrtizPalette.onAccent : HabitosColors.textSecondary,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         side: BorderSide(
           color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
         ),
@@ -516,14 +520,14 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
         if (val) setState(() => _selectedStackId = stackId);
       },
       selectedColor: HabitosColors.primary,
-      backgroundColor: Colors.white,
+      backgroundColor: HabitosColors.surface,
       labelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: OrtizFontSize.bodySm,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? Colors.white : HabitosColors.textSecondary,
+        color: isSelected ? OrtizPalette.onAccent : HabitosColors.textSecondary,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         side: BorderSide(
           color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
         ),
@@ -535,17 +539,17 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
     final isSelected = _selectedContactId == contactId;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: OrtizSpace.sm),
       child: InkWell(
         onTap: () {
           setState(() => _selectedContactId = contactId);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
           decoration: BoxDecoration(
-            color: isSelected ? HabitosColors.primaryLight : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? HabitosColors.primaryLight : Colors.transparent,
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
             border: Border.all(
               color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
               width: isSelected ? 1.5 : 1.0,
@@ -575,18 +579,18 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
                       : Text(
                           name.isNotEmpty ? name[0].toUpperCase() : '?',
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.bold,
                             color: HabitosColors.primary,
                           ),
                         ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: OrtizSpace.xs),
               ],
               Text(
                 name,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   color: isSelected ? HabitosColors.primary : HabitosColors.textPrimary,
                 ),
@@ -601,20 +605,20 @@ class _HabitTerminalEditorDialogState extends State<HabitTerminalEditorDialog> {
   InputDecoration _inputDecoration({required String hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(fontSize: 13, color: HabitosColors.textMuted),
+      hintStyle: const TextStyle(fontSize: OrtizFontSize.bodySm, color: HabitosColors.textMuted),
       filled: true,
       fillColor: HabitosColors.background,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         borderSide: const BorderSide(color: HabitosColors.cardBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         borderSide: const BorderSide(color: HabitosColors.cardBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         borderSide: const BorderSide(color: HabitosColors.primary, width: 1.5),
       ),
     );

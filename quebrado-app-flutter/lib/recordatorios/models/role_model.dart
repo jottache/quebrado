@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/reminders_colors.dart';
+
 /// Modelo de Rol Vital para la gestión del tiempo de 4ta Generación (Hábito 3: Covey).
 class RoleModel {
   final String id;
@@ -36,7 +38,7 @@ class RoleModel {
       final clean = hex.replaceAll('#', '');
       return Color(int.parse('FF$clean', radix: 16));
     } catch (_) {
-      return const Color(0xFF3B82F6);
+      return RemindersColors.roleDefault;
     }
   }
 

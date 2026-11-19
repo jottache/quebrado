@@ -3,10 +3,14 @@ import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../models/transaction_category.dart';
 import '../widgets/claymorphic_background.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/add_category_dialog.dart';
 import '../theme/colors.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
   const CategoryManagementScreen({super.key});
@@ -47,20 +51,18 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Padding(
-          padding: EdgeInsets.only(right: 0),
-          child: Image.asset(
-            'assets/images/quebrado/logo_quebrado.png',
-            height: 50,
-            fit: BoxFit.contain,
-          ),
+        title: Image.asset(
+          'assets/images/quebrado/logo_quebrado.png',
+          height: 50,
+          fit: BoxFit.contain,
         ),
         actions: [
           IconButton(
-            icon: Icon(
+            tooltip: "Nueva categoría",
+            icon: const Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
-              size: 28,
+              size: OrtizIconSize.lg,
             ),
             onPressed: () {
               final initialType = _tabController.index == 0
@@ -82,15 +84,15 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
           children: [
             // Segmented Tab Selector
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: OrtizSpace.lg,
+                vertical: OrtizSpace.sm,
               ),
               child: Container(
-                padding: EdgeInsets.all(4.0),
+                padding: const EdgeInsets.all(OrtizSpace.xs),
                 decoration: BoxDecoration(
                   color: AppColors.mainTabTrackBg,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
                 child: TabBar(
                   controller: _tabController,
@@ -98,33 +100,26 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
                     color: AppColors.mainTabActiveBg,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   labelColor: AppColors.mainTabActiveText,
                   unselectedLabelColor: AppColors.mainTabInactiveText,
-                  labelStyle: TextStyle(
+                  labelStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                   ),
-                  unselectedLabelStyle: TextStyle(
+                  unselectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                   ),
-                  tabs: [
+                  tabs: const [
                     Tab(text: "Ingresos"),
                     Tab(text: "Gastos"),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: OrtizSpace.sm),
 
             // Tab Views
             Expanded(
@@ -148,37 +143,16 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
     List<TransactionCategory> categories,
   ) {
     if (categories.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.tag_rounded, size: 64, color: Colors.grey[400]),
-              SizedBox(height: 16),
-              Text(
-                "Sin categorías",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "Crea una nueva categoría presionando el botón '+' en la esquina superior derecha.",
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return const OrtizEmptyState(
+        icon: Icons.tag_rounded,
+        title: "Sin categorías",
+        message: "Crea una nueva categoría presionando el botón '+' en la esquina superior derecha.",
       );
     }
 
     return ReorderableListView.builder(
       buildDefaultDragHandles: false,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(OrtizSpace.lg),
       itemCount: categories.length,
       onReorder: (oldIndex, newIndex) {
         if (newIndex > oldIndex) {
@@ -194,17 +168,16 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
         final subcategories = appState.getSubcategories(category.id)
           ..sort((a, b) => a.position.compareTo(b.position));
 
-        return Padding(
+        // Grupo sin tarjeta: la categoría y sus subcategorías, y una línea
+        // hasta la siguiente.
+        return Column(
           key: Key(category.id),
-          padding: EdgeInsets.only(bottom: 0.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildCategoryItem(context, appState, category, index, isSubcategory: false),
-              if (subcategories.isNotEmpty) SizedBox(height: 4),
-              ...subcategories.map((sub) => _buildCategoryItem(context, appState, sub, index, isSubcategory: true)).toList(),
-            ],
-          ),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildCategoryItem(context, appState, category, index, isSubcategory: false),
+            ...subcategories.map((sub) => _buildCategoryItem(context, appState, sub, index, isSubcategory: true)),
+            const Divider(height: OrtizSpace.md),
+          ],
         );
       },
     );
@@ -220,23 +193,20 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
     final color = parseHexColor(category.colorHex);
 
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: isSubcategory ? 8.0 : 12.0,
-        left: isSubcategory ? 32.0 : 0.0,
-      ),
+      padding: EdgeInsets.only(left: isSubcategory ? OrtizSpace.xxl : 0),
       child: Dismissible(
         key: Key('dismiss_${category.id}'),
         direction: DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
-          padding: EdgeInsets.only(right: 20.0),
+          padding: const EdgeInsets.only(right: OrtizSpace.xl),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(18),
+            color: OrtizPalette.bad,
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
           ),
-          child: Icon(
+          child: const Icon(
             Icons.delete_forever_rounded,
-            color: Colors.white,
+            color: OrtizPalette.onAccent,
           ),
         ),
         confirmDismiss: (direction) async {
@@ -244,30 +214,30 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
                 context: context,
                 builder: (context) => AlertDialog(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                   ),
-                  title: Text(
+                  title: const Text(
                     "Confirmar Eliminación",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   content: Text(
                     "¿Estás seguro de que deseas eliminar la categoría '${category.name}'?",
-                    style: TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: OrtizFontSize.bodySm),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text(
+                      child: const Text(
                         "Cancelar",
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: OrtizPalette.muted,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: Text(
+                      child: const Text(
                         "Eliminar",
                         style: TextStyle(
                           color: AppColors.expense,
@@ -288,7 +258,31 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
             ),
           );
         },
-        child: GestureDetector(
+        child: OrtizListRow(
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSubcategory) ...[
+                const Icon(
+                  Icons.subdirectory_arrow_right_rounded,
+                  color: AppColors.cardSubtitleText,
+                  size: OrtizIconSize.sm,
+                ),
+                const SizedBox(width: OrtizSpace.xs),
+              ],
+              Icon(getIconData(category.icon), color: color),
+            ],
+          ),
+          title: category.name,
+          trailing: isSubcategory
+              ? null
+              : ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(
+                    Icons.drag_indicator_rounded,
+                    color: AppColors.cardSubtitleText,
+                  ),
+                ),
           onTap: () {
             showModalBottomSheet(
               context: context,
@@ -300,54 +294,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen>
               ),
             );
           },
-          child: ClaymorphicCard(
-            cornerRadius: 18,
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
-            ),
-            backgroundColor: isSubcategory ? AppColors.cardBackground : AppColors.getAlternateCardColor(index),
-            child: Row(
-              children: [
-                if (isSubcategory)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.subdirectory_arrow_right_rounded, color: AppColors.cardSubtitleText, size: 16),
-                  ),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    getIconData(category.icon),
-                    color: color,
-                    size: 18,
-                  ),
-                ),
-                SizedBox(width: 14),
-                Text(
-                  category.name,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.cardText,
-                  ),
-                ),
-                Spacer(),
-                if (!isSubcategory)
-                  ReorderableDragStartListener(
-                    index: index,
-                    child: Icon(
-                      Icons.drag_indicator_rounded,
-                      color: AppColors.cardSubtitleText.withOpacity(0.6),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         ),
       ),
     );

@@ -62,4 +62,24 @@ class NotasColors {
   static const Color calloutPinkBg = acuerdosPinkLight;
   static const Color calloutPinkBorder =
       Color((_acuerdosPinkArgb & _rgb) | _border);
+
+  // Colores de categoría que se guardan como dato (`color_hex`). No son del
+  // tema: cambiarlos alteraría categorías y notas ya guardadas, por eso
+  // conservan los valores de siempre.
+
+  /// Color por defecto de una categoría o nota (`#6366F1` en los modelos) y
+  /// respaldo cuando su `colorHex` no se puede leer.
+  static const Color categoryDefault = Color(0xFF6366F1);
+
+  /// Paleta que ofrece el gestor de categorías; el primero es el inicial.
+  static const List<Color> categoryPalette = [
+    Color(0xFFE11D48), // rosa (Acuerdos)
+    Color(0xFFD97706), // ámbar (Ideas)
+    Color(0xFF2563EB), // azul (Direcciones)
+    Color(0xFF059669), // esmeralda
+    Color(0xFF7C3AED), // violeta
+    Color(0xFF0D9488), // verde azulado
+    Color(0xFFEA580C), // naranja
+    Color(0xFF64748B), // pizarra (General)
+  ];
 }

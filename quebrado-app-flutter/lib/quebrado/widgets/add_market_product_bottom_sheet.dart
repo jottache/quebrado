@@ -8,6 +8,10 @@ import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../widgets/helpers.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class AddMarketProductBottomSheet extends StatefulWidget {
   final MarketProduct? productToEdit;
 
@@ -103,14 +107,14 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        top: 20,
-        left: 20,
-        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
+        top: OrtizSpace.xl,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
       ),
       child: Form(
         key: _formKey,
@@ -121,32 +125,32 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
             Text(
               isEditing ? "Editar Producto" : "Nuevo Producto",
               style: TextStyle(
-                fontSize: 20,
+                fontSize: OrtizFontSize.title,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20),
+            SizedBox(height: OrtizSpace.xl),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: "Nombre del producto",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
               ),
               textCapitalization: TextCapitalization.sentences,
               validator: (val) => val == null || val.isEmpty ? "Requerido" : null,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               hint: Text("Seleccionar Categoría"),
               isExpanded: true,
               decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
+                contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.md),
               ),
-              dropdownColor: Colors.white,
+              dropdownColor: OrtizPalette.surface,
               items: _categories.map((cat) {
                 return DropdownMenuItem(
                   value: cat,
@@ -160,7 +164,7 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
               },
               validator: (val) => val == null || val.isEmpty ? "Requerido" : null,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Row(
               children: [
                 Expanded(
@@ -170,21 +174,21 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
                     inputFormatters: [CommaTextInputFormatter()],
                     decoration: InputDecoration(
                       labelText: "Cant. Defecto",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
                     validator: (val) => val == null || val.isEmpty ? "Requerido" : null,
                   ),
                 ),
-                SizedBox(width: 16),
+                SizedBox(width: OrtizSpace.lg),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _selectedUnit,
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: "Unidad",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                     ),
-                    dropdownColor: Colors.white,
+                    dropdownColor: OrtizPalette.surface,
                     items: _units.map((u) {
                       return DropdownMenuItem(value: u, child: Text(u));
                     }).toList(),
@@ -199,12 +203,12 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
             Text(
               "Se consigue en:",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700]),
+              style: TextStyle(fontWeight: FontWeight.bold, color: OrtizPalette.muted),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: OrtizSpace.sm),
             Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
@@ -213,7 +217,7 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
                 return FilterChip(
                   label: Text(store.name),
                   selected: isSelected,
-                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
                   checkmarkColor: AppColors.primary,
                   onSelected: (bool selected) {
                     setState(() {
@@ -227,19 +231,19 @@ class _AddMarketProductBottomSheetState extends State<AddMarketProductBottomShee
                 );
               }).toList(),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: OrtizSpace.xxl),
             ElevatedButton(
               onPressed: _saveProduct,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
               ),
               child: Text(
                 isEditing ? "GUARDAR CAMBIOS" : "CREAR PRODUCTO",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: OrtizPalette.onAccent, fontWeight: FontWeight.bold),
               ),
             ),
           ],

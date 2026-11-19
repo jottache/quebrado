@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/claymorphic_card.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../models/currency_type.dart';
@@ -21,6 +20,14 @@ import '../../widgets/responsive_breakpoints.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 import '../dialogs/book_selector_dialog.dart';
 import 'settings_screen.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+/// Espacio bajo las listas para que el último elemento no quede bajo el FAB.
+const double _fabClearance = OrtizSize.minTouch * 2 + OrtizSpace.lg;
 
 class MarketScreen extends StatelessWidget {
   const MarketScreen({super.key});
@@ -75,13 +82,13 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
           elevation: 0,
           leading: isDesktop
               ? Padding(
-                  padding: const EdgeInsets.only(left: 12.0),
+                  padding: const EdgeInsets.only(left: OrtizSpace.md),
                   child: Center(
                     child: ActionChip(
-                      avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                      avatar: const Icon(Icons.auto_stories_rounded, size: OrtizIconSize.sm),
                       label: Text(
                         appState.activeProfileName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                       ),
                       onPressed: () {
                         showResponsiveSheet(
@@ -116,36 +123,29 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.only(bottom: 110.0),
+          padding: const EdgeInsets.only(bottom: _fabClearance),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
                       color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        )
-                      ],
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[500],
-                    labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-                    unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    labelColor: OrtizPalette.onAccent,
+                    unselectedLabelColor: OrtizPalette.muted,
+                    labelStyle: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800),
+                    unselectedLabelStyle: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600),
                     tabs: [
                       Tab(text: "Sesiones"),
                       Tab(text: "Lugares"),
@@ -190,7 +190,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
         },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
-        child: Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: OrtizPalette.onAccent),
       );
     } else if (_tabController.index == 1) {
       return FloatingActionButton(
@@ -200,7 +200,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
         },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
-        child: Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: OrtizPalette.onAccent),
       );
     } else if (_tabController.index == 2) {
       return FloatingActionButton(
@@ -213,7 +213,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
         },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
-        child: Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: OrtizPalette.onAccent),
       );
     } else if (_tabController.index == 3) {
       return FloatingActionButton(
@@ -223,7 +223,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
         },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
-        child: Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: OrtizPalette.onAccent),
       );
     }
     return null;
@@ -278,48 +278,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
     required String title,
     required String subtitle,
   }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-                size: 40,
-              ),
-            ),
-            SizedBox(height: 18),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.cardText,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12.5,
-                color: AppColors.cardSubtitleText,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
+    return OrtizEmptyState(icon: icon, title: title, message: subtitle);
   }
 
   Map<String, double> _getTripTotals(AppState appState, MarketTrip trip) {
@@ -385,7 +344,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
     });
 
     return ListView.builder(
-      padding: EdgeInsets.only(bottom: 100, top: 8),
+      padding: EdgeInsets.only(bottom: _fabClearance,top: OrtizSpace.sm),
       itemCount: listItems.length,
       itemBuilder: (context, index) {
         final item = listItems[index];
@@ -396,7 +355,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
           }).toList();
 
           return Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 8.0),
+            padding: const EdgeInsets.only(left: OrtizSpace.lg, right: OrtizSpace.lg, top: OrtizSpace.lg, bottom: OrtizSpace.sm),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -407,19 +366,19 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                       height: 16,
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: OrtizSpace.sm),
                     Text(
                       item.title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.grey[700],
+                        fontSize: OrtizFontSize.body,
+                        color: OrtizPalette.muted,
                       ),
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: OrtizSpace.xs),
                     GestureDetector(
                       onTap: () {
                         showResponsiveSheet(
@@ -433,7 +392,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                       },
                       child: Icon(
                         Icons.info_outline,
-                        size: 16,
+                        size: OrtizIconSize.sm,
                         color: AppColors.primary,
                       ),
                     ),
@@ -443,7 +402,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                   "\$${item.totalUSD.toStringAsFixed(2)} • Bs ${item.totalVES.toStringAsFixed(2)}",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.primary,
                   ),
                 ),
@@ -457,9 +416,9 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
           final totals = _getTripTotals(appState, trip);
           final tripTotalUSD = totals['usd']!;
           final tripTotalVES = totals['ves']!;
-          
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+
+          return ortizStaggered(context, index, Padding(
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xs),
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -469,8 +428,8 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                   ),
                 );
               },
-              child: ClaymorphicCard(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                 child: Row(
                   children: [
                     Expanded(
@@ -483,46 +442,46 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                 trip.title,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: OrtizFontSize.titleSm,
                                   color: AppColors.primary,
                                 ),
                               ),
                               if (trip.isActive) ...[
-                                SizedBox(width: 8),
+                                SizedBox(width: OrtizSpace.sm),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   ),
                                   child: Text(
                                     "ACTIVA",
                                     style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: OrtizFontSize.micro,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: OrtizPalette.onAccent,
                                     ),
                                   ),
                                 ),
                               ],
                             ],
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: OrtizSpace.xs),
                           Text(
                             "${trip.date.day}/${trip.date.month}/${trip.date.year}",
                             style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                              color: OrtizPalette.muted,
+                              fontSize: OrtizFontSize.bodySm,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: OrtizSpace.xs),
                           Text(
                             visitedStores.isNotEmpty
                                 ? "${visitedStores.length} lugares visitados"
                                 : (trip.transactionId != null ? "Finalizada (Ver Transacción)" : "0 lugares visitados"),
                             style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                              color: OrtizPalette.muted,
+                              fontSize: OrtizFontSize.bodySm,
                             ),
                           ),
                         ],
@@ -535,7 +494,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                           "\$${tripTotalUSD.toStringAsFixed(2)}",
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
-                            fontSize: 22,
+                            fontSize: OrtizFontSize.display,
                             color: AppColors.primary,
                           ),
                         ),
@@ -545,7 +504,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                 ),
               ),
             ),
-          );
+          ));
         }
         return SizedBox.shrink();
       },
@@ -556,15 +515,15 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Tus Establecimientos",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey[700],
+                fontSize: OrtizFontSize.body,
+                color: OrtizPalette.muted,
               ),
             ),
           ),
@@ -577,7 +536,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                   subtitle: "Registra los lugares donde sueles comprar (supermercados, farmacias, tiendas) para organizar tus compras.",
                 )
               : ListView.builder(
-                  padding: EdgeInsets.only(bottom: 100, top: 16),
+                  padding: EdgeInsets.only(bottom: _fabClearance,top: OrtizSpace.lg),
                   itemCount: appState.marketStores.length,
                   itemBuilder: (context, index) {
                     final store = appState.marketStores[index];
@@ -585,9 +544,9 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                     final totalUSD = itemsInStore.fold(0.0, (sum, i) => sum + i.priceUSD);
                     
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                      child: ClaymorphicCard(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xs),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -599,18 +558,18 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                     store.name,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: OrtizFontSize.titleSm,
                                       color: AppColors.primary,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  SizedBox(height: 2),
+                                  SizedBox(height: OrtizSpace.xxs),
                                   Text(
                                     "${itemsInStore.length} productos registrados",
                                     style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                                      color: OrtizPalette.muted,
+                                      fontSize: OrtizFontSize.bodySm,
                                     ),
                                   ),
                                 ],
@@ -625,18 +584,18 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                     onTap: () {
                                       _editStore(context, appState, store);
                                     },
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                                     child: Container(
-                                      padding: EdgeInsets.all(8),
+                                      padding: EdgeInsets.all(OrtizSpace.sm),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: OrtizPalette.surfaceHigh,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.edit_outlined, color: Colors.grey[700], size: 18),
+                                      child: Icon(Icons.edit_outlined, color: OrtizPalette.muted, size: OrtizIconSize.sm),
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                SizedBox(width: OrtizSpace.md),
                                 Material(
                                   color: Colors.transparent,
                                   child: InkWell(
@@ -645,21 +604,21 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content: Text("No puedes eliminar un establecimiento que tiene productos registrados en el historial."),
-                                            backgroundColor: Colors.red[400],
+                                            backgroundColor: OrtizPalette.bad,
                                           ),
                                         );
                                       } else {
                                         _confirmDeleteStore(context, appState, store);
                                       }
                                     },
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                                     child: Container(
-                                      padding: EdgeInsets.all(8),
+                                      padding: EdgeInsets.all(OrtizSpace.sm),
                                       decoration: BoxDecoration(
-                                        color: Colors.red[50],
+                                        color: OrtizPalette.badTint,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.delete_outline, color: Colors.red[400], size: 18),
+                                      child: Icon(Icons.delete_outline, color: OrtizPalette.bad, size: OrtizIconSize.sm),
                                     ),
                                   ),
                                 ),
@@ -680,15 +639,15 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Catálogo Global",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey[700],
+                fontSize: OrtizFontSize.body,
+                color: OrtizPalette.muted,
               ),
             ),
           ),
@@ -701,12 +660,12 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                   subtitle: "Agrega productos de uso común a tu catálogo para que registrarlos sea tan fácil como un toque.",
                 )
               : ListView.builder(
-                  padding: EdgeInsets.only(bottom: 100),
+                  padding: EdgeInsets.only(bottom: _fabClearance),
                   itemCount: appState.marketProducts.length,
                   itemBuilder: (context, index) {
                     final product = appState.marketProducts[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    return ortizStaggered(context, index, Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.xs),
                       child: GestureDetector(
                         onTap: () {
                           showResponsiveSheet(
@@ -714,8 +673,8 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                             builder: (context) => ProductDetailsBottomSheet(product: product),
                           );
                         },
-                        child: ClaymorphicCard(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                           child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -727,18 +686,18 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                     product.name,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: OrtizFontSize.titleSm,
                                       color: AppColors.primary,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  SizedBox(height: 2),
+                                  SizedBox(height: OrtizSpace.xxs),
                                   Text(
                                     product.category,
                                     style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                                      color: OrtizPalette.muted,
+                                      fontSize: OrtizFontSize.bodySm,
                                     ),
                                   ),
                                 ],
@@ -756,32 +715,32 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                                         builder: (context) => AddMarketProductBottomSheet(productToEdit: product),
                                       );
                                     },
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                                     child: Container(
-                                      padding: EdgeInsets.all(8),
+                                      padding: EdgeInsets.all(OrtizSpace.sm),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: OrtizPalette.surfaceHigh,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.edit_outlined, color: Colors.grey[700], size: 18),
+                                      child: Icon(Icons.edit_outlined, color: OrtizPalette.muted, size: OrtizIconSize.sm),
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                SizedBox(width: OrtizSpace.md),
                                 Material(
                                   color: Colors.transparent,
                                   child: InkWell(
                                     onTap: () {
                                       appState.deleteMarketProduct(product.id);
                                     },
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                                     child: Container(
-                                      padding: EdgeInsets.all(8),
+                                      padding: EdgeInsets.all(OrtizSpace.sm),
                                       decoration: BoxDecoration(
-                                        color: Colors.red[50],
+                                        color: OrtizPalette.badTint,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Icon(Icons.delete_outline, color: Colors.red[400], size: 18),
+                                      child: Icon(Icons.delete_outline, color: OrtizPalette.bad, size: OrtizIconSize.sm),
                                     ),
                                   ),
                                 ),
@@ -791,7 +750,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                         ),
                       ),
                     ),
-                  );
+                  ));
                 },
                 ),
         ),
@@ -809,7 +768,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
     }
 
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
       itemCount: appState.shoppingLists.length,
       itemBuilder: (context, index) {
         final list = appState.shoppingLists[index];
@@ -819,7 +778,7 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
         final dateStr = "${list.date.day}/${list.date.month}/${list.date.year}";
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
+          padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
           child: GestureDetector(
             onTap: () {
               Navigator.push(
@@ -829,20 +788,20 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                 ),
               );
             },
-            child: ClaymorphicCard(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
               child: Row(
                 children: [
                   Container(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.playlist_add_check, color: AppColors.primary, size: 22),
+                    child: Icon(Icons.playlist_add_check, color: AppColors.primary, size: OrtizIconSize.md),
                   ),
-                  SizedBox(width: 12),
+                  SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,25 +812,25 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                               list.title,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: OrtizFontSize.titleSm,
                                 color: AppColors.primary,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         Text(
                           "$dateStr • $checkedItemsCount/${itemsInList.length} completados",
                           style: TextStyle(
                             color: AppColors.cardSubtitleText,
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_outline, color: Colors.red[300], size: 22),
+                    icon: Icon(Icons.delete_outline, color: OrtizPalette.bad, size: OrtizIconSize.md),
                     onPressed: () {
                       _confirmDeleteShoppingList(context, appState, list);
                     },
@@ -891,28 +850,28 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: OrtizPalette.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
           ),
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(OrtizSpace.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "¿Eliminar Lista?",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red,
+                  color: OrtizPalette.bad,
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: OrtizSpace.md),
               Text(
                 "¿Estás seguro de que deseas eliminar la lista '${list.title}'? Esta acción no se puede deshacer.",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(color: OrtizPalette.muted),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               Row(
                 children: [
                   Expanded(
@@ -920,13 +879,13 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                       ),
                       child: Text("Cancelar"),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -934,10 +893,10 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        backgroundColor: OrtizPalette.bad,
+                        foregroundColor: OrtizPalette.onAccent,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                         ),
                       ),
                       child: Text("Eliminar"),
@@ -963,10 +922,10 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
           ),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              color: OrtizPalette.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
             ),
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(OrtizSpace.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -974,27 +933,27 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                 Text(
                   "Nueva Lista de Compras",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 TextField(
                   controller: controller,
                   decoration: InputDecoration(
                     labelText: "Nombre de la lista (ej: Compras del mes)",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       borderSide: BorderSide(color: AppColors.primary, width: 2),
                     ),
                   ),
                   autofocus: true,
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -1021,9 +980,9 @@ class _MarketScreenContentState extends State<_MarketScreenContent> with SingleT
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: OrtizPalette.onAccent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                     ),
                     child: Text("Crear Lista"),
@@ -1049,14 +1008,14 @@ void _editStore(BuildContext context, AppState appState, MarketStore store) {
         decoration: InputDecoration(
           hintText: "Nombre del establecimiento",
           filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+          fillColor: OrtizPalette.surfaceHigh,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip), borderSide: BorderSide.none),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+          child: Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
         ),
         TextButton(
           onPressed: () {
@@ -1091,27 +1050,18 @@ class _TabSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    )
-                  ]
-                : [],
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
           child: Center(
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: OrtizFontSize.bodySm,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey[500],
+                color: isSelected ? OrtizPalette.onAccent : OrtizPalette.muted,
               ),
             ),
           ),
@@ -1133,7 +1083,7 @@ void _confirmDeleteStore(BuildContext context, AppState appState, store) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+          child: Text("Cancelar", style: TextStyle(color: OrtizPalette.muted)),
         ),
         TextButton(
           onPressed: () {
@@ -1143,7 +1093,7 @@ void _confirmDeleteStore(BuildContext context, AppState appState, store) {
               SnackBar(content: Text("Establecimiento eliminado")),
             );
           },
-          child: Text("Eliminar", style: TextStyle(color: Colors.red)),
+          child: Text("Eliminar", style: TextStyle(color: OrtizPalette.bad)),
         ),
       ],
     ),
@@ -1197,26 +1147,26 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       child: Column(
         children: [
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
           Container(
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(2),
+              color: OrtizPalette.faint,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(OrtizSpace.xl),
             child: Text(
               "Detalles de Compras - $monthYear",
               style: TextStyle(
-                fontSize: 18,
+                fontSize: OrtizFontSize.title,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
@@ -1227,11 +1177,11 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
                 ? Center(
                     child: Text(
                       "No hay productos registrados este mes.",
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: OrtizPalette.muted),
                     ),
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
@@ -1240,9 +1190,9 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
                         orElse: () => MarketStore(id: '', name: 'Lugar Desconocido'),
                       );
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: ClaymorphicCard(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -1252,12 +1202,12 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
                                   children: [
                                     Text(
                                       item.name,
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
                                     ),
-                                    SizedBox(height: 2),
+                                    SizedBox(height: OrtizSpace.xxs),
                                     Text(
                                       store.name,
-                                      style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                                      style: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.caption),
                                     ),
                                   ],
                                 ),
@@ -1270,12 +1220,12 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,
-                                      fontSize: 14,
+                                      fontSize: OrtizFontSize.body,
                                     ),
                                   ),
                                   Text(
                                     "Bs ${item.priceVES.toStringAsFixed(2)}",
-                                    style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                    style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                                   ),
                                 ],
                               ),
@@ -1286,7 +1236,7 @@ class _MonthDetailsBottomSheet extends StatelessWidget {
                     },
                   ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: OrtizSpace.xl),
         ],
       ),
     );

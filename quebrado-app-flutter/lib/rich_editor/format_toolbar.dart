@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'rich_editor_colors.dart';
 import 'custom_blocks.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Barra de formato estilo Notion que aparece al seleccionar texto:
 ///   A (color) · B · I · U · Tx (quitar formato) · enlace · S · </> · …
 /// Las acciones se comparten entre la barra flotante de escritorio ([notionToolbarItems])
@@ -23,29 +27,14 @@ class NoteTextColor {
   String get hex => '0x${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
 }
 
-/// Paleta tipo Notion: colores de texto y de fondo.
-const List<NoteTextColor> noteTextColors = [
-  NoteTextColor('Gris', Color(0xFF787774)),
-  NoteTextColor('Marrón', Color(0xFF9F6B53)),
-  NoteTextColor('Naranja', Color(0xFFD9730D)),
-  NoteTextColor('Amarillo', Color(0xFFCB912F)),
-  NoteTextColor('Verde', Color(0xFF448361)),
-  NoteTextColor('Azul', Color(0xFF337EA9)),
-  NoteTextColor('Morado', Color(0xFF9065B0)),
-  NoteTextColor('Rosado', Color(0xFFC14C8A)),
-  NoteTextColor('Rojo', Color(0xFFD44C47)),
+/// Paleta tipo Notion: colores de texto y de fondo (valores en
+/// [RichEditorColors.textPalette] y [RichEditorColors.backgroundPalette]).
+final List<NoteTextColor> noteTextColors = [
+  for (final (label, color) in RichEditorColors.textPalette) NoteTextColor(label, color),
 ];
 
-const List<NoteTextColor> noteBackgroundColors = [
-  NoteTextColor('Gris', Color(0xFFF1F1EF)),
-  NoteTextColor('Marrón', Color(0xFFF4EEEE)),
-  NoteTextColor('Naranja', Color(0xFFFBECDD)),
-  NoteTextColor('Amarillo', Color(0xFFFBF3DB)),
-  NoteTextColor('Verde', Color(0xFFEDF3EC)),
-  NoteTextColor('Azul', Color(0xFFE7F3F8)),
-  NoteTextColor('Morado', Color(0xFFF6F3F9)),
-  NoteTextColor('Rosado', Color(0xFFFAF1F5)),
-  NoteTextColor('Rojo', Color(0xFFFDEBEC)),
+final List<NoteTextColor> noteBackgroundColors = [
+  for (final (label, color) in RichEditorColors.backgroundPalette) NoteTextColor(label, color),
 ];
 
 class NoteFormatActions {
@@ -130,7 +119,7 @@ class NoteFormatActions {
       return Tooltip(
         message: c.label,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           onTap: () {
             Navigator.of(ctx).pop();
             setColor(s, selection, text: background ? null : c.hex, background: background ? c.hex : null);
@@ -140,11 +129,12 @@ class NoteFormatActions {
             height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: background ? c.color : Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              color: background ? c.color : OrtizPalette.surfaceHigh,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
               border: Border.all(color: selected ? RichEditorColors.accent : RichEditorColors.border, width: selected ? 2 : 1),
             ),
-            child: Text('A', style: TextStyle(fontWeight: FontWeight.w800, color: background ? RichEditorColors.textPrimary : c.color)),
+            // Sobre las muestras de fondo (claras), el texto va en `onAccent`.
+            child: Text('A', style: TextStyle(fontWeight: FontWeight.w800, color: background ? OrtizPalette.onAccent : c.color)),
           ),
         ),
       );
@@ -153,23 +143,23 @@ class NoteFormatActions {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-        contentPadding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-        title: const Text('Color', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+        backgroundColor: OrtizPalette.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
+        titlePadding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.xs),
+        contentPadding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.xl, OrtizSpace.sm),
+        title: const Text('Color', style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.w900)),
         content: SizedBox(
           width: 320,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Texto', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: RichEditorColors.textSecondary)),
-              const SizedBox(height: 8),
+              const Text('Texto', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: RichEditorColors.textSecondary)),
+              const SizedBox(height: OrtizSpace.sm),
               Wrap(spacing: 6, runSpacing: 6, children: [for (final c in noteTextColors) swatch(ctx, c, background: false)]),
-              const SizedBox(height: 14),
-              const Text('Fondo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: RichEditorColors.textSecondary)),
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.md),
+              const Text('Fondo', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w700, color: RichEditorColors.textSecondary)),
+              const SizedBox(height: OrtizSpace.sm),
               Wrap(spacing: 6, runSpacing: 6, children: [for (final c in noteBackgroundColors) swatch(ctx, c, background: true)]),
             ],
           ),
@@ -197,9 +187,9 @@ class NoteFormatActions {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Enlace', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+        backgroundColor: OrtizPalette.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
+        title: const Text('Enlace', style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.w900)),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -211,12 +201,15 @@ class NoteFormatActions {
           if (current != null)
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(''),
-              child: const Text('Quitar enlace', style: TextStyle(color: Color(0xFFD44C47))),
+              child: const Text('Quitar enlace', style: TextStyle(color: OrtizPalette.bad)),
             ),
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(controller.text),
-            style: FilledButton.styleFrom(backgroundColor: RichEditorColors.accent),
+            style: FilledButton.styleFrom(
+              backgroundColor: RichEditorColors.accent,
+              foregroundColor: OrtizPalette.onAccent,
+            ),
             child: const Text('Guardar'),
           ),
         ],
@@ -241,10 +234,10 @@ class NoteFormatActions {
     final choice = await showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(origin.dx, origin.dy, origin.dx + 1, origin.dy + 1),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: OrtizPalette.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
       items: [
-        const PopupMenuItem(enabled: false, height: 28, child: Text('Convertir en', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800))),
+        const PopupMenuItem(enabled: false, height: 28, child: Text('Convertir en', style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800))),
         _menuItem('paragraph', Icons.notes_rounded, 'Texto'),
         _menuItem('h1', Icons.title_rounded, 'Título 1'),
         _menuItem('h2', Icons.title_rounded, 'Título 2'),
@@ -292,9 +285,9 @@ class NoteFormatActions {
         height: 36,
         child: Row(
           children: [
-            Icon(icon, size: 17, color: RichEditorColors.textSecondary),
-            const SizedBox(width: 10),
-            Text(label, style: const TextStyle(fontSize: 13)),
+            Icon(icon, size: OrtizIconSize.sm, color: RichEditorColors.textSecondary),
+            const SizedBox(width: OrtizSpace.sm),
+            Text(label, style: const TextStyle(fontSize: OrtizFontSize.bodySm)),
           ],
         ),
       );
@@ -415,27 +408,27 @@ class NoteFormatButtonWidget extends StatelessWidget {
         height: 20,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: bgHex?.tryToColor() ?? Colors.white,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: const Color(0xFFD3D1CB)),
+          color: bgHex?.tryToColor() ?? OrtizPalette.surfaceHigh,
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
+          border: Border.all(color: RichEditorColors.swatchBorder),
         ),
         child: Text(
           'A',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: hex?.tryToColor() ?? RichEditorColors.textPrimary),
+          style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w800, color: hex?.tryToColor() ?? RichEditorColors.textPrimary),
         ),
       );
     } else {
-      glyph = Icon(button.icon, size: 20, color: active ? RichEditorColors.accent : RichEditorColors.icon);
+      glyph = Icon(button.icon, size: OrtizIconSize.md, color: active ? RichEditorColors.accent : RichEditorColors.icon);
     }
 
     return Tooltip(
       message: button.tooltip,
       child: Material(
         color: active ? RichEditorColors.accentLight : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
         child: InkWell(
           key: ValueKey('note_format_${button.name}'),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           onTap: () => button.run(context, editorState),
           child: SizedBox(width: size, height: size, child: Center(child: glyph)),
         ),
@@ -471,10 +464,11 @@ List<ToolbarItem> notionToolbarItems() {
 }
 
 FloatingToolbarStyle get notionToolbarStyle => FloatingToolbarStyle(
-  backgroundColor: Colors.white,
+  backgroundColor: OrtizPalette.surface,
   toolbarActiveColor: RichEditorColors.accent,
   toolbarIconColor: RichEditorColors.icon,
-  toolbarShadowColor: const Color(0x33000000),
+  // La barra flota como un menú: sombra con el color del fondo (`shadow` del tema).
+  toolbarShadowColor: OrtizPalette.bg,
   toolbarElevation: 6,
 );
 
@@ -516,19 +510,19 @@ class _NoteFormatBarState extends State<NoteFormatBar> {
           children: [
             for (final b in buttons)
               Padding(
-                padding: const EdgeInsets.all(2),
+                padding: const EdgeInsets.all(OrtizSpace.xxs),
                 child: NoteFormatButtonWidget(button: b, editorState: widget.editorState, size: 38),
               ),
           ],
         );
 
     return Material(
-      color: Colors.white,
+      color: OrtizPalette.surface,
       elevation: 6,
-      shadowColor: Colors.black26,
-      borderRadius: BorderRadius.circular(12),
+      shadowColor: OrtizPalette.bg,
+      borderRadius: BorderRadius.circular(OrtizRadius.field),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(OrtizSpace.xs),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -7,6 +7,9 @@ import '../models/role_model.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class SundayPlanningWizardDialog extends StatefulWidget {
   const SundayPlanningWizardDialog({super.key});
 
@@ -150,7 +153,7 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
           content: Text(failed == 0
               ? '🎯 Semana del ${_formatShort(monday)} al ${_formatShort(sunday)} planificada con éxito.'
               : '⚠️ $failed ${failed == 1 ? "Gran Roca no se pudo" : "Grandes Rocas no se pudieron"} guardar en la nube. Revisa tu conexión y vuelve a intentarlo.'),
-          backgroundColor: failed == 0 ? const Color(0xFF059669) : const Color(0xFFB45309),
+          backgroundColor: failed == 0 ? RemindersColors.completed : OrtizPalette.warn,
           duration: Duration(seconds: failed == 0 ? 4 : 8),
         ),
       );
@@ -173,23 +176,23 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
         selected: selected,
         showCheckmark: false,
         onSelected: (_) => _changeWeek(target),
-        selectedColor: const Color(0xFFFEF3C7),
+        selectedColor: OrtizPalette.warnTint,
         labelStyle: TextStyle(
-          fontSize: 12,
+          fontSize: OrtizFontSize.bodySm,
           fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-          color: selected ? const Color(0xFF92400E) : RemindersColors.textPrimary,
+          color: selected ? OrtizPalette.warn : RemindersColors.textPrimary,
         ),
-        side: BorderSide(color: selected ? const Color(0xFFD97706) : Colors.grey.shade300),
+        side: BorderSide(color: selected ? OrtizPalette.warn : RemindersColors.cardBorder),
         visualDensity: VisualDensity.compact,
       );
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFDE68A)),
+        color: OrtizPalette.warnTint,
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
+        border: Border.all(color: OrtizPalette.warnBorder),
       ),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
@@ -212,11 +215,11 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   Text(
                     'Planificando: ${_formatShort(monday)} – ${_formatShort(sunday)}',
                     key: const ValueKey('wizard_week_range'),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                    style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.warn),
                   ),
                   Text(
                     _weekRelativeLabel(offset),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+                    style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.warn),
                   ),
                 ],
               ),
@@ -243,11 +246,11 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
     final roles = state.roles;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 780, maxHeight: 720),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(OrtizSpace.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -258,24 +261,24 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(OrtizSpace.sm),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(10),
+                          color: OrtizPalette.warnTint,
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
-                        child: const Icon(Icons.wb_sunny_outlined, color: Color(0xFFD97706)),
+                        child: const Icon(Icons.wb_sunny_outlined, color: OrtizPalette.warn),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: OrtizSpace.md),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
                             'Ritual Dominical de Planificación',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
+                            style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold, color: RemindersColors.textPrimary),
                           ),
                           const Text(
                             'Hábito 3: "Primero lo Primero"',
-                            style: TextStyle(fontSize: 12, color: RemindersColors.textMuted),
+                            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textMuted),
                           ),
                         ],
                       ),
@@ -287,9 +290,9 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
               _buildWeekSelector(state),
-              const SizedBox(height: 14),
+              const SizedBox(height: OrtizSpace.md),
 
               // Barra de Pasos Visual
               Row(
@@ -301,14 +304,14 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   Flexible(flex: 3, child: _buildStepIndicator(2, '3. Agendar la Semana', Icons.calendar_month_outlined)),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: OrtizSpace.xl),
 
               // Contenido según el paso actual
               Expanded(
                 child: _buildCurrentStepContent(state, roles),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
               // Botones de Navegación Inferior
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,9 +330,9 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                     )
                   else
                     FilledButton.icon(
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFF059669)),
+                      style: FilledButton.styleFrom(backgroundColor: RemindersColors.completed),
                       onPressed: _completeWizard,
-                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      icon: const Icon(Icons.check_circle_outline, size: OrtizIconSize.md),
                       label: const Text('¡Semana Planificada con Éxito!'),
                     ),
                 ],
@@ -347,40 +350,40 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
 
     return InkWell(
       onTap: () => setState(() => _currentStep = stepIndex),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(OrtizSpace.xs),
               decoration: BoxDecoration(
                 color: isDone
-                    ? Colors.green.shade100
+                    ? OrtizPalette.surfaceHigh
                     : isActive
                         ? RemindersColors.primaryLight
-                        : Colors.grey.shade100,
+                        : OrtizPalette.surfaceHigh,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isDone ? Icons.check : icon,
-                size: 16,
+                size: OrtizIconSize.sm,
                 color: isDone
-                    ? Colors.green.shade800
+                    ? OrtizPalette.ok
                     : isActive
                         ? RemindersColors.primary
-                        : Colors.grey.shade600,
+                        : RemindersColors.textSecondary,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: OrtizSpace.xs),
             Flexible(
               child: Text(
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   color: isActive ? RemindersColors.textPrimary : RemindersColors.textMuted,
                 ),
@@ -414,29 +417,29 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(OrtizSpace.md),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              color: OrtizPalette.surfaceHigh,
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
+              border: Border.all(color: RemindersColors.cardBorder),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.menu_book, color: RemindersColors.primary, size: 22),
-                SizedBox(width: 12),
+                Icon(Icons.menu_book, color: RemindersColors.primary, size: OrtizIconSize.lg),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Paso 1: Revisa tu Misión y los Logros de la Semana Pasada',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: RemindersColors.textPrimary),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: OrtizSpace.xs),
                       Text(
                         'Antes de escribir nuevas tareas, conecta con tus principios fundamentales. Evalúa con sinceridad cómo atendiste cada dimensión de tu vida.',
-                        style: TextStyle(fontSize: 12, color: RemindersColors.textSecondary, height: 1.3),
+                        style: TextStyle(fontSize: OrtizFontSize.bodySm, color: RemindersColors.textSecondary, height: 1.3),
                       ),
                     ],
                   ),
@@ -444,35 +447,35 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: OrtizSpace.lg),
           const Text(
             'Declaración de Propósito de tus Roles Activos:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: RemindersColors.textPrimary),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm, color: RemindersColors.textPrimary),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.sm),
           ...roles.map((r) => Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+                padding: const EdgeInsets.all(OrtizSpace.sm),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                  border: Border.all(color: RemindersColors.cardBorder),
                 ),
                 child: Row(
                   children: [
-                    Icon(r.iconData, color: r.color, size: 20),
-                    const SizedBox(width: 10),
+                    Icon(r.iconData, color: r.color, size: OrtizIconSize.md),
+                    const SizedBox(width: OrtizSpace.sm),
                     Text(
                       r.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: Text(
                         r.purposeStatement ?? 'Sin declaración de propósito configurada aún',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: r.purposeStatement != null ? Colors.grey.shade700 : Colors.grey.shade400,
+                          fontSize: OrtizFontSize.bodySm,
+                          color: r.purposeStatement != null ? RemindersColors.textSecondary : RemindersColors.textMuted,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -480,19 +483,19 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                   ],
                 ),
               )),
-          const SizedBox(height: 16),
+          const SizedBox(height: OrtizSpace.lg),
           const Text(
             'Notas de Retrospectiva Semanal:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: RemindersColors.textPrimary),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm, color: RemindersColors.textPrimary),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: OrtizSpace.xs),
           TextField(
             controller: _notesCtrl,
             maxLines: 4,
             decoration: InputDecoration(
               hintText: '¿Qué salió bien esta semana? ¿Qué imprevistos del C3 o C4 me distrajeron? ¿Qué debo afilar para la próxima semana?...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.all(12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
+              contentPadding: const EdgeInsets.all(OrtizSpace.md),
             ),
           ),
         ],
@@ -508,30 +511,30 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(OrtizSpace.md),
           decoration: BoxDecoration(
-            color: const Color(0xFFECFDF5),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFA7F3D0)),
+            color: OrtizPalette.surfaceHigh,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+            border: Border.all(color: RemindersColors.cardBorder),
           ),
           child: const Row(
             children: [
-              Icon(Icons.flag_outlined, color: Color(0xFF059669), size: 20),
-              SizedBox(width: 10),
+              Icon(Icons.flag_outlined, color: RemindersColors.completed, size: OrtizIconSize.md),
+              SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Text(
                   'Elige de 1 a 3 Grandes Rocas para CADA rol. Son las metas de alto impacto que harán que esta semana sea verdaderamente efectiva.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF065F46), height: 1.3),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.fg, height: 1.3),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: OrtizSpace.md),
         Expanded(
           child: ListView.separated(
             itemCount: roles.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: OrtizSpace.md),
             itemBuilder: (context, idx) {
               final role = roles[idx];
               final existingRocks = state.bigRocksForRole(role.id);
@@ -542,12 +545,12 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
               final inputCtrl = TextEditingController();
 
               return Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(
-                    color: isUnderAllocated ? Colors.amber.shade300 : Colors.grey.shade200,
+                    color: isUnderAllocated ? OrtizPalette.warnBorder : RemindersColors.cardBorder,
                     width: isUnderAllocated ? 1.5 : 1,
                   ),
                 ),
@@ -559,29 +562,29 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                       children: [
                         Row(
                           children: [
-                            Icon(role.iconData, color: role.color, size: 20),
-                            const SizedBox(width: 8),
+                            Icon(role.iconData, color: role.color, size: OrtizIconSize.md),
+                            const SizedBox(width: OrtizSpace.sm),
                             Text(
                               role.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
                             ),
                           ],
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xxs),
                           decoration: BoxDecoration(
-                            color: isUnderAllocated ? Colors.amber.shade50 : Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(12),
+                            color: isUnderAllocated ? OrtizPalette.warnTint : OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                             border: Border.all(
-                              color: isUnderAllocated ? Colors.amber.shade400 : Colors.green.shade400,
+                              color: isUnderAllocated ? OrtizPalette.warnBorder : OrtizPalette.ok,
                             ),
                           ),
                           child: Text(
                             '$totalRocks / 3 Rocas',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.bold,
-                              color: isUnderAllocated ? Colors.amber.shade900 : Colors.green.shade900,
+                              color: isUnderAllocated ? OrtizPalette.warn : OrtizPalette.ok,
                             ),
                           ),
                         ),
@@ -589,53 +592,53 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                     ),
                     if (isUnderAllocated)
                       Padding(
-                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        padding: const EdgeInsets.only(top: OrtizSpace.xs, bottom: OrtizSpace.xs),
                         child: Text(
                           '⚠️ Atención: Este rol no tiene ninguna Gran Roca definida para la semana.',
-                          style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontStyle: FontStyle.italic),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.warn, fontStyle: FontStyle.italic),
                         ),
                       ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: OrtizSpace.sm),
 
                     // Rocas ya existentes en la app
                     ...existingRocks.map((r) => Container(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          margin: const EdgeInsets.only(bottom: OrtizSpace.xs),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                            border: Border.all(color: RemindersColors.cardBorder),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.star, size: 16, color: Color(0xFFD97706)),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.star, size: OrtizIconSize.sm, color: OrtizPalette.warn),
+                              const SizedBox(width: OrtizSpace.sm),
                               Expanded(
-                                child: Text(r.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                child: Text(r.title, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                               ),
-                              const Text('(Ya agendada)', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                              const Text('(Ya agendada)', style: TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted)),
                             ],
                           ),
                         )),
 
                     // Nuevas rocas agregadas en el ritual
                     ...newRocks.map((title) => Container(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          margin: const EdgeInsets.only(bottom: OrtizSpace.xs),
+                          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF93C5FD)),
+                            color: OrtizPalette.surfaceHigh,
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                            border: Border.all(color: RemindersColors.primaryBorder),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.star_outline, size: 16, color: RemindersColors.primary),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.star_outline, size: OrtizIconSize.sm, color: RemindersColors.primary),
+                              const SizedBox(width: OrtizSpace.sm),
                               Expanded(
-                                child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                child: Text(title, style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600)),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, size: 16, color: Colors.redAccent),
+                                icon: const Icon(Icons.close, size: OrtizIconSize.sm, color: RemindersColors.overdue),
                                 onPressed: () => _removeRock(role.id, title),
                                 constraints: const BoxConstraints(),
                                 padding: EdgeInsets.zero,
@@ -653,10 +656,10 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                               controller: inputCtrl,
                               decoration: InputDecoration(
                                 hintText: 'Escribe una Gran Roca para ${role.name}...',
-                                hintStyle: const TextStyle(fontSize: 12),
+                                hintStyle: const TextStyle(fontSize: OrtizFontSize.bodySm),
                                 isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                               ),
                               onSubmitted: (val) {
                                 _addRockToRole(role.id, val);
@@ -664,7 +667,7 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: OrtizSpace.sm),
                           IconButton(
                             icon: const Icon(Icons.add_circle, color: RemindersColors.primary),
                             onPressed: () {
@@ -704,16 +707,16 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_outline, size: 48, color: Colors.green),
-            const SizedBox(height: 12),
+            const Icon(Icons.check_circle_outline, size: OrtizIconSize.xxl, color: RemindersColors.completed),
+            const SizedBox(height: OrtizSpace.md),
             const Text(
               'No agregaste nuevas Grandes Rocas.',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.titleSm),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.xs),
             const Text(
               'Tus Grandes Rocas existentes ya están en el cronograma semanal.',
-              style: TextStyle(color: RemindersColors.textMuted, fontSize: 13),
+              style: TextStyle(color: RemindersColors.textMuted, fontSize: OrtizFontSize.bodySm),
             ),
           ],
         ),
@@ -724,30 +727,30 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(OrtizSpace.md),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F3FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFDDD6FE)),
+            color: RemindersColors.primaryLight,
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+            border: Border.all(color: RemindersColors.primaryBorder),
           ),
           child: const Row(
             children: [
-              Icon(Icons.event_available, color: Color(0xFF7C3AED), size: 20),
-              SizedBox(width: 10),
+              Icon(Icons.event_available, color: RemindersColors.primary, size: OrtizIconSize.md),
+              SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Text(
                   'Coloca las Grandes Rocas PRIMERO en el calendario semanal. Si dejas que el día a día empiece sin agendarlas, la arena (urgencias del C3 y C4) ocupará todo tu tiempo.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF5B21B6), height: 1.3),
+                  style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.fg, height: 1.3),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: OrtizSpace.md),
         Expanded(
           child: ListView.separated(
             itemCount: rocksWithRole.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => const SizedBox(height: OrtizSpace.sm),
             itemBuilder: (context, i) {
               final roleId = rocksWithRole[i].key;
               final rockTitle = rocksWithRole[i].value;
@@ -755,30 +758,30 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
               final currentDay = _rockScheduledDay[rockTitle] ?? 0;
 
               return Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(OrtizSpace.md),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                  border: Border.all(color: RemindersColors.cardBorder),
                 ),
                 child: Row(
                   children: [
-                    Icon(role.iconData, color: role.color, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(role.iconData, color: role.color, size: OrtizIconSize.md),
+                    const SizedBox(width: OrtizSpace.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(rockTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          Text('Rol: ${role.name}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                          Text(rockTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm)),
+                          Text('Rol: ${role.name}', style: TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textSecondary)),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: OrtizSpace.md),
                     DropdownButton<int>(
                       value: currentDay,
                       underline: const SizedBox(),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       items: List.generate(7, (dayIdx) {
                         final date = DateTime(monday.year, monday.month, monday.day + dayIdx);
                         final isPast = date.isBefore(today);
@@ -787,7 +790,7 @@ class _SundayPlanningWizardDialogState extends State<SundayPlanningWizardDialog>
                           child: Text(
                             '${_dayNames[dayIdx]} ${_formatShort(date)}${isPast ? " · ya pasó" : ""}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w600,
                               color: isPast ? RemindersColors.textMuted : null,
                             ),

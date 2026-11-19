@@ -18,6 +18,10 @@ import '../dialogs/pending_confirmations_dialog.dart';
 import '../../widgets/responsive_breakpoints.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -113,9 +117,9 @@ class _MainScreenState extends State<MainScreen> {
                       );
                     },
                     backgroundColor: AppColors.primary,
-                    elevation: 6.0,
                     shape: CircleBorder(),
-                    child: Icon(Icons.add, color: Colors.white, size: 28),
+                    child: const Icon(Icons.add,
+                        color: OrtizPalette.onAccent, size: OrtizIconSize.lg),
                   ),
                 ),
           floatingActionButtonLocation:
@@ -124,18 +128,18 @@ class _MainScreenState extends State<MainScreen> {
               ? null
               : CustomPaint(
                   foregroundPainter: _NotchedBorderPainter(
-                    color: Colors.grey[300]!,
-                    strokeWidth: 1.0,
+                    color: OrtizPalette.line,
+                    strokeWidth: OrtizStroke.hairline,
                   ),
                   child: BottomAppBar(
-                    color: Colors.white,
-                    elevation: 12,
+                    color: OrtizPalette.surface,
+                    elevation: 0,
                     notchMargin: 8.0,
                     clipBehavior: Clip.antiAlias,
                     shape: AutomaticNotchedShape(
                       RoundedRectangleBorder(
                         borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(24)),
+                            BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
                       ),
                       CircleBorder(),
                     ),
@@ -170,32 +174,32 @@ class _MainScreenState extends State<MainScreen> {
       onTap: () {
         appState.setTabIndex(index);
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(OrtizRadius.dialog),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
               duration: Duration(milliseconds: 180),
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(OrtizSpace.sm),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isSelected ? AppColors.primary : Colors.grey[500],
-                size: 24,
+                color: isSelected ? AppColors.primary : OrtizPalette.muted,
+                size: OrtizIconSize.lg,
               ),
             ),
-            SizedBox(height: 2),
+            SizedBox(height: OrtizSpace.xxs),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: OrtizFontSize.caption,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? AppColors.primary : Colors.grey[500],
+                color: isSelected ? AppColors.primary : OrtizPalette.muted,
               ),
             ),
           ],
@@ -218,7 +222,7 @@ class _NotchedBorderPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const shape = AutomaticNotchedShape(
       RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       CircleBorder(),
     );

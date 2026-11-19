@@ -1,18 +1,23 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/saving_pocket.dart';
-import '../widgets/claymorphic_card.dart';
-import '../widgets/animated_progress_bar.dart';
 import '../widgets/helpers.dart';
-import '../theme/colors.dart';
 import '../dialogs/pocket_details_bottom_sheet.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
+/// Un bolsillo de ahorro como fila, sin tarjeta (spec 05).
+///
+/// El color del bolsillo (hex elegido por la persona) va como punto de la fila
+/// y como relleno de la barra de la meta, nunca como fondo (PA-02).
 class PocketCard extends StatelessWidget {
   final SavingPocket pocket;
   final VoidCallback onAdd;
   final VoidCallback onWithdraw;
   final VoidCallback? onTap;
-  final Color? backgroundColor;
   final bool? isFeasible;
   final DateTime? viableTargetDate;
 
@@ -22,351 +27,253 @@ class PocketCard extends StatelessWidget {
     required this.onAdd,
     required this.onWithdraw,
     this.onTap,
-    this.backgroundColor,
     this.isFeasible,
     this.viableTargetDate,
   });
 
+  /// Alto de la imagen de portada del bolsillo.
+  static const double coverHeight = 120;
+
+  void _openDetails(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => PocketDetailsBottomSheet(
+        pocket: pocket,
+        onAdd: onAdd,
+        onWithdraw: onWithdraw,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeColor = backgroundColor ?? parseHexColor(pocket.colorHex);
-    final isLightCard = themeColor == Colors.white ||
-        themeColor == AppColors.cardBackground ||
-        HSLColor.fromColor(themeColor).lightness >= 0.75;
-    final pocketAccentColor = parseHexColor(pocket.colorHex);
+    final t = OrtizTokens.of(context);
+    final pocketColor = parseHexColor(pocket.colorHex);
+    final hasImage = pocket.imageUrl != null && pocket.imageUrl!.isNotEmpty;
+    final hasDescription =
+        pocket.description != null && pocket.description!.isNotEmpty;
+    final hasTarget = pocket.targetAmountUSD > 0;
+    final captionMuted = OrtizType.bodySm.copyWith(
+      color: t.muted,
+      fontWeight: FontWeight.w600,
+    );
 
-    final textColor = isLightCard ? AppColors.cardText : Colors.white;
-    final subtitleColor = isLightCard
-        ? AppColors.cardSubtitleText
-        : Colors.white.withOpacity(0.9);
+    Widget brokenImage() => Container(
+          height: coverHeight,
+          width: double.infinity,
+          color: t.surfaceHigh,
+          child: Icon(
+            Icons.broken_image_rounded,
+            color: t.muted,
+            size: OrtizIconSize.xl,
+          ),
+        );
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: ClaymorphicCard(
-        cornerRadius: 20,
-        padding: EdgeInsets.all(16.0),
-        backgroundColor: themeColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover Image Header (if imageUrl exists)
-            if (pocket.imageUrl != null && pocket.imageUrl!.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: pocket.imageUrl!.startsWith('http')
-                    ? Image.network(
-                        pocket.imageUrl!,
-                        height: 120,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 120,
-                          width: double.infinity,
-                          color: isLightCard ? Colors.grey[200] : Colors.white.withOpacity(0.12),
-                          child: Icon(
-                            Icons.broken_image_rounded,
-                            color: isLightCard ? Colors.grey[400] : Colors.white.withOpacity(0.5),
-                            size: 28,
-                          ),
-                        ),
-                      )
-                    : Image.file(
-                        File(pocket.imageUrl!),
-                        height: 120,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 120,
-                          width: double.infinity,
-                          color: isLightCard ? Colors.grey[200] : Colors.white.withOpacity(0.12),
-                          child: Icon(
-                            Icons.broken_image_rounded,
-                            color: isLightCard ? Colors.grey[400] : Colors.white.withOpacity(0.5),
-                            size: 28,
-                          ),
-                        ),
-                      ),
-              ),
-              SizedBox(height: 12),
-            ],
-
-            Row(
-              children: [
-                // Icon Badge
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: isLightCard
-                        ? pocketAccentColor.withOpacity(0.12)
-                        : Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    getIconData(pocket.icon),
-                    color: isLightCard ? pocketAccentColor : Colors.white,
-                    size: 22,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        pocket.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        pocket.targetAmountUSD > 0
-                            ? "${(pocket.progress * 100).toInt()}% Completado"
-                            : "Sin meta fija",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: subtitleColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Action Button (Menu)
-                GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => PocketDetailsBottomSheet(
-                        pocket: pocket,
-                        onAdd: onAdd,
-                        onWithdraw: onWithdraw,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: isLightCard ? pocketAccentColor : Colors.white,
-                      shape: BoxShape.circle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Imagen de portada (si existe).
+          if (hasImage) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(OrtizRadius.field),
+              child: pocket.imageUrl!.startsWith('http')
+                  ? Image.network(
+                      pocket.imageUrl!,
+                      height: coverHeight,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => brokenImage(),
+                    )
+                  : Image.file(
+                      File(pocket.imageUrl!),
+                      height: coverHeight,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => brokenImage(),
                     ),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 20,
-                      color: isLightCard ? Colors.white : themeColor,
-                    ),
-                  ),
-                ),
-              ],
             ),
-            
-            // Description (if description exists)
-            if (pocket.description != null && pocket.description!.isNotEmpty) ...[
-              SizedBox(height: 10),
-              Text(
-                pocket.description!,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  color: isLightCard ? AppColors.cardSubtitleText : Colors.white.withOpacity(0.85),
-                  height: 1.35,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            
-            if (pocket.targetAmountUSD > 0) ...[
-              SizedBox(height: 14),
-              AnimatedProgressBar(
-                progress: pocket.progress,
-                fillColor: isLightCard ? pocketAccentColor : Colors.white,
-                height: 10.0,
-              ),
-            ],
+            const SizedBox(height: OrtizSpace.xs),
+          ],
 
-            // Target date indicator & feasibility warnings
-            if (pocket.targetDate != null) ...[
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_month_rounded,
-                    size: 14,
-                    color: isLightCard ? AppColors.cardSubtitleText : Colors.white.withOpacity(0.9),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    "Fecha límite: ${formatDate(pocket.targetDate!)}",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isLightCard ? AppColors.cardSubtitleText : Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
-              if (isFeasible != null && !isFeasible!) ...[
-                SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.expense.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.expense.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: AppColors.expense, size: 16),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Fecha límite no viable (saldo negativo proyectado)",
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.expense,
-                              ),
-                            ),
-                            Text(
-                              viableTargetDate != null
-                                  ? "Fecha viable recalculada: ${formatDate(viableTargetDate!)}"
-                                  : "Sin flujos suficientes para estimar.",
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: AppColors.expense,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-            // Automatic saving rule indicator
-            if (pocket.fundingRuleType != 'none') ...[
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 14,
-                    color: isLightCard ? pocketAccentColor : Colors.white,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    pocket.fundingRuleType == 'percentage'
-                        ? "Ahorro auto: ${pocket.fundingRuleValue?.toStringAsFixed(0)}% por ingreso"
-                        : "Ahorro auto: \$${pocket.fundingRuleValue?.toStringAsFixed(0)} (ingreso \u2265 \$${pocket.fundingRuleThreshold?.toStringAsFixed(0)})",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isLightCard ? AppColors.cardSubtitleText : Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            SizedBox(height: 14),
-
-            // Amounts & Priority Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
+          OrtizListRow(
+            dotColor: pocketColor,
+            leading: Icon(getIconData(pocket.icon)),
+            title: pocket.name,
+            subtitle: hasTarget
+                ? "${(pocket.progress * 100).toInt()}% Completado"
+                : "Sin meta fija",
+            onTap: onTap,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       "Ahorrado",
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: subtitleColor.withOpacity(0.8),
-                        letterSpacing: 0.5,
-                      ),
+                      style: OrtizType.caption.copyWith(color: t.muted),
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      formatUSD(pocket.currentAmountUSD),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
+                    OrtizAmount(
+                      value: pocket.currentAmountUSD,
+                      currencySymbol: '\$',
+                      format: formatUSD,
                     ),
                   ],
                 ),
-                
-                // Priority Badge in same row
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isLightCard
-                        ? pocketAccentColor.withOpacity(0.08)
-                        : Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.star_rounded,
-                        size: 10,
-                        color: isLightCard ? pocketAccentColor : Colors.white,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        "Prioridad ${pocket.priority}",
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                    ],
-                  ),
+                IconButton(
+                  tooltip: 'Opciones del bolsillo',
+                  icon: Icon(Icons.more_horiz_rounded, color: t.muted),
+                  onPressed: () => _openDetails(context),
                 ),
-                
-                if (pocket.targetAmountUSD > 0)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Meta",
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: subtitleColor.withOpacity(0.8),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        formatUSD(pocket.targetAmountUSD),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
-          ],
-        ),
+          ),
+
+          // Detalles alineados con el texto de la fila.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasDescription) ...[
+                  Text(
+                    pocket.description!,
+                    style: OrtizType.bodySm.copyWith(color: t.muted, height: 1.35),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: OrtizSpace.sm),
+                ],
+
+                if (hasTarget) ...[
+                  OrtizProgressBar(
+                    value: pocket.progress,
+                    color: pocketColor,
+                    semanticsLabel: 'Meta del bolsillo',
+                  ),
+                  const SizedBox(height: OrtizSpace.sm),
+                ],
+
+                // Prioridad y meta.
+                Row(
+                  children: [
+                    OrtizPill(
+                      label: "Prioridad ${pocket.priority}",
+                      icon: Icons.star_rounded,
+                      color: pocketColor,
+                    ),
+                    const Spacer(),
+                    if (hasTarget) ...[
+                      Text(
+                        "Meta",
+                        style: OrtizType.caption.copyWith(color: t.muted),
+                      ),
+                      const SizedBox(width: OrtizSpace.xs),
+                      Flexible(
+                        child: OrtizAmount(
+                          value: pocket.targetAmountUSD,
+                          currencySymbol: '\$',
+                          format: formatUSD,
+                          color: t.muted,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+
+                // Fecha límite y viabilidad.
+                if (pocket.targetDate != null) ...[
+                  const SizedBox(height: OrtizSpace.sm),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        size: OrtizIconSize.sm,
+                        color: t.muted,
+                      ),
+                      const SizedBox(width: OrtizSpace.xs),
+                      Text(
+                        "Fecha límite: ${formatDate(pocket.targetDate!)}",
+                        style: captionMuted,
+                      ),
+                    ],
+                  ),
+                  if (isFeasible != null && !isFeasible!) ...[
+                    const SizedBox(height: OrtizSpace.sm),
+                    Container(
+                      padding: const EdgeInsets.all(OrtizSpace.sm),
+                      decoration: BoxDecoration(
+                        color: OrtizPalette.badTint,
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: t.bad,
+                            size: OrtizIconSize.sm,
+                          ),
+                          const SizedBox(width: OrtizSpace.xs),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Fecha límite no viable (saldo negativo proyectado)",
+                                  style: OrtizType.caption.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: t.bad,
+                                  ),
+                                ),
+                                Text(
+                                  viableTargetDate != null
+                                      ? "Fecha viable recalculada: ${formatDate(viableTargetDate!)}"
+                                      : "Sin flujos suficientes para estimar.",
+                                  style: OrtizType.caption.copyWith(color: t.bad),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+
+                // Regla de ahorro automático.
+                if (pocket.fundingRuleType != 'none') ...[
+                  const SizedBox(height: OrtizSpace.sm),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: OrtizIconSize.sm,
+                        color: t.muted,
+                      ),
+                      const SizedBox(width: OrtizSpace.xs),
+                      Flexible(
+                        child: Text(
+                          pocket.fundingRuleType == 'percentage'
+                              ? "Ahorro auto: ${pocket.fundingRuleValue?.toStringAsFixed(0)}% por ingreso"
+                              : "Ahorro auto: \$${pocket.fundingRuleValue?.toStringAsFixed(0)} (ingreso ≥ \$${pocket.fundingRuleThreshold?.toStringAsFixed(0)})",
+                          style: captionMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

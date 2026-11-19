@@ -3,7 +3,12 @@ import 'package:provider/provider.dart';
 import '../models/market_product.dart';
 import '../viewmodels/app_state.dart';
 import '../theme/colors.dart';
-import 'claymorphic_card.dart';
+import 'helpers.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class ProductDetailsBottomSheet extends StatelessWidget {
   final MarketProduct product;
@@ -18,14 +23,14 @@ class ProductDetailsBottomSheet extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: bottomInset > 0 ? bottomInset + 16 : 32,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.lg,
+        bottom: bottomInset > 0 ? bottomInset + OrtizSpace.lg : OrtizSpace.xxxl,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -35,48 +40,48 @@ class ProductDetailsBottomSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
+                color: OrtizPalette.faint,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
           Text(
             product.name,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: OrtizFontSize.title,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 4),
+          SizedBox(height: OrtizSpace.xs),
           Text(
             product.category,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.w600,
               color: AppColors.cardSubtitleText,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
           Text(
             "Se consigue en:",
             style: TextStyle(
-              fontSize: 16,
+              fontSize: OrtizFontSize.titleSm,
               fontWeight: FontWeight.bold,
               color: AppColors.cardText,
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: OrtizSpace.md),
           if (product.storeIds.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xxl),
               child: Text(
                 "Aún no hay registros de compra para este producto en ningún establecimiento.",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: OrtizFontSize.bodySm,
                   color: AppColors.cardSubtitleText,
                 ),
                 textAlign: TextAlign.center,
@@ -93,7 +98,7 @@ class ProductDetailsBottomSheet extends StatelessWidget {
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
                       labelColor: AppColors.primary,
-                      unselectedLabelColor: Colors.grey,
+                      unselectedLabelColor: OrtizPalette.muted,
                       indicatorColor: AppColors.primary,
                       dividerColor: Colors.transparent,
                       tabs: product.storeIds.map((storeId) {
@@ -105,39 +110,38 @@ class ProductDetailsBottomSheet extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.storefront_rounded, size: 16),
-                              SizedBox(width: 8),
+                              const Icon(Icons.storefront_rounded, size: OrtizIconSize.sm),
+                              SizedBox(width: OrtizSpace.sm),
                               Text(store.name),
                             ],
                           ),
                         );
                       }).toList(),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: OrtizSpace.lg),
                     Expanded(
                       child: TabBarView(
                         children: product.storeIds.map((storeId) {
                           final history = appState.getHistoricalPricesForProduct(product.id, storeId);
 
                           return SingleChildScrollView(
-                            child: ClaymorphicCard(
-                              padding: EdgeInsets.all(12),
-                              cornerRadius: 16,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (history.isEmpty) ...[
-                                    SizedBox(height: 8),
+                                    SizedBox(height: OrtizSpace.sm),
                                     Text(
                                       "No hay compras registradas",
-                                      style: TextStyle(fontSize: 12, color: AppColors.cardSubtitleText),
+                                      style: TextStyle(fontSize: OrtizFontSize.bodySm, color: AppColors.cardSubtitleText),
                                     ),
                                   ] else ...[
                                     ...history.map((record) {
                                       final date = record['date'] as DateTime;
                                       final dateStr = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
                                       return Padding(
-                                        padding: const EdgeInsets.only(bottom: 12.0),
+                                        padding: const EdgeInsets.only(bottom: OrtizSpace.md),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
@@ -147,14 +151,14 @@ class ProductDetailsBottomSheet extends StatelessWidget {
                                                 children: [
                                                   Text(
                                                     record['tripTitle'],
-                                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.cardText),
+                                                    style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: AppColors.cardText),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
-                                                  SizedBox(height: 2),
+                                                  SizedBox(height: OrtizSpace.xxs),
                                                   Text(
                                                     dateStr,
-                                                    style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText),
+                                                    style: TextStyle(fontSize: OrtizFontSize.caption, color: AppColors.cardSubtitleText),
                                                   ),
                                                 ],
                                               ),
@@ -162,18 +166,23 @@ class ProductDetailsBottomSheet extends StatelessWidget {
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.end,
                                               children: [
-                                                Text(
-                                                  "\$${(record['priceUSD'] as double).toStringAsFixed(2)}",
-                                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.expense),
+                                                OrtizAmount(
+                                                  value: record['priceUSD'] as double,
+                                                  currencySymbol: '\$',
+                                                  format: formatUSD,
+                                                  color: AppColors.expense,
                                                 ),
-                                                SizedBox(height: 2),
-                                                Text(
-                                                  "${(record['priceVES'] as double).toStringAsFixed(2)} Bs.",
-                                                  style: TextStyle(fontSize: 10, color: AppColors.cardSubtitleText),
+                                                SizedBox(height: OrtizSpace.xxs),
+                                                OrtizAmount(
+                                                  value: record['priceVES'] as double,
+                                                  currencySymbol: 'Bs.',
+                                                  format: (v) => "${v.toStringAsFixed(2)} Bs.",
+                                                  style: OrtizType.caption,
+                                                  color: AppColors.cardSubtitleText,
                                                 ),
                                                 Text(
                                                   "Tasa: ${(record['exchangeRateUsed'] as double).toStringAsFixed(2)}",
-                                                  style: TextStyle(fontSize: 9, color: Colors.blueGrey),
+                                                  style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                                                 ),
                                               ],
                                             ),

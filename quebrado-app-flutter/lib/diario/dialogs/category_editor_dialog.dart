@@ -4,6 +4,10 @@ import '../models/diario_category.dart';
 import '../viewmodels/diario_state.dart';
 import '../theme/diario_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class CategoryEditorDialog extends StatefulWidget {
   final String? contactId;
   final String? parentId;
@@ -94,13 +98,13 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
     final isSubcategory = widget.parentId != null || widget.category?.parentId != null;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.sheet)),
+      backgroundColor: OrtizPalette.surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.xxl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 460),
         child: Padding(
-          padding: const EdgeInsets.all(22.0),
+          padding: const EdgeInsets.all(OrtizSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -113,15 +117,15 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                     height: 38,
                     decoration: BoxDecoration(
                       color: DiarioColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: Icon(
                       isSubcategory ? Icons.subdirectory_arrow_right_rounded : Icons.create_new_folder_outlined,
                       color: DiarioColors.primary,
-                      size: 20,
+                      size: OrtizIconSize.md,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +135,7 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                               ? 'Editar Categoría'
                               : (isSubcategory ? 'Nueva Subcategoría' : 'Nueva Categoría Raíz'),
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: OrtizFontSize.titleSm,
                             fontWeight: FontWeight.w900,
                             color: DiarioColors.textPrimary,
                           ),
@@ -140,19 +144,19 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                           isSubcategory
                               ? 'Crea una sección dentro de esta categoría'
                               : 'Crea una sección para clasificar datos',
-                          style: const TextStyle(fontSize: 12, color: DiarioColors.textSecondary),
+                          style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: DiarioColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
+                    icon: const Icon(Icons.close_rounded, size: OrtizIconSize.md),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
 
               Form(
                 key: _formKey,
@@ -166,21 +170,21 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                       decoration: InputDecoration(
                         labelText: 'Nombre de la Categoría *',
                         hintText: isSubcategory ? 'Ej: Me Gusta, Deseos, Tallas...' : 'Ej: Alimentos, Regalos...',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         filled: true,
                         fillColor: DiarioColors.background,
                       ),
                       validator: (val) => val == null || val.trim().isEmpty ? 'El nombre es obligatorio' : null,
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: OrtizSpace.lg),
 
                     // Icon Picker Grid
                     const Text(
                       'Selecciona un Icono',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DiarioColors.textSecondary),
+                      style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: DiarioColors.textSecondary),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: OrtizSpace.sm),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 130),
                       child: SingleChildScrollView(
@@ -198,16 +202,16 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                                 height: 38,
                                 decoration: BoxDecoration(
                                   color: isSelected ? DiarioColors.primaryLight : DiarioColors.background,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   border: Border.all(
-                                    color: isSelected ? DiarioColors.primary : Colors.grey[300]!,
-                                    width: isSelected ? 2 : 1,
+                                    color: isSelected ? DiarioColors.primary : OrtizPalette.line,
+                                    width: isSelected ? OrtizStroke.focus : OrtizStroke.hairline,
                                   ),
                                 ),
                                 child: Icon(
                                   iconData,
-                                  color: isSelected ? DiarioColors.primary : Colors.grey[700],
-                                  size: 19,
+                                  color: isSelected ? DiarioColors.primary : OrtizPalette.muted,
+                                  size: OrtizIconSize.md,
                                 ),
                               ),
                             );
@@ -221,7 +225,7 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: OrtizSpace.xl),
 
               // Actions
               Row(
@@ -231,14 +235,14 @@ class _CategoryEditorDialogState extends State<CategoryEditorDialog> {
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Cancelar', style: TextStyle(color: DiarioColors.textSecondary)),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   ElevatedButton(
                     onPressed: _save,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: DiarioColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.md),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                       elevation: 0,
                     ),
                     child: Text(isEditing ? 'Actualizar' : 'Crear Categoría'),

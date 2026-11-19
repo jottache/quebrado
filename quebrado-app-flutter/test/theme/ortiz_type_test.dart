@@ -38,6 +38,25 @@ Map<String, Map<int, String>> fuentesDelPubspec() {
 }
 
 void main() {
+  group('OrtizFontSize', () {
+    test('coincide con los tamaños de los estilos de OrtizType', () {
+      expect(OrtizFontSize.caption, OrtizType.caption.fontSize);
+      expect(OrtizFontSize.bodySm, OrtizType.bodySm.fontSize);
+      expect(OrtizFontSize.body, OrtizType.body.fontSize);
+      expect(OrtizFontSize.titleSm, OrtizType.titleSm.fontSize);
+      expect(OrtizFontSize.title, OrtizType.title.fontSize);
+      expect(OrtizFontSize.display, OrtizType.display.fontSize);
+      expect(OrtizFontSize.displayLg, OrtizType.displayLg.fontSize);
+    });
+
+    test('la escala va en orden creciente y sin repetidos', () {
+      final s = OrtizFontSize.scale;
+      for (var i = 1; i < s.length; i++) {
+        expect(s[i], greaterThan(s[i - 1]));
+      }
+    });
+  });
+
   group('OrtizType — escala (C2)', () {
     final escala = <String, (TextStyle, String, double)>{
       'caption': (OrtizType.caption, OrtizType.fontBody, 11),

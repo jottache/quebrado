@@ -12,6 +12,15 @@ import '../../diario/viewmodels/diario_state.dart';
 import '../../diario/widgets/diario_image_helper.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz_animate.dart';
+
+/// Margen inferior de las listas para que el FAB extendido no tape el último
+/// hábito (88 = 48 + 32 + 8).
+const double _fabClearance = OrtizSize.minTouch + OrtizSpace.xxxl + OrtizSpace.sm;
+
 class HabitosHomeScreen extends StatefulWidget {
   const HabitosHomeScreen({super.key});
 
@@ -131,13 +140,13 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     return Scaffold(
       backgroundColor: HabitosColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: HabitosColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: isDesktop
             ? null
             : IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: HabitosColors.textPrimary),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md, color: HabitosColors.textPrimary),
                 onPressed: () => Navigator.of(context).pop(),
               ),
         title: Row(
@@ -147,24 +156,21 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
               height: 34,
               decoration: BoxDecoration(
                 color: HabitosColors.primaryLight,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: HabitosColors.primary.withOpacity(0.20),
-                  width: 1,
-                ),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                border: Border.all(color: HabitosColors.primaryBorder),
               ),
               child: const Icon(
                 Icons.track_changes_rounded,
                 color: HabitosColors.primary,
-                size: 19,
+                size: OrtizIconSize.md,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: OrtizSpace.sm),
             const Text(
               'Hábitos',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
-                fontSize: 18,
+                fontSize: OrtizFontSize.title,
                 color: HabitosColors.textPrimary,
                 letterSpacing: -0.3,
               ),
@@ -182,7 +188,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                 );
               },
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: OrtizSpace.xs),
           ],
         ],
       ),
@@ -198,33 +204,33 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     Expanded(
                       flex: 6,
                       child: ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                        padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
                         children: [
                           _buildProgressCard(state),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: OrtizSpace.md),
                           _buildDateNavigator(state),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: OrtizSpace.md),
                           _buildFilterRow(state),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: OrtizSpace.md),
                           _buildContactFilterRow(context, state),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: OrtizSpace.md),
                           if (state.filteredHabits.isEmpty)
                             _buildEmptyState(context)
                           else
-                            ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                            ..._buildHabitList(context, state),
                         ],
                       ),
                     ),
                     // Línea divisoria vertical
                     Container(
                       width: 1,
-                      color: HabitosColors.cardBorder.withOpacity(0.7),
+                      color: HabitosColors.cardBorder.withValues(alpha: 0.7),
                     ),
                     // Columna 2: Métricas y Progreso en tiempo real
                     const Expanded(
                       flex: 5,
                       child: HabitosMetricsView(
-                        padding: EdgeInsets.fromLTRB(16, 16, 16, 88),
+                        padding: EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
                       ),
                     ),
                   ],
@@ -233,29 +239,29 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1100),
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+                      padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.lg, OrtizSpace.lg, _fabClearance),
                       children: [
                         // 1. Progress Banner Card
                         _buildProgressCard(state),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: OrtizSpace.md),
 
                         // 2. Date Navigation Bar
                         _buildDateNavigator(state),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: OrtizSpace.md),
 
                         // 3. Filter Chips
                         _buildFilterRow(state),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: OrtizSpace.md),
 
                         // 3.1 Contact Filter Chips
                         _buildContactFilterRow(context, state),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: OrtizSpace.md),
 
                         // 4. Habits List
                         if (state.filteredHabits.isEmpty)
                           _buildEmptyState(context)
                         else
-                          ...state.filteredHabits.map((habit) => _buildHabitCard(context, habit, state)),
+                          ..._buildHabitList(context, state),
                       ],
                     ),
                   ),
@@ -268,39 +274,37 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
           );
         },
         backgroundColor: HabitosColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: OrtizPalette.onAccent,
         elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add_rounded, size: 22),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
+        icon: const Icon(Icons.add_rounded, size: OrtizIconSize.lg),
         label: const Text(
           'Nuevo Hábito',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.body),
         ),
       ),
     );
   }
 
-  /// Tarjeta de resumen y progreso general del día seleccionado
+  /// Lista de hábitos con entrada escalonada (`ortizStaggered`; respeta
+  /// reducir movimiento y no deja Timers al desmontar).
+  List<Widget> _buildHabitList(BuildContext context, HabitosState state) {
+    final habits = state.filteredHabits;
+    return [
+      for (var i = 0; i < habits.length; i++)
+        ortizStaggered(context, i, _buildHabitCard(context, habits[i], state)),
+    ];
+  }
+
+  /// Resumen y progreso general del día seleccionado (sin tarjeta).
   Widget _buildProgressCard(HabitosState state) {
     final rate = state.selectedDayCompletionRate;
     final completed = state.selectedDayCompletedCount;
     final total = state.allHabits.length;
     final pct = (rate * 100).round();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: HabitosColors.cardBorder, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: HabitosColors.primary.withOpacity(0.04),
-            offset: const Offset(0, 4),
-            blurRadius: 14,
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -313,17 +317,17 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                   Text(
                     state.isViewingToday ? 'PROGRESO DE HOY' : 'DÍA ${state.selectedDateKey}',
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.w800,
                       color: HabitosColors.textSecondary,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: OrtizSpace.xxs),
                   Text(
                     total > 0 ? '$completed de $total completados' : 'Sin hábitos registrados',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.w900,
                       color: HabitosColors.textPrimary,
                       letterSpacing: -0.3,
@@ -332,19 +336,16 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                 decoration: BoxDecoration(
                   color: HabitosColors.primaryLight,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: HabitosColors.primary.withOpacity(0.20),
-                    width: 1,
-                  ),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                  border: Border.all(color: HabitosColors.primaryBorder),
                 ),
                 child: Text(
                   '$pct%',
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: FontWeight.w900,
                     color: HabitosColors.primary,
                   ),
@@ -352,9 +353,9 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: OrtizSpace.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
             child: LinearProgressIndicator(
               value: total > 0 ? rate : 0.0,
               minHeight: 8,
@@ -375,17 +376,13 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     final totalDays = _daysPast + _daysFuture + 1;
     final allDays = List.generate(totalDays, (i) => _startDate.add(Duration(days: i)));
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: HabitosColors.cardBorder, width: 1.2),
-      ),
+    // Sin tarjeta: la fila de días va sobre el fondo; lo activo resalta solo.
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded, size: 22),
+            icon: const Icon(Icons.chevron_left_rounded, size: OrtizIconSize.lg),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
@@ -416,31 +413,22 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         state.selectDate(d);
                         _scrollToDate(d, animate: true);
                       },
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: _dateItemWidth,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? HabitosColors.primary
                               : (isToday ? HabitosColors.primaryLight : Colors.transparent),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(OrtizRadius.field),
                           border: Border.all(
                             color: isSelected
                                 ? HabitosColors.primary
-                                : (isToday ? HabitosColors.primary.withOpacity(0.35) : Colors.transparent),
+                                : (isToday ? HabitosColors.primaryBorder : Colors.transparent),
                             width: 1.2,
                           ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: HabitosColors.primary.withOpacity(0.25),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -448,21 +436,21 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                             Text(
                               weekdayStr,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w700,
                                 color: isSelected
-                                    ? Colors.white
+                                    ? OrtizPalette.onAccent
                                     : (isToday ? HabitosColors.primary : HabitosColors.textSecondary),
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: OrtizSpace.xxs),
                             Text(
                               '${d.day}',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.w900,
                                 color: isSelected
-                                    ? Colors.white
+                                    ? OrtizPalette.onAccent
                                     : (isToday ? HabitosColors.primary : HabitosColors.textPrimary),
                               ),
                             ),
@@ -476,7 +464,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded, size: 22),
+            icon: const Icon(Icons.chevron_right_rounded, size: OrtizIconSize.lg),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
@@ -487,21 +475,21 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             tooltip: 'Día siguiente',
           ),
           if (!state.isViewingToday) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: OrtizSpace.xs),
             TextButton(
               onPressed: () {
                 state.selectToday();
                 _scrollToDate(DateTime.now(), animate: true);
               },
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                 backgroundColor: HabitosColors.primaryLight,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
               child: const Text(
                 'Hoy',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w800,
                   color: HabitosColors.primary,
                 ),
@@ -545,7 +533,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
           },
           tooltip: 'Desplazar a la izquierda',
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: OrtizSpace.xs),
         Expanded(
           child: SingleChildScrollView(
             controller: controller,
@@ -554,7 +542,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             child: child,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: OrtizSpace.xs),
         _scrollNavButton(
           icon: Icons.chevron_right_rounded,
           onTap: () {
@@ -583,23 +571,16 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           child: Container(
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: HabitosColors.surface,
               shape: BoxShape.circle,
               border: Border.all(color: HabitosColors.cardBorder, width: 1.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  offset: const Offset(0, 1),
-                  blurRadius: 3,
-                ),
-              ],
             ),
-            child: Icon(icon, size: 18, color: HabitosColors.textSecondary),
+            child: Icon(icon, size: OrtizIconSize.sm, color: HabitosColors.textSecondary),
           ),
         ),
       ),
@@ -614,12 +595,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
       child: Row(
         children: [
           _filterChip(state, 'all', 'Todos'),
-          const SizedBox(width: 8),
+          const SizedBox(width: OrtizSpace.sm),
           _filterChip(state, 'good', 'Buenos Hábitos'),
-          const SizedBox(width: 8),
+          const SizedBox(width: OrtizSpace.sm),
           _filterChip(state, 'bad', 'Malos Hábitos'),
           if (state.stacks.isNotEmpty) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: OrtizSpace.sm),
             ...state.stacks.map((s) => _filterChip(state, 'stacks', s.name, stackId: s.id)),
           ],
         ],
@@ -632,32 +613,23 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
     return InkWell(
       onTap: () => state.setFilter(filter, stackId: stackId),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(OrtizRadius.dialog),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
         decoration: BoxDecoration(
-          color: isSelected ? HabitosColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? HabitosColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.dialog),
           border: Border.all(
             color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
             width: 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: HabitosColors.primary.withOpacity(0.15),
-                    offset: const Offset(0, 2),
-                    blurRadius: 6,
-                  )
-                ]
-              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected ? Colors.white : HabitosColors.textSecondary,
+            color: isSelected ? OrtizPalette.onAccent : HabitosColors.textSecondary,
           ),
         ),
       ),
@@ -685,30 +657,30 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          padding: const EdgeInsets.only(left: OrtizSpace.xs, bottom: OrtizSpace.xs),
           child: Row(
             children: [
-              const Icon(Icons.person_pin_circle_outlined, size: 13, color: HabitosColors.textSecondary),
-              const SizedBox(width: 4),
+              const Icon(Icons.person_pin_circle_outlined, size: OrtizIconSize.xs, color: HabitosColors.textSecondary),
+              const SizedBox(width: OrtizSpace.xs),
               const Text(
                 'CONTACTO ASOCIADO',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w800,
                   color: HabitosColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
               if (state.selectedContactId != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 InkWell(
                   onTap: () => state.setContactFilter(null),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: HabitosColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -716,13 +688,13 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         Text(
                           'Quitar filtro',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: FontWeight.w700,
                             color: HabitosColors.primary,
                           ),
                         ),
-                        SizedBox(width: 2),
-                        Icon(Icons.close_rounded, size: 11, color: HabitosColors.primary),
+                        SizedBox(width: OrtizSpace.xxs),
+                        Icon(Icons.close_rounded, size: OrtizIconSize.xs, color: HabitosColors.primary),
                       ],
                     ),
                   ),
@@ -744,7 +716,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
               ),
               ...contacts.map((c) {
                 return Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: OrtizSpace.sm),
                   child: _contactFilterChip(
                     state: state,
                     contactId: c.id,
@@ -754,7 +726,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                   ),
                 );
               }),
-              const SizedBox(width: 8),
+              const SizedBox(width: OrtizSpace.sm),
               _contactFilterChip(
                 state: state,
                 contactId: '__none__',
@@ -780,79 +752,70 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
     return InkWell(
       onTap: () => state.setContactFilter(contactId),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(OrtizRadius.dialog),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
         decoration: BoxDecoration(
-          color: isSelected ? HabitosColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? HabitosColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.dialog),
           border: Border.all(
             color: isSelected ? HabitosColors.primary : HabitosColors.cardBorder,
             width: 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: HabitosColors.primary.withOpacity(0.15),
-                    offset: const Offset(0, 2),
-                    blurRadius: 5,
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (avatarUrl != null && avatarUrl.isNotEmpty) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 child: SizedBox(
                   width: 16,
                   height: 16,
                   child: DiarioImageHelper.buildImageWidget(avatarUrl, fit: BoxFit.cover),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: OrtizSpace.xs),
             ] else if (icon != null) ...[
-              Icon(icon, size: 14, color: isSelected ? Colors.white : HabitosColors.textSecondary),
-              const SizedBox(width: 5),
+              Icon(icon, size: OrtizIconSize.xs, color: isSelected ? OrtizPalette.onAccent : HabitosColors.textSecondary),
+              const SizedBox(width: OrtizSpace.xs),
             ] else ...[
               CircleAvatar(
                 radius: 8,
-                backgroundColor: isSelected ? Colors.white.withOpacity(0.3) : HabitosColors.primaryLight,
+                backgroundColor: isSelected ? OrtizPalette.onAccent.withValues(alpha: 0.15) : HabitosColors.primaryLight,
                 child: Text(
                   label.isNotEmpty ? label[0].toUpperCase() : '?',
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: OrtizFontSize.micro,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : HabitosColors.primary,
+                    color: isSelected ? OrtizPalette.onAccent : HabitosColors.primary,
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: OrtizSpace.xs),
             ],
             Text(
               label,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: OrtizFontSize.caption,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? Colors.white : HabitosColors.textSecondary,
+                color: isSelected ? OrtizPalette.onAccent : HabitosColors.textSecondary,
               ),
             ),
             if (count != null) ...[
-              const SizedBox(width: 5),
+              const SizedBox(width: OrtizSpace.xs),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white.withOpacity(0.25) : HabitosColors.primaryLight,
-                  borderRadius: BorderRadius.circular(8),
+                  color: isSelected ? OrtizPalette.onAccent.withValues(alpha: 0.15) : HabitosColors.primaryLight,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
                 child: Text(
                   '$count',
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: OrtizFontSize.micro,
                     fontWeight: FontWeight.w900,
-                    color: isSelected ? Colors.white : HabitosColors.primary,
+                    color: isSelected ? OrtizPalette.onAccent : HabitosColors.primary,
                   ),
                 ),
               ),
@@ -876,25 +839,13 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         ? diarioState.contacts.where((c) => c.id == habit.contactId).firstOrNull
         : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDone ? HabitosColors.primary.withOpacity(0.35) : HabitosColors.cardBorder,
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDone ? HabitosColors.primary.withOpacity(0.04) : Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
+    // Fila sin tarjeta: la separa de la siguiente una línea `line`.
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: HabitosColors.cardBorder)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -909,7 +860,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       HapticFeedback.lightImpact();
                       state.incrementCounter(habit.id);
                     },
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: 32,
@@ -918,7 +869,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         color: isDone ? HabitosColors.primary : HabitosColors.primaryLight,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isDone ? HabitosColors.primary : HabitosColors.primary.withOpacity(0.35),
+                          color: isDone ? HabitosColors.primary : HabitosColors.primary.withValues(alpha: 0.35),
                           width: 1.5,
                         ),
                       ),
@@ -926,9 +877,9 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       child: Text(
                         '+1',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: OrtizFontSize.bodySm,
                           fontWeight: FontWeight.w900,
-                          color: isDone ? Colors.white : HabitosColors.primary,
+                          color: isDone ? OrtizPalette.onAccent : HabitosColors.primary,
                         ),
                       ),
                     ),
@@ -939,7 +890,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       HapticFeedback.lightImpact();
                       state.toggleHabitCompletion(habit.id);
                     },
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: 32,
@@ -948,12 +899,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         color: isDone ? HabitosColors.primary : Colors.transparent,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isDone ? HabitosColors.primary : Colors.grey[350]!,
+                          color: isDone ? HabitosColors.primary : HabitosColors.textMuted,
                           width: 2,
                         ),
                       ),
                       child: isDone
-                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                          ? const Icon(Icons.check_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.sm)
                           : null,
                     ),
                   )
@@ -964,12 +915,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     decoration: BoxDecoration(
                       color: HabitosColors.roseLight,
                       shape: BoxShape.circle,
-                      border: Border.all(color: HabitosColors.rose.withOpacity(0.25), width: 1),
+                      border: Border.all(color: HabitosColors.rose.withValues(alpha: 0.25), width: 1),
                     ),
-                    child: const Icon(Icons.shield_outlined, color: HabitosColors.rose, size: 16),
+                    child: const Icon(Icons.shield_outlined, color: HabitosColors.rose, size: OrtizIconSize.sm),
                   ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: OrtizSpace.md),
 
                 // 2. Título & Detalles
                 Expanded(
@@ -986,7 +937,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         Text(
                           habit.title,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.w800,
                             color: HabitosColors.textPrimary,
                             decoration: (isDone && !habit.isNegative && habit.type != HabitType.counter) ? TextDecoration.lineThrough : null,
@@ -995,31 +946,31 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         ),
                         if (habit.description != null && habit.description!.isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 2),
+                            padding: const EdgeInsets.only(top: OrtizSpace.xxs),
                             child: Text(
                               habit.description!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: HabitosColors.textSecondary),
+                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: HabitosColors.textSecondary),
                             ),
                           ),
                         if (linkedContact != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.only(top: OrtizSpace.xs),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                               decoration: BoxDecoration(
                                 color: HabitosColors.primaryLight,
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.person_outline_rounded, size: 12, color: HabitosColors.primary),
-                                  const SizedBox(width: 4),
+                                  const Icon(Icons.person_outline_rounded, size: OrtizIconSize.xs, color: HabitosColors.primary),
+                                  const SizedBox(width: OrtizSpace.xs),
                                   Text(
                                     linkedContact.name,
-                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: HabitosColors.primary),
+                                    style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w700, color: HabitosColors.primary),
                                   ),
                                 ],
                               ),
@@ -1030,16 +981,16 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
 
                 // 3. Insignia de Racha
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                   decoration: BoxDecoration(
                     color: habit.isNegative ? HabitosColors.amberLight : HabitosColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     border: Border.all(
-                      color: (habit.isNegative ? HabitosColors.amber : HabitosColors.primary).withOpacity(0.20),
+                      color: (habit.isNegative ? HabitosColors.amber : HabitosColors.primary).withValues(alpha: 0.20),
                       width: 1,
                     ),
                   ),
@@ -1048,14 +999,14 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     children: [
                       Icon(
                         habit.isNegative ? Icons.verified_user_rounded : Icons.local_fire_department_rounded,
-                        size: 13,
+                        size: OrtizIconSize.xs,
                         color: habit.isNegative ? HabitosColors.amber : HabitosColors.primary,
                       ),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: OrtizSpace.xxs),
                       Text(
                         habit.isNegative ? '$cleanDays d' : '$streak d',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.w900,
                           color: habit.isNegative ? HabitosColors.amber : HabitosColors.primary,
                         ),
@@ -1066,7 +1017,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
                 // 4. Botón de detalle
                 IconButton(
-                  icon: const Icon(Icons.chevron_right_rounded, size: 20, color: HabitosColors.textMuted),
+                  icon: const Icon(Icons.chevron_right_rounded, size: OrtizIconSize.md, color: HabitosColors.textMuted),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                   onPressed: () {
@@ -1081,12 +1032,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
             // Controles de Contador Infinito
             if (habit.type == HabitType.counter) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
                   color: HabitosColors.background,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(color: HabitosColors.cardBorder, width: 1),
                 ),
                 child: Row(
@@ -1096,12 +1047,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       children: [
                         Text(
                           habit.isNegative ? 'RECAÍDAS DEL DÍA' : 'REGISTRO DE HOY',
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
+                          style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: HabitosColors.textSecondary),
                         ),
                         Text(
                           '${counterVal.toInt()} ${habit.unit ?? "veces"}',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.w900,
                             color: habit.isNegative && counterVal > 0 ? HabitosColors.rose : HabitosColors.primary,
                           ),
@@ -1114,7 +1065,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         label: '-1',
                         onTap: () => state.updateHabitValue(habit.id, -1),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: OrtizSpace.sm),
                     ],
                     _circleCountBtn(
                       label: '+1',
@@ -1128,12 +1079,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
             // Controles de Hábito Cuantitativo
             if (habit.type == HabitType.quantitative) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
                   color: HabitosColors.background,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(color: HabitosColors.cardBorder, width: 1),
                 ),
                 child: Row(
@@ -1141,7 +1092,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                     Text(
                       '${currentVal.toInt()} / ${habit.targetValue.toInt()} ${habit.unit ?? ""}',
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.w800,
                         color: HabitosColors.textPrimary,
                       ),
@@ -1151,14 +1102,14 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                       label: '-1',
                       onTap: () => state.updateHabitValue(habit.id, -1),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: OrtizSpace.xs),
                     _circleCountBtn(
                       label: '+1',
                       isPrimary: true,
                       onTap: () => state.updateHabitValue(habit.id, 1),
                     ),
                     if (habit.targetValue >= 100) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(width: OrtizSpace.xs),
                       _circleCountBtn(
                         label: '+250',
                         isPrimary: true,
@@ -1172,18 +1123,18 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
             // Controles de Temporizador
             if (habit.type == HabitType.timer) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: OrtizSpace.md),
               _buildTimerControls(habit, state, isDone),
             ],
 
             // Controles de Malos Hábitos (Abstinencia)
             if (habit.isNegative) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                 decoration: BoxDecoration(
                   color: HabitosColors.background,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                   border: Border.all(color: HabitosColors.cardBorder, width: 1),
                 ),
                 child: Row(
@@ -1191,12 +1142,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.shield_rounded, size: 16, color: HabitosColors.primary),
-                        const SizedBox(width: 6),
+                        const Icon(Icons.shield_rounded, size: OrtizIconSize.sm, color: HabitosColors.primary),
+                        const SizedBox(width: OrtizSpace.xs),
                         Text(
                           '$cleanDays días libre',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.w800,
                             color: HabitosColors.textPrimary,
                           ),
@@ -1208,15 +1159,15 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            backgroundColor: HabitosColors.surface,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
                             title: const Text(
                               '¿Registrar recaída?',
-                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm),
                             ),
                             content: const Text(
                               'El contador de días limpios se reiniciará hoy. Sé amable contigo mismo y vuelve a empezar.',
-                              style: TextStyle(fontSize: 13, color: HabitosColors.textSecondary),
+                              style: TextStyle(fontSize: OrtizFontSize.bodySm, color: HabitosColors.textSecondary),
                             ),
                             actions: [
                               TextButton(
@@ -1227,8 +1178,8 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                                 onPressed: () => Navigator.of(ctx).pop(true),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: HabitosColors.rose,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  foregroundColor: OrtizPalette.onAccent,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                                 ),
                                 child: const Text('Confirmar Recaída'),
                               ),
@@ -1240,23 +1191,23 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
                           state.reportRelapse(habit.id);
                         }
                       },
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
                         decoration: BoxDecoration(
                           color: HabitosColors.roseLight,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: HabitosColors.rose.withOpacity(0.3), width: 1),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                          border: Border.all(color: HabitosColors.rose.withValues(alpha: 0.3), width: 1),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.report_problem_rounded, size: 13, color: HabitosColors.rose),
-                            SizedBox(width: 4),
+                            Icon(Icons.report_problem_rounded, size: OrtizIconSize.xs, color: HabitosColors.rose),
+                            SizedBox(width: OrtizSpace.xs),
                             Text(
                               'Recaída',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w800,
                                 color: HabitosColors.rose,
                               ),
@@ -1285,12 +1236,12 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         HapticFeedback.selectionClick();
         onTap();
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
         decoration: BoxDecoration(
-          color: isPrimary ? HabitosColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: isPrimary ? HabitosColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           border: Border.all(
             color: isPrimary ? HabitosColors.primary : HabitosColors.cardBorder,
             width: 1,
@@ -1299,9 +1250,9 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.w800,
-            color: isPrimary ? Colors.white : HabitosColors.textPrimary,
+            color: isPrimary ? OrtizPalette.onAccent : HabitosColors.textPrimary,
           ),
         ),
       ),
@@ -1317,24 +1268,24 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
     final seconds = (displaySec % 60).toString().padLeft(2, '0');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
       decoration: BoxDecoration(
         color: HabitosColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
         border: Border.all(color: HabitosColors.cardBorder, width: 1),
       ),
       child: Row(
         children: [
           Icon(
             isRunning ? Icons.timer_rounded : Icons.timer_outlined,
-            size: 18,
+            size: OrtizIconSize.sm,
             color: isRunning ? HabitosColors.primary : HabitosColors.textSecondary,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: OrtizSpace.sm),
           Text(
             '$minutes:$seconds min',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: OrtizFontSize.body,
               fontWeight: FontWeight.w900,
               color: HabitosColors.textPrimary,
             ),
@@ -1343,33 +1294,33 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
           if (!isRunning) ...[
             ElevatedButton.icon(
               onPressed: () => _startTimer(habit, state),
-              icon: const Icon(Icons.play_arrow_rounded, size: 16),
+              icon: const Icon(Icons.play_arrow_rounded, size: OrtizIconSize.sm),
               label: Text(isDone ? 'Repetir' : 'Iniciar'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HabitosColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                foregroundColor: OrtizPalette.onAccent,
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                 minimumSize: Size.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
             ),
           ] else ...[
             OutlinedButton.icon(
               onPressed: _pauseTimer,
-              icon: const Icon(Icons.pause_rounded, size: 16),
+              icon: const Icon(Icons.pause_rounded, size: OrtizIconSize.sm),
               label: const Text('Pausar'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: HabitosColors.primary,
                 side: const BorderSide(color: HabitosColors.primary),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
                 minimumSize: Size.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
               ),
             ),
           ],
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, size: 18, color: HabitosColors.textSecondary),
+            icon: const Icon(Icons.refresh_rounded, size: OrtizIconSize.sm, color: HabitosColors.textSecondary),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             onPressed: () => _resetTimer(habit, state),
@@ -1382,12 +1333,7 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: HabitosColors.cardBorder),
-      ),
+      padding: const EdgeInsets.all(OrtizSpace.xxxl),
       child: Column(
         children: [
           Container(
@@ -1395,20 +1341,20 @@ class _HabitosHomeScreenState extends State<HabitosHomeScreen> {
             height: 48,
             decoration: BoxDecoration(
               color: HabitosColors.primaryLight,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
             ),
-            child: const Icon(Icons.playlist_add_check_rounded, color: HabitosColors.primary, size: 28),
+            child: const Icon(Icons.playlist_add_check_rounded, color: HabitosColors.primary, size: OrtizIconSize.lg),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
           const Text(
             'No hay hábitos en esta sección',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: HabitosColors.textPrimary),
+            style: TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w800, color: HabitosColors.textPrimary),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: OrtizSpace.xs),
           const Text(
             'Crea tu primer hábito o selecciona otro filtro arriba.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: HabitosColors.textSecondary),
+            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: HabitosColors.textSecondary),
           ),
         ],
       ),

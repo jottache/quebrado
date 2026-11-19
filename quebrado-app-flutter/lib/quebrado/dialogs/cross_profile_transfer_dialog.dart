@@ -4,9 +4,10 @@ import '../models/currency_type.dart';
 import '../services/db_helper.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
-import '../widgets/claymorphic_card.dart';
-import '../widgets/slide_to_confirm_button.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 import '../services/biometric_service.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class CrossProfileTransferBottomSheet extends StatefulWidget {
   final AppState appState;
 
@@ -180,15 +181,15 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(OrtizRadius.sheet),
+          topRight: Radius.circular(OrtizRadius.sheet),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: keyboardPadding > 0 ? keyboardPadding + 24 : 32,
+        left: OrtizSpace.xxl,
+        right: OrtizSpace.xxl,
+        top: OrtizSpace.xxl,
+        bottom: keyboardPadding > 0 ? keyboardPadding + OrtizSpace.xxl : OrtizSpace.xxxl,
       ),
       child: Form(
         key: _formKey,
@@ -203,7 +204,7 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
                   Text(
                     "Transferir a otro libro",
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: OrtizFontSize.title,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
@@ -214,22 +215,22 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              SizedBox(height: OrtizSpace.sm),
               Text(
                 "Mueve dinero desde tu contabilidad actual hacia otra contabilidad.",
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
+                  fontSize: OrtizFontSize.body,
+                  color: OrtizPalette.muted,
                 ),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
 
               if (_availableTargetProfiles.isEmpty)
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(OrtizSpace.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.expense.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.expense.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                   ),
                   child: Text(
                     "No tienes otros libros contables creados. Crea uno primero en la configuración.",
@@ -238,109 +239,98 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
                 )
               else ...[
                 // Amount Input
-                ClaymorphicCard(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: TextFormField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: "Monto a transferir",
-                      hintText: _getSourceAccount()?.currency == CurrencyType.usd ? "0.00 \$" : (_getSourceAccount()?.currency == CurrencyType.eur ? "0.00 €" : "0.00 Bs."),
-                      border: InputBorder.none,
-                    ),
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return "Ingresa un monto";
-                      final parsed = double.tryParse(val);
-                      if (parsed == null) return "Monto inválido";
-                      final sourceAcc = _getSourceAccount();
-                      if (sourceAcc != null && parsed > sourceAcc.balance) {
-                        return "Saldo insuficiente";
-                      }
-                      return null;
-                    },
-                    onChanged: (_) => setState(() {}),
+                // Campos sin tarjeta: el tema les da fondo y borde.
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: "Monto a transferir",
+                    hintText: _getSourceAccount()?.currency == CurrencyType.usd ? "0.00 \$" : (_getSourceAccount()?.currency == CurrencyType.eur ? "0.00 €" : "0.00 Bs."),
                   ),
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return "Ingresa un monto";
+                    final parsed = double.tryParse(val);
+                    if (parsed == null) return "Monto inválido";
+                    final sourceAcc = _getSourceAccount();
+                    if (sourceAcc != null && parsed > sourceAcc.balance) {
+                      return "Saldo insuficiente";
+                    }
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: OrtizSpace.lg),
 
                 // Source Account
-                ClaymorphicCard(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _selectedSourceAccountId,
-                    decoration: InputDecoration(
-                      labelText: "Cuenta Origen (Actual)",
-                      border: InputBorder.none,
-                    ),
-                    items: widget.appState.accounts.map((acc) {
-                      return DropdownMenuItem(
-                        value: acc.id,
-                        child: Text("${acc.name} (${acc.currency == CurrencyType.usd ? '\$' : 'Bs'})"),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedSourceAccountId = val;
-                      });
-                      if (_selectedTargetProfileId != null) {
-                        _loadTargetAccounts(_selectedTargetProfileId!);
-                      }
-                    },
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedSourceAccountId,
+                  decoration: const InputDecoration(
+                    labelText: "Cuenta Origen (Actual)",
                   ),
+                  items: widget.appState.accounts.map((acc) {
+                    return DropdownMenuItem(
+                      value: acc.id,
+                      child: Text("${acc.name} (${acc.currency == CurrencyType.usd ? '\$' : 'Bs'})"),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedSourceAccountId = val;
+                    });
+                    if (_selectedTargetProfileId != null) {
+                      _loadTargetAccounts(_selectedTargetProfileId!);
+                    }
+                  },
                 ),
                 if (_getSourceAccount() != null)
                   Padding(
-                    padding: EdgeInsets.only(top: 8.0, left: 16.0),
+                    padding: EdgeInsets.only(top: OrtizSpace.sm, left: OrtizSpace.lg),
                     child: Text(
                       "Saldo disponible: ${_getSourceAccount()!.currency == CurrencyType.usd ? '\$' : 'Bs'}${_getSourceAccount()!.balance.toStringAsFixed(2)}",
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                        fontSize: OrtizFontSize.bodySm,
+                        color: OrtizPalette.muted,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
 
                 Divider(),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
 
                 // Target Profile
-                ClaymorphicCard(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _selectedTargetProfileId,
-                    decoration: InputDecoration(
-                      labelText: "Libro Destino",
-                      border: InputBorder.none,
-                    ),
-                    items: _availableTargetProfiles.map((p) {
-                      return DropdownMenuItem(
-                        value: p['id'],
-                        child: Text(p['name'] ?? 'Desconocido'),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null && val != _selectedTargetProfileId) {
-                        setState(() {
-                          _selectedTargetProfileId = val;
-                        });
-                        _loadTargetAccounts(val);
-                      }
-                    },
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedTargetProfileId,
+                  decoration: const InputDecoration(
+                    labelText: "Libro Destino",
                   ),
+                  items: _availableTargetProfiles.map((p) {
+                    return DropdownMenuItem(
+                      value: p['id'],
+                      child: Text(p['name'] ?? 'Desconocido'),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null && val != _selectedTargetProfileId) {
+                      setState(() {
+                        _selectedTargetProfileId = val;
+                      });
+                      _loadTargetAccounts(val);
+                    }
+                  },
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
 
                 // Target Account
                 if (_isLoadingAccounts)
                   Center(child: CircularProgressIndicator())
                 else if (_targetProfileAccounts.isEmpty)
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(OrtizSpace.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.expense.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.expense.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: Text(
                       "Este libro no tiene cuentas disponibles.",
@@ -348,54 +338,43 @@ class _CrossProfileTransferBottomSheetState extends State<CrossProfileTransferBo
                     ),
                   )
                 else
-                  ClaymorphicCard(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedTargetAccountId,
-                      decoration: InputDecoration(
-                        labelText: "Cuenta Destino",
-                        border: InputBorder.none,
-                      ),
-                      items: _targetProfileAccounts.map((acc) {
-                        return DropdownMenuItem(
-                          value: acc.id,
-                          child: Text("${acc.name} (${acc.currency == CurrencyType.usd ? '\$' : 'Bs'})"),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedTargetAccountId = val;
-                        });
-                      },
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedTargetAccountId,
+                    decoration: const InputDecoration(
+                      labelText: "Cuenta Destino",
                     ),
+                    items: _targetProfileAccounts.map((acc) {
+                      return DropdownMenuItem(
+                        value: acc.id,
+                        child: Text("${acc.name} (${acc.currency == CurrencyType.usd ? '\$' : 'Bs'})"),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedTargetAccountId = val;
+                      });
+                    },
                   ),
 
-                SizedBox(height: 32),
+                SizedBox(height: OrtizSpace.xxxl),
 
                 // Confirm Button
-                widget.appState.useSlideToConfirm
-                    ? SlideToConfirmButton(
-                        enabled: _targetProfileAccounts.isNotEmpty && 
-                                 (double.tryParse(_amountController.text) ?? 0.0) > 0,
-                        label: "Desliza para transferir",
-                        onConfirmed: _handleTransfer,
-                      )
-                    : ElevatedButton(
+                ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          foregroundColor: OrtizPalette.onAccent,
+                          padding: const EdgeInsets.symmetric(vertical: OrtizSpace.lg),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(OrtizRadius.block),
                           ),
-                          elevation: 2,
+                          elevation: 0,
                         ),
                         onPressed: (_targetProfileAccounts.isEmpty || (double.tryParse(_amountController.text) ?? 0.0) <= 0)
                             ? null
                             : _handleTransfer,
                         child: Text(
                           "Transferir",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: OrtizFontSize.titleSm, fontWeight: FontWeight.bold),
                         ),
                       ),
               ],

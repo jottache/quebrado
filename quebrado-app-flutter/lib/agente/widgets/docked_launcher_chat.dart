@@ -5,6 +5,9 @@ import '../viewmodels/agente_state.dart';
 import '../dialogs/prompt_editor_dialog.dart';
 import 'agente_chat_bottom_sheet.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class DockedLauncherChat extends StatelessWidget {
   const DockedLauncherChat({super.key});
 
@@ -14,21 +17,15 @@ class DockedLauncherChat extends StatelessWidget {
     final prompts = agenteState.quickPrompts;
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            offset: const Offset(0, -4),
-            blurRadius: 20,
-          ),
-        ],
+      // Campo del chat anclado: flota sobre `surface`, sin sombra.
+      decoration: const BoxDecoration(
+        color: OrtizPalette.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.sm, OrtizSpace.lg, OrtizSpace.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -41,21 +38,21 @@ class DockedLauncherChat extends StatelessWidget {
                         physics: const BouncingScrollPhysics(),
                         children: [
                           ActionChip(
-                            avatar: const Icon(Icons.add_rounded, size: 16, color: AgenteColors.primary),
+                            avatar: const Icon(Icons.add_rounded, size: OrtizIconSize.sm, color: AgenteColors.primary),
                             label: const Text(
                               'Personalizar atajos de consulta',
                               style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w700,
                                 color: AgenteColors.primary,
                               ),
                             ),
                             backgroundColor: AgenteColors.primaryLight,
-                            side: BorderSide(color: AgenteColors.primary.withOpacity(0.3)),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                            side: BorderSide(color: AgenteColors.primary.withValues(alpha: 0.3)),
+                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: 0),
                             visualDensity: VisualDensity.compact,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(OrtizRadius.block),
                             ),
                             onPressed: () async {
                               final newPrompt = await PromptEditorDialog.show(context);
@@ -70,7 +67,7 @@ class DockedLauncherChat extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
                         itemCount: prompts.length + 1,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        separatorBuilder: (_, __) => const SizedBox(width: OrtizSpace.sm),
                         itemBuilder: (context, index) {
                           if (index < prompts.length) {
                             final prompt = prompts[index];
@@ -79,22 +76,22 @@ class DockedLauncherChat extends StatelessWidget {
                                 : prompt.text;
                             return ActionChip(
                               avatar: prompt.label != null
-                                  ? const Icon(Icons.bolt_rounded, size: 14, color: AgenteColors.primary)
+                                  ? const Icon(Icons.bolt_rounded, size: OrtizIconSize.sm, color: AgenteColors.primary)
                                   : null,
                               label: Text(
                                 displayText,
                                 style: const TextStyle(
-                                  fontSize: 11.5,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: OrtizPalette.fg,
                                 ),
                               ),
-                              backgroundColor: const Color(0xFFF8FAFC),
-                              side: const BorderSide(color: Color(0xFFE2E8F0)),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              backgroundColor: OrtizPalette.surfaceHigh,
+                              side: const BorderSide(color: OrtizPalette.line),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: 0),
                               visualDensity: VisualDensity.compact,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(OrtizRadius.block),
                               ),
                               onPressed: () {
                                 AgenteChatBottomSheet.show(context, initialPrompt: prompt.text);
@@ -103,21 +100,21 @@ class DockedLauncherChat extends StatelessWidget {
                           } else {
                             // Chip rápido para agregar otro prompt
                             return ActionChip(
-                              avatar: const Icon(Icons.add, size: 14, color: AgenteColors.primary),
+                              avatar: const Icon(Icons.add, size: OrtizIconSize.sm, color: AgenteColors.primary),
                               label: const Text(
                                 'Nuevo',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: OrtizFontSize.caption,
                                   fontWeight: FontWeight.w700,
                                   color: AgenteColors.primary,
                                 ),
                               ),
                               backgroundColor: AgenteColors.primaryLight,
-                              side: BorderSide(color: AgenteColors.primary.withOpacity(0.3)),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              side: BorderSide(color: AgenteColors.primary.withValues(alpha: 0.3)),
+                              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: 0),
                               visualDensity: VisualDensity.compact,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(OrtizRadius.block),
                               ),
                               onPressed: () async {
                                 final newPrompt = await PromptEditorDialog.show(context);
@@ -130,42 +127,42 @@ class DockedLauncherChat extends StatelessWidget {
                         },
                       ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: OrtizSpace.sm),
 
               // 2. Input Pill Launcher Trigger (Tapping opens the 95% bottom sheet modal)
               InkWell(
                 onTap: () {
                   AgenteChatBottomSheet.show(context, autoFocus: true);
                 },
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(OrtizRadius.sheet),
                 child: Ink(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(26),
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.sheet),
+                    border: Border.all(color: OrtizPalette.line, width: OrtizStroke.hairline),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(OrtizSpace.xs),
+                        decoration: const BoxDecoration(
                           color: AgenteColors.primaryLight,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.auto_awesome_rounded,
-                          size: 16,
+                          size: OrtizIconSize.sm,
                           color: AgenteColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: OrtizSpace.md),
                       const Expanded(
                         child: Text(
                           'Pregúntale al Agente Ortiz...',
                           style: TextStyle(
-                            color: Colors.black54,
-                            fontSize: 13.5,
+                            color: OrtizPalette.muted,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -179,8 +176,8 @@ class DockedLauncherChat extends StatelessWidget {
                         ),
                         child: const Icon(
                           Icons.arrow_upward_rounded,
-                          color: Colors.white,
-                          size: 18,
+                          color: OrtizPalette.onAccent,
+                          size: OrtizIconSize.sm,
                         ),
                       ),
                     ],

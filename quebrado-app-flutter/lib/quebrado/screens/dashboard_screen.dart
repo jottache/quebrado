@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/app_state.dart';
 import '../models/currency_type.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/calculator_dialog.dart';
 import '../dialogs/add_transaction_dialog.dart';
@@ -27,6 +26,12 @@ import '../dialogs/super_app_hub_sheet.dart';
 import '../dialogs/book_selector_dialog.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 import '../../widgets/responsive_breakpoints.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -148,24 +153,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         elevation: 0,
         leading: isDesktop
             ? Padding(
-                padding: const EdgeInsets.only(left: 12.0),
+                padding: const EdgeInsets.only(left: OrtizSpace.md),
                 child: Center(
                   child: ActionChip(
                     avatar: const Icon(Icons.menu_book_rounded,
-                        size: 16, color: Color(0xFF1F6F5F)),
+                        size: OrtizIconSize.sm),
                     label: Text(
                       appState.activeProfileName,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F6F5F),
                       ),
                     ),
-                    backgroundColor: const Color(0xFF1F6F5F).withOpacity(0.08),
-                    side: BorderSide(
-                        color: const Color(0xFF1F6F5F).withOpacity(0.3)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
                     onPressed: () {
                       showResponsiveSheet(
                         context: context,
@@ -216,7 +215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(OrtizSpace.xxs),
                     decoration: const BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
@@ -229,8 +228,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
+                          color: OrtizPalette.onAccent,
+                          fontSize: OrtizFontSize.micro,
                           fontWeight: FontWeight.w900,
                         ),
                         textAlign: TextAlign.center,
@@ -240,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
             ],
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           IconButton(
             icon: const Icon(Icons.sync_rounded),
             iconSize: 26,
@@ -266,7 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
             },
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: OrtizSpace.xs),
           IconButton(
             icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
@@ -278,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             iconSize: 24,
@@ -297,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
             },
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: OrtizSpace.lg),
         ],
       ),
       body: RefreshIndicator(
@@ -311,10 +310,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(
-                left: isDesktop ? 24.0 : 16.0,
-                right: isDesktop ? 24.0 : 16.0,
-                top: 16.0,
-                bottom: isDesktop ? 40.0 : 140.0,
+                left: isDesktop ? OrtizSpace.xxl : OrtizSpace.lg,
+                right: isDesktop ? OrtizSpace.xxl : OrtizSpace.lg,
+                top: OrtizSpace.lg,
+                // Móvil: deja libre la barra inferior y el FAB.
+                bottom: isDesktop
+                    ? OrtizSpace.xxxl + OrtizSpace.sm
+                    : kBottomNavigationBarHeight +
+                        OrtizSize.minTouch +
+                        OrtizSpace.xxxl,
               ),
               child: isDesktop
                   ? Column(
@@ -329,16 +333,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               flex: 5,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                // Cada sección deja OrtizSpace.xxl debajo.
                                 children: [
                                   _buildBalanceSection(appState),
-                                  const SizedBox(height: 24),
                                   _buildRatesSection(appState),
-                                  const SizedBox(height: 24),
                                   _buildAccountsSection(appState),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            const SizedBox(width: OrtizSpace.xxl),
                             // Columna Derecha: Gráfica, Timeline / Proyecciones
                             Expanded(
                               flex: 5,
@@ -346,7 +349,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildChartsSection(appState),
-                                  const SizedBox(height: 24),
                                   _buildTimelineSection(appState, context),
                                 ],
                               ),
@@ -354,12 +356,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         if (appState.rateFetchError != null) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: OrtizSpace.lg),
                           Center(
                             child: Text(
                               "Error de Conexión: ${appState.rateFetchError}",
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 color: AppColors.expense,
                               ),
                               textAlign: TextAlign.center,
@@ -372,22 +374,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildFutureTransactionsCard(appState),
+                        // Cada sección deja OrtizSpace.xxl debajo.
                         _buildBalanceSection(appState),
-                        const SizedBox(height: 24),
                         _buildRatesSection(appState),
-                        const SizedBox(height: 24),
                         _buildAccountsSection(appState),
-                        const SizedBox(height: 24),
                         _buildChartsSection(appState),
-                        const SizedBox(height: 24),
                         _buildTimelineSection(appState, context),
                         if (appState.rateFetchError != null) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: OrtizSpace.lg),
                           Center(
                             child: Text(
                               "Error de Conexión: ${appState.rateFetchError}",
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: OrtizFontSize.caption,
                                 color: AppColors.expense,
                               ),
                               textAlign: TextAlign.center,
@@ -423,56 +422,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (expensesUSD <= 0) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: OrtizSpace.lg),
       child: GestureDetector(
         onTap: () {
           appState.setHistoryFilterIndex(4); // "Futuras" filter
           appState.setTabIndex(2); // "Historial" tab
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+          // Aviso (no tarjeta): mismo tono `warn` que «Programado» en Historial.
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(16),
+            color: OrtizPalette.warnTint,
+            borderRadius: BorderRadius.circular(OrtizRadius.block),
             border: Border.all(
-                color: AppColors.primary.withOpacity(0.25), width: 1),
+                color: OrtizPalette.warnBorder, width: OrtizStroke.hairline),
           ),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.info_outline_rounded,
-                color: AppColors.primary,
-                size: 18,
+                color: OrtizPalette.warn,
+                size: OrtizIconSize.sm,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: OrtizSpace.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Transacciones Programadas",
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: OrtizType.bodySm.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: OrtizPalette.warn,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: OrtizSpace.xxs),
                     Text(
                       "Tienes $count ${count == 1 ? 'pago programado' : 'pagos programados'} por un total de ${formatUSD(expensesUSD)}. Ya se descontaron de tu saldo actual.",
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: AppColors.primary.withOpacity(0.85),
-                        height: 1.3,
+                      style: OrtizType.caption.copyWith(
+                        color: OrtizPalette.fg,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.primary,
-                size: 20,
+                color: OrtizPalette.warn,
+                size: OrtizIconSize.md,
               ),
             ],
           ),
@@ -497,112 +494,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
       title: "Tasas Oficiales",
       description:
           "Consulta el precio del dólar oficial BCV, paralelo y euro. Se actualizan automáticamente si hay conexión a internet.",
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+      child: OrtizSection(
+        title: "Tasas Oficiales",
+        headerPadding:
+            const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.show_chart_rounded),
+              tooltip: 'Historial de tasas',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const RatesHistoryScreen(),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Tasas Oficiales",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardText,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.show_chart_rounded,
-                        color: AppColors.primary),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const RatesHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    icon: appState.isFetchingRates
-                        ? SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primary,
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            appState.hasInternet
-                                ? Icons.refresh_rounded
-                                : Icons.wifi_off_rounded,
-                            color: appState.hasInternet ? null : Colors.grey,
-                            size: 20,
-                          ),
-                    tooltip: appState.hasInternet
-                        ? 'Actualizar tasas'
-                        : 'Reintentar conexión',
-                    onPressed: appState.isFetchingRates
-                        ? null
-                        : () => appState.refreshRates(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ResponsiveHorizontalScroll(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: [
-                  _buildExchangeCard(
-                    title: "Oficial BCV",
-                    rate: appState.bcvRate,
-                    date: appState.rateHistory.isNotEmpty ? appState.rateHistory.first.date : null,
-                    currencySymbol: "\$",
-                    isPositiveChange: true,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildExchangeCard(
-                    title: "Euro Oficial",
-                    rate: appState.euroRate,
-                    date: appState.euroRateHistory.isNotEmpty ? appState.euroRateHistory.first.date : null,
-                    currencySymbol: "€",
-                    isPositiveChange: true,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildExchangeCard(
-                    title: "Paralelo",
-                    rate: appState.parallelRate,
-                    date: null,
-                    currencySymbol: "\$",
-                    isPositiveChange: false,
-                  ),
-                ],
-              ),
+                );
+              },
             ),
+            IconButton(
+              icon: appState.isFetchingRates
+                  ? const SizedBox(
+                      width: OrtizIconSize.sm,
+                      height: OrtizIconSize.sm,
+                      child: CircularProgressIndicator(
+                        strokeWidth: OrtizStroke.focus,
+                      ),
+                    )
+                  : Icon(
+                      appState.hasInternet
+                          ? Icons.refresh_rounded
+                          : Icons.wifi_off_rounded,
+                      color: appState.hasInternet
+                          ? null
+                          : OrtizTokens.of(context).muted,
+                      size: OrtizIconSize.md,
+                    ),
+              tooltip: appState.hasInternet
+                  ? 'Actualizar tasas'
+                  : 'Reintentar conexión',
+              onPressed: appState.isFetchingRates
+                  ? null
+                  : () => appState.refreshRates(),
+            ),
+          ],
+        ),
+        children: [
+          _buildExchangeCard(
+            title: "Oficial BCV",
+            rate: appState.bcvRate,
+            date: appState.rateHistory.isNotEmpty ? appState.rateHistory.first.date : null,
+            currencySymbol: "\$",
+            isPositiveChange: true,
+          ),
+          _buildExchangeCard(
+            title: "Euro Oficial",
+            rate: appState.euroRate,
+            date: appState.euroRateHistory.isNotEmpty ? appState.euroRateHistory.first.date : null,
+            currencySymbol: "€",
+            isPositiveChange: true,
+          ),
+          _buildExchangeCard(
+            title: "Paralelo",
+            rate: appState.parallelRate,
+            date: null,
+            currencySymbol: "\$",
+            isPositiveChange: false,
           ),
         ],
       ),
@@ -622,10 +579,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       date: date,
       badge: Text(
         currencySymbol,
-        style: TextStyle(
-          color: AppColors.primary,
+        style: OrtizType.titleSm.copyWith(
+          color: currencySymbol == "€"
+              ? AppColors.currencyEur
+              : AppColors.currencyUsd,
           fontWeight: FontWeight.w900,
-          fontSize: 22,
         ),
       ),
     );
@@ -637,135 +595,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
       title: "Cuentas y bancos",
       description:
           "Lista de cuentas bancarias y billeteras digitales. Puedes pulsar sobre una cuenta para editar su saldo, icono o color.",
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Mis Cuentas",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardText,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-              IconButton(
-                icon: Icon(Icons.add_circle_outline_rounded,
-                    color: AppColors.primary),
-                tooltip: "Agregar cuenta",
-                onPressed: () {
-                  showResponsiveSheet(
-                    context: context,
-                    builder: (context) => const AddAccountBottomSheet(),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ResponsiveHorizontalScroll(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: appState.accounts.map((acc) {
-                  final color = parseHexColor(acc.colorHex);
-                  final isUsd = acc.currency == CurrencyType.usd;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        showResponsiveSheet(
-                          context: context,
-                          builder: (context) =>
-                              AddAccountBottomSheet(editingAccount: acc),
-                        );
-                      },
-                      child: ClaymorphicCard(
-                        cornerRadius: 18,
-                        padding: const EdgeInsets.all(12.0),
-                        child: SizedBox(
-                          width: 140,
-                          height: 110,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: color.withOpacity(0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      getIconData(acc.icon),
-                                      color: color,
-                                      size: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    isUsd ? "\$" : "Bs.",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                      color: color,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              Text(
-                                acc.name,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.cardText,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isUsd
-                                    ? formatUSD(acc.balance)
-                                    : formatBs(acc.balance),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w900,
-                                  color: color,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+      child: OrtizSection(
+        title: "Mis Cuentas",
+        headerPadding:
+            const EdgeInsets.symmetric(horizontal: OrtizListRow.inset),
+        trailing: IconButton(
+          icon: const Icon(Icons.add_circle_outline_rounded),
+          tooltip: "Agregar cuenta",
+          onPressed: () {
+            showResponsiveSheet(
+              context: context,
+              builder: (context) => const AddAccountBottomSheet(),
+            );
+          },
+        ),
+        children: appState.accounts.map((acc) {
+          // Color de la cuenta: dato de la persona.
+          final color = parseHexColor(acc.colorHex);
+          final isUsd = acc.currency == CurrencyType.usd;
+          return OrtizListRow(
+            leading: Icon(getIconData(acc.icon), color: color),
+            title: acc.name,
+            subtitle: isUsd ? "Cuenta en Dólares" : "Cuenta en Bolívares",
+            trailing: OrtizAmount(
+              value: acc.balance,
+              currencySymbol: isUsd ? "\$" : "Bs.",
+              format: isUsd ? formatUSD : formatBs,
             ),
-          ),
-        ],
+            onTap: () {
+              showResponsiveSheet(
+                context: context,
+                builder: (context) =>
+                    AddAccountBottomSheet(editingAccount: acc),
+              );
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -826,66 +691,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final t = OrtizTokens.of(context);
+    return OrtizSection(
+      title: "Proyecciones Recientes",
+      trailing: TextButton(
+        onPressed: () {
+          appState.setTabIndex(1);
+          appState.initialPocketsSubTab = 2;
+        },
+        child: const Text("Ver más"),
+      ),
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  "Proyecciones Recientes",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.cardText,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () {
-                appState.setTabIndex(1);
-                appState.initialPocketsSubTab = 2;
-              },
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(50, 30),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                "Ver más",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
         Column(
           children: List.generate(dashboardItems.length, (index) {
             final item = dashboardItems[index];
             if (item is String) {
               return Padding(
                 padding: const EdgeInsets.only(
-                  top: 16.0,
-                  bottom: 8.0,
-                  left: 4.0,
-                  right: 4.0,
+                  top: OrtizSpace.lg,
+                  bottom: OrtizSpace.sm,
+                  left: OrtizSpace.xs,
+                  right: OrtizSpace.xs,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -893,30 +719,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       children: [
                         Container(
-                          width: 6,
-                          height: 6,
+                          width: OrtizSize.dot,
+                          height: OrtizSize.dot,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: t.muted,
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: OrtizSpace.sm),
                         Text(
                           item,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.primary,
-                            letterSpacing: 0.5,
+                          style: OrtizType.bodySm.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: t.fg,
                           ),
                         ),
                       ],
                     ),
                     IconButton(
+                      tooltip: "Acciones del día",
                       icon: Icon(
                         Icons.more_horiz_rounded,
-                        color: AppColors.primary,
-                        size: 20,
+                        color: t.muted,
+                        size: OrtizIconSize.md,
                       ),
                       onPressed: () {
                         final dayEvents = events
@@ -1027,13 +852,35 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
               ? "≈ ${formatBs(appState.convert(amountUSD: appState.totalBalanceUSD, to: CurrencyType.bsBCV))} (BCV)"
               : "≈ ${formatUSD(appState.totalBalanceUSD)}");
 
+    final t = OrtizTokens.of(context);
+    _controller.duration = OrtizMotion.of(context, OrtizMotion.fast);
+    final double consolidatedValue =
+        appState.selectedCurrency == CurrencyType.usd
+            ? appState.totalBalanceUSD
+            : appState.convert(
+                amountUSD: appState.totalBalanceUSD,
+                to: CurrencyType.bsBCV,
+              );
+    final bigAmountStyle = OrtizType.amountLg.copyWith(
+      fontSize: OrtizFontSize.displayLg,
+      fontWeight: FontWeight.w700,
+    );
+    final labelStyle = OrtizType.caption.copyWith(
+      color: t.muted,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.2,
+    );
+    final conversionStyle = OrtizType.bodySm.copyWith(
+      color: t.muted,
+      fontWeight: FontWeight.w600,
+    );
+
+    // Cifras principales: el único bloque destacado (sobre `surfaceHigh`).
     return ScaleTransition(
       scale: _scaleAnimation,
-      child: ClaymorphicCard(
-        cornerRadius: 24,
-        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
-        child: Column(
-          children: [
+      child: OrtizSection(
+        surface: true,
+        children: [
             SizedBox(
               height: 235,
               child: PageView.builder(
@@ -1056,16 +903,8 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       },
                       onTapCancel: () => _controller.reverse(),
                       behavior: HitTestBehavior.opaque,
-                      child: Container(
+                      child: SizedBox(
                         width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          vertical: 14.0,
-                          horizontal: 16.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.all(Radius.circular(16)),
-                        ),
                         child: Column(
                           children: [
                             Stack(
@@ -1078,62 +917,28 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                             CurrencyType.usd
                                         ? "CONSOLIDADO (USD)"
                                         : "CONSOLIDADO (VES)",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: 1.2,
-                                    ),
+                                    style: labelStyle,
                                   ),
                                 ),
                                 Align(
                                   alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _obscureBalance = !_obscureBalance;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.25),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        _obscureBalance
-                                            ? Icons.visibility_rounded
-                                            : Icons.visibility_off_rounded,
-                                        size: 14,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
+                                  child: _obscureToggle(t),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                displayBalance,
-                                style: TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
+                            const SizedBox(height: OrtizSpace.sm),
+                            OrtizAmount(
+                              value: consolidatedValue,
+                              currencySymbol:
+                                  appState.selectedCurrency == CurrencyType.usd
+                                      ? "\$"
+                                      : "Bs.",
+                              format: (_) => displayBalance,
+                              style: bigAmountStyle,
                             ),
-                            SizedBox(height: 2),
-                            Text(
-                              conversionText,
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 6),
+                            const SizedBox(height: OrtizSpace.xxs),
+                            Text(conversionText, style: conversionStyle),
+                            const SizedBox(height: OrtizSpace.xs),
                             _HorizontalAccountsList(
                               accounts: sortedAccounts,
                               appState: appState,
@@ -1167,18 +972,8 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       },
                       onTapCancel: () => _controller.reverse(),
                       behavior: HitTestBehavior.opaque,
-                      child: Container(
+                      child: SizedBox(
                         width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 16.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(16),
-                          ),
-                        ),
                         child: Column(
                           children: [
                             Stack(
@@ -1189,82 +984,42 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
+                                      // Color de la cuenta: dato de la persona.
                                       Icon(
                                         getIconData(acc.icon),
-                                        color: Colors.white,
-                                        size: 14,
+                                        color: cardColor,
+                                        size: OrtizIconSize.sm,
                                       ),
-                                      SizedBox(width: 6),
+                                      const SizedBox(width: OrtizSpace.xs),
                                       Text(
                                         acc.name.toUpperCase(),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 1.2,
-                                        ),
+                                        style: labelStyle,
                                       ),
                                     ],
                                   ),
                                 ),
                                 Align(
                                   alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _obscureBalance = !_obscureBalance;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.25),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        _obscureBalance
-                                            ? Icons.visibility_rounded
-                                            : Icons.visibility_off_rounded,
-                                        size: 14,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
+                                  child: _obscureToggle(t),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: OrtizSpace.xs),
                             Text(
                               isUsd
                                   ? "Cuenta en Dólares"
                                   : "Cuenta en Bolívares",
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              style: OrtizType.caption.copyWith(color: t.muted),
                             ),
-                            SizedBox(height: 16),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                displayAccBalance,
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
+                            const SizedBox(height: OrtizSpace.lg),
+                            OrtizAmount(
+                              value: acc.balance,
+                              currencySymbol: isUsd ? "\$" : "Bs.",
+                              format: (_) => displayAccBalance,
+                              style: bigAmountStyle,
                             ),
-                            SizedBox(height: 6),
-                            Text(
-                              accConversionText,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                            const SizedBox(height: OrtizSpace.xs),
+                            Text(accConversionText, style: conversionStyle),
                           ],
                         ),
                       ),
@@ -1273,35 +1028,33 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                 },
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: OrtizSpace.sm),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(totalPages, (i) {
                 final isSelected = _currentPage == i;
                 return AnimatedContainer(
-                  duration: Duration(milliseconds: 150),
-                  width: isSelected ? 16 : 6,
-                  height: 6,
-                  margin: EdgeInsets.symmetric(horizontal: 3),
+                  duration: OrtizMotion.of(context, OrtizMotion.fast),
+                  curve: OrtizMotion.ease,
+                  width: isSelected ? OrtizSpace.lg : OrtizSize.dot,
+                  height: OrtizSize.dot,
+                  margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(3),
+                    color: isSelected ? t.fg : t.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 );
               }),
             ),
-            SizedBox(height: 8),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Divider(height: 1, color: Colors.black12),
-            ),
-            SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.sm),
+            const Divider(height: OrtizStroke.hairline),
+            const SizedBox(height: OrtizSpace.md),
             Showcase(
               key: widget.balanceActionsKey,
               title: "Acciones de Balance",
               description: "Registra rápidamente un ingreso, gasto o realiza una compra-venta de divisas (dólares o bolívares) asociada a la cuenta activa.",
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.xs),
                 child: Row(
                   children: [
                     Expanded(
@@ -1321,24 +1074,23 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                             ),
                           );
                         },
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.arrow_circle_down_rounded,
-                                color: Colors.grey[700],
-                                size: 24,
+                                color: t.income,
+                                size: OrtizIconSize.lg,
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: OrtizSpace.xs),
                               Text(
                                 "Ingreso",
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: OrtizType.caption.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: t.fg,
                                 ),
                               ),
                             ],
@@ -1347,9 +1099,9 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       ),
                     ),
                     Container(
-                      height: 24,
-                      width: 1,
-                      color: Colors.black.withOpacity(0.08),
+                      height: OrtizSpace.xxl,
+                      width: OrtizStroke.hairline,
+                      color: t.line,
                     ),
                     Expanded(
                       child: InkWell(
@@ -1367,24 +1119,23 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                             ),
                           );
                         },
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.currency_exchange_rounded,
-                                color: Colors.grey[700],
-                                size: 24,
+                                color: t.fg,
+                                size: OrtizIconSize.lg,
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: OrtizSpace.xs),
                               Text(
                                 "Compra-Venta",
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: OrtizType.caption.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: t.fg,
                                 ),
                               ),
                             ],
@@ -1393,9 +1144,9 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                       ),
                     ),
                     Container(
-                      height: 24,
-                      width: 1,
-                      color: Colors.black.withOpacity(0.08),
+                      height: OrtizSpace.xxl,
+                      width: OrtizStroke.hairline,
+                      color: t.line,
                     ),
                     Expanded(
                       child: InkWell(
@@ -1414,24 +1165,23 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                             ),
                           );
                         },
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(OrtizRadius.block),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.arrow_circle_up_rounded,
-                                color: Colors.grey[700],
-                                size: 24,
+                                color: t.expense,
+                                size: OrtizIconSize.lg,
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: OrtizSpace.xs),
                               Text(
                                 "Gasto",
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: OrtizType.caption.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: t.fg,
                                 ),
                               ),
                             ],
@@ -1443,17 +1193,36 @@ class _BouncyBalanceCardState extends State<_BouncyBalanceCard>
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
+    );
+  }
+
+  /// Botón de ojo para ocultar o mostrar los saldos.
+  Widget _obscureToggle(OrtizTokens t) {
+    return IconButton(
+      tooltip: _obscureBalance ? "Mostrar saldos" : "Ocultar saldos",
+      visualDensity: VisualDensity.compact,
+      icon: Icon(
+        _obscureBalance
+            ? Icons.visibility_rounded
+            : Icons.visibility_off_rounded,
+        size: OrtizIconSize.sm,
+        color: t.muted,
+      ),
+      onPressed: () {
+        setState(() {
+          _obscureBalance = !_obscureBalance;
+        });
+      },
     );
   }
 }
 
+/// Fila de una tasa: al tocarla, copia el valor al portapapeles.
 class _RateCard extends StatelessWidget {
   final String title;
   final double rate;
-  final Color backgroundColor;
   final Widget badge;
   final DateTime? date;
 
@@ -1461,72 +1230,48 @@ class _RateCard extends StatelessWidget {
     required this.title,
     required this.rate,
     required this.badge,
-    this.backgroundColor = AppColors.cardBackground,
     this.date,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClaymorphicCard(
-      cornerRadius: 18,
-      backgroundColor: backgroundColor,
-      padding: EdgeInsets.all(12.0),
-      child: GestureDetector(
-        onTap: () {
-          Clipboard.setData(ClipboardData(text: rate.toStringAsFixed(2)));
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tasa "$title" copiada al portapapeles: ${rate.toStringAsFixed(2)}',
-              ),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        },
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: 100,
-          height: 140,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              badge,
-              Spacer(),
-              Icon(
-                Icons.content_copy_rounded,
-                size: 12,
-                color: Colors.grey[400],
-              ),
-              SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.cardSubtitleText,
-                ),
-              ),
-              if (date != null) ...[
-                SizedBox(height: 2),
-                Text(
-                  formatDate(date!),
-                  style: TextStyle(fontSize: 9, color: Colors.grey[500]),
-                ),
-              ],
-              SizedBox(height: 4),
-              Text(
-                formatRate(rate),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.cardText,
-                ),
-              ),
-            ],
-          ),
-        ),
+    final t = OrtizTokens.of(context);
+    return OrtizListRow(
+      leading: SizedBox(
+        width: OrtizIconSize.lg,
+        child: Center(child: badge),
       ),
+      title: title,
+      subtitle: date != null ? formatDate(date!) : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          OrtizAmount(
+            value: rate,
+            currencySymbol: "Bs.",
+            format: formatRate,
+            style: OrtizType.amount.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: OrtizSpace.sm),
+          Icon(
+            Icons.content_copy_rounded,
+            size: OrtizIconSize.xs,
+            color: t.muted,
+          ),
+        ],
+      ),
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: rate.toStringAsFixed(2)));
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Tasa "$title" copiada al portapapeles: ${rate.toStringAsFixed(2)}',
+            ),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
     );
   }
 }
@@ -1587,11 +1332,12 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.accounts.isEmpty) return SizedBox.shrink();
+    if (widget.accounts.isEmpty) return const SizedBox.shrink();
+    final t = OrtizTokens.of(context);
 
     return Container(
       height: 60,
-      margin: EdgeInsets.only(top: 8.0),
+      margin: EdgeInsets.only(top: OrtizSpace.sm),
       child: Stack(
         children: [
           NotificationListener<ScrollNotification>(
@@ -1602,7 +1348,7 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
             child: ListView.builder(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
               itemCount: widget.accounts.length,
               itemBuilder: (context, index) {
                 final acc = widget.accounts[index];
@@ -1615,17 +1361,16 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                     ? formatBs(acc.balance * widget.appState.bcvRate)
                     : formatUSD(acc.balance / (widget.appState.bcvRate > 0 ? widget.appState.bcvRate : 1.0));
 
+                final isLast = index == widget.accounts.length - 1;
                 return Container(
-                  margin: EdgeInsets.only(
-                    right: index == widget.accounts.length - 1 ? 0.0 : 8.0,
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                  margin: EdgeInsets.only(right: isLast ? 0.0 : OrtizSpace.sm),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
+                  // Pastilla sobre el bloque `surfaceHigh`: borde fino, sin sombra.
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.08),
-                      width: 1,
+                      color: t.line,
+                      width: OrtizStroke.hairline,
                     ),
                   ),
                   child: Column(
@@ -1637,36 +1382,35 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                         children: [
                           Icon(
                             getIconData(acc.icon),
-                            color: Colors.white.withOpacity(0.7),
-                            size: 9,
+                            color: t.muted,
+                            size: OrtizIconSize.xs,
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: OrtizSpace.xs),
                           Text(
                             acc.name.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 9,
+                            style: OrtizType.caption.copyWith(
+                              fontSize: OrtizFontSize.micro,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.7),
+                              color: t.muted,
                               letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: OrtizSpace.xxs),
                       Text(
                         displayAccBalance,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                        style: OrtizType.amount.copyWith(
+                          fontSize: OrtizFontSize.bodySm,
+                          fontWeight: FontWeight.w700,
+                          color: t.fg,
                         ),
                       ),
                       Text(
                         convertedText,
-                        style: TextStyle(
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.6),
+                        style: OrtizType.amount.copyWith(
+                          fontSize: OrtizFontSize.micro,
+                          color: t.muted,
                         ),
                       ),
                     ],
@@ -1689,18 +1433,18 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        AppColors.primary,
-                        AppColors.primary.withOpacity(0),
+                        t.surfaceHigh,
+                        t.surfaceHigh.withValues(alpha: 0),
                       ],
                     ),
                   ),
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.only(left: 4.0),
+                    padding: const EdgeInsets.only(left: OrtizSpace.xs),
                     child: Icon(
                       Icons.chevron_left_rounded,
-                      color: Colors.white60,
-                      size: 14,
+                      color: t.muted,
+                      size: OrtizIconSize.xs,
                     ),
                   ),
                 ),
@@ -1720,18 +1464,18 @@ class _HorizontalAccountsListState extends State<_HorizontalAccountsList> {
                       begin: Alignment.centerRight,
                       end: Alignment.centerLeft,
                       colors: [
-                        AppColors.primary,
-                        AppColors.primary.withOpacity(0),
+                        t.surfaceHigh,
+                        t.surfaceHigh.withValues(alpha: 0),
                       ],
                     ),
                   ),
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: EdgeInsets.only(right: 4.0),
+                    padding: const EdgeInsets.only(right: OrtizSpace.xs),
                     child: Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.white60,
-                      size: 14,
+                      color: t.muted,
+                      size: OrtizIconSize.xs,
                     ),
                   ),
                 ),

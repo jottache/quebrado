@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Aviso que aparece cuando el editor abre con un borrador recuperado.
 class DraftRestoredBanner extends StatelessWidget {
   final DateTime savedAt;
@@ -28,34 +32,34 @@ class DraftRestoredBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const ValueKey('draft_restored_banner'),
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.md),
+      padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.sm, OrtizSpace.xs, OrtizSpace.sm),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
         border: Border.all(color: accent.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          Icon(Icons.history_rounded, size: 18, color: accent),
-          const SizedBox(width: 8),
+          Icon(Icons.history_rounded, size: OrtizIconSize.md, color: accent),
+          const SizedBox(width: OrtizSpace.sm),
           Expanded(
             child: Text(
               'Recuperamos tu borrador sin guardar (${describeAge(savedAt)}).',
-              style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.fg, fontWeight: FontWeight.w600),
             ),
           ),
           TextButton(
             key: const ValueKey('draft_discard_button'),
             onPressed: onDiscard,
-            style: TextButton.styleFrom(foregroundColor: Colors.redAccent, visualDensity: VisualDensity.compact),
-            child: const Text('Descartar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            style: TextButton.styleFrom(foregroundColor: OrtizPalette.bad, visualDensity: VisualDensity.compact),
+            child: const Text('Descartar', style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold)),
           ),
           IconButton(
             tooltip: 'Ocultar aviso',
             visualDensity: VisualDensity.compact,
             onPressed: onDismiss,
-            icon: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF64748B)),
+            icon: const Icon(Icons.close_rounded, size: OrtizIconSize.sm, color: OrtizPalette.muted),
           ),
         ],
       ),
@@ -82,17 +86,17 @@ void showDraftDiscardedSnackBar(ScaffoldMessengerState? messenger, {required Voi
       SnackBar(
         content: const Row(
           children: [
-            Icon(Icons.delete_outline_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
+            // Fondo y texto del aviso salen del tema (fondo `fg`, texto `bg`).
+            Icon(Icons.delete_outline_rounded, color: OrtizPalette.bg, size: OrtizIconSize.md),
+            SizedBox(width: OrtizSpace.sm),
             Expanded(child: Text('Borrador descartado.')),
           ],
         ),
-        action: SnackBarAction(label: 'Deshacer', textColor: Colors.white, onPressed: onUndo),
+        action: SnackBarAction(label: 'Deshacer', onPressed: onUndo),
         // Con acción, Flutter lo deja fijo por defecto: este se cierra solo
         persist: false,
-        backgroundColor: const Color(0xFF475569),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
         duration: const Duration(seconds: 5),
       ),
     );
@@ -105,14 +109,15 @@ void _showDraftSaved(ScaffoldMessengerState messenger, Color color) {
     SnackBar(
       content: const Row(
         children: [
-          Icon(Icons.save_as_outlined, color: Colors.white, size: 18),
-          SizedBox(width: 8),
+          // Sobre el color de la app: `onAccent`.
+          Icon(Icons.save_as_outlined, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+          SizedBox(width: OrtizSpace.sm),
           Expanded(child: Text('Borrador guardado. Al volver a abrir seguirás donde lo dejaste.')),
         ],
       ),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
       duration: const Duration(seconds: 3),
     ),
   );

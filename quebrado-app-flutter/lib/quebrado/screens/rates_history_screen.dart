@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../viewmodels/app_state.dart';
 import '../models/exchange_rate_record.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/calculator_dialog.dart';
 import '../dialogs/pending_confirmations_dialog.dart';
@@ -12,6 +11,15 @@ import 'settings_screen.dart';
 import '../theme/colors.dart';
 import '../services/bcv_predictor.dart';
 import '../widgets/claymorphic_background.dart';
+
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+// Holguras de maquetación (no son tokens de estilo): dejan sitio a la barra
+// inferior flotante de Quebrado sobre el botón «subir» y al final de la lista.
+const double _fabBottomClearance = 100;
+const double _listBottomClearance = 140;
 
 class RatesHistoryScreen extends StatefulWidget {
   const RatesHistoryScreen({super.key});
@@ -158,7 +166,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
       ),
       floatingActionButton: _showScrollToTop
           ? Padding(
-              padding: EdgeInsets.only(bottom: 100.0),
+              padding: const EdgeInsets.only(bottom: _fabBottomClearance),
               child: FloatingActionButton(
                 mini: true,
                 backgroundColor: AppColors.primary,
@@ -170,7 +178,7 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                     curve: Curves.easeOutBack,
                   );
                 },
-                child: Icon(Icons.arrow_upward, color: Colors.white),
+                child: const Icon(Icons.arrow_upward, color: OrtizPalette.onAccent),
               ),
             )
           : null,
@@ -182,16 +190,16 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 16.0,
-                bottom: 8.0,
+                left: OrtizSpace.lg,
+                right: OrtizSpace.lg,
+                top: OrtizSpace.lg,
+                bottom: OrtizSpace.sm,
               ),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.mainTabTrackBg,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                 ),
                 child: Row(
                   children: [
@@ -199,13 +207,13 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedCurrencyTab = 0),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: _selectedCurrencyTab == 0
                                 ? AppColors.mainTabActiveBg
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Text(
                             "Oficial BCV",
@@ -223,13 +231,13 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedCurrencyTab = 1),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: _selectedCurrencyTab == 1
                                 ? AppColors.mainTabActiveBg
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Text(
                             "Euro Oficial",
@@ -272,31 +280,18 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
           // remaining content
           SliverPadding(
             padding: EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
-              top: 12.0,
-              bottom: 140.0,
+              left: OrtizSpace.lg,
+              right: OrtizSpace.lg,
+              top: OrtizSpace.md,
+              bottom: _listBottomClearance,
             ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
                 // 2. Trend Chart Card
-                ClaymorphicCard(
-                  cornerRadius: 24,
-                  padding: EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "TENDENCIA DE LA TASA (ÚLTIMOS 30 DÍAS)",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.cardSubtitleText,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      SizedBox(height: 20),
+                OrtizSection(
+                  title: "TENDENCIA DE LA TASA (ÚLTIMOS 30 DÍAS)",
+                  children: [
                       if (chartRecords.length >= 2)
                         SizedBox(
                           height: 180,
@@ -313,11 +308,11 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                                   (chartRecords.length / 5),
                                 ),
                                 getDrawingHorizontalLine: (value) => FlLine(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: OrtizPalette.line,
                                   strokeWidth: 1,
                                 ),
                                 getDrawingVerticalLine: (value) => FlLine(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: OrtizPalette.line,
                                   strokeWidth: 1,
                                 ),
                               ),
@@ -342,8 +337,8 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                                     show: true,
                                     gradient: LinearGradient(
                                       colors: [
-                                        AppColors.primary.withOpacity(0.2),
-                                        AppColors.primary.withOpacity(0.01),
+                                        AppColors.primary.withValues(alpha: 0.2),
+                                        AppColors.primary.withValues(alpha: 0.01),
                                       ],
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
@@ -358,72 +353,38 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                         Container(
                           height: 180,
                           alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.show_chart_rounded,
-                                size: 36,
-                                color: Colors.grey[400],
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "Aún no hay suficientes datos",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
+                          child: OrtizEmptyState(
+                            icon: Icons.show_chart_rounded,
+                            title: "Aún no hay suficientes datos",
                           ),
                         ),
-                    ],
-                  ),
+                  ],
                 ),
-                SizedBox(height: 24),
 
                 // 3. Historical list logs
-                ClaymorphicCard(
-                  cornerRadius: 24,
-                  padding: EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "HISTORIAL DE ACTUALIZACIONES",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardSubtitleText,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              Icons.search_rounded,
-                              color: AppColors.primary,
-                              size: 22,
-                            ),
-                            onPressed: () => _showSearchRateByDateBottomSheet(
-                              context,
-                              history,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
+                OrtizSection(
+                  title: "HISTORIAL DE ACTUALIZACIONES",
+                  trailing: IconButton(
+                    tooltip: "Buscar tasa por fecha",
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      Icons.search_rounded,
+                      color: AppColors.primary,
+                      size: OrtizIconSize.md,
+                    ),
+                    onPressed: () => _showSearchRateByDateBottomSheet(
+                      context,
+                      history,
+                    ),
+                  ),
+                  children: [
                       // Segment list selector
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: AppColors.nestedTabTrackBg,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                         child: Row(
                           children: [
@@ -445,19 +406,11 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
                       if (listItems.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(
-                            child: Text(
-                              "No hay registros en esta categoría",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.cardSubtitleText,
-                              ),
-                            ),
-                          ),
+                        OrtizEmptyState(
+                          icon: Icons.history_rounded,
+                          title: "No hay registros en esta categoría",
                         )
                       else
                         ListView.separated(
@@ -466,15 +419,14 @@ class _RatesHistoryScreenState extends State<RatesHistoryScreen> {
                           itemCount: listItems.length,
                           separatorBuilder: (_, __) => Divider(
                             height: 1,
-                            color: Colors.black.withOpacity(0.08),
+                            color: OrtizPalette.line,
                           ),
                           itemBuilder: (context, index) {
                             final item = listItems[index];
                             return _RateRow(item: item);
                           },
                         ),
-                    ],
-                  ),
+                  ],
                 ),
               ]),
             ),
@@ -526,7 +478,6 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
       0.0,
       1.0,
     );
-    final double cardCornerRadius = 24.0 - (8.0 * progress);
     final double paddingHorizontal = 20.0 - (4.0 * progress);
     final double paddingVertical = 20.0 - (10.0 * progress);
 
@@ -536,11 +487,12 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
         height: (maxExtent - shrinkOffset).clamp(minExtent, maxExtent),
         color: Colors.transparent,
         padding: EdgeInsets.symmetric(
-          horizontal: 16.0,
-          vertical: 4.0 + (4.0 * (1 - progress)),
+          horizontal: OrtizSpace.lg,
+          vertical: OrtizSpace.xs + OrtizSpace.xs * (1 - progress),
         ),
-        child: ClaymorphicCard(
-          cornerRadius: cardCornerRadius,
+        // Encabezado fijo de altura animada: sin tarjeta, sobre el fondo
+        // (no `OrtizSection`, cuyo hueco inferior desbordaría la altura).
+        child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: paddingHorizontal,
             vertical: paddingVertical,
@@ -562,13 +514,13 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                             Text(
                               title,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.cardSubtitleText,
                                 letterSpacing: 1.2,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: OrtizSpace.xs),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -581,25 +533,25 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                       Text(
                                         formatRate(activeRate),
                                         style: TextStyle(
-                                          fontSize: 34,
+                                          fontSize: OrtizFontSize.displayLg,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      SizedBox(height: 6),
+                                      SizedBox(height: OrtizSpace.xs),
                                       Row(
                                         children: [
                                           Icon(
                                             Icons.access_time_filled_rounded,
-                                            size: 12,
+                                            size: OrtizIconSize.xs,
                                             color: AppColors.cardSubtitleText,
                                           ),
-                                          SizedBox(width: 4),
+                                          SizedBox(width: OrtizSpace.xs),
                                           Expanded(
                                             child: Text(
                                               "Sincronizado: $lastUpdated",
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: OrtizFontSize.caption,
                                                 fontWeight: FontWeight.bold,
                                                 color:
                                                     AppColors.cardSubtitleText,
@@ -624,35 +576,35 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                                             height: 14,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: Colors.grey,
+                                              color: OrtizPalette.muted,
                                             ),
                                           )
-                                        : Icon(
+                                        : const Icon(
                                             Icons.auto_graph_rounded,
-                                            size: 16,
+                                            size: OrtizIconSize.sm,
                                           ),
                                     label: Text(
                                       isFetchingHistory
                                           ? "Sincronizando..."
                                           : "Predecir",
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
-                                      foregroundColor: Colors.white,
+                                      foregroundColor: OrtizPalette.onAccent,
                                       disabledBackgroundColor: AppColors.primary
-                                          .withOpacity(0.12),
-                                      disabledForegroundColor: Colors.grey[500],
-                                      elevation: 2,
+                                          .withValues(alpha: 0.12),
+                                      disabledForegroundColor: OrtizPalette.muted,
+                                      elevation: 0,
                                       padding: EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
+                                        horizontal: OrtizSpace.md,
+                                        vertical: OrtizSpace.sm,
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                                       ),
                                     ),
                                   ),
@@ -674,7 +626,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                           Text(
                             shortTitle.toUpperCase(),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
@@ -683,7 +635,7 @@ class _StickyRateCardDelegate extends SliverPersistentHeaderDelegate {
                           Text(
                             formatRate(activeRate),
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: OrtizFontSize.title,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardText,
                             ),
@@ -741,7 +693,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
-              onPrimary: Colors.white,
+              onPrimary: OrtizPalette.onAccent,
               onSurface: AppColors.cardText,
             ),
             textButtonTheme: TextButtonThemeData(
@@ -781,13 +733,13 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: 16.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28.0,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: OrtizSpace.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xxl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -797,64 +749,64 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(2),
+              color: OrtizPalette.line,
+              borderRadius: BorderRadius.circular(OrtizRadius.chip),
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: OrtizSpace.xl),
 
           // Title
           Text(
             "Buscar Tasa por Fecha",
             style: TextStyle(
-              fontSize: 20,
+              fontSize: OrtizFontSize.title,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: OrtizSpace.sm),
           Text(
             widget.isEuro
                 ? "Búsqueda en el historial del Euro Oficial"
                 : "Búsqueda en el historial del Oficial BCV",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
               color: AppColors.cardSubtitleText,
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: OrtizSpace.xxl),
 
           // Selector button
           GestureDetector(
             onTap: () => _selectDate(context),
-            child: ClaymorphicCard(
-              cornerRadius: 16,
-              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              child: Row(
+            child: OrtizSection(
+              surface: true,
+              children: [
+                Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.calendar_month_rounded,
                     color: AppColors.primary,
                   ),
-                  SizedBox(width: 12),
+                  SizedBox(width: OrtizSpace.md),
                   Text(
                     _selectedDate == null
                         ? "Seleccionar Fecha"
                         : "Fecha: $formattedSelectedDate",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: OrtizFontSize.titleSm,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardText,
                     ),
                   ),
                 ],
               ),
+              ],
             ),
           ),
-          SizedBox(height: 24),
 
           // Results
           if (_searched)
@@ -865,29 +817,11 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                   : _buildNotFoundCard(formattedSelectedDate),
             )
           else
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 24.0),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.search_rounded,
-                    size: 48,
-                    color: Colors.black.withOpacity(0.15),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    "Selecciona una fecha para consultar el tipo de cambio histórico.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.cardSubtitleText,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+            OrtizEmptyState(
+              icon: Icons.search_rounded,
+              title: "Selecciona una fecha para consultar el tipo de cambio histórico.",
             ),
-          SizedBox(height: 12),
+          SizedBox(height: OrtizSpace.md),
         ],
       ),
     );
@@ -896,19 +830,18 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
   Widget _buildResultCard(ExchangeRateRecord record) {
     final formattedTime =
         "${record.date.hour.toString().padLeft(2, '0')}:${record.date.minute.toString().padLeft(2, '0')}";
-    return ClaymorphicCard(
-      cornerRadius: 20,
-      padding: EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return OrtizSection(
+      // Claves distintas para que el AnimatedSwitcher siga animando el cambio
+      // entre «encontrada» y «sin registro» (ahora son el mismo tipo).
+      key: const ValueKey('rate_search_found'),
+      children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 widget.isEuro ? "EURO OFICIAL" : "DÓLAR BCV",
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: OrtizFontSize.caption,
                   fontWeight: FontWeight.w900,
                   color: AppColors.primary,
                   letterSpacing: 1.2,
@@ -918,14 +851,14 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                 children: [
                   Icon(
                     Icons.access_time_filled_rounded,
-                    size: 12,
+                    size: OrtizIconSize.xs,
                     color: AppColors.cardSubtitleText,
                   ),
-                  SizedBox(width: 4),
+                  SizedBox(width: OrtizSpace.xs),
                   Text(
                     formattedTime,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardSubtitleText,
                     ),
@@ -934,48 +867,47 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: 12),
+          SizedBox(height: OrtizSpace.md),
           Text(
             formatRate(record.rate),
             style: TextStyle(
-              fontSize: 32,
+              fontSize: OrtizFontSize.displayLg,
               fontWeight: FontWeight.w900,
               color: AppColors.cardText,
             ),
           ),
-          SizedBox(height: 6),
+          SizedBox(height: OrtizSpace.xs),
           Text(
             "Tasa correspondiente al ${formatDate(record.date)}",
             style: TextStyle(
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.bold,
               color: AppColors.cardSubtitleText,
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildNotFoundCard(String dateStr) {
-    return ClaymorphicCard(
-      cornerRadius: 20,
-      padding: EdgeInsets.all(20.0),
-      child: Row(
+    return OrtizSection(
+      key: const ValueKey('rate_search_not_found'),
+      children: [
+        Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(OrtizSpace.sm),
             decoration: BoxDecoration(
-              color: AppColors.expense.withOpacity(0.12),
+              color: AppColors.expense.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.warning_amber_rounded,
               color: AppColors.expense,
-              size: 24,
+              size: OrtizIconSize.lg,
             ),
           ),
-          SizedBox(width: 16),
+          SizedBox(width: OrtizSpace.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -983,16 +915,16 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
                 Text(
                   "Sin Registro",
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "No se encontró ninguna tasa registrada para el $dateStr.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1002,6 +934,7 @@ class _SearchRateBottomSheetState extends State<_SearchRateBottomSheet> {
           ),
         ],
       ),
+      ],
     );
   }
 }
@@ -1023,13 +956,13 @@ class _ListSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.nestedTabActiveBg
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
           ),
           child: Text(
             title,
@@ -1038,7 +971,7 @@ class _ListSegment extends StatelessWidget {
               color: isSelected
                   ? AppColors.nestedTabActiveText
                   : AppColors.nestedTabInactiveText,
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
             ),
           ),
         ),
@@ -1110,7 +1043,7 @@ class _RateRow extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10.0),
+      padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
       child: Row(
         children: [
           // Icon
@@ -1118,12 +1051,12 @@ class _RateRow extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: trendColor.withOpacity(0.12),
+              color: trendColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(_getTrendIcon(dir), color: trendColor, size: 14),
+            child: Icon(_getTrendIcon(dir), color: trendColor, size: OrtizIconSize.sm),
           ),
-          SizedBox(width: 12),
+          SizedBox(width: OrtizSpace.md),
 
           // Date / Time
           Expanded(
@@ -1133,16 +1066,16 @@ class _RateRow extends StatelessWidget {
                 Text(
                   formattedDate,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 3),
+                SizedBox(height: OrtizSpace.xxs),
                 Text(
                   formattedTime,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: OrtizFontSize.caption,
                     color: AppColors.cardSubtitleText,
                   ),
                 ),
@@ -1157,17 +1090,17 @@ class _RateRow extends StatelessWidget {
               Text(
                 formatRate(item.record.rate),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: OrtizFontSize.body,
                   fontWeight: FontWeight.w900,
                   color: AppColors.cardText,
                 ),
               ),
               if (item.changeDelta.isNotEmpty) ...[
-                SizedBox(height: 2),
+                SizedBox(height: OrtizSpace.xxs),
                 Text(
                   item.changeDelta,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.bold,
                     color: trendColor,
                   ),
@@ -1212,7 +1145,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
     if (prediction.confidence == "Alta") {
       confidenceColor = AppColors.income;
     } else if (prediction.confidence == "Media") {
-      confidenceColor = Colors.orange;
+      confidenceColor = OrtizPalette.warn;
     } else {
       confidenceColor = AppColors.expense;
     }
@@ -1230,13 +1163,13 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
       ),
       padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: 16.0,
-        bottom: 28.0,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: OrtizSpace.lg,
+        bottom: OrtizSpace.xxl,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -1249,12 +1182,12 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(2),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -1263,7 +1196,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 Text(
                   "Predicción Oficial BCV",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
                     color: AppColors.cardText,
                   ),
@@ -1277,47 +1210,47 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
             Text(
               "Cálculo matemático basado en regresión lineal y promedios móviles ponderados",
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: OrtizSpace.xl),
 
             // Main Prediction Card
-            ClaymorphicCard(
-              cornerRadius: 24,
-              padding: EdgeInsets.all(20.0),
-              child: Column(
+            OrtizSection(
+              surface: true,
+              children: [
+                Column(
                 children: [
                   Text(
                     "TASA ESTIMADA PRÓXIMO DÍA HÁBIL",
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardSubtitleText,
                       letterSpacing: 1.2,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: OrtizSpace.sm),
                   Text(
                     "${prediction.predictedRateNextDay.toStringAsFixed(4)} Bs.",
                     style: TextStyle(
-                      fontSize: 38,
+                      fontSize: OrtizFontSize.displayLg,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardText,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: OrtizSpace.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(trendIcon, color: trendColor, size: 18),
-                      SizedBox(width: 4),
+                      Icon(trendIcon, color: trendColor, size: OrtizIconSize.md),
+                      SizedBox(width: OrtizSpace.xs),
                       Text(
                         "${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(4)} Bs. (${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%)",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: OrtizFontSize.body,
                           fontWeight: FontWeight.bold,
                           color: trendColor,
                         ),
@@ -1326,39 +1259,40 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                   ),
                 ],
               ),
+              ],
             ),
-            SizedBox(height: 16),
 
             // Row of Indicators (Tendencia, Confianza, Racha)
+            OrtizSection(
+              children: [
             Row(
               children: [
                 Expanded(
-                  child: ClaymorphicCard(
-                    cornerRadius: 16,
+                  child: Padding(
                     padding: EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
+                      vertical: OrtizSpace.md,
+                      horizontal: OrtizSpace.sm,
                     ),
                     child: Column(
                       children: [
                         Text(
                           "TENDENCIA",
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        SizedBox(height: OrtizSpace.xs),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(trendIcon, size: 14, color: trendColor),
-                            SizedBox(width: 4),
+                            Icon(trendIcon, size: OrtizIconSize.sm, color: trendColor),
+                            SizedBox(width: OrtizSpace.xs),
                             Text(
                               prediction.trend,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
                                 color: trendColor,
                               ),
@@ -1369,29 +1303,28 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
-                  child: ClaymorphicCard(
-                    cornerRadius: 16,
+                  child: Padding(
                     padding: EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
+                      vertical: OrtizSpace.md,
+                      horizontal: OrtizSpace.sm,
                     ),
                     child: Column(
                       children: [
                         Text(
                           "CONFIANZA",
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        SizedBox(height: OrtizSpace.xs),
                         Text(
                           prediction.confidence,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                             color: confidenceColor,
                           ),
@@ -1400,31 +1333,30 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
-                  child: ClaymorphicCard(
-                    cornerRadius: 16,
+                  child: Padding(
                     padding: EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
+                      vertical: OrtizSpace.md,
+                      horizontal: OrtizSpace.sm,
                     ),
                     child: Column(
                       children: [
                         Text(
                           "CONSECUTIVOS",
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: OrtizFontSize.micro,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardSubtitleText,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        SizedBox(height: OrtizSpace.xs),
                         Text(
                           prediction.consecutivePositiveDays > 0
                               ? "${prediction.consecutivePositiveDays} días"
                               : "N/D",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: OrtizFontSize.bodySm,
                             fontWeight: FontWeight.bold,
                             color: AppColors.cardText,
                           ),
@@ -1435,44 +1367,23 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+              ],
+            ),
 
             // Justification Text Card
-            Text(
-              "EXPLICACIÓN Y JUSTIFICACIÓN",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppColors.cardSubtitleText,
-                letterSpacing: 1.2,
-              ),
+            OrtizSection(
+              title: "EXPLICACIÓN Y JUSTIFICACIÓN",
+              children: [
+                RichText(
+                  text: _parseJustification(prediction.justification),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            ClaymorphicCard(
-              cornerRadius: 18,
-              padding: EdgeInsets.all(16.0),
-              child: RichText(
-                text: _parseJustification(prediction.justification),
-              ),
-            ),
-            SizedBox(height: 20),
 
             // Future Horizon Projections
-            Text(
-              "PROYECCIONES A DIFERENTES PLAZOS",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppColors.cardSubtitleText,
-                letterSpacing: 1.2,
-              ),
-            ),
-            SizedBox(height: 8),
-            ClaymorphicCard(
-              cornerRadius: 18,
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                children: [
+            OrtizSection(
+              title: "PROYECCIONES A DIFERENTES PLAZOS",
+              children: [
                   _buildProjectionRow(
                     timeframe: "A 1 día hábil",
                     rate: prediction.predictedRateNextDay,
@@ -1496,8 +1407,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
                     pct: pct14,
                     color: diff14 >= 0 ? AppColors.income : AppColors.expense,
                   ),
-                ],
-              ),
+              ],
             ),
           ],
         ),
@@ -1521,16 +1431,16 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
             Text(
               timeframe,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: OrtizFontSize.bodySm,
                 color: AppColors.cardSubtitleText,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 4),
+            SizedBox(height: OrtizSpace.xs),
             Text(
               "${rate.toStringAsFixed(4)} Bs.",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: OrtizFontSize.body,
                 fontWeight: FontWeight.w900,
                 color: AppColors.cardText,
               ),
@@ -1541,7 +1451,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
           "${delta >= 0 ? '+' : ''}${delta.toStringAsFixed(4)} Bs.\n(${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%)",
           textAlign: TextAlign.end,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: OrtizFontSize.bodySm,
             fontWeight: FontWeight.bold,
             color: color,
           ),
@@ -1578,7 +1488,7 @@ class _BcvPredictionBottomSheet extends StatelessWidget {
 
     return TextSpan(
       style: TextStyle(
-        fontSize: 12,
+        fontSize: OrtizFontSize.bodySm,
         height: 1.4,
         color: AppColors.cardText,
       ),

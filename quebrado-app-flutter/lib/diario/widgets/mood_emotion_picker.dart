@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/mood_catalog.dart';
 import '../theme/diario_colors.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 /// Selector de emociones agrupadas por cuadrante (energía × agrado).
 /// Muestra primero los cuadrantes que encajan con la valencia/energía y el resto en "Ver todas".
 class MoodEmotionPicker extends StatefulWidget {
@@ -63,10 +67,10 @@ class _MoodEmotionPickerState extends State<MoodEmotionPicker> {
           TextButton.icon(
             onPressed: () => setState(() => _showAll = !_showAll),
             style: TextButton.styleFrom(foregroundColor: DiarioColors.primary),
-            icon: Icon(_showAll ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 18),
+            icon: Icon(_showAll ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: OrtizIconSize.md),
             label: Text(
               _showAll ? 'Ver menos' : 'Ver todas las emociones',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
             ),
           ),
       ],
@@ -75,7 +79,7 @@ class _MoodEmotionPickerState extends State<MoodEmotionPicker> {
 
   Widget _buildQuadrant(MoodQuadrant quadrant) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: OrtizSpace.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -86,14 +90,14 @@ class _MoodEmotionPickerState extends State<MoodEmotionPicker> {
                 height: 8,
                 decoration: BoxDecoration(color: quadrant.color, shape: BoxShape.circle),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: OrtizSpace.xs),
               Text(
                 quadrant.label,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary),
+                style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: DiarioColors.textSecondary),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: OrtizSpace.xs),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -105,15 +109,15 @@ class _MoodEmotionPickerState extends State<MoodEmotionPicker> {
                 showCheckmark: false,
                 onSelected: (_) => _toggle(emotion.key),
                 selectedColor: emotion.color,
-                backgroundColor: Colors.white,
+                backgroundColor: OrtizPalette.bg,
                 labelStyle: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                  color: isSelected ? Colors.white : DiarioColors.textPrimary,
+                  color: isSelected ? OrtizPalette.onAccent : DiarioColors.textPrimary,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: isSelected ? emotion.color : emotion.color.withOpacity(0.35)),
+                  borderRadius: BorderRadius.circular(OrtizRadius.field),
+                  side: BorderSide(color: isSelected ? emotion.color : emotion.color.withValues(alpha: 0.35)),
                 ),
                 visualDensity: VisualDensity.compact,
               );

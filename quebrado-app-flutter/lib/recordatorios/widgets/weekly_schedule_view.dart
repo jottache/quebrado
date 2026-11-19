@@ -11,6 +11,10 @@ import '../models/role_model.dart';
 import '../theme/reminders_colors.dart';
 import '../viewmodels/reminders_state.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class WeeklyScheduleView extends StatefulWidget {
   const WeeklyScheduleView({super.key});
 
@@ -67,13 +71,15 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     final sunday = DateTime(monday.year, monday.month, monday.day + 6);
     final offset = state.selectedWeekOffset;
     final range = '${_formatDayHeader(monday)} – ${_formatDayHeader(sunday)}';
+    final t = OrtizTokens.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
       decoration: BoxDecoration(
-        color: offset == 0 ? Colors.white : const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: offset == 0 ? Colors.grey.shade200 : const Color(0xFFFDE68A)),
+        // Fuera de la semana actual se tiñe de ámbar para que se note.
+        color: offset == 0 ? Colors.transparent : OrtizPalette.warnTint,
+        borderRadius: BorderRadius.circular(OrtizRadius.field),
+        border: Border.all(color: offset == 0 ? t.line : OrtizPalette.warnBorder),
       ),
       child: Row(
         children: [
@@ -100,9 +106,9 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 Text(
                   _weekRelativeLabel(offset),
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w600,
-                    color: offset == 0 ? RemindersColors.primary : const Color(0xFFB45309),
+                    color: offset == 0 ? RemindersColors.primary : t.warn,
                   ),
                 ),
               ],
@@ -110,7 +116,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           ),
           if (state.isLoadingWeek)
             const Padding(
-              padding: EdgeInsets.only(right: 6),
+              padding: EdgeInsets.only(right: OrtizSpace.xs),
               child: SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
             ),
           if (offset != 0)
@@ -167,30 +173,29 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
   void _showMoveDayModal(BuildContext context, RemindersState state, ReminderModel reminder) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.dialog))),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xl, vertical: OrtizSpace.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_rounded, size: 18, color: RemindersColors.primary),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.calendar_today_rounded, size: OrtizIconSize.md, color: RemindersColors.primary),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       'Mover "${reminder.title}" a:',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: OrtizSpace.md),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -198,11 +203,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   ...List.generate(7, (i) {
                     final isCurrent = reminder.scheduledDayOfWeek == i;
                     return ActionChip(
-                      avatar: isCurrent ? const Icon(Icons.check, size: 14, color: RemindersColors.primary) : null,
+                      avatar: isCurrent ? const Icon(Icons.check, size: OrtizIconSize.xs, color: RemindersColors.primary) : null,
                       label: Text(_dayNames[i]),
-                      backgroundColor: isCurrent ? RemindersColors.primaryLight : Colors.grey.shade100,
+                      backgroundColor: isCurrent ? RemindersColors.primaryLight : OrtizPalette.surfaceHigh,
                       labelStyle: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
                         color: isCurrent ? RemindersColors.primary : RemindersColors.textPrimary,
                       ),
@@ -214,14 +219,14 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   }),
                   ActionChip(
                     avatar: reminder.scheduledDayOfWeek == null
-                        ? const Icon(Icons.check, size: 14, color: RemindersColors.primary)
+                        ? const Icon(Icons.check, size: OrtizIconSize.xs, color: RemindersColors.primary)
                         : null,
                     label: const Text('Bandeja (Sin día)'),
                     backgroundColor: reminder.scheduledDayOfWeek == null
                         ? RemindersColors.primaryLight
-                        : Colors.grey.shade100,
+                        : OrtizPalette.surfaceHigh,
                     labelStyle: TextStyle(
-                      fontSize: 12,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: reminder.scheduledDayOfWeek == null ? FontWeight.bold : FontWeight.normal,
                       color: reminder.scheduledDayOfWeek == null
                           ? RemindersColors.primary
@@ -234,7 +239,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: OrtizSpace.sm),
             ],
           ),
         ),
@@ -275,18 +280,18 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+          padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xs, OrtizSpace.lg, 0),
           child: _buildWeekNavigator(state, compact: true),
         ),
 
         // Sub-barra superior de navegación móvil: [ Cronograma Semanal | Brújula (Roles) ]
         Container(
-          margin: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-          padding: const EdgeInsets.all(4),
+          margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xs, OrtizSpace.lg, OrtizSpace.sm),
+          padding: const EdgeInsets.all(OrtizSpace.xs),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            color: OrtizPalette.surface,
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
+            border: Border.all(color: OrtizPalette.line),
           ),
           child: Row(
             children: [
@@ -298,7 +303,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   onTap: () => setState(() => _mobileWeeklyTab = 'schedule'),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: OrtizSpace.xs),
               Expanded(
                 child: _buildSubTabButton(
                   title: 'Brújula de Roles',
@@ -316,7 +321,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
         Expanded(
           child: _mobileWeeklyTab == 'compass'
               ? SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, 0, OrtizSpace.lg, OrtizSpace.lg),
                   child: _buildCompassCard(context, state, roles, unaddressed, isMobile: true),
                 )
               : _buildMobileScheduleView(context, state, now),
@@ -334,55 +339,46 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm, horizontal: OrtizSpace.sm),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+          color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: 15,
-              color: isSelected ? RemindersColors.primary : Colors.grey.shade600,
+              size: OrtizIconSize.sm,
+              color: isSelected ? RemindersColors.primary : OrtizPalette.muted,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: OrtizSpace.xs),
             Flexible(
               child: Text(
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? RemindersColors.primary : Colors.grey.shade700,
+                  color: isSelected ? RemindersColors.primary : OrtizPalette.muted,
                 ),
               ),
             ),
             if (badge != null) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: OrtizSpace.xs),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B),
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.warn,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
                 child: Text(
                   badge,
-                  style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.onAccent, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -410,12 +406,12 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
         // Strip Horizontal de los 7 Días de la Semana
         Container(
           height: 64,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+          margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: 7,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: OrtizSpace.sm),
             itemBuilder: (context, dayIndex) {
               final date = monday.add(Duration(days: dayIndex));
               final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
@@ -433,37 +429,28 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
 
                   return InkWell(
                     onTap: () => setState(() => _selectedDayIndex = dayIndex),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       width: 58,
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs, horizontal: OrtizSpace.xs),
                       decoration: BoxDecoration(
                         color: isDropping
                             ? RemindersColors.primaryLight
                             : isSelected
                                 ? RemindersColors.primary
                                 : isToday
-                                    ? const Color(0xFFEFF6FF)
-                                    : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                                    ? OrtizPalette.surfaceHigh
+                                    : Colors.transparent,
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                         border: Border.all(
                           color: isSelected
                               ? RemindersColors.primary
                               : isToday
-                                  ? RemindersColors.primary.withOpacity(0.5)
-                                  : Colors.grey.shade200,
+                                  ? RemindersColors.primary.withValues(alpha: 0.5)
+                                  : OrtizPalette.line,
                           width: isSelected || isToday || isDropping ? 1.5 : 1,
                         ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: RemindersColors.primary.withOpacity(0.25),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                            : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -471,39 +458,40 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                           Text(
                             _dayNames[dayIndex].substring(0, 3),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.bold,
                               color: isSelected
-                                  ? Colors.white
+                                  ? OrtizPalette.onAccent
                                   : (isToday ? RemindersColors.primary : RemindersColors.textMuted),
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: OrtizSpace.xxs),
                           Text(
                             '${date.day}',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: OrtizFontSize.body,
                               fontWeight: FontWeight.w900,
-                              color: isSelected ? Colors.white : RemindersColors.textPrimary,
+                              color: isSelected ? OrtizPalette.onAccent : RemindersColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: OrtizSpace.xxs),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               if (bigRockCount > 0)
                                 Icon(
                                   Icons.star,
-                                  size: 10,
-                                  color: isSelected ? Colors.amberAccent : const Color(0xFFD97706),
+                                  // Celda densa: icono al tamaño del texto micro.
+                                  size: OrtizFontSize.micro,
+                                  color: isSelected ? OrtizPalette.onAccent : OrtizPalette.warn,
                                 ),
                               if (reminders.isNotEmpty) ...[
-                                if (bigRockCount > 0) const SizedBox(width: 2),
+                                if (bigRockCount > 0) const SizedBox(width: OrtizSpace.xxs),
                                 Container(
                                   width: 5,
                                   height: 5,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white70 : Colors.grey.shade400,
+                                    color: isSelected ? OrtizPalette.onAccent : OrtizPalette.muted,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -520,26 +508,18 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: OrtizSpace.sm),
 
         // Área del Día Seleccionado (Scrollable, tarjetas amplias y DragTarget)
         Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               border: Border.all(
-                color: isSelectedToday ? RemindersColors.primary.withOpacity(0.6) : Colors.grey.shade200,
+                color: isSelectedToday ? RemindersColors.primary.withValues(alpha: 0.6) : OrtizPalette.line,
                 width: isSelectedToday ? 1.5 : 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: DragTarget<ReminderModel>(
               onWillAcceptWithDetails: (details) => true,
@@ -553,13 +533,13 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   children: [
                     // Header del Día Seleccionado
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                       decoration: BoxDecoration(
                         color: isSelectedToday
-                            ? RemindersColors.primaryLight.withOpacity(0.6)
-                            : const Color(0xFFF8FAFC),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                            ? RemindersColors.primaryLight.withValues(alpha: 0.6)
+                            : Colors.transparent,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.block)),
+                        border: const Border(bottom: BorderSide(color: OrtizPalette.line)),
                       ),
                       child: Row(
                         children: [
@@ -572,75 +552,75 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                     Text(
                                       _dayNames[_selectedDayIndex],
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: OrtizFontSize.body,
                                         fontWeight: FontWeight.bold,
                                         color: isSelectedToday
                                             ? RemindersColors.primary
                                             : RemindersColors.textPrimary,
                                       ),
                                     ),
-                                    const SizedBox(width: 6),
+                                    const SizedBox(width: OrtizSpace.xs),
                                     Text(
                                       _formatDayHeader(selectedDate),
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: isSelectedToday ? FontWeight.bold : FontWeight.normal,
                                         color: isSelectedToday
                                             ? RemindersColors.primary
-                                            : Colors.grey.shade600,
+                                            : OrtizPalette.muted,
                                       ),
                                     ),
                                     if (isSelectedToday) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: OrtizSpace.sm),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                         decoration: BoxDecoration(
                                           color: RemindersColors.primary,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         child: const Text(
                                           'HOY',
                                           style: TextStyle(
-                                            fontSize: 9.5,
+                                            fontSize: OrtizFontSize.micro,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                            color: OrtizPalette.onAccent,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: OrtizSpace.xxs),
                                 Row(
                                   children: [
                                     if (selectedBigRocks > 0) ...[
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFFEF3C7),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: OrtizPalette.warnTint,
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star, size: 10, color: Color(0xFFD97706)),
-                                            const SizedBox(width: 2),
+                                            const Icon(Icons.star, size: OrtizFontSize.micro, color: OrtizPalette.warn),
+                                            const SizedBox(width: OrtizSpace.xxs),
                                             Text(
                                               '$selectedBigRocks ${selectedBigRocks == 1 ? "Gran Roca" : "Grandes Rocas"}',
                                               style: const TextStyle(
-                                                fontSize: 9.5,
+                                                fontSize: OrtizFontSize.micro,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFF92400E),
+                                                color: OrtizPalette.warn,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
+                                      const SizedBox(width: OrtizSpace.xs),
                                     ],
                                     Text(
                                       '${selectedReminders.length} ${selectedReminders.length == 1 ? "tarea" : "tareas"}',
-                                      style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500),
+                                      style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                                     ),
                                   ],
                                 ),
@@ -650,7 +630,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                           // Botón para agregar tarea directamente a este día
                           IconButton(
                             icon: const Icon(Icons.add_circle_outline_rounded,
-                                color: RemindersColors.primary, size: 22),
+                                color: RemindersColors.primary, size: OrtizIconSize.lg),
                             tooltip: 'Agregar tarea a este día',
                             onPressed: () {
                               showDialog(
@@ -668,22 +648,22 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                     // Lista de Tareas para este día
                     Expanded(
                       child: Container(
-                        color: isHovering ? RemindersColors.primaryLight.withOpacity(0.3) : Colors.white,
+                        color: isHovering ? RemindersColors.primaryLight.withValues(alpha: 0.3) : Colors.transparent,
                         child: selectedReminders.isEmpty
                             ? Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(24),
+                                  padding: const EdgeInsets.all(OrtizSpace.xxl),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.event_available_outlined, size: 36, color: Colors.grey.shade300),
-                                      const SizedBox(height: 8),
+                                      const Icon(Icons.event_available_outlined, size: OrtizIconSize.xl, color: OrtizPalette.faint),
+                                      const SizedBox(height: OrtizSpace.sm),
                                       Text(
                                         'No hay tareas agendadas para el ${_dayNames[_selectedDayIndex]}',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                                        style: const TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted),
                                         textAlign: TextAlign.center,
                                       ),
-                                      const SizedBox(height: 10),
+                                      const SizedBox(height: OrtizSpace.sm),
                                       OutlinedButton.icon(
                                         onPressed: () {
                                           showDialog(
@@ -695,19 +675,19 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                           );
                                         },
                                         icon: const Icon(Icons.star_outline_rounded,
-                                            size: 15, color: Color(0xFFD97706)),
+                                            size: OrtizIconSize.sm, color: OrtizPalette.warn),
                                         label: const Text(
                                           'Planificar Gran Roca',
                                           style: TextStyle(
-                                            fontSize: 11.5,
+                                            fontSize: OrtizFontSize.caption,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFFB45309),
+                                            color: OrtizPalette.warn,
                                           ),
                                         ),
                                         style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(color: Color(0xFFFDE68A)),
-                                          backgroundColor: const Color(0xFFFFFBEB),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          side: const BorderSide(color: OrtizPalette.warnBorder),
+                                          backgroundColor: OrtizPalette.warnTint,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
                                         ),
                                       ),
                                     ],
@@ -715,7 +695,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                 ),
                               )
                             : ListView.builder(
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(OrtizSpace.sm),
                                 itemCount: selectedReminders.length,
                                 itemBuilder: (context, rIdx) {
                                   final reminder = selectedReminders[rIdx];
@@ -725,23 +705,23 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                     data: reminder,
                                     feedback: Material(
                                       elevation: 6,
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       child: Container(
                                         width: 240,
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(OrtizSpace.sm),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: OrtizPalette.surfaceHigh,
+                                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                           border: Border.all(
                                             color: reminder.isBigRock
-                                                ? const Color(0xFFD97706)
+                                                ? OrtizPalette.warn
                                                 : RemindersColors.primary,
                                             width: 2,
                                           ),
                                         ),
                                         child: Text(
                                           reminder.title,
-                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
                                         ),
                                       ),
                                     ),
@@ -762,7 +742,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: OrtizSpace.sm),
 
         // Bandeja Semanal Inferior (Drawer Colapsable Móvil)
         _buildUnscheduledDrawer(context, state, isMobile: true),
@@ -788,7 +768,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
         // ==========================================
         Container(
           width: 280,
-          margin: const EdgeInsets.fromLTRB(16, 12, 0, 16),
+          margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, 0, OrtizSpace.lg),
           child: _buildCompassCard(context, state, roles, unaddressed, isMobile: false),
         ),
 
@@ -797,11 +777,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
         // ==========================================
         Expanded(
           child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            margin: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.md, OrtizSpace.lg, OrtizSpace.lg),
             child: Column(
               children: [
                 _buildWeekNavigator(state),
-                const SizedBox(height: 10),
+                const SizedBox(height: OrtizSpace.sm),
 
                 // Grilla de los 7 Días de la Semana
                 Expanded(
@@ -812,10 +792,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                       final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
                       final reminders = state.remindersForDayOfWeek(dayIndex);
                       final bigRockCount = reminders.where((r) => r.isBigRock).length;
+                      final isLastDay = dayIndex == 6;
 
                       return Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(right: dayIndex < 6 ? 8 : 0),
+                          margin: EdgeInsets.only(right: isLastDay ? 0 : OrtizSpace.sm),
                           child: DragTarget<ReminderModel>(
                             onWillAcceptWithDetails: (details) => true,
                             onAcceptWithDetails: (details) {
@@ -827,36 +808,29 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                               return Container(
                                 decoration: BoxDecoration(
                                   color: isHovering
-                                      ? RemindersColors.primaryLight.withOpacity(0.5)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
+                                      ? RemindersColors.primaryLight.withValues(alpha: 0.5)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.field),
                                   border: Border.all(
                                     color: isHovering
                                         ? RemindersColors.primary
                                         : isToday
                                             ? RemindersColors.primary
-                                            : Colors.grey.shade200,
+                                            : OrtizPalette.line,
                                     width: isToday || isHovering ? 2 : 1,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.02),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
                                 ),
                                 child: Column(
                                   children: [
                                     // Encabezado del Día
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
                                       decoration: BoxDecoration(
                                         color: isToday
                                             ? RemindersColors.primaryLight
-                                            : const Color(0xFFF8FAFC),
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                                            : Colors.transparent,
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(OrtizRadius.field)),
+                                        border: const Border(bottom: BorderSide(color: OrtizPalette.line)),
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -871,7 +845,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                                 _dayNames[dayIndex],
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 11,
+                                                  fontSize: OrtizFontSize.caption,
                                                   color: isToday
                                                       ? RemindersColors.primary
                                                       : RemindersColors.textPrimary,
@@ -880,14 +854,14 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                               Text(
                                                 _formatDayHeader(date),
                                                 style: TextStyle(
-                                                  fontSize: 9.5,
+                                                  fontSize: OrtizFontSize.micro,
                                                   fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                                                  color: isToday ? RemindersColors.primary : Colors.grey.shade600,
+                                                  color: isToday ? RemindersColors.primary : OrtizPalette.muted,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: OrtizSpace.xs),
                                           Wrap(
                                             spacing: 4,
                                             runSpacing: 2,
@@ -896,22 +870,22 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                             children: [
                                               if (bigRockCount > 0)
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFFEF3C7),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: OrtizPalette.warnTint,
+                                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                   ),
                                                   child: Row(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
-                                                      const Icon(Icons.star, size: 10, color: Color(0xFFD97706)),
-                                                      const SizedBox(width: 2),
+                                                      const Icon(Icons.star, size: OrtizFontSize.micro, color: OrtizPalette.warn),
+                                                      const SizedBox(width: OrtizSpace.xxs),
                                                       Text(
                                                         '$bigRockCount',
                                                         style: const TextStyle(
-                                                          fontSize: 9.5,
+                                                          fontSize: OrtizFontSize.micro,
                                                           fontWeight: FontWeight.bold,
-                                                          color: Color(0xFF92400E),
+                                                          color: OrtizPalette.warn,
                                                         ),
                                                       ),
                                                     ],
@@ -919,7 +893,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                                 ),
                                               Text(
                                                 '${reminders.length} ${reminders.length == 1 ? "tarea" : "tareas"}',
-                                                style: TextStyle(fontSize: 9.5, color: Colors.grey.shade500),
+                                                style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted),
                                               ),
                                             ],
                                           ),
@@ -930,14 +904,14 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                     // Contenedor de Tareas del Día (Scrollable)
                                     Expanded(
                                       child: reminders.isEmpty
-                                          ? Center(
+                                          ? const Center(
                                               child: Text(
                                                 'Arrastra tareas aquí',
-                                                style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                                                style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                                               ),
                                             )
                                           : ListView.builder(
-                                              padding: const EdgeInsets.all(6),
+                                              padding: const EdgeInsets.all(OrtizSpace.xs),
                                               itemCount: reminders.length,
                                               itemBuilder: (context, rIdx) {
                                                 final reminder = reminders[rIdx];
@@ -947,23 +921,23 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                                                   data: reminder,
                                                   feedback: Material(
                                                     elevation: 6,
-                                                    borderRadius: BorderRadius.circular(8),
+                                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                     child: Container(
                                                       width: 180,
-                                                      padding: const EdgeInsets.all(8),
+                                                      padding: const EdgeInsets.all(OrtizSpace.sm),
                                                       decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        color: OrtizPalette.surfaceHigh,
+                                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                                         border: Border.all(
                                                           color: reminder.isBigRock
-                                                              ? const Color(0xFFD97706)
+                                                              ? OrtizPalette.warn
                                                               : RemindersColors.primary,
                                                           width: 2,
                                                         ),
                                                       ),
                                                       child: Text(
                                                         reminder.title,
-                                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                                        style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                                                       ),
                                                     ),
                                                   ),
@@ -990,7 +964,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 // ==========================================
                 // BANDEJA SEMANAL (TAREAS SIN DÍA ASIGNADO)
                 // ==========================================
-                const SizedBox(height: 12),
+                const SizedBox(height: OrtizSpace.md),
                 _buildUnscheduledDrawer(context, state, isMobile: false),
               ],
             ),
@@ -1010,20 +984,9 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     List<RoleModel> unaddressed, {
     required bool isMobile,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    // Grupo sobre el fondo, sin tarjeta.
+    return Padding(
+      padding: const EdgeInsets.all(OrtizSpace.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
@@ -1032,99 +995,99 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(OrtizSpace.xs),
                 decoration: BoxDecoration(
                   color: RemindersColors.primaryLight,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
-                child: const Icon(Icons.explore_outlined, color: RemindersColors.primary, size: 18),
+                child: const Icon(Icons.explore_outlined, color: RemindersColors.primary, size: OrtizIconSize.md),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: OrtizSpace.sm),
               const Expanded(
                 child: Text(
                   'Brújula Semanal',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: RemindersColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.body, color: RemindersColors.textPrimary),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.settings_outlined, size: 18, color: RemindersColors.textMuted),
+                icon: const Icon(Icons.settings_outlined, size: OrtizIconSize.md, color: RemindersColors.textMuted),
                 onPressed: () => _openRoleManager(context),
                 tooltip: 'Administrar Roles Vitales',
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: OrtizSpace.xs),
           Text(
             state.currentWeeklyPlan?.formattedRange ?? '',
-            style: const TextStyle(fontSize: 11, color: RemindersColors.textMuted),
+            style: const TextStyle(fontSize: OrtizFontSize.caption, color: RemindersColors.textMuted),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
 
           // Botón de Ritual Dominical
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD97706),
-              foregroundColor: Colors.white,
+              backgroundColor: OrtizPalette.warn,
+              foregroundColor: OrtizPalette.onAccent,
               minimumSize: const Size.fromHeight(38),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
             onPressed: () => _openSundayWizard(context),
-            icon: const Icon(Icons.wb_sunny_outlined, size: 16),
+            icon: const Icon(Icons.wb_sunny_outlined, size: OrtizIconSize.sm),
             label: const Text(
               'Ritual Dominical',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: OrtizSpace.xs),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF4338CA),
-              backgroundColor: const Color(0xFFEEF2FF),
-              side: const BorderSide(color: Color(0xFFC7D2FE)),
+              foregroundColor: RemindersColors.primary,
+              backgroundColor: RemindersColors.primaryLight,
+              side: const BorderSide(color: RemindersColors.primaryBorder),
               minimumSize: const Size.fromHeight(34),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
             ),
             onPressed: () => _openGuide(context),
-            icon: const Icon(Icons.school_outlined, size: 15, color: Color(0xFF4F46E5)),
+            icon: const Icon(Icons.school_outlined, size: OrtizIconSize.sm, color: RemindersColors.primary),
             label: const Text(
               '¿Cómo organizarme? (Guía)',
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
 
           // Alerta de Balance si hay roles desatendidos
           if (unaddressed.isNotEmpty) ...[
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(OrtizSpace.sm),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFDE68A)),
+                color: OrtizPalette.warnTint,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                border: Border.all(color: OrtizPalette.warnBorder),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFD97706)),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.warning_amber_rounded, size: OrtizIconSize.sm, color: OrtizPalette.warn),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     child: Text(
                       '${unaddressed.length} ${unaddressed.length == 1 ? "rol no tiene" : "roles no tienen"} Gran Roca esta semana (${unaddressed.map((r) => r.name).join(", ")}).',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF92400E), height: 1.25),
+                      style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.warn, height: 1.25),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: OrtizSpace.md),
           ],
 
           // Lista de Roles con sus Grandes Rocas
           const Text(
             'ROLES VITALES & GRANDES ROCAS',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: RemindersColors.textMuted),
+            style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: RemindersColors.textMuted),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: OrtizSpace.sm),
 
           if (isMobile)
             ...roles.map((role) => _buildRoleItem(state, role))
@@ -1132,7 +1095,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
             Expanded(
               child: ListView.separated(
                 itemCount: roles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, __) => const SizedBox(height: OrtizSpace.sm),
                 itemBuilder: (context, idx) => _buildRoleItem(state, roles[idx]),
               ),
             ),
@@ -1145,41 +1108,38 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     final rocks = state.bigRocksForRole(role.id);
     final hasRock = rocks.isNotEmpty;
 
+    // Fila separada por una línea, sin tarjeta; la píldora marca si falta roca.
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: hasRock ? Colors.grey.shade200 : Colors.amber.shade200,
-        ),
+      margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
+      padding: const EdgeInsets.all(OrtizSpace.sm),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: OrtizPalette.line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(role.iconData, size: 16, color: role.color),
-              const SizedBox(width: 6),
+              Icon(role.iconData, size: OrtizIconSize.sm, color: role.color),
+              const SizedBox(width: OrtizSpace.xs),
               Expanded(
                 child: Text(
                   role.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                 decoration: BoxDecoration(
-                  color: hasRock ? Colors.green.shade50 : Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  color: hasRock ? OrtizPalette.ok.withValues(alpha: 0.16) : OrtizPalette.warnTint,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
                 child: Text(
                   '${rocks.length} Rocas',
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: OrtizFontSize.micro,
                     fontWeight: FontWeight.bold,
-                    color: hasRock ? Colors.green.shade800 : Colors.amber.shade900,
+                    color: hasRock ? OrtizPalette.ok : OrtizPalette.warn,
                   ),
                 ),
               ),
@@ -1187,32 +1147,32 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           ),
           if (role.purposeStatement != null && role.purposeStatement!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 2, bottom: 4),
+              padding: const EdgeInsets.only(top: OrtizSpace.xxs, bottom: OrtizSpace.xs),
               child: Text(
                 role.purposeStatement!,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+                style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted, fontStyle: FontStyle.italic),
               ),
             ),
           // Listado de rocas para este rol
           if (rocks.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: OrtizSpace.xs),
             ...rocks.map((rock) => Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: OrtizSpace.xxs),
                   child: Row(
                     children: [
-                      const Icon(Icons.star, size: 12, color: Color(0xFFD97706)),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.star, size: OrtizIconSize.xs, color: OrtizPalette.warn),
+                      const SizedBox(width: OrtizSpace.xs),
                       Expanded(
                         child: Text(
                           rock.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: OrtizFontSize.caption,
                             decoration: rock.isCompleted ? TextDecoration.lineThrough : null,
-                            color: rock.isCompleted ? Colors.grey : RemindersColors.textPrimary,
+                            color: rock.isCompleted ? OrtizPalette.muted : RemindersColors.textPrimary,
                           ),
                         ),
                       ),
@@ -1234,12 +1194,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     required bool isMobile,
   }) {
     return Container(
-      margin: isMobile ? const EdgeInsets.fromLTRB(16, 0, 16, 12) : null,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+      margin: isMobile ? const EdgeInsets.fromLTRB(OrtizSpace.lg, 0, OrtizSpace.lg, OrtizSpace.md) : null,
+      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+      // Sin tarjeta: solo una línea arriba la separa del cronograma.
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: OrtizPalette.line)),
       ),
       child: Column(
         children: [
@@ -1248,22 +1207,22 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.inbox_outlined, size: 16, color: RemindersColors.primary),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.inbox_outlined, size: OrtizIconSize.sm, color: RemindersColors.primary),
+                  const SizedBox(width: OrtizSpace.sm),
                   Text(
                     isMobile ? 'Bandeja Semanal' : 'Bandeja Semanal (Sin Día Asignado)',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: OrtizSpace.sm),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizPalette.surfaceHigh,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Text(
                       '${state.unscheduledWeeklyReminders.length}',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+                      style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
                     ),
                   ),
                 ],
@@ -1271,19 +1230,19 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
               TextButton.icon(
                 style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                 onPressed: () => setState(() => _showUnscheduledDrawer = !_showUnscheduledDrawer),
-                icon: Icon(_showUnscheduledDrawer ? Icons.expand_less : Icons.expand_more, size: 16),
-                label: Text(_showUnscheduledDrawer ? 'Ocultar' : 'Mostrar', style: const TextStyle(fontSize: 11)),
+                icon: Icon(_showUnscheduledDrawer ? Icons.expand_less : Icons.expand_more, size: OrtizIconSize.sm),
+                label: Text(_showUnscheduledDrawer ? 'Ocultar' : 'Mostrar', style: const TextStyle(fontSize: OrtizFontSize.caption)),
               ),
             ],
           ),
           if (_showUnscheduledDrawer) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: OrtizSpace.xs),
             if (state.unscheduledWeeklyReminders.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                 child: Text(
                   '¡Excelente! Todas las tareas de la semana están agendadas en días específicos.',
-                  style: TextStyle(fontSize: 11, color: Colors.green.shade700),
+                  style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.ok),
                 ),
               )
             else
@@ -1292,7 +1251,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: state.unscheduledWeeklyReminders.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, __) => const SizedBox(width: OrtizSpace.sm),
                   itemBuilder: (context, idx) {
                     final reminder = state.unscheduledWeeklyReminders[idx];
                     final role = state.getRoleById(reminder.roleId);
@@ -1301,11 +1260,11 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                       data: reminder,
                       feedback: Material(
                         elevation: 6,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         child: Container(
                           width: 200,
-                          padding: const EdgeInsets.all(8),
-                          color: Colors.white,
+                          padding: const EdgeInsets.all(OrtizSpace.sm),
+                          color: OrtizPalette.surfaceHigh,
                           child: Text(reminder.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
@@ -1333,13 +1292,12 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
   }) {
     return Container(
       width: isMobile ? 240 : 220,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(OrtizSpace.sm),
       decoration: BoxDecoration(
-        color: reminder.isBigRock ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: reminder.isBigRock ? const Color(0xFFF59E0B) : Colors.grey.shade300,
-        ),
+        // Ficha arrastrable de la bandeja: fondo `surfaceHigh`, sin sombra.
+        color: reminder.isBigRock ? OrtizPalette.warnTint : OrtizPalette.surfaceHigh,
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
+        border: reminder.isBigRock ? Border.all(color: OrtizPalette.warnBorder) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1348,28 +1306,28 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
           Row(
             children: [
               if (reminder.isBigRock) ...[
-                const Icon(Icons.star, size: 14, color: Color(0xFFD97706)),
-                const SizedBox(width: 4),
+                const Icon(Icons.star, size: OrtizIconSize.xs, color: OrtizPalette.warn),
+                const SizedBox(width: OrtizSpace.xs),
               ],
               Expanded(
                 child: Text(
                   reminder.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold),
                 ),
               ),
               if (isMobile)
                 InkWell(
                   onTap: () => _showMoveDayModal(context, state, reminder),
                   child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(Icons.drive_file_move_outlined, size: 14, color: RemindersColors.primary),
+                    padding: EdgeInsets.symmetric(horizontal: OrtizSpace.xs),
+                    child: Icon(Icons.drive_file_move_outlined, size: OrtizIconSize.xs, color: RemindersColors.primary),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: OrtizSpace.xs),
           Wrap(
             spacing: 6,
             runSpacing: 2,
@@ -1379,31 +1337,31 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(role.iconData, size: 11, color: role.color),
-                    const SizedBox(width: 3),
-                    Text(role.name, style: TextStyle(fontSize: 9.5, color: role.color)),
+                    Icon(role.iconData, size: OrtizIconSize.xs, color: role.color),
+                    const SizedBox(width: OrtizSpace.xxs),
+                    Text(role.name, style: TextStyle(fontSize: OrtizFontSize.micro, color: role.color)),
                   ],
                 ),
               Text(
                 reminder.quadrant.shortLabel,
-                style: TextStyle(fontSize: 9.5, color: reminder.quadrant.color, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: OrtizFontSize.micro, color: reminder.quadrant.color, fontWeight: FontWeight.bold),
               ),
               if (reminder.isPinned)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: RemindersColors.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(4),
+                    color: RemindersColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.push_pin_rounded, size: 8, color: RemindersColors.primary),
-                      SizedBox(width: 2),
+                      Icon(Icons.push_pin_rounded, size: OrtizFontSize.micro, color: RemindersColors.primary),
+                      SizedBox(width: OrtizSpace.xxs),
                       Text(
                         'Fijado',
                         style: TextStyle(
-                          fontSize: 8.5,
+                          fontSize: OrtizFontSize.micro,
                           fontWeight: FontWeight.bold,
                           color: RemindersColors.primary,
                         ),
@@ -1413,7 +1371,7 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 ),
               Text(
                 isMobile ? 'Toca para mover' : 'Arrastra a un día',
-                style: const TextStyle(fontSize: 9, color: Colors.grey),
+                style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted),
               ),
             ],
           ),
@@ -1432,22 +1390,19 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
     RoleModel? role, {
     bool isMobile = false,
   }) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: reminder.isBigRock ? const Color(0xFFF59E0B) : Colors.grey.shade200,
-          width: reminder.isBigRock ? 1.5 : 1,
-        ),
-      ),
-      color: reminder.isBigRock ? const Color(0xFFFFFBEB) : Colors.white,
+    // Sin tarjeta: fila sobre `surfaceHigh`; las Grandes Rocas, en tono ámbar.
+    // En escritorio la columna del día es estrecha: iconos más pequeños.
+    final rowIconSize = isMobile ? OrtizIconSize.sm : OrtizIconSize.xs;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: OrtizSpace.xs),
+      child: Material(
+      color: reminder.isBigRock ? OrtizPalette.warnTint : OrtizPalette.surfaceHigh,
+      borderRadius: BorderRadius.circular(OrtizRadius.chip),
       child: InkWell(
         onTap: () => _openEditor(context, reminder),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(OrtizRadius.chip),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(OrtizSpace.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1458,36 +1413,36 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   InkWell(
                     onTap: () => state.toggleCompleted(reminder.id),
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 1),
+                      padding: const EdgeInsets.only(top: OrtizSpace.xxs),
                       child: Icon(
                         reminder.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                        size: 15,
-                        color: reminder.isCompleted ? Colors.green : Colors.grey.shade400,
+                        size: rowIconSize,
+                        color: reminder.isCompleted ? OrtizPalette.ok : OrtizPalette.muted,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: OrtizSpace.xs),
                   Expanded(
                     child: Text(
                       reminder.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: OrtizFontSize.caption,
                         fontWeight: FontWeight.w600,
                         decoration: reminder.isCompleted ? TextDecoration.lineThrough : null,
-                        color: reminder.isCompleted ? Colors.grey : RemindersColors.textPrimary,
+                        color: reminder.isCompleted ? OrtizPalette.muted : RemindersColors.textPrimary,
                       ),
                     ),
                   ),
                   InkWell(
                     onTap: () => state.toggleBigRock(reminder.id),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
                       child: Icon(
                         reminder.isBigRock ? Icons.star : Icons.star_border,
-                        size: 15,
-                        color: reminder.isBigRock ? const Color(0xFFD97706) : Colors.grey.shade300,
+                        size: rowIconSize,
+                        color: reminder.isBigRock ? OrtizPalette.warn : OrtizPalette.muted,
                       ),
                     ),
                   ),
@@ -1495,13 +1450,13 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                     InkWell(
                       onTap: () => _showMoveDayModal(context, state, reminder),
                       child: const Padding(
-                        padding: EdgeInsets.only(left: 4),
-                        child: Icon(Icons.more_vert_rounded, size: 16, color: Colors.grey),
+                        padding: EdgeInsets.only(left: OrtizSpace.xs),
+                        child: Icon(Icons.more_vert_rounded, size: OrtizIconSize.sm, color: OrtizPalette.muted),
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: OrtizSpace.xs),
 
               // Fila Inferior: Cuadrante, Rol, Tiempo
               Wrap(
@@ -1510,43 +1465,49 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                     decoration: BoxDecoration(
-                      color: reminder.quadrant.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(4),
+                      color: reminder.quadrant.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                     child: Text(
                       reminder.quadrant.shortLabel,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: OrtizFontSize.micro,
                         fontWeight: FontWeight.bold,
                         color: reminder.quadrant.color,
                       ),
                     ),
                   ),
                   if (role != null) ...[
-                    Icon(role.iconData, size: 10, color: role.color),
+                    Icon(role.iconData, size: OrtizFontSize.micro, color: role.color),
                     Text(
                       role.name,
-                      style: TextStyle(fontSize: 9, color: role.color, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: OrtizFontSize.micro, color: role.color, fontWeight: FontWeight.w500),
                     ),
                   ],
                   if (reminder.isPinned)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxs, vertical: OrtizSpace.xxs),
                       decoration: BoxDecoration(
-                        color: RemindersColors.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(4),
+                        color: RemindersColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.push_pin_rounded, size: 7.5, color: RemindersColors.primary),
-                          SizedBox(width: 1.5),
+                          // Celda densa del escritorio: el icono no puede crecer
+                          // (antes 7,5 px) sin desbordar la columna del día.
+                          Icon(
+                            Icons.push_pin_rounded,
+                            size: OrtizFontSize.micro - OrtizSpace.xxs,
+                            color: RemindersColors.primary,
+                          ),
+                          SizedBox(width: OrtizSpace.xxs),
                           Text(
                             'Fijado',
                             style: TextStyle(
-                              fontSize: 8,
+                              fontSize: OrtizFontSize.micro,
                               fontWeight: FontWeight.bold,
                               color: RemindersColors.primary,
                             ),
@@ -1557,18 +1518,19 @@ class _WeeklyScheduleViewState extends State<WeeklyScheduleView> {
                   if (reminder.dueAt != null)
                     Text(
                       DateFormat('HH:mm').format(reminder.dueAt!.toLocal()),
-                      style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
+                      style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted),
                     )
                   else if (reminder.estimatedDurationMinutes != null)
                     Text(
                       '~${reminder.estimatedDurationMinutes}m',
-                      style: TextStyle(fontSize: 8.5, color: Colors.grey.shade500),
+                      style: const TextStyle(fontSize: OrtizFontSize.micro, color: OrtizPalette.muted),
                     ),
                 ],
               ),
             ],
           ),
         ),
+      ),
       ),
     );
   }

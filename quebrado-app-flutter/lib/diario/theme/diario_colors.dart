@@ -74,4 +74,18 @@ class DiarioColors {
   static Color getAvatarColor(String seed) {
     return primary;
   }
+
+  // Catálogo de Ánimo (spec 05): colores semánticos de valencia y de los
+  // cuadrantes de emoción, recalibrados para el fondo oscuro. Todos dan
+  // ≥ 6,8:1 sobre `bg` (sirven como texto) y ≥ 6,8:1 con `onAccent` encima.
+  static const Color moodValenceVeryLow = Color(0xFFA48BFA); // Muy mal
+  static const Color moodValenceLow = Color(0xFF6CB8F5); // Mal
+  static const Color moodValenceNeutral = Color(0xFFA8A3AB); // Normal
+  static const Color moodValenceHigh = Color(0xFF6FD38A); // Bien
+  static const Color moodValenceVeryHigh = Color(0xFFF5CD4A); // Excelente
+
+  static const Color moodQuadrantHighPleasant = Color(0xFFF2B33D);
+  static const Color moodQuadrantLowPleasant = Color(0xFF63C982);
+  static const Color moodQuadrantHighUnpleasant = Color(0xFFF07A6E);
+  static const Color moodQuadrantLowUnpleasant = Color(0xFF62A8EE);
 }

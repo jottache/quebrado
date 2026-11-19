@@ -1,5 +1,6 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
+import '../theme/ortiz_space.dart';
 import 'custom_blocks.dart';
 
 /// Bloques que se pueden insertar, en español. Se usan en el menú "/" (escritorio
@@ -63,7 +64,7 @@ List<SelectionMenuItem> get slashMenuItems => [
           getName: () => option.label,
           icon: (editorState, isSelected, style) => Icon(
             option.icon,
-            size: 18,
+            size: OrtizIconSize.md,
             color: isSelected ? style.selectionMenuItemSelectedIconColor : style.selectionMenuItemIconColor,
           ),
           keywords: option.keywords,

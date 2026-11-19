@@ -67,6 +67,19 @@ abstract final class AppColors {
   static const Color income = OrtizPalette.income;
   static const Color expense = OrtizPalette.expense;
 
+  // --- MONEDAS (spec 05, P-39) ---
+  // Color fijo por moneda en la proyección y las píldoras de moneda, para
+  // reconocerlas de un vistazo. Calibrados para el tema oscuro: todos dan
+  // ≥ 4,5:1 sobre `bg` (y sobre su propio tinte), y se distinguen entre sí.
+  static const Color currencyUsd = Color(0xFF6FCF8E); // verde
+  static const Color currencyBs = Color(0xFFE9A24F); // ámbar
+  static const Color currencyEur = Color(0xFF7FAEF5); // azul
+
+  // --- MARCAS ---
+  /// Amarillo de marca de Cashea (cuotas simuladas). Es un relleno claro:
+  /// el texto encima va en `OrtizPalette.onAccent`.
+  static const Color casheaBrand = Color(0xFFFFE607);
+
   // Paleta que la persona elige al crear libros, cuentas, categorías,
   // bolsillos y pagos recurrentes (decisión de la persona, 2026-11-17).
   // Solo afecta a lo que se cree desde ahora: lo ya guardado conserva su hex

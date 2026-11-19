@@ -136,4 +136,41 @@ void main() {
       }
     });
   });
+
+  group('colores de moneda (P-39)', () {
+    const monedas = {
+      'USD': AppColors.currencyUsd,
+      'Bs': AppColors.currencyBs,
+      'EUR': AppColors.currencyEur,
+    };
+
+    double contraste(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      final hi = la > lb ? la : lb;
+      final lo = la > lb ? lb : la;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    test('se leen como texto sobre bg y surfaceHigh (≥ 4,5:1)', () {
+      monedas.forEach((nombre, c) {
+        expect(contraste(c, OrtizPalette.bg), greaterThanOrEqualTo(4.5),
+            reason: nombre);
+        expect(contraste(c, OrtizPalette.surfaceHigh),
+            greaterThanOrEqualTo(4.5),
+            reason: nombre);
+      });
+    });
+
+    test('ya no son los colores pensados para fondo claro', () {
+      const viejos = [Color(0xFF16A34A), Color(0xFFD97706), Color(0xFF2563EB)];
+      for (final c in monedas.values) {
+        expect(viejos, isNot(contains(c)));
+      }
+    });
+
+    test('son tres colores distintos', () {
+      expect(monedas.values.toSet(), hasLength(3));
+    });
+  });
 }

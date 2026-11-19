@@ -11,7 +11,6 @@ import '../models/recurring_payment.dart';
 import '../models/currency_type.dart';
 import '../models/transaction.dart';
 import '../models/account.dart';
-import '../widgets/claymorphic_card.dart';
 import '../widgets/pocket_card.dart';
 import '../widgets/helpers.dart';
 import '../dialogs/add_recurring_payment_dialog.dart';
@@ -24,6 +23,11 @@ import '../../widgets/responsive_breakpoints.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 import '../dialogs/book_selector_dialog.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+
 class PocketsScreen extends StatefulWidget {
   const PocketsScreen({super.key});
 
@@ -32,6 +36,10 @@ class PocketsScreen extends StatefulWidget {
 }
 
 class _PocketsScreenState extends State<PocketsScreen> {
+  /// Espacio libre al final de la lista para que el último elemento no quede
+  /// tapado por la barra de navegación y el botón flotante.
+  static const double _listBottomInset = 140;
+
   int _selectedTab = 0; // 0 = Bolsillos, 1 = Suscripciones
   int _selectedRecurrentFilter = 0; // 0 = Todos, 1 = Ingresos, 2 = Pagos
 
@@ -160,11 +168,11 @@ class _PocketsScreenState extends State<PocketsScreen> {
         decoration: BoxDecoration(
           color: AppColors.dialogBg,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(OrtizRadius.sheet),
+            topRight: Radius.circular(OrtizRadius.sheet),
           ),
         ),
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(OrtizSpace.xl),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -173,108 +181,101 @@ class _PocketsScreenState extends State<PocketsScreen> {
               children: [
                 Center(
                   child: Container(
-                    width: 40,
-                    height: 5,
+                    width: OrtizSize.minTouch,
+                    height: OrtizSpace.xs,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+                      color: OrtizTokens.of(context).line,
+                      borderRadius: BorderRadius.circular(OrtizRadius.chip),
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "¿Por qué usar Bolsillos para tus Deudas?",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Evita la Ilusión de Liquidez",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "Al separar dinero en un bolsillo para una compra a cuotas (ej. Cashea), retiras ese dinero de tu saldo líquido disponible. Esto te impide gastarlo por error y te asegura tener los fondos listos cuando venza la cuota.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Estrategias de Financiamiento",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "• Pre-fondeo: Guarda el monto total de la compra en el bolsillo hoy. Cada cuota se debitará sola sin tocar tu cuenta del día a día.\n• Apartado Progresivo: Usa tu sueldo recurrente para apartar y transferir la cuota al bolsillo automáticamente antes de la fecha de cobro.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Ejemplo Práctico (Cashea)",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "Si compras un teléfono financiado a 6 cuotas de \$20 cada 14 días (total \$120):\n• Si pre-fondeas: Metes los \$120 al bolsillo hoy. Tu cuenta diaria muestra tu balance real y las cuotas se cobran del bolsillo.\n• Si apartas progresivamente: Programas tu sueldo recurrente para depositar \$20 en el bolsillo justo antes de cada cobro de Cashea.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
                 Text(
                   "Monitoreo en el Timeline",
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: OrtizSpace.xs),
                 Text(
                   "Si asocias tus gastos recurrentes a un bolsillo, el simulador vigilará si el bolsillo se queda sin fondos y te dirá cuánto 'Dinero Seguro' tienes realmente para gastar.",
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: OrtizFontSize.bodySm,
                     color: AppColors.cardSubtitleText,
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: OrtizSpace.xxl),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  child: FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text("Entendido"),
+                    child: const Text("Entendido"),
                   ),
                 ),
               ],
@@ -289,6 +290,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+    final t = OrtizTokens.of(context);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -296,7 +298,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 30.5),
+          padding: const EdgeInsets.only(right: OrtizSpace.xxxl),
           child: Image.asset(
             'assets/images/quebrado/logo_quebrado.png',
             height: 50,
@@ -305,13 +307,13 @@ class _PocketsScreenState extends State<PocketsScreen> {
         ),
         leading: isDesktop
             ? Padding(
-                padding: const EdgeInsets.only(left: 12.0),
+                padding: const EdgeInsets.only(left: OrtizSpace.md),
                 child: Center(
                   child: ActionChip(
-                    avatar: const Icon(Icons.auto_stories_rounded, size: 16),
+                    avatar: const Icon(Icons.auto_stories_rounded, size: OrtizIconSize.sm),
                     label: Text(
                       appState.activeProfileName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: OrtizFontSize.bodySm),
                     ),
                     onPressed: () {
                       showResponsiveSheet(
@@ -351,7 +353,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(OrtizSpace.xxs),
                     decoration: BoxDecoration(
                       color: AppColors.expense,
                       shape: BoxShape.circle,
@@ -364,8 +366,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
                       child: Text(
                         '${appState.pendingPaymentsToday.length}',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
+                          color: OrtizPalette.onAccent,
+                          fontSize: OrtizFontSize.micro,
                           fontWeight: FontWeight.w900,
                         ),
                         textAlign: TextAlign.center,
@@ -375,7 +377,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                 ),
             ],
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           IconButton(
             icon: const Icon(Icons.calculate_outlined),
             iconSize: 26,
@@ -388,7 +390,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
               );
             },
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: OrtizSpace.lg),
         ],
       ),
       body: Stack(
@@ -398,7 +400,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
             slivers: [
           // Spacing at the top of the CustomScrollView
           SliverToBoxAdapter(
-            child: SizedBox(height: 12),
+            child: SizedBox(height: OrtizSpace.md),
           ),
 
           // 2. Sticky Tab Bar Selector
@@ -408,8 +410,8 @@ class _PocketsScreenState extends State<PocketsScreen> {
               child: Container(
                 color: AppColors.background,
                 padding: EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
+                  horizontal: OrtizSpace.lg,
+                  vertical: OrtizSpace.sm,
                 ),
                 child: Showcase(
                   key: _tabsKey,
@@ -419,7 +421,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColors.mainTabTrackBg,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: Row(
                       children: [
@@ -459,10 +461,10 @@ class _PocketsScreenState extends State<PocketsScreen> {
           if (_selectedTab == 0 || _selectedTab == 1)
             SliverPadding(
               padding: EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 12.0,
-                bottom: 140.0,
+                left: OrtizSpace.lg,
+                right: OrtizSpace.lg,
+                top: OrtizSpace.md,
+                bottom: _listBottomInset,
               ),
               sliver: SliverToBoxAdapter(
                 child: Column(
@@ -479,116 +481,48 @@ class _PocketsScreenState extends State<PocketsScreen> {
                             description: "Crea 'bolsillos' para apartar fondos de tu dinero disponible líquido y protegerlos de tus gastos diarios. Ideal para pre-fondear cuotas o metas.",
                             child: Row(
                               children: [
-                                Container(
-                                  width: 4,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
                                 Text(
                                   "Bolsillos de Ahorro",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.cardText,
-                                    letterSpacing: 0.5,
-                                  ),
+                                  style: OrtizType.titleSm.copyWith(color: t.muted),
                                 ),
-                                SizedBox(width: 6),
+                                const SizedBox(width: OrtizSpace.xs),
                                 IconButton(
+                                  tooltip: 'Qué son los bolsillos',
                                   icon: Icon(
                                     Icons.info_outline_rounded,
-                                    color: AppColors.primary,
-                                    size: 18,
+                                    color: t.muted,
+                                    size: OrtizIconSize.md,
                                   ),
                                   onPressed: () => _showPocketsInfo(context),
-                                  constraints: BoxConstraints(),
+                                  constraints: const BoxConstraints(),
                                   padding: EdgeInsets.zero,
                                 ),
                               ],
                             ),
                           ),
                           IconButton(
+                            tooltip: 'Nuevo bolsillo',
                             icon: Icon(
                               Icons.add_circle_rounded,
-                              color: AppColors.primary,
-                              size: 24,
+                              color: t.accent,
+                              size: OrtizIconSize.lg,
                             ),
                             onPressed: () =>
                                 _showAddPocketDialog(context, appState),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
+                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: OrtizSpace.sm),
 
                       if (appState.pockets.isEmpty)
-                        ClaymorphicCard(
-                          padding: EdgeInsets.symmetric(vertical: 32.0),
-                          width: double.infinity,
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.archive_rounded,
-                                size: 40,
-                                color: Colors.grey[400],
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                "No tienes bolsillos aún",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
+                        const OrtizEmptyState(
+                          icon: Icons.archive_rounded,
+                          title: "No tienes bolsillos aún",
                         )
                       else
-                        Column(
-                          children: List.generate(appState.pockets.length, (index) {
-                            final pocket = appState.pockets[index];
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: index == appState.pockets.length - 1 ? 0 : 16,
-                              ),
-                              child: PocketCard(
-                                pocket: pocket,
-                                isFeasible: appState.isPocketTargetDateFeasible(pocket),
-                                viableTargetDate: appState.getViableTargetDate(pocket),
-                                onAdd: () => _showTransactionDialog(
-                                  context,
-                                  appState,
-                                  pocket,
-                                  isDeposit: true,
-                                ),
-                                onWithdraw: () => _showTransactionDialog(
-                                  context,
-                                  appState,
-                                  pocket,
-                                  isDeposit: false,
-                                ),
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (context) => AddPocketBottomSheet(
-                                      appState: appState,
-                                      editingPocket: pocket,
-                                    ),
-                                  );
-                                },
-                                backgroundColor: AppColors.getAlternateCardColor(index),
-                              ),
-                            );
-                          }),
-                        ),
+                        _buildPocketList(context, appState),
                     ] else if (_selectedTab == 1) ...[
                       // Recurrentes
                       Showcase(
@@ -605,14 +539,14 @@ class _PocketsScreenState extends State<PocketsScreen> {
                                   height: 16,
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(2),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: OrtizSpace.sm),
                                 Text(
                                   "Pagos Recurrentes y Cuotas",
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: OrtizFontSize.body,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.cardText,
                                     letterSpacing: 0.5,
@@ -624,7 +558,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                               icon: Icon(
                                 Icons.add_circle_rounded,
                                 color: AppColors.primary,
-                                size: 24,
+                                size: OrtizIconSize.lg,
                               ),
                               onPressed: () {
                                 showModalBottomSheet(
@@ -639,7 +573,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: OrtizSpace.sm),
 
                       // Filter Segmented Control
                       Showcase(
@@ -648,10 +582,10 @@ class _PocketsScreenState extends State<PocketsScreen> {
                         description: "Filtra rápidamente el listado para ver solo tus ingresos planificados, tus pagos recurrentes, o todos al mismo tiempo.",
                         child: Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(OrtizSpace.xs),
                           decoration: BoxDecoration(
                             color: AppColors.mainTabTrackBg,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
                           ),
                           child: Row(
                             children: [
@@ -674,7 +608,7 @@ class _PocketsScreenState extends State<PocketsScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: OrtizSpace.lg),
 
                       // Recurring payments list
                       Builder(
@@ -694,49 +628,28 @@ class _PocketsScreenState extends State<PocketsScreen> {
                               key: _recurrentsListKey,
                               title: "Listado de Obligaciones",
                               description: "Aquí verás tus obligaciones y planificaciones una vez las agregues. El simulador las usará para proyectar tu flujo de caja.",
-                              child: ClaymorphicCard(
-                                padding: EdgeInsets.symmetric(vertical: 32.0),
+                              child: SizedBox(
                                 width: double.infinity,
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.credit_card_rounded,
-                                      size: 40,
-                                      color: Colors.grey[400],
-                                    ),
-                                    SizedBox(height: 12),
-                                    Text(
-                                      _selectedRecurrentFilter == 0
-                                          ? "Sin registros recurrentes"
-                                          : _selectedRecurrentFilter == 1
-                                          ? "Sin ingresos recurrentes"
-                                          : "Sin pagos recurrentes",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
+                                child: OrtizEmptyState(
+                                  icon: Icons.credit_card_rounded,
+                                  title: _selectedRecurrentFilter == 0
+                                      ? "Sin registros recurrentes"
+                                      : _selectedRecurrentFilter == 1
+                                      ? "Sin ingresos recurrentes"
+                                      : "Sin pagos recurrentes",
                                 ),
                               ),
                             );
                           }
 
-                          return Column(
+                          return OrtizSection(
+                            divided: true,
                             children: List.generate(filteredRecurring.length, (index) {
                               final pay = filteredRecurring[index];
-                              final row = Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: index == filteredRecurring.length - 1
-                                      ? 0
-                                      : 12,
-                                ),
-                                child: _RecurringPaymentRow(
-                                  payment: pay,
-                                  backgroundColor: AppColors.getAlternateCardColor(
-                                    index,
-                                  ),
+                              final row = _RecurringPaymentRow(
+                                payment: pay,
+                                backgroundColor: AppColors.getAlternateCardColor(
+                                  index,
                                 ),
                               );
 
@@ -761,10 +674,10 @@ class _PocketsScreenState extends State<PocketsScreen> {
           else
             SliverPadding(
               padding: EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 12.0,
-                bottom: 140.0,
+                left: OrtizSpace.lg,
+                right: OrtizSpace.lg,
+                top: OrtizSpace.md,
+                bottom: _listBottomInset,
               ),
               sliver: TimelineScreen(),
             ),
@@ -812,22 +725,21 @@ class _PocketsScreenState extends State<PocketsScreen> {
                 top: 140 + _fastScrollY - 25, // Align center of bubble with finger
                 child: Material(
                   elevation: 8,
-                  borderRadius: BorderRadius.circular(20),
-                  shadowColor: Colors.black26,
+                  borderRadius: BorderRadius.circular(OrtizRadius.dialog),
                   color: AppColors.primary,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.sm),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.calendar_today_rounded, size: 16, color: Colors.white),
-                        SizedBox(width: 8),
+                        const Icon(Icons.calendar_today_rounded, size: OrtizIconSize.sm, color: OrtizPalette.onAccent),
+                        SizedBox(width: OrtizSpace.sm),
                         Text(
                           _getFormattedMonthYear(_fastScrollDate!),
                           style: TextStyle(
-                            color: Colors.white,
+                            color: OrtizPalette.onAccent,
                             fontWeight: FontWeight.w900,
-                            fontSize: 14,
+                            fontSize: OrtizFontSize.body,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -839,6 +751,67 @@ class _PocketsScreenState extends State<PocketsScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  /// Lista de bolsillos sin tarjetas: una fila por bolsillo, separadas por una
+  /// línea fina, con entrada escalonada.
+  Widget _buildPocketList(BuildContext context, AppState appState) {
+    final pockets = appState.pockets;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < pockets.length; index++) ...[
+          if (index > 0)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
+              child: Divider(height: OrtizStroke.hairline),
+            ),
+          KeyedSubtree(
+            key: ValueKey('pocket_row_${pockets[index].id}'),
+            child: ortizStaggered(
+              context,
+              index,
+              _buildPocketRow(context, appState, pockets[index]),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPocketRow(
+    BuildContext context,
+    AppState appState,
+    SavingPocket pocket,
+  ) {
+    return PocketCard(
+      pocket: pocket,
+      isFeasible: appState.isPocketTargetDateFeasible(pocket),
+      viableTargetDate: appState.getViableTargetDate(pocket),
+      onAdd: () => _showTransactionDialog(
+        context,
+        appState,
+        pocket,
+        isDeposit: true,
+      ),
+      onWithdraw: () => _showTransactionDialog(
+        context,
+        appState,
+        pocket,
+        isDeposit: false,
+      ),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => AddPocketBottomSheet(
+            appState: appState,
+            editingPocket: pocket,
+          ),
+        );
+      },
     );
   }
 
@@ -922,15 +895,15 @@ class _RecurringPaymentRow extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final themeColor = backgroundColor ?? parseHexColor(payment.colorHex);
     final isLightCard =
-        themeColor == Colors.white ||
+        themeColor == OrtizPalette.fg ||
         themeColor == AppColors.cardBackground ||
         HSLColor.fromColor(themeColor).lightness >= 0.75;
     final subAccentColor = parseHexColor(payment.colorHex);
 
-    final textColor = isLightCard ? AppColors.cardText : Colors.white;
+    final textColor = isLightCard ? AppColors.cardText : OrtizPalette.fg;
     final subtitleColor = isLightCard
         ? AppColors.cardSubtitleText
-        : Colors.white.withOpacity(0.7);
+        : OrtizPalette.fg.withValues(alpha: 0.7);
 
     final isIncome = payment.type == TransactionType.income;
     final typeLabel = payment.frequency == SubscriptionFrequency.once
@@ -959,7 +932,9 @@ class _RecurringPaymentRow extends StatelessWidget {
       }
     }
 
+    // Fila sin tarjeta (spec 05): va dentro de una `OrtizSection` dividida.
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         showModalBottomSheet(
           context: context,
@@ -969,10 +944,8 @@ class _RecurringPaymentRow extends StatelessWidget {
               AddRecurringPaymentBottomSheet(editingPayment: payment),
         );
       },
-      child: ClaymorphicCard(
-        cornerRadius: 18,
-        padding: EdgeInsets.all(14.0),
-        backgroundColor: themeColor,
+      child: Padding(
+        padding: EdgeInsets.all(OrtizSpace.md),
         child: Row(
           children: [
             // Icon
@@ -981,17 +954,17 @@ class _RecurringPaymentRow extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 color: isLightCard
-                    ? subAccentColor.withOpacity(0.12)
-                    : Colors.white.withOpacity(0.18),
+                    ? subAccentColor.withValues(alpha: 0.12)
+                    : OrtizPalette.fg.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 getIconData(payment.icon),
-                color: isLightCard ? subAccentColor : Colors.white,
-                size: 18,
+                color: isLightCard ? subAccentColor : OrtizPalette.fg,
+                size: OrtizIconSize.md,
               ),
             ),
-            SizedBox(width: 14),
+            SizedBox(width: OrtizSpace.md),
 
             // Text info
             Expanded(
@@ -1003,31 +976,31 @@ class _RecurringPaymentRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
                   ),
-                  SizedBox(height: 3),
+                  SizedBox(height: OrtizSpace.xxs),
                   Text(
                     "${payment.frequency.value} • ${payment.notificationOption.value}",
-                    style: TextStyle(fontSize: 11, color: subtitleColor),
+                    style: TextStyle(fontSize: OrtizFontSize.caption, color: subtitleColor),
                   ),
                   if (accountName != null) ...[
-                    SizedBox(height: 3),
+                    SizedBox(height: OrtizSpace.xxs),
                     Row(
                       children: [
                         Icon(
                           Icons.account_balance_wallet_rounded,
-                          size: 11,
+                          size: OrtizIconSize.xs,
                           color: subtitleColor,
                         ),
-                        SizedBox(width: 4),
+                        SizedBox(width: OrtizSpace.xs),
                         Flexible(
                           child: Text(
                             accountName,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               color: subtitleColor,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1038,20 +1011,20 @@ class _RecurringPaymentRow extends StatelessWidget {
                     ),
                   ],
                   if (pocketName != null) ...[
-                    SizedBox(height: 3),
+                    SizedBox(height: OrtizSpace.xxs),
                     Row(
                       children: [
                         Icon(
                           Icons.archive_rounded,
-                          size: 11,
+                          size: OrtizIconSize.xs,
                           color: subtitleColor,
                         ),
-                        SizedBox(width: 4),
+                        SizedBox(width: OrtizSpace.xs),
                         Flexible(
                           child: Text(
                             pocketName,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               color: subtitleColor,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1069,51 +1042,37 @@ class _RecurringPaymentRow extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  "${isIncome ? '+' : '-'}${payment.currency == CurrencyType.usd ? '\$' : 'Bs.'}${payment.amount.toStringAsFixed(2)}",
+                OrtizAmount(
+                  value: payment.amount,
+                  currencySymbol:
+                      payment.currency == CurrencyType.usd ? '\$' : 'Bs.',
+                  format: (v) =>
+                      "${isIncome ? '+' : '-'}${payment.currency == CurrencyType.usd ? '\$' : 'Bs.'}${v.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: OrtizFontSize.body,
                     fontWeight: FontWeight.w900,
                     color: isIncome
-                        ? (isLightCard ? Colors.green[700] : Colors.white)
-                        : (isLightCard ? Colors.red[700] : Colors.white),
+                        ? (isLightCard ? OrtizPalette.income : OrtizPalette.fg)
+                        : (isLightCard ? OrtizPalette.expense : OrtizPalette.fg),
                   ),
                 ),
-                SizedBox(height: 3),
+                SizedBox(height: OrtizSpace.xxs),
                 Text(
                   payment.frequency == SubscriptionFrequency.once
                       ? "Fecha: ${formatDate(payment.startDate)}"
                       : "Próximo: ${formatDate(payment.startDate)}",
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.bold,
                     color: subtitleColor,
                   ),
                 ),
-                SizedBox(height: 4),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isLightCard
-                        ? (isIncome
-                              ? Colors.green.withOpacity(0.15)
-                              : Colors.red.withOpacity(0.15))
-                        : Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    typeLabel,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: isLightCard
-                          ? (isIncome ? Colors.green : Colors.red)
-                          : Colors.white,
-                    ),
-                  ),
+                SizedBox(height: OrtizSpace.xs),
+                OrtizPill(
+                  label: typeLabel,
+                  color: isLightCard
+                      ? (isIncome ? OrtizPalette.income : OrtizPalette.expense)
+                      : null,
                 ),
               ],
             ),
@@ -1208,12 +1167,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
       child: GestureDetector(
         onTap: () => setState(() => _priority = val),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
           decoration: BoxDecoration(
-            color: isSelected ? themeColor : themeColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? themeColor : themeColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(OrtizRadius.field),
             border: Border.all(
-              color: isSelected ? themeColor : themeColor.withOpacity(0.15),
+              color: isSelected ? themeColor : themeColor.withValues(alpha: 0.15),
               width: 1.5,
             ),
           ),
@@ -1221,9 +1180,9 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : themeColor,
+              color: isSelected ? OrtizPalette.onAccent : themeColor,
             ),
           ),
         ),
@@ -1241,18 +1200,18 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
       },
       child: Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? AppColors.primary : OrtizPalette.surfaceHigh,
+          borderRadius: BorderRadius.circular(OrtizRadius.chip),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey[300]!,
+            color: isSelected ? AppColors.primary : OrtizPalette.line,
             width: 1.5,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   )
@@ -1262,8 +1221,8 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.cardText,
-            fontSize: 11,
+            color: isSelected ? OrtizPalette.onAccent : AppColors.cardText,
+            fontSize: OrtizFontSize.caption,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1438,11 +1397,11 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
           decoration: BoxDecoration(
             color: AppColors.dialogBg,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+              topLeft: Radius.circular(OrtizRadius.sheet),
+              topRight: Radius.circular(OrtizRadius.sheet),
             ),
           ),
-          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.xl, horizontal: OrtizSpace.lg),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1452,12 +1411,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                   "Seleccionar Origen de Imagen",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.bold,
                     color: AppColors.cardText,
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: OrtizSpace.xl),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -1474,20 +1433,20 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.camera_alt_rounded,
                               color: AppColors.primary,
-                              size: 26,
+                              size: OrtizIconSize.lg,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: OrtizSpace.sm),
                           Text(
                             "Cámara",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -1508,20 +1467,20 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.photo_library_rounded,
                               color: AppColors.primary,
-                              size: 26,
+                              size: OrtizIconSize.lg,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: OrtizSpace.sm),
                           Text(
                             "Galería",
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
@@ -1531,7 +1490,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: OrtizSpace.md),
               ],
             ),
           ),
@@ -1548,15 +1507,15 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: FractionallySizedBox(
         heightFactor: 0.85,
@@ -1569,12 +1528,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
+                  color: OrtizPalette.line,
+                  borderRadius: BorderRadius.circular(OrtizRadius.chip),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Header
             Row(
@@ -1585,9 +1544,9 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                       ? "Nuevo Bolsillo"
                       : "Editar Bolsillo",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 IconButton(
@@ -1596,7 +1555,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // Scrollable fields
             Expanded(
@@ -1606,45 +1565,44 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Information Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "INFORMACIÓN DEL BOLSILLO",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           TextField(
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: "Nombre (ej. Regalos de Navidad)",
                               hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 13,
+                                color: OrtizPalette.muted,
+                                fontSize: OrtizFontSize.bodySm,
                               ),
-                              contentPadding: EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: OrtizFontSize.body,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           TextField(
                             controller: _targetController,
                             keyboardType: TextInputType.numberWithOptions(
@@ -1653,31 +1611,31 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                             decoration: InputDecoration(
                               hintText: "Meta Objetivo (USD) - Opcional",
                               hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 13,
+                                color: OrtizPalette.muted,
+                                fontSize: OrtizFontSize.bodySm,
                               ),
-                              contentPadding: EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: OrtizFontSize.body,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Fecha Límite Estimada",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.cardText,
                                 ),
@@ -1690,11 +1648,11 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           AppColors.nestedTabTrackBg,
                                       foregroundColor: AppColors.primary,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                       ),
                                       padding: EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
+                                        horizontal: OrtizSpace.md,
+                                        vertical: OrtizSpace.sm,
                                       ),
                                     ),
                                     onPressed: () async {
@@ -1718,16 +1676,16 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           : "Sin fecha límite",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                        fontSize: OrtizFontSize.bodySm,
                                       ),
                                     ),
                                   ),
                                   if (_targetDate != null) ...[
-                                    SizedBox(width: 4),
+                                    SizedBox(width: OrtizSpace.xs),
                                     IconButton(
                                       icon: Icon(
                                         Icons.clear_rounded,
-                                        size: 18,
+                                        size: OrtizIconSize.md,
                                         color: AppColors.expense,
                                       ),
                                       onPressed: () {
@@ -1740,14 +1698,14 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                             ],
                           ),
                           if (_targetDate == null) ...[
-                            SizedBox(height: 12),
+                            SizedBox(height: OrtizSpace.md),
                             Container(
-                              padding: EdgeInsets.all(12),
+                              padding: EdgeInsets.all(OrtizSpace.md),
                               decoration: BoxDecoration(
                                 color: AppColors.nestedTabTrackBg,
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(OrtizRadius.block),
                                 border: Border.all(
-                                  color: AppColors.cardBorder.withOpacity(0.08),
+                                  color: AppColors.cardBorder.withValues(alpha: 0.08),
                                   width: 1,
                                 ),
                               ),
@@ -1758,21 +1716,21 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                     children: [
                                       Icon(
                                         Icons.auto_awesome_rounded,
-                                        size: 16,
+                                        size: OrtizIconSize.sm,
                                         color: AppColors.primary,
                                       ),
-                                      SizedBox(width: 6),
+                                      SizedBox(width: OrtizSpace.xs),
                                       Text(
                                         "Plan de ahorro automático",
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.cardText,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 10),
+                                  SizedBox(height: OrtizSpace.sm),
                                   Row(
                                     children: [
                                       Expanded(
@@ -1781,14 +1739,14 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           'Ninguno',
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: OrtizSpace.sm),
                                       Expanded(
                                         child: _buildRuleTypeButton(
                                           'percentage',
                                           '% Recurrente',
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: OrtizSpace.sm),
                                       Expanded(
                                         child: _buildRuleTypeButton(
                                           'fixedThreshold',
@@ -1798,17 +1756,17 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                     ],
                                   ),
                                   if (_fundingRuleType != 'none') ...[
-                                    SizedBox(height: 12),
+                                    SizedBox(height: OrtizSpace.md),
                                     if (_fundingRuleType == 'percentage') ...[
                                       Text(
                                         "Porcentaje a ahorrar de cada ingreso recurrente:",
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      SizedBox(height: 6),
+                                      SizedBox(height: OrtizSpace.xs),
                                       TextField(
                                         controller: _fundingRuleValueController,
                                         keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -1816,30 +1774,30 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           hintText: "Ej: 10",
                                           suffixText: "%",
                                           suffixStyle: TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                           filled: true,
-                                          fillColor: Colors.white,
+                                          fillColor: OrtizPalette.surfaceHigh,
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                         ),
-                                        style: TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: OrtizFontSize.body),
                                       ),
                                     ] else if (_fundingRuleType == 'fixedThreshold') ...[
                                       Text(
                                         "Monto fijo a ahorrar:",
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: OrtizSpace.xs),
                                       TextField(
                                         controller: _fundingRuleValueController,
                                         keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -1847,30 +1805,30 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           hintText: "Ej: 20",
                                           suffixText: "\$",
                                           suffixStyle: TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                           filled: true,
-                                          fillColor: Colors.white,
+                                          fillColor: OrtizPalette.surfaceHigh,
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                         ),
-                                        style: TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: OrtizFontSize.body),
                                       ),
-                                      SizedBox(height: 8),
+                                      SizedBox(height: OrtizSpace.sm),
                                       Text(
                                         "Cuando un ingreso sea igual o supere:",
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.cardText,
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      SizedBox(height: OrtizSpace.xs),
                                       TextField(
                                         controller: _fundingRuleThresholdController,
                                         keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -1878,19 +1836,19 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           hintText: "Ej: 100",
                                           suffixText: "\$",
                                           suffixStyle: TextStyle(fontWeight: FontWeight.bold),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                                           filled: true,
-                                          fillColor: Colors.white,
+                                          fillColor: OrtizPalette.surfaceHigh,
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                                            borderSide: BorderSide(color: OrtizPalette.line),
                                           ),
                                         ),
-                                        style: TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: OrtizFontSize.body),
                                       ),
                                     ],
                                   ],
@@ -1898,7 +1856,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               ),
                             ),
                           ],
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           TextField(
                             controller: _descriptionController,
                             maxLines: 2,
@@ -1906,40 +1864,40 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                               hintText:
                                   "Descripción (ej. Qué es lo que quiero comprar, opcional)",
                               hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 13,
+                                color: OrtizPalette.muted,
+                                fontSize: OrtizFontSize.bodySm,
                               ),
-                              contentPadding: EdgeInsets.all(14),
+                              contentPadding: EdgeInsets.all(OrtizSpace.md),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(OrtizRadius.field),
                                 borderSide: BorderSide.none,
                               ),
                             ),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: OrtizFontSize.body,
                               color: AppColors.cardText,
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: OrtizSpace.lg),
                           Text(
                             "FOTO DEL BOLSILLO",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: OrtizSpace.sm),
                           if (_selectedImagePath != null &&
                               _selectedImagePath!.isNotEmpty) ...[
                             Stack(
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(OrtizRadius.block),
                                   child: _selectedImagePath!.startsWith('http')
                                       ? Image.network(
                                           _selectedImagePath!,
@@ -1960,12 +1918,12 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                               ) => Container(
                                                 height: 140,
                                                 width: double.infinity,
-                                                color: Colors.grey[200],
+                                                color: OrtizPalette.surfaceHigh,
                                                 alignment: Alignment.center,
                                                 child: Icon(
                                                   Icons.broken_image_rounded,
-                                                  size: 36,
-                                                  color: Colors.grey,
+                                                  size: OrtizIconSize.xl,
+                                                  color: OrtizPalette.muted,
                                                 ),
                                               ),
                                         ),
@@ -1980,31 +1938,31 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                           () => _selectedImagePath = null,
                                         ),
                                         child: Container(
-                                          padding: EdgeInsets.all(6),
+                                          padding: EdgeInsets.all(OrtizSpace.xs),
                                           decoration: BoxDecoration(
-                                            color: Colors.black54,
+                                            color: OrtizPalette.muted,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
                                             Icons.delete_outline_rounded,
-                                            color: Colors.white,
-                                            size: 18,
+                                            color: OrtizPalette.fg,
+                                            size: OrtizIconSize.md,
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 8),
+                                      SizedBox(width: OrtizSpace.sm),
                                       GestureDetector(
                                         onTap: _showImagePickerSourceSheet,
                                         child: Container(
-                                          padding: EdgeInsets.all(6),
+                                          padding: EdgeInsets.all(OrtizSpace.xs),
                                           decoration: BoxDecoration(
-                                            color: Colors.black54,
+                                            color: OrtizPalette.muted,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
                                             Icons.edit_rounded,
-                                            color: Colors.white,
-                                            size: 18,
+                                            color: OrtizPalette.fg,
+                                            size: OrtizIconSize.md,
                                           ),
                                         ),
                                       ),
@@ -2020,10 +1978,10 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                 height: 100,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(16),
+                                  color: OrtizPalette.surfaceHigh,
+                                  borderRadius: BorderRadius.circular(OrtizRadius.block),
                                   border: Border.all(
-                                    color: Colors.black.withOpacity(0.08),
+                                    color: Colors.transparent,
                                     style: BorderStyle.solid,
                                     width: 1,
                                   ),
@@ -2033,16 +1991,16 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                   children: [
                                     Icon(
                                       Icons.add_a_photo_rounded,
-                                      color: themeColor.withOpacity(0.8),
-                                      size: 28,
+                                      color: themeColor.withValues(alpha: 0.8),
+                                      size: OrtizIconSize.xl,
                                     ),
-                                    SizedBox(height: 6),
+                                    SizedBox(height: OrtizSpace.xs),
                                     Text(
                                       "Agregar foto (Cámara o Galería)",
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: OrtizFontSize.bodySm,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.grey,
+                                        color: OrtizPalette.muted,
                                       ),
                                     ),
                                   ],
@@ -2052,66 +2010,64 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                           ],
                         ],
                       ),
+                    ],
                     ),
-                    SizedBox(height: 20),
 
                     // Priority Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "PRIORIDAD DE FINANCIACIÓN",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Row(
                             children: [
                               _buildPriorityButton(1, "Alta (1)", themeColor),
-                              SizedBox(width: 8),
+                              SizedBox(width: OrtizSpace.sm),
                               _buildPriorityButton(2, "Media (2)", themeColor),
-                              SizedBox(width: 8),
+                              SizedBox(width: OrtizSpace.sm),
                               _buildPriorityButton(3, "Baja (3)", themeColor),
                             ],
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Text(
                             "Los bolsillos con prioridad alta se financiarán primero con tu potencial de ahorro diario. Si hay varios en el mismo nivel, compartirán los fondos proporcionalmente.",
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: OrtizFontSize.caption,
                               color: AppColors.cardSubtitleText,
                               height: 1.4,
                             ),
                           ),
                         ],
                       ),
+                    ],
                     ),
-                    SizedBox(height: 20),
 
                     // Icon section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "ICONO",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           GridView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
@@ -2133,15 +2089,15 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? themeColor
-                                        : themeColor.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
+                                        : themeColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(OrtizRadius.field),
                                   ),
                                   child: Icon(
                                     getIconData(icon),
                                     color: isSelected
-                                        ? Colors.white
+                                        ? OrtizPalette.fg
                                         : themeColor,
-                                    size: 20,
+                                    size: OrtizIconSize.md,
                                   ),
                                 ),
                               );
@@ -2149,26 +2105,25 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                           ),
                         ],
                       ),
+                    ],
                     ),
-                    SizedBox(height: 20),
 
                     // Color Section
-                    ClaymorphicCard(
-                      cornerRadius: 24,
-                      padding: EdgeInsets.all(20.0),
-                      child: Column(
+                    OrtizSection(
+                      children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "COLOR",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: OrtizFontSize.caption,
                               fontWeight: FontWeight.w900,
                               color: AppColors.cardSubtitleText,
                               letterSpacing: 1.0,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: OrtizSpace.md),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: _colors.map((colorHex) {
@@ -2185,7 +2140,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected
-                                          ? Colors.black87
+                                          ? OrtizPalette.fg
                                           : Colors.transparent,
                                       width: isSelected ? 2.5 : 0,
                                     ),
@@ -2196,37 +2151,38 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                           ),
                         ],
                       ),
+                    ],
                     ),
 
                     // Destructive Delete Button
                     if (widget.editingPocket != null) ...[
-                      SizedBox(height: 20),
+                      SizedBox(height: OrtizSpace.xl),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.expense.withOpacity(0.08),
+                          backgroundColor: AppColors.expense.withValues(alpha: 0.08),
                           foregroundColor: AppColors.expense,
                           elevation: 0,
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(OrtizRadius.field),
                           ),
                         ),
                         onPressed: _deletePocket,
                         child: Text(
                           "Eliminar Bolsillo",
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: OrtizFontSize.body,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
-                    SizedBox(height: 32),
+                    SizedBox(height: OrtizSpace.xxxl),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: OrtizSpace.md),
 
             // Save / Cancel Buttons Row
             Row(
@@ -2234,32 +2190,32 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                 Expanded(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       "Cancelar",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: OrtizFontSize.body,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: OrtizPalette.muted,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: OrtizSpace.md),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      foregroundColor: OrtizPalette.onAccent,
+                      padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(OrtizRadius.field),
                       ),
                     ),
                     onPressed: () {
@@ -2275,7 +2231,7 @@ class _AddPocketBottomSheetState extends State<AddPocketBottomSheet> {
                     child: Text(
                       "Guardar",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: OrtizFontSize.body,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -2365,10 +2321,9 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
 
     return ScaleTransition(
       scale: _scaleAnimation,
-      child: ClaymorphicCard(
-        cornerRadius: 24,
-        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
-        child: Column(
+      child: OrtizSection(
+        children: [
+        Column(
           children: [
             SizedBox(
               height: 200,
@@ -2395,12 +2350,12 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 16.0,
+                          vertical: OrtizSpace.lg,
+                          horizontal: OrtizSpace.lg,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                          borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.block)),
                         ),
                         child: Column(
                           children: [
@@ -2415,9 +2370,9 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                         ? "DISPONIBLE (USD)"
                                         : "DISPONIBLE (VES)",
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: OrtizFontSize.bodySm,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.white,
+                                      color: OrtizPalette.fg,
                                       letterSpacing: 1.2,
                                     ),
                                   ),
@@ -2431,51 +2386,51 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                       });
                                     },
                                     child: Container(
-                                      padding: EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(OrtizSpace.xs),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.25),
+                                        color: OrtizPalette.fg.withValues(alpha: 0.25),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         _obscureBalance
                                             ? Icons.visibility_rounded
                                             : Icons.visibility_off_rounded,
-                                        size: 14,
-                                        color: Colors.white,
+                                        size: OrtizIconSize.sm,
+                                        color: OrtizPalette.fg,
                                       ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: OrtizSpace.xs),
                             Text(
                               "1 USD = Bs. ${appState.bcvRate.toStringAsFixed(2)} (BCV)",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: OrtizPalette.fg,
                               ),
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: OrtizSpace.lg),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayBalance,
                                 style: TextStyle(
-                                  fontSize: 36,
+                                  fontSize: OrtizFontSize.displayLg,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.white,
+                                  color: OrtizPalette.fg,
                                 ),
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: OrtizSpace.xs),
                             Text(
                               conversionText,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: OrtizPalette.fg,
                               ),
                             ),
                           ],
@@ -2509,13 +2464,13 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 16.0,
+                          vertical: OrtizSpace.lg,
+                          horizontal: OrtizSpace.lg,
                         ),
                         decoration: BoxDecoration(
                           color: cardColor,
                           borderRadius: BorderRadius.all(
-                            Radius.circular(16),
+                            Radius.circular(OrtizRadius.block),
                           ),
                         ),
                         child: Column(
@@ -2530,16 +2485,16 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                     children: [
                                       Icon(
                                         getIconData(acc.icon),
-                                        color: Colors.white,
-                                        size: 14,
+                                        color: OrtizPalette.fg,
+                                        size: OrtizIconSize.sm,
                                       ),
-                                      SizedBox(width: 6),
+                                      SizedBox(width: OrtizSpace.xs),
                                       Text(
                                         acc.name.toUpperCase(),
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: OrtizFontSize.bodySm,
                                           fontWeight: FontWeight.w900,
-                                          color: Colors.white,
+                                          color: OrtizPalette.fg,
                                           letterSpacing: 1.2,
                                         ),
                                       ),
@@ -2555,53 +2510,53 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                                       });
                                     },
                                     child: Container(
-                                      padding: EdgeInsets.all(6),
+                                      padding: EdgeInsets.all(OrtizSpace.xs),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.25),
+                                        color: OrtizPalette.fg.withValues(alpha: 0.25),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         _obscureBalance
                                             ? Icons.visibility_rounded
                                             : Icons.visibility_off_rounded,
-                                        size: 14,
-                                        color: Colors.white,
+                                        size: OrtizIconSize.sm,
+                                        color: OrtizPalette.fg,
                                       ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: OrtizSpace.xs),
                             Text(
                               isUsd
                                   ? "Cuenta en Dólares"
                                   : "Cuenta en Bolívares",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: OrtizFontSize.caption,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: OrtizPalette.fg,
                               ),
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: OrtizSpace.lg),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 displayAccBalance,
                                 style: TextStyle(
-                                  fontSize: 36,
+                                  fontSize: OrtizFontSize.displayLg,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.white,
+                                  color: OrtizPalette.fg,
                                 ),
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: OrtizSpace.xs),
                             Text(
                               accConversionText,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: OrtizFontSize.bodySm,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: OrtizPalette.fg,
                               ),
                             ),
                           ],
@@ -2612,7 +2567,7 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                 },
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: OrtizSpace.sm),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(totalPages, (i) {
@@ -2621,16 +2576,17 @@ class _LiquidBalanceBannerState extends State<_LiquidBalanceBanner>
                   duration: Duration(milliseconds: 150),
                   width: isSelected ? 16 : 6,
                   height: 6,
-                  margin: EdgeInsets.symmetric(horizontal: 3),
+                  margin: EdgeInsets.symmetric(horizontal: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(3),
+                    color: isSelected ? AppColors.primary : OrtizPalette.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 );
               }),
             ),
           ],
         ),
+        ],
       ),
     );
   }
@@ -2688,15 +2644,15 @@ class _PocketTransactionBottomSheetState
       decoration: BoxDecoration(
         color: AppColors.dialogBg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+          topLeft: Radius.circular(OrtizRadius.pill),
+          topRight: Radius.circular(OrtizRadius.pill),
         ),
       ),
       padding: EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 20.0,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+        left: OrtizSpace.lg,
+        right: OrtizSpace.lg,
+        top: OrtizSpace.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + OrtizSpace.xl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -2708,12 +2664,12 @@ class _PocketTransactionBottomSheetState
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Color(0xFFD6D6D6),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.all(Radius.circular(OrtizRadius.chip)),
               ),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Header Row
           Row(
@@ -2722,9 +2678,9 @@ class _PocketTransactionBottomSheetState
               Text(
                 isDeposit ? "Asignar Fondos" : "Retirar Fondos",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+                  color: OrtizPalette.fg,
                 ),
               ),
               IconButton(
@@ -2733,13 +2689,12 @@ class _PocketTransactionBottomSheetState
               ),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: OrtizSpace.lg),
 
           // Card content
-          ClaymorphicCard(
-            cornerRadius: 24,
-            padding: EdgeInsets.all(20.0),
-            child: Column(
+          OrtizSection(
+            children: [
+            Column(
               children: [
                 // Pocket Icon & Name Badge
                 Row(
@@ -2748,16 +2703,16 @@ class _PocketTransactionBottomSheetState
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.12),
+                        color: themeColor.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         getIconData(pocket.icon),
                         color: themeColor,
-                        size: 20,
+                        size: OrtizIconSize.md,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: OrtizSpace.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2765,18 +2720,18 @@ class _PocketTransactionBottomSheetState
                           Text(
                             pocket.name,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: OrtizFontSize.body,
                               fontWeight: FontWeight.bold,
                               color: AppColors.cardText,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: OrtizSpace.xxs),
                           Text(
                             isDeposit
                                 ? "Disponible: ${formatUSD(widget.appState.liquidBalanceUSD)}"
                                 : "Ahorrado: ${formatUSD(pocket.currentAmountUSD)}",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               color: AppColors.cardSubtitleText,
                             ),
                           ),
@@ -2785,17 +2740,17 @@ class _PocketTransactionBottomSheetState
                     ),
                   ],
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: OrtizSpace.xxl),
 
                 // Amount Text Field (Modern layout)
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: OrtizSpace.lg,
+                    vertical: OrtizSpace.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(16),
+                    color: OrtizPalette.surfaceHigh,
+                    borderRadius: BorderRadius.circular(OrtizRadius.block),
                   ),
                   child: TextField(
                     controller: _amountController,
@@ -2803,26 +2758,26 @@ class _PocketTransactionBottomSheetState
                       decimal: true,
                     ),
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: OrtizFontSize.displayLg,
                       fontWeight: FontWeight.w900,
                       color: AppColors.cardText,
                     ),
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: "0.00",
-                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      hintStyle: TextStyle(color: OrtizPalette.muted),
                       suffixText: "USD",
                       suffixStyle: TextStyle(
-                        fontSize: 16,
+                        fontSize: OrtizFontSize.titleSm,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: OrtizPalette.muted,
                       ),
                       border: InputBorder.none,
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: OrtizSpace.lg),
 
                 // Preset Shortcuts
                 Row(
@@ -2830,14 +2785,14 @@ class _PocketTransactionBottomSheetState
                   children: [10, 50, 100].map((val) {
                     return TextButton(
                       style: TextButton.styleFrom(
-                        backgroundColor: AppColors.primary.withOpacity(0.08),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                         foregroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
                         ),
                         padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                          horizontal: OrtizSpace.lg,
+                          vertical: OrtizSpace.sm,
                         ),
                       ),
                       onPressed: () {
@@ -2848,7 +2803,7 @@ class _PocketTransactionBottomSheetState
                         "+$val USD",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: OrtizFontSize.bodySm,
                         ),
                       ),
                     );
@@ -2856,8 +2811,8 @@ class _PocketTransactionBottomSheetState
                 ),
               ],
             ),
+            ],
           ),
-          SizedBox(height: 20),
 
           // Action buttons row
           Row(
@@ -2865,32 +2820,32 @@ class _PocketTransactionBottomSheetState
               Expanded(
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 14),
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "Cancelar",
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                      color: OrtizPalette.muted,
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: OrtizSpace.md),
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 14),
+                    foregroundColor: OrtizPalette.onAccent,
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                   ),
                   onPressed:
@@ -2901,7 +2856,7 @@ class _PocketTransactionBottomSheetState
                   child: Text(
                     isDeposit ? "Asignar" : "Retirar",
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: OrtizFontSize.body,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2932,15 +2887,15 @@ class _TabSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.transparent,
                       blurRadius: 4,
                       offset: Offset(0, 2),
                     ),
@@ -2954,7 +2909,7 @@ class _TabSegment extends StatelessWidget {
               color: isSelected
                   ? AppColors.mainTabActiveText
                   : AppColors.mainTabInactiveText,
-              fontSize: 13,
+              fontSize: OrtizFontSize.bodySm,
             ),
           ),
         ),
@@ -2980,15 +2935,15 @@ class _RecurrentFilterSegment extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? AppColors.mainTabActiveBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(OrtizRadius.chip),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.transparent,
                       blurRadius: 2,
                       offset: Offset(0, 1),
                     ),
@@ -3002,7 +2957,7 @@ class _RecurrentFilterSegment extends StatelessWidget {
               color: isSelected
                   ? AppColors.mainTabActiveText
                   : AppColors.mainTabInactiveText,
-              fontSize: 12,
+              fontSize: OrtizFontSize.bodySm,
             ),
           ),
         ),

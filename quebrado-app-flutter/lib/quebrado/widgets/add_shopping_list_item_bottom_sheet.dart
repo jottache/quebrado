@@ -7,6 +7,10 @@ import '../models/market_product.dart';
 import '../models/market_shopping_list_item.dart';
 import '../widgets/helpers.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+
 class AddShoppingListItemBottomSheet extends StatefulWidget {
   final MarketProduct product;
   final bool isNewProduct;
@@ -86,14 +90,14 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          color: OrtizPalette.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
         ),
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: bottomInset > 0 ? bottomInset + 16 : 32,
+          left: OrtizSpace.lg,
+          right: OrtizSpace.lg,
+          top: OrtizSpace.lg,
+          bottom: bottomInset > 0 ? bottomInset + OrtizSpace.lg : OrtizSpace.xxxl,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -105,33 +109,33 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
+                    color: OrtizPalette.faint,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
               Text(
                 "Añadir a la lista",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: OrtizFontSize.title,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
 
               Text(
                 "Producto",
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: OrtizSpace.xs),
               Text(
                 widget.product.name,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.bold, color: AppColors.primary),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: OrtizSpace.lg),
 
               Row(
                 children: [
@@ -141,59 +145,59 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
                       children: [
                         Text(
                           "Cantidad",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         TextField(
                           controller: _quantityController,
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [CommaTextInputFormatter()],
                           decoration: InputDecoration(
                             hintText: "1",
-                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.bodySm),
+                            contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: OrtizPalette.surfaceHigh,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide.none,
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               borderSide: BorderSide(color: AppColors.primary, width: 2),
                             ),
                           ),
-                          style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                          style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: OrtizSpace.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Unidad",
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.cardText),
+                          style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: AppColors.cardText),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: OrtizSpace.xs),
                         if (widget.isNewProduct) ...[
                           DropdownButtonFormField<String>(
                             value: _selectedUnit,
                             hint: Text("Unidad"),
                             isExpanded: true,
                             decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: OrtizPalette.surfaceHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            dropdownColor: Colors.white,
-                            style: TextStyle(color: AppColors.cardText, fontSize: 13),
+                            dropdownColor: OrtizPalette.surface,
+                            style: TextStyle(color: AppColors.cardText, fontSize: OrtizFontSize.bodySm),
                             items: _units.map((u) {
                               return DropdownMenuItem(
                                 value: u,
@@ -210,10 +214,10 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
                           ),
                         ] else ...[
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md),
                             child: Text(
                               _selectedUnit,
-                              style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                              style: TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.fg),
                             ),
                           ),
                         ]
@@ -222,7 +226,7 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
                   ),
                 ],
               ),
-              SizedBox(height: 24),
+              SizedBox(height: OrtizSpace.xxl),
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -234,9 +238,9 @@ class _AddShoppingListItemBottomSheetState extends State<AddShoppingListItemBott
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: OrtizPalette.onAccent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                   ),
                   child: Text("Añadir a la lista"),

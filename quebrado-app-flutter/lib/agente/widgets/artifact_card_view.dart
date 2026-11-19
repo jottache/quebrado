@@ -3,6 +3,10 @@ import '../models/chat_artifact_model.dart';
 import '../theme/agente_colors.dart';
 import 'action_proposal_card_view.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+
 class ArtifactCardView extends StatelessWidget {
   final ChatArtifactModel artifact;
 
@@ -29,22 +33,23 @@ class ArtifactCardView extends StatelessWidget {
     }
   }
 
+  /// Color del artefacto: el de la app de la que habla; Ortiz (acento) si no
+  /// pertenece a ninguna.
   Color _getColor() {
     switch (artifact.type) {
-      case ArtifactType.actionProposal:
-        return const Color(0xFF6366F1);
       case ArtifactType.financialSummary:
-        return const Color(0xFF10B981);
-      case ArtifactType.calculation:
-        return const Color(0xFF0EA5E9);
+        return SuiteAppColors.finanzas;
       case ArtifactType.contactCard:
-        return const Color(0xFF8B5CF6);
+        return SuiteAppColors.diario;
       case ArtifactType.reminderList:
-        return const Color(0xFFF97316);
+        return SuiteAppColors.recordatorios;
       case ArtifactType.habitReport:
-        return const Color(0xFFEC4899);
-      case ArtifactType.table:
+        return SuiteAppColors.habitos;
       case ArtifactType.note:
+        return SuiteAppColors.notas;
+      case ArtifactType.actionProposal:
+      case ArtifactType.calculation:
+      case ArtifactType.table:
         return AgenteColors.primary;
     }
   }
@@ -56,40 +61,32 @@ class ArtifactCardView extends StatelessWidget {
     }
     final color = _getColor();
 
+    // Bloque del chat sobre `surface` con borde `line`; sin sombra.
     return Container(
-      margin: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+      margin: const EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xs),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.25), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.06),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
+        color: AgenteColors.artifactBg,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
+        border: Border.all(color: AgenteColors.artifactBorder),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+            color: color.withValues(alpha: 0.08),
             child: Row(
               children: [
-                Icon(_getIcon(), size: 18, color: color),
-                const SizedBox(width: 8),
+                Icon(_getIcon(), size: OrtizIconSize.sm, color: color),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     artifact.title,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.w800,
                       color: color,
                     ),
@@ -98,15 +95,14 @@ class ArtifactCardView extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xxs),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: color.withOpacity(0.2), width: 1),
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
+                    border: Border.all(color: color.withValues(alpha: 0.45)),
                   ),
                   child: Text(
                     artifact.type.label,
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+                    style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.bold, color: color),
                   ),
                 ),
               ],
@@ -115,13 +111,13 @@ class ArtifactCardView extends StatelessWidget {
 
           // Content
           Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.all(OrtizSpace.md),
             child: Text(
               artifact.content,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: OrtizFontSize.bodySm,
                 height: 1.45,
-                color: Color(0xFF334155),
+                color: AgenteColors.botText,
               ),
             ),
           ),

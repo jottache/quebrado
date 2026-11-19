@@ -14,6 +14,11 @@ import '../../quebrado/viewmodels/app_state.dart';
 import '../../quebrado/models/transaction.dart';
 import '../../quebrado/models/currency_type.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class ActionProposalCardView extends StatefulWidget {
   final ChatArtifactModel artifact;
 
@@ -33,13 +38,13 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
     switch (_action) {
       case 'create_contact':
       case 'create_diario_entry':
-        return const Color(0xFF8B5CF6);
+        return SuiteAppColors.diario;
       case 'create_reminder':
-        return const Color(0xFFF97316);
+        return SuiteAppColors.recordatorios;
       case 'create_habit':
-        return const Color(0xFFEC4899);
+        return SuiteAppColors.habitos;
       case 'create_transaction':
-        return const Color(0xFF10B981);
+        return SuiteAppColors.finanzas;
       default:
         return AgenteColors.primary;
     }
@@ -315,12 +320,11 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                const Icon(Icons.check_circle_rounded, color: OrtizPalette.ok, size: OrtizIconSize.md),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(child: Text('${widget.artifact.title} creado exitosamente.')),
               ],
             ),
-            backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ),
@@ -332,7 +336,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al crear registro: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: OrtizPalette.bad,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -364,41 +368,32 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
     final summary = widget.artifact.metadata['summary'] as List? ?? [];
 
     return Container(
-      margin: const EdgeInsets.only(top: 8.0, bottom: 6.0),
+      margin: const EdgeInsets.only(top: OrtizSpace.sm, bottom: OrtizSpace.xs),
+      // Bloque del chat sobre `surface`, sin sombra; el borde marca el estado.
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: AgenteColors.artifactBg,
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         border: Border.all(
           color: _status == 'confirmed'
-              ? const Color(0xFF10B981).withOpacity(0.5)
+              ? OrtizPalette.ok.withValues(alpha: 0.5)
               : _status == 'cancelled'
-                  ? const Color(0xFF94A3B8).withOpacity(0.4)
-                  : color.withOpacity(0.35),
-          width: 1.5,
+                  ? AgenteColors.artifactBorder
+                  : color.withValues(alpha: 0.45),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 16,
-          ),
-        ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           // 1. Header con Módulo y Badge de Estado
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.09),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
+            color: color.withValues(alpha: 0.09),
             child: Row(
               children: [
-                Icon(_getActionIcon(), size: 20, color: color),
-                const SizedBox(width: 8),
+                Icon(_getActionIcon(), size: OrtizIconSize.md, color: color),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +402,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
                       Text(
                         _getActionModuleLabel(),
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: OrtizFontSize.caption,
                           fontWeight: FontWeight.w700,
                           color: color,
                           letterSpacing: 0.3,
@@ -416,9 +411,9 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
                       Text(
                         widget.artifact.title,
                         style: const TextStyle(
-                          fontSize: 13.5,
+                          fontSize: OrtizFontSize.body,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black87,
+                          color: OrtizPalette.fg,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -434,13 +429,13 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
           // 2. Descripción o Contenido
           if (widget.artifact.content.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.md, OrtizSpace.md, OrtizSpace.xs),
               child: Text(
                 widget.artifact.content,
                 style: const TextStyle(
-                  fontSize: 12.5,
+                  fontSize: OrtizFontSize.bodySm,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF475569),
+                  color: OrtizPalette.muted,
                 ),
               ),
             ),
@@ -448,12 +443,11 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
           // 3. Resumen de Campos Detectados
           if (summary.isNotEmpty)
             Container(
-              margin: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.fromLTRB(OrtizSpace.md, OrtizSpace.sm, OrtizSpace.md, OrtizSpace.md),
+              padding: const EdgeInsets.all(OrtizSpace.md),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                color: OrtizPalette.surfaceHigh,
+                borderRadius: BorderRadius.circular(OrtizRadius.field),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -461,7 +455,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
                   final label = item['label']?.toString() ?? '';
                   final value = item['value']?.toString() ?? '';
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xxs),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -470,9 +464,9 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
                           child: Text(
                             label,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF64748B),
+                              color: OrtizPalette.muted,
                             ),
                           ),
                         ),
@@ -480,9 +474,9 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
                           child: Text(
                             value,
                             style: const TextStyle(
-                              fontSize: 12.5,
+                              fontSize: OrtizFontSize.bodySm,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1E293B),
+                              color: OrtizPalette.fg,
                             ),
                           ),
                         ),
@@ -496,43 +490,43 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
           // 4. Barra de Acciones (Confirmar / Negar)
           if (_status == 'pending')
             Container(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.md, 0, OrtizSpace.md, OrtizSpace.md),
               child: Row(
                 children: [
                   Expanded(
                     flex: 4,
                     child: OutlinedButton.icon(
                       onPressed: _isProcessing ? null : _handleCancel,
-                      icon: const Icon(Icons.close_rounded, size: 16),
+                      icon: const Icon(Icons.close_rounded, size: OrtizIconSize.sm),
                       label: const Text('Negar'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFEF4444),
-                        side: const BorderSide(color: Color(0xFFFCA5A5)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        foregroundColor: OrtizPalette.bad,
+                        side: BorderSide(color: OrtizPalette.bad.withValues(alpha: 0.45)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
+                        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: OrtizSpace.sm),
                   Expanded(
                     flex: 6,
                     child: ElevatedButton.icon(
                       onPressed: _isProcessing ? null : _handleConfirm,
                       icon: _isProcessing
                           ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: OrtizIconSize.sm,
+                              height: OrtizIconSize.sm,
+                              child: CircularProgressIndicator(strokeWidth: OrtizStroke.focus, color: OrtizPalette.onAccent),
                             )
-                          : const Icon(Icons.check_rounded, size: 18),
+                          : const Icon(Icons.check_rounded, size: OrtizIconSize.md),
                       label: Text(_isProcessing ? 'Creando...' : 'Confirmar'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
+                        backgroundColor: OrtizPalette.ok,
+                        foregroundColor: OrtizPalette.onAccent,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
+                        padding: const EdgeInsets.symmetric(vertical: OrtizSpace.sm),
+                        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: OrtizFontSize.bodySm),
                       ),
                     ),
                   ),
@@ -547,65 +541,19 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
   Widget _buildStatusBadge() {
     switch (_status) {
       case 'confirmed':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: const Color(0xFFDCFCE7),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF86EFAC)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 14),
-              SizedBox(width: 4),
-              Text(
-                'Confirmado',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF16A34A)),
-              ),
-            ],
-          ),
+        return const OrtizPill(
+          label: 'Confirmado',
+          color: OrtizPalette.ok,
+          icon: Icons.check_circle_rounded,
         );
       case 'cancelled':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFCBD5E1)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cancel_rounded, color: Color(0xFF64748B), size: 14),
-              SizedBox(width: 4),
-              Text(
-                'Cancelado',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-        );
+        return const OrtizPill(label: 'Cancelado', icon: Icons.cancel_rounded);
       case 'pending':
       default:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFEF3C7),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFFCD34D)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.hourglass_top_rounded, color: Color(0xFFD97706), size: 13),
-              SizedBox(width: 4),
-              Text(
-                'Por confirmar',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFD97706)),
-              ),
-            ],
-          ),
+        return const OrtizPill(
+          label: 'Por confirmar',
+          color: OrtizPalette.warn,
+          icon: Icons.hourglass_top_rounded,
         );
     }
   }

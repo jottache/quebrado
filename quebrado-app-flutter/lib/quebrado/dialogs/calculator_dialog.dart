@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import '../theme/colors.dart';
 import '../viewmodels/app_state.dart';
 import '../models/currency_type.dart';
-import '../widgets/claymorphic_card.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
 import 'transfer_bank_dialog.dart';
 import '../../widgets/responsive_breakpoints.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class CalculatorBottomSheet extends StatefulWidget {
   const CalculatorBottomSheet({super.key});
 
@@ -102,14 +105,14 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   Widget _buildKey(String label, {bool isBackspace = false}) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xs, vertical: OrtizSpace.xs),
         child: Material(
           color: isBackspace
-              ? AppColors.expense.withOpacity(0.08)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+              ? OrtizPalette.badTint
+              : OrtizPalette.surfaceHigh,
+          borderRadius: BorderRadius.circular(OrtizRadius.block),
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(OrtizRadius.block),
             onTap: () {
               if (isBackspace) {
                 _onBackspace();
@@ -119,27 +122,18 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
             },
             onLongPress: isBackspace ? _onClear : null,
             child: Container(
-              height: 48,
+              height: OrtizSize.minTouch,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isBackspace
-                      ? AppColors.expense.withOpacity(0.2)
-                      : AppColors.cardBorderColor,
-                  width: 1.0,
-                ),
-              ),
               child: isBackspace
-                  ? Icon(
+                  ? const Icon(
                       Icons.backspace_rounded,
-                      size: 18,
+                      size: OrtizIconSize.md,
                       color: AppColors.expense,
                     )
                   : Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: const TextStyle(
+                        fontSize: OrtizFontSize.title,
                         fontWeight: FontWeight.w900,
                         color: AppColors.cardText,
                       ),
@@ -194,11 +188,17 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   }) {
     final isSelected = _selectedRate == title;
 
-    return ClaymorphicCard(
-      cornerRadius: 16,
-      padding: EdgeInsets.zero,
-      borderColor: isSelected ? AppColors.primary : null,
-      borderWidth: isSelected ? 2.5 : null,
+    // Sin tarjeta: la opción activa va sobre `surfaceHigh` con borde `accent`.
+    return Material(
+      color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : OrtizPalette.line,
+          width: isSelected ? OrtizStroke.focus : OrtizStroke.hairline,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -206,9 +206,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
           });
           _copyToClipboard(value, title);
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(OrtizRadius.block),
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: EdgeInsets.symmetric(vertical: OrtizSpace.md, horizontal: OrtizSpace.sm),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -220,38 +220,38 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: OrtizFontSize.caption,
                       fontWeight: FontWeight.bold,
                       color: AppColors.cardSubtitleText,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(
+                  SizedBox(width: OrtizSpace.xs),
+                  const Icon(
                     Icons.copy_rounded,
-                    size: 10,
+                    size: OrtizIconSize.xs,
                     color: AppColors.primary,
                   ),
                 ],
               ),
-              SizedBox(height: 6),
+              SizedBox(height: OrtizSpace.xs),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   "$symbol${value.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: OrtizFontSize.titleSm,
                     fontWeight: FontWeight.w900,
                     color: AppColors.cardText,
                   ),
                 ),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: OrtizSpace.xs),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   "Tasa: ${rate.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: OrtizFontSize.micro,
                     color: AppColors.cardSubtitleText,
                   ),
                 ),
@@ -273,19 +273,19 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
         color: AppColors.dialogBg,
         borderRadius: isDesktop
             ? const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(OrtizRadius.sheet),
+                bottomLeft: Radius.circular(OrtizRadius.sheet),
               )
             : const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+                topLeft: Radius.circular(OrtizRadius.pill),
+                topRight: Radius.circular(OrtizRadius.pill),
               ),
       ),
       padding: EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        top: isDesktop ? 24.0 : 20.0,
-        bottom: MediaQuery.of(context).padding.bottom + 16.0,
+        left: OrtizSpace.xl,
+        right: OrtizSpace.xl,
+        top: isDesktop ? OrtizSpace.xxl : OrtizSpace.xl,
+        bottom: MediaQuery.of(context).padding.bottom + OrtizSpace.lg,
       ),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -300,12 +300,12 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                    color: OrtizPalette.line,
+                    borderRadius: BorderRadius.circular(OrtizRadius.chip),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: OrtizSpace.lg),
             ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -313,9 +313,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 const Text(
                   "Calculadora de Divisas",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: OrtizFontSize.title,
                     fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                    color: OrtizPalette.fg,
                   ),
                 ),
                 IconButton(
@@ -324,20 +324,12 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: OrtizSpace.lg),
 
             // 1. Conversion List (Top)
-            Text(
-              "CONVERSIONES EN TIEMPO REAL",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: Colors.grey[600],
-                letterSpacing: 1.2,
-              ),
-            ),
-            SizedBox(height: 12),
-
+            OrtizSection(
+              title: "CONVERSIONES EN TIEMPO REAL",
+              children: [
             Row(
               children: [
                 Expanded(
@@ -348,7 +340,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                     symbol: _selectedCurrency == CurrencyType.usd ? "Bs." : "\$",
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: _buildConversionCard(
                     title: "Euro",
@@ -359,46 +351,33 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+              ],
+            ),
 
-
-
-            // 2. Amount Input Card (Middle)
-            ClaymorphicCard(
-              cornerRadius: 24,
-              padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
-              child: Column(
-                children: [
-                  Text(
-                    "INGRESA EL MONTO",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardSubtitleText,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  SizedBox(height: 8),
+            // 2. Amount Input (Middle), sin tarjeta
+            OrtizSection(
+              title: "INGRESA EL MONTO",
+              children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                     child: Text(
                       _amountText.isEmpty ? "0.00" : _amountText,
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: OrtizFontSize.displayLg,
                         fontWeight: FontWeight.w900,
                         color: _amountText.isEmpty
-                            ? AppColors.cardSubtitleText.withOpacity(0.5)
+                            ? AppColors.cardSubtitleText.withValues(alpha: 0.5)
                             : AppColors.cardText,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: OrtizSpace.md),
                   Container(
-                    padding: EdgeInsets.all(4),
+                    padding: EdgeInsets.all(OrtizSpace.xs),
                     decoration: BoxDecoration(
                       color: AppColors.nestedTabTrackBg,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                     ),
                     child: Row(
                       children: [
@@ -406,19 +385,19 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                           child: GestureDetector(
                             onTap: () => setState(() => _selectedCurrency = CurrencyType.usd),
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                               decoration: BoxDecoration(
                                 color: _selectedCurrency == CurrencyType.usd
                                     ? AppColors.nestedTabActiveBg
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 "USD",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   color: _selectedCurrency == CurrencyType.usd
                                       ? AppColors.nestedTabActiveText
                                       : AppColors.nestedTabInactiveText,
@@ -431,19 +410,19 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                           child: GestureDetector(
                             onTap: () => setState(() => _selectedCurrency = CurrencyType.bsBCV),
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: OrtizSpace.sm),
                               decoration: BoxDecoration(
                                 color: _selectedCurrency == CurrencyType.bsBCV
                                     ? AppColors.nestedTabActiveBg
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(OrtizRadius.chip),
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 "Bs. BCV",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: OrtizFontSize.bodySm,
                                   color: _selectedCurrency == CurrencyType.bsBCV
                                       ? AppColors.nestedTabActiveText
                                       : AppColors.nestedTabInactiveText,
@@ -455,19 +434,17 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                       ],
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
-            SizedBox(height: 16),
 
             // Transferir a banco Button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: OrtizPalette.onAccent,
+                padding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(OrtizRadius.block),
                 ),
                 elevation: 0,
               ),
@@ -495,13 +472,13 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   ),
                 );
               },
-              icon: Icon(Icons.account_balance_rounded, size: 18),
+              icon: const Icon(Icons.account_balance_rounded, size: OrtizIconSize.md),
               label: Text(
                 "Transferir a banco",
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: OrtizSpace.lg),
 
             // 3. Custom Keyboard (Bottom)
             _buildKeyboard(),
@@ -582,17 +559,11 @@ class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderSta
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            padding: const EdgeInsets.symmetric(vertical: OrtizSpace.md, horizontal: OrtizSpace.xxl),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: OrtizPalette.surfaceHigh,
+              borderRadius: BorderRadius.circular(OrtizRadius.sheet),
+              border: Border.all(color: OrtizPalette.line),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -601,16 +572,16 @@ class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderSta
                 const Icon(
                   Icons.check_circle_rounded,
                   color: AppColors.income,
-                  size: 18,
+                  size: OrtizIconSize.md,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: OrtizSpace.sm),
                 Expanded(
                   child: Text(
                     widget.message,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.5,
+                      color: OrtizPalette.fg,
+                      fontSize: OrtizFontSize.bodySm,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

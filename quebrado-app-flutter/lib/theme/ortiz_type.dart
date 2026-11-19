@@ -9,6 +9,27 @@
 // tiempo de ejecución). Los estilos no llevan color: lo pone el tema.
 import 'package:flutter/material.dart';
 
+/// Tamaños de la escala tipográfica como números `const`, para los
+/// `TextStyle(fontSize: …)` que no parten de un estilo de [OrtizType]
+/// (spec 05: ningún tamaño de letra suelto en pantallas).
+abstract final class OrtizFontSize {
+  /// Solo para vistas muy densas (celdas de calendario, badges diminutos).
+  /// Por debajo del mínimo legible recomendado: no usarlo en texto corrido.
+  static const double micro = 9;
+  static const double caption = 11;
+  static const double bodySm = 12;
+  static const double body = 14;
+  static const double titleSm = 16;
+  static const double title = 18;
+  static const double display = 24;
+  static const double displayLg = 32;
+
+  /// La escala completa, de menor a mayor.
+  static const List<double> scale = [
+    micro, caption, bodySm, body, titleSm, title, display, displayLg, //
+  ];
+}
+
 /// Familias y estilos con nombre de la escala. Todo valor es `const`.
 abstract final class OrtizType {
   // Familias (deben coincidir con `family:` en pubspec.yaml). Llevan prefijo

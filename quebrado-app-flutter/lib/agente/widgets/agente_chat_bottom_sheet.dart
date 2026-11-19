@@ -4,6 +4,9 @@ import '../viewmodels/agente_state.dart';
 import '../theme/agente_colors.dart';
 import 'chat_message_bubble.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class AgenteChatBottomSheet extends StatefulWidget {
   final String? initialPrompt;
   final bool autoFocus;
@@ -24,7 +27,7 @@ class AgenteChatBottomSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.55),
+      barrierColor: OrtizPalette.bg.withValues(alpha: 0.6),
       useSafeArea: true,
       builder: (context) => AgenteChatBottomSheet(
         initialPrompt: initialPrompt,
@@ -98,33 +101,27 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
     return FractionallySizedBox(
       heightFactor: 0.95,
       child: Container(
+        // Hoja: flota sobre `surface`, sin sombra.
         decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 30,
-              offset: Offset(0, -10),
-            ),
-          ],
+          color: OrtizPalette.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(OrtizRadius.sheet)),
         ),
         child: Column(
           children: [
             // 1. Drag Handle
             Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 6),
+              margin: const EdgeInsets.only(top: OrtizSpace.md, bottom: OrtizSpace.xs),
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+                color: OrtizPalette.line,
+                borderRadius: BorderRadius.circular(OrtizRadius.chip),
               ),
             ),
 
             // 2. Top Bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 16, 12),
+              padding: const EdgeInsets.fromLTRB(OrtizSpace.xl, OrtizSpace.xs, OrtizSpace.lg, OrtizSpace.md),
               child: Row(
                 children: [
                   Container(
@@ -132,19 +129,19 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                     height: 38,
                     decoration: BoxDecoration(
                       color: AgenteColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(OrtizRadius.field),
                       border: Border.all(
-                        color: AgenteColors.primary.withOpacity(0.20),
-                        width: 1,
+                        color: AgenteColors.primary.withValues(alpha: 0.20),
+                        width: OrtizStroke.hairline,
                       ),
                     ),
                     child: const Icon(
                       Icons.auto_awesome_rounded,
                       color: AgenteColors.primary,
-                      size: 20,
+                      size: OrtizIconSize.md,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: OrtizSpace.md),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,16 +149,16 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                         Text(
                           'Agente Ortiz',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: OrtizFontSize.titleSm,
                             fontWeight: FontWeight.w900,
-                            color: Colors.black87,
+                            color: OrtizPalette.fg,
                             letterSpacing: -0.3,
                           ),
                         ),
                         Text(
                           'ASISTENTE PERSONAL CON RAG',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: OrtizFontSize.caption,
                             fontWeight: FontWeight.w800,
                             color: AgenteColors.primary,
                             letterSpacing: 0.5,
@@ -178,33 +175,33 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                       _textController.clear();
                       _focusNode.requestFocus();
                     },
-                    icon: const Icon(Icons.add_rounded, size: 16, color: AgenteColors.primary),
+                    icon: const Icon(Icons.add_rounded, size: OrtizIconSize.sm, color: AgenteColors.primary),
                     label: const Text(
                       'Nueva charla',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: OrtizFontSize.bodySm,
                         fontWeight: FontWeight.w700,
                         color: AgenteColors.primary,
                       ),
                     ),
                     style: TextButton.styleFrom(
                       backgroundColor: AgenteColors.primaryLight,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.dialog)),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: OrtizSpace.xs),
 
                   // Botón Cerrar
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 22, color: Colors.black54),
+                    icon: const Icon(Icons.close_rounded, size: OrtizIconSize.lg, color: OrtizPalette.muted),
                     tooltip: 'Cerrar chat',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const Divider(height: OrtizStroke.hairline, color: OrtizPalette.line),
 
             // 3. Message Feed
             Expanded(
@@ -213,7 +210,7 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                   : ListView.builder(
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.lg),
                       itemCount: messages.length + (agenteState.isGenerating ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index < messages.length) {
@@ -228,22 +225,22 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
             if (messages.isEmpty && agenteState.quickPrompts.isNotEmpty)
               Container(
                 height: 44,
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: OrtizSpace.sm),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg),
                   itemCount: agenteState.quickPrompts.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, __) => const SizedBox(width: OrtizSpace.sm),
                   itemBuilder: (context, index) {
                     final prompt = agenteState.quickPrompts[index];
                     return ActionChip(
                       label: Text(
                         prompt.displayName,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                        style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: OrtizPalette.fg),
                       ),
-                      backgroundColor: const Color(0xFFF8FAFC),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      backgroundColor: OrtizPalette.surfaceHigh,
+                      side: const BorderSide(color: OrtizPalette.line),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
                       onPressed: () => _submitPrompt(agenteState, prompt.text),
                     );
                   },
@@ -252,18 +249,18 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
 
             // 5. Bottom Input Dock (Padded with keyboard height)
             Container(
-              padding: EdgeInsets.fromLTRB(16, 10, 16, 12 + keyboardHeight),
+              padding: EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.sm, OrtizSpace.lg, OrtizSpace.md + keyboardHeight),
               decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+                color: OrtizPalette.surface,
+                border: Border(top: BorderSide(color: OrtizPalette.line, width: OrtizStroke.hairline)),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(24),
+                        color: OrtizPalette.surfaceHigh,
+                        borderRadius: BorderRadius.circular(OrtizRadius.sheet),
                         border: Border.all(
                           color: _focusNode.hasFocus ? AgenteColors.primary : Colors.transparent,
                           width: 1.5,
@@ -271,13 +268,13 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                       ),
                       child: Row(
                         children: [
-                          const SizedBox(width: 14),
+                          const SizedBox(width: OrtizSpace.md),
                           const Icon(
                             Icons.auto_awesome_rounded,
-                            size: 18,
+                            size: OrtizIconSize.sm,
                             color: AgenteColors.primary,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: OrtizSpace.sm),
                           Expanded(
                             child: TextField(
                               controller: _textController,
@@ -286,29 +283,30 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                               minLines: 1,
                               textInputAction: TextInputAction.send,
                               onSubmitted: (text) => _submitPrompt(agenteState, text),
-                              style: const TextStyle(fontSize: 14, color: Colors.black87),
+                              style: const TextStyle(fontSize: OrtizFontSize.body, color: OrtizPalette.fg),
                               decoration: const InputDecoration(
                                 hintText: 'Pregúntale al Agente Ortiz...',
-                                hintStyle: TextStyle(color: Colors.grey, fontSize: 13.5),
+                                hintStyle: TextStyle(color: OrtizPalette.muted, fontSize: OrtizFontSize.body),
                                 border: InputBorder.none,
                                 isDense: true,
-                                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                contentPadding: EdgeInsets.symmetric(vertical: OrtizSpace.md),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: OrtizSpace.sm),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: OrtizSpace.sm),
                   Container(
                     decoration: const BoxDecoration(
                       color: AgenteColors.primary,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 20),
+                      icon: const Icon(Icons.arrow_upward_rounded, color: OrtizPalette.onAccent, size: OrtizIconSize.md),
+                      tooltip: 'Enviar',
                       onPressed: () => _submitPrompt(agenteState, _textController.text),
                     ),
                   ),
@@ -324,54 +322,54 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
   Widget _buildEmptyWelcome(AgenteState agenteState) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(OrtizSpace.xxl),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: OrtizSpace.xl),
           Container(
             width: 64,
             height: 64,
             decoration: BoxDecoration(
               color: AgenteColors.primaryLight,
               shape: BoxShape.circle,
-              border: Border.all(color: AgenteColors.primary.withOpacity(0.25), width: 1.5),
+              border: Border.all(color: AgenteColors.primary.withValues(alpha: 0.25), width: 1.5),
             ),
-            child: const Icon(Icons.smart_toy_rounded, color: AgenteColors.primary, size: 34),
+            child: const Icon(Icons.smart_toy_rounded, color: AgenteColors.primary, size: OrtizIconSize.xl),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: OrtizSpace.lg),
           const Text(
             '¡Hola, José! Soy tu Agente Ortiz',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black87),
+            style: TextStyle(fontSize: OrtizFontSize.title, fontWeight: FontWeight.w900, color: OrtizPalette.fg),
           ),
-          const SizedBox(height: 8),
-          Text(
+          const SizedBox(height: OrtizSpace.sm),
+          const Text(
             'Tengo acceso en tiempo real a tus finanzas en Quebrado, contactos y cumpleaños en Diario Jottache, hábitos y tareas pendientes en Recordatorios.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+            style: TextStyle(fontSize: OrtizFontSize.bodySm, color: OrtizPalette.muted, height: 1.4),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: OrtizSpace.xxl),
           const Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'SUGERENCIAS PARA COMENZAR:',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.grey, letterSpacing: 0.5),
+              style: TextStyle(fontSize: OrtizFontSize.caption, fontWeight: FontWeight.w800, color: OrtizPalette.muted, letterSpacing: 0.5),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: OrtizSpace.md),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: OrtizSpace.sm,
+            runSpacing: OrtizSpace.sm,
             children: agenteState.quickPrompts.map((prompt) {
               return ActionChip(
                 label: Text(
                   prompt.displayName,
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.black87),
+                  style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.w600, color: OrtizPalette.fg),
                 ),
-                backgroundColor: const Color(0xFFF8FAFC),
-                side: const BorderSide(color: Color(0xFFE2E8F0)),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                backgroundColor: OrtizPalette.surfaceHigh,
+                side: const BorderSide(color: OrtizPalette.line),
+                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.block)),
                 onPressed: () => _submitPrompt(agenteState, prompt.text),
               );
             }).toList(),
@@ -383,7 +381,7 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
 
   Widget _buildGeneratingIndicator(AgenteState agenteState) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: OrtizSpace.lg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -393,16 +391,16 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
             decoration: BoxDecoration(
               color: AgenteColors.primaryLight,
               shape: BoxShape.circle,
-              border: Border.all(color: AgenteColors.primary.withOpacity(0.3), width: 1),
+              border: Border.all(color: AgenteColors.primary.withValues(alpha: 0.3), width: OrtizStroke.hairline),
             ),
-            child: const Icon(Icons.auto_awesome_rounded, size: 16, color: AgenteColors.primary),
+            child: const Icon(Icons.auto_awesome_rounded, size: OrtizIconSize.sm, color: AgenteColors.primary),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: OrtizSpace.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.lg, vertical: OrtizSpace.md),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(18),
+              color: AgenteColors.botBubble,
+              borderRadius: BorderRadius.circular(OrtizRadius.block),
               border: Border.all(color: AgenteColors.cardBorder),
             ),
             child: Row(
@@ -416,13 +414,13 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                     valueColor: AlwaysStoppedAnimation<Color>(AgenteColors.primary),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: OrtizSpace.sm),
                 Text(
                   agenteState.statusMessage.isNotEmpty
                       ? agenteState.statusMessage
                       : 'Pensando...',
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: OrtizFontSize.bodySm,
                     fontWeight: FontWeight.w600,
                     color: AgenteColors.primaryDark,
                   ),
