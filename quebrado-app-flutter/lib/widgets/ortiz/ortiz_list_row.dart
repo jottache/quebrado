@@ -16,6 +16,9 @@ import '../../theme/ortiz_type.dart';
 /// - [trailing]: monto (`OrtizAmount`), píldora (`OrtizPill`) o acción. Un
 ///   botón solo-icono aquí necesita su `tooltip`.
 /// - [onTap]: si es null, la fila no es interactiva (sin hover ni foco).
+/// - [autofocus]: la fila toma el foco al aparecer (p. ej. la opción vigente
+///   de un selector, para que el teclado empiece ahí). Solo tiene efecto si
+///   hay [onTap].
 class OrtizListRow extends StatefulWidget {
   const OrtizListRow({
     super.key,
@@ -26,6 +29,7 @@ class OrtizListRow extends StatefulWidget {
     this.trailing,
     this.onTap,
     this.selected = false,
+    this.autofocus = false,
   });
 
   final Widget? leading;
@@ -35,6 +39,7 @@ class OrtizListRow extends StatefulWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool selected;
+  final bool autofocus;
 
   /// Margen horizontal interno de la fila. Úsalo como `headerPadding` de la
   /// `OrtizSection` que la contiene para alinear título y filas.
@@ -129,6 +134,7 @@ class _OrtizListRowState extends State<OrtizListRow> {
           type: MaterialType.transparency,
           child: InkWell(
             onTap: w.onTap,
+            autofocus: w.autofocus,
             borderRadius: radius,
             hoverColor: Colors.transparent,
             focusColor: Colors.transparent,

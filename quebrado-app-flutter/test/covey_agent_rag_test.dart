@@ -45,7 +45,8 @@ void main() {
         sessionId: 'test-session',
       );
 
-      final data = res.resultData;
+      // S3-01: lectura con texto libre, va envuelta en `untrusted_content`.
+      final data = res.resultData['untrusted_content'] as Map<String, dynamic>;
       expect(data['totalRoles'], isNotNull);
       expect(data['roles'], isA<List>());
       expect(data['balanceStatus'], isNotNull);
@@ -58,7 +59,8 @@ void main() {
         sessionId: 'test-session',
       );
 
-      final data = res.resultData;
+      // S3-01: lectura con texto libre, va envuelta en `untrusted_content`.
+      final data = res.resultData['untrusted_content'] as Map<String, dynamic>;
       expect(data['days'], isA<List>());
       final days = data['days'] as List;
       expect(days.length, equals(7));

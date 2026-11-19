@@ -1,6 +1,6 @@
 # 03 — Ortiz registra por ti
 
-- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Implementado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 02 (aviso, «Ver» y rutas). Las herramientas se pueden empezar en paralelo.
 - **Fecha:** 2026-11-17
 - **Módulo(s):** agente, quebrado, diario, habitos, recordatorios, notas
@@ -124,6 +124,18 @@ Si un servicio de Supabase no tiene `forTesting()` o un cliente inyectable, se l
 - C18: preguntar solo lo que falta, sin sugerencias.
 - C19: cuenta predeterminada por moneda; si no hay, preguntar.
 - C20: alcance en todas las apps.
+- PA-01 (2026-11-18): la cuenta predeterminada se guarda como clave de ajuste por libro `default_account:<profileId>:<currency>` en `settings` (Supabase y SQLite). Sin migración 017. Motivo: la tabla `settings` de Supabase es global y la columna `is_default` obligaba a reescribir el RPC de importación (ver `docs/design/ortiz-registra.md` §1).
+- PA-02: Deshacer vive solo en memoria, por conversación. Al recargar, el botón queda desactivado y «Ver» sigue funcionando.
+- PA-03: escala −2…2 de `mood_catalog.dart`; «bien» = 1. Se guarda como balance del día, con `source: agent`.
+- PA-04: una sola cuenta en la moneda sin predeterminada → **tarjeta**, con aviso para fijarla como predeterminada (prevalece C17).
+- Categoría inexistente (CA-04): la tarjeta ofrece las 3 categorías existentes más parecidas; no se crean categorías desde el chat.
+- Pago recurrente: se paga con la cuenta del propio pago y, si no tiene, con la predeterminada de su moneda. Sin cuota pendiente: Ortiz avisa «ya está pagado hasta {fecha}» y no guarda nada (sin tarjeta). Monto mayor que lo pendiente: tarjeta «Pagar {monto} (la cuota es {pendiente})»; al confirmar registra el monto dicho y da la cuota por pagada. La categoría «Acuerdos» se resuelve también por coincidencia única que la contenga («Acuerdos de Pareja»).
+- Recordatorio sin fecha: Ortiz pregunta la fecha (`missing`).
+- `markHabitDone`: en un hábito de contador suma 1; en uno negativo no aplica.
+- Resumen al guardar: formato de montos de la app («Bs. 450.00 · ≈ $1.90»); equivalente Bs→$, $→Bs, €→$; sin colorear. Este formato prevalece sobre el del ejemplo de «Flujo y UX».
+- Diario con contacto inexistente: la tarjeta ofrece hasta 3 contactos parecidos más «Sin contacto» (entrada personal); nunca crea el contacto. Categoría sin ninguna parecida: la tarjeta muestra todas las del tipo.
+- Seguridad (auditoría, 2026-11-18): S3-02 → un pago, hábito o contacto solo se guarda directo si la persona lo nombró en la conversación (motivo `name_not_in_user_text` → tarjeta), y los nombres del contexto se recortan a una línea de ~60 caracteres. S3-03 → la marca de «texto libre leído» se hereda al mensaje siguiente y luego se limpia. Toda lectura marca el turno salvo una lista blanca explícita.
+- CA-10: si en el mismo turno Ortiz leyó texto libre (diario, notas…), toda escritura sale como tarjeta; el monto solo se guarda directo si aparece en un mensaje de la persona; una sola escritura directa por mensaje.
 
 **Descartadas (y por qué):**
 - Sugerir el monto a partir de la lista del Mercado: la persona prefirió que solo pregunte.
@@ -145,5 +157,19 @@ Si un servicio de Supabase no tiene `forTesting()` o un cliente inyectable, se l
 - Registros en lote («registra estos 5 gastos»).
 
 ## Pasos manuales
-- Si hay migración: ejecutar `supabase/017_*.sql` en el SQL Editor de Supabase.
-- Definir las cuentas predeterminadas en Ajustes después del despliegue.
+- ~~Si hay migración: ejecutar `supabase/017_*.sql`~~ — no hay migración (PA-01: clave de ajuste).
+- Definir las cuentas predeterminadas en Ajustes › Finanzas › «Cuentas predeterminadas por moneda» después del despliegue.
+- Probar a Ortiz con Gemini real en un libro de pruebas siguiendo `docs/qa/spec-03-ortiz-frases-prueba.md` (redacción de las preguntas de CA-01/CA-03 y palabra → nivel de CA-07 solo se verifican así).
+
+## Implementación (2026-11-18)
+- Rama `spec-03-ortiz-registra`, apilada sobre `spec-02-ortiz-al-centro`. Diseño: `docs/design/ortiz-registra.md`. QA: `docs/qa/spec-03-ortiz-registra.md` (CA-01…CA-12 CUMPLE en lo automático). Seguridad: `docs/security/spec-03-ortiz-registra.md` (S3-01…S3-09 cerrados; S3-08 → P-59, S3-10 → P-65). Revisor: APROBADO en la 3.ª ronda. Puerta: analyze 0/0, 1101 tests, cobertura 40,5 %.
+
+**Desviaciones respecto al texto de la spec:**
+- **Herramientas:** los ejecutores viven en `lib/agente/services/write_tools/` (uno por dominio, contrato `WriteToolHandler`) y no dentro de `suite_rag_service.dart`; las declaraciones SDK y REST salen de una sola lista (`write_tool_specs.dart`), así que R-03 desaparece por construcción.
+- **PA-01:** sin migración 017 ni columna `is_default`; clave `default_account:<profileId>:<currency>` en `settings` (paso 3 resuelto con documentación en `DATABASE_MODELS.md`).
+- **Resumen:** formato de montos de la app («Bs. 450.00 · ≈ $1.90»), no el del ejemplo de «Flujo y UX».
+- **CA-10:** el modelo sí puede llamar a la herramienta, pero no se guarda nada sin confirmación: sale tarjeta (`read_untrusted_text`, `amount_not_in_user_text`, `name_not_in_user_text`). La letra «no ejecuta ninguna herramienta» se lee como «no guarda nada sin que la persona confirme».
+- **CA-11:** en web sin Supabase no hay SQLite: el gasto queda en memoria (comportamiento previo de Finanzas en web).
+- **Paso 2:** las frases de prueba están en `docs/qa/spec-03-ortiz-frases-prueba.md` (no en `docs/design/`).
+- **Fuera de lo previsto, añadido por revisión:** `SupabaseService.saveSettingOrThrow` y `forTesting()` (P-11); `AppState.confirmRecurringPayment`/`registerPartialPayment` aceptan fecha; `OrtizListRow.autofocus` y `showResponsiveSheet(showDragHandle:)`; el chat sin Gemini dice que Ortiz no está conectado y sugiere las acciones rápidas.
+- **Pendientes nuevos:** P-55…P-66 en `docs/pendientes.md`.

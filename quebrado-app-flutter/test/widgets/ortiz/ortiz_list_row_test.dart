@@ -79,6 +79,23 @@ void main() {
     expect(_decoracion(tester).color, OrtizTokens.dark.surface);
   });
 
+  testWidgets('con autofocus la fila toma el foco al aparecer y sin él no', (tester) async {
+    await pumpApp(
+      tester,
+      Column(children: [
+        OrtizListRow(title: 'Ninguna', onTap: () {}),
+        OrtizListRow(title: 'Vigente', selected: true, autofocus: true, onTap: () {}),
+      ]),
+    );
+    await tester.pump();
+
+    final enfocada = FocusManager.instance.primaryFocus!.context!;
+    expect(
+      find.ancestor(of: find.byWidget(enfocada.widget), matching: find.byType(OrtizListRow)).evaluate().single.widget,
+      isA<OrtizListRow>().having((r) => r.title, 'title', 'Vigente'),
+    );
+  });
+
   testWidgets('sin onTap no es un botón', (tester) async {
     await pumpApp(tester, const OrtizListRow(title: 'Solo lectura'));
     expect(

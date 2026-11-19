@@ -23,7 +23,6 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? showOrtizNotice(
 }) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   if (messenger == null) return null;
-  final t = OrtizTokens.of(context);
   final hasAction = actionLabel != null && onAction != null;
 
   messenger.hideCurrentSnackBar();
@@ -33,7 +32,7 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? showOrtizNotice(
       content: Row(
         children: [
           if (success) ...[
-            _SuccessMark(tokens: t),
+            const OrtizSuccessMark(),
             const SizedBox(width: OrtizSpace.sm),
           ],
           Expanded(child: Text(message)),
@@ -46,13 +45,17 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? showOrtizNotice(
   );
 }
 
-class _SuccessMark extends StatelessWidget {
-  const _SuccessMark({required this.tokens});
-
-  final OrtizTokens tokens;
+/// Marca de éxito de la suite: círculo `ok` con el check en `onAccent`
+/// (avisos y resultado «Listo, registrado.» del chat, spec 03 U2.1).
+///
+/// Lleva la etiqueta semántica «Hecho»; donde el texto vecino ya lo dice,
+/// envuélvela en `ExcludeSemantics`.
+class OrtizSuccessMark extends StatelessWidget {
+  const OrtizSuccessMark({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final tokens = OrtizTokens.of(context);
     return Semantics(
       label: 'Hecho',
       child: DecoratedBox(

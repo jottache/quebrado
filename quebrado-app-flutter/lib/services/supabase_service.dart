@@ -20,6 +20,10 @@ class SupabaseService {
   static final SupabaseService instance = SupabaseService._init();
   SupabaseService._init();
 
+  /// Solo para tests: una subclase sobrescribe [client] con un `FakeSupabase`.
+  @visibleForTesting
+  SupabaseService.forTesting();
+
   SupabaseClient? get client {
     try {
       return Supabase.instance.client;
@@ -70,14 +74,22 @@ class SupabaseService {
   Future<void> saveSetting(String key, String value) async {
     if (!isReady) return;
     try {
-      await client!.from('settings').upsert({
-        'key': key,
-        'value': value,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
+      await saveSettingOrThrow(key, value);
     } catch (e) {
       debugPrint('Error saving setting to Supabase: $e');
     }
+  }
+
+  /// Como [saveSetting], pero **lanza** si el guardado falla (o si Supabase no
+  /// está disponible), para quien necesita saber si quedó guardado.
+  Future<void> saveSettingOrThrow(String key, String value) async {
+    final c = client;
+    if (c == null) throw StateError('Supabase no está disponible.');
+    await c.from('settings').upsert({
+      'key': key,
+      'value': value,
+      'updated_at': DateTime.now().toIso8601String(),
+    });
   }
 
   // MARK: - Profiles (Libros Contables)

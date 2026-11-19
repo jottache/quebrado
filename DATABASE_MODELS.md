@@ -171,6 +171,10 @@ Agenda de datos para Pago Móvil venezolano (banco, cédula, teléfono, alias).
 - **`MarketItem`** (`market_items`): Ítem adquirido en un viaje con cantidad, precio en USD, precio en VES y tasa empleada.
 - **`MarketShoppingList`** & **`MarketShoppingListItem`**: Listas de compras pendientes con checkbox de verificación.
 
+#### Ajustes (Tabla: `settings`)
+Pares `key` / `value` (texto). En Supabase la tabla es **global** (PK `key`, sin `profile_id`); en SQLite cada libro tiene su propio archivo y su propia tabla `settings`. Entran en el respaldo JSON y en `import_quebrado_backup`.
+- **Cuenta predeterminada por moneda (spec 03, PA-01):** clave `default_account:<profileId>:<currency>`, con `currency ∈ {usd, bsBCV, eur}` (`CurrencyType.name`) y `value` = id de la cuenta (`''` = sin predeterminada). Lleva el id del libro en la clave para no colisionar entre libros en la tabla global. Al leer se valida que la cuenta exista en el libro activo y tenga esa moneda; `deleteAccount` y `deleteProfile` limpian sus claves. Sin migración.
+
 ---
 
 ## 3. App 2: Diario Jottache (PRM & Memoria Modular)

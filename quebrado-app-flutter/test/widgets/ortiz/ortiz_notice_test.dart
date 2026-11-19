@@ -88,4 +88,15 @@ void main() {
     ));
     expect(showOrtizNotice(ctx, 'Hola'), isNull);
   });
+
+  testWidgets('OrtizSuccessMark suelto pinta el check onAccent sobre ok y dice «Hecho»', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, const Center(child: OrtizSuccessMark()));
+    final check = tester.widget<Icon>(find.byIcon(Icons.check_rounded));
+    expect(check.color, OrtizTokens.dark.onAccent);
+    final circulo = find.ancestor(of: find.byIcon(Icons.check_rounded), matching: find.byType(DecoratedBox));
+    expect((tester.widget<DecoratedBox>(circulo.first).decoration as BoxDecoration).color, OrtizTokens.dark.ok);
+    expect(find.bySemanticsLabel('Hecho'), findsOneWidget);
+    semantics.dispose();
+  });
 }

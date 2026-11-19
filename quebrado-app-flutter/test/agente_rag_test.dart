@@ -77,37 +77,44 @@ void main() {
   });
 
   group('SuiteRagService Declarations and Execution', () {
-    test('Declared tools include all 15 super-app capabilities', () {
-      final tools = [
+    test('Declared tools include all super-app capabilities (spec 03: escrituras)', () {
+      final rag = SuiteRagService(
+        appState: _MockAppState(),
+        diarioState: _MockDiarioState(),
+        habitosState: _MockHabitosState(),
+        remindersState: _MockRemindersState(),
+      );
+      final tools = rag.getDeclaredTools().first.functionDeclarations!.map((f) => f.name).toList();
+
+      for (final name in [
         'searchSuiteData',
+        'calculateCurrencyExchange',
+        'getUpcomingBirthdays',
         'searchContacts',
         'getContactDetails',
         'searchDiarioEntries',
-        'getUpcomingBirthdays',
-        'getFinancialOverview',
-        'calculateCurrencyExchange',
-        'getHabitsStatus',
-        'getReminders',
+        'registerTransaction',
+        'payRecurringPayment',
+        'registerDiarioEntry',
+        'createContact',
         'createReminder',
+        'createHabit',
+        'logMood',
+        'markHabitDone',
+        'createNote',
+        'undoLastAction',
+      ]) {
+        expect(tools, contains(name));
+      }
+      for (final removed in [
         'proposeCreateDiarioEntry',
         'proposeCreateContact',
         'proposeCreateReminder',
         'proposeCreateHabit',
         'proposeCreateTransaction',
-      ];
-
-      expect(tools.length, equals(15));
-      expect(tools, contains('searchSuiteData'));
-      expect(tools, contains('calculateCurrencyExchange'));
-      expect(tools, contains('getUpcomingBirthdays'));
-      expect(tools, contains('searchContacts'));
-      expect(tools, contains('getContactDetails'));
-      expect(tools, contains('searchDiarioEntries'));
-      expect(tools, contains('proposeCreateDiarioEntry'));
-      expect(tools, contains('proposeCreateContact'));
-      expect(tools, contains('proposeCreateReminder'));
-      expect(tools, contains('proposeCreateHabit'));
-      expect(tools, contains('proposeCreateTransaction'));
+      ]) {
+        expect(tools, isNot(contains(removed)));
+      }
     });
 
     test('GeminiConfig handles model selection and fallback', () {
@@ -118,7 +125,7 @@ void main() {
       expect(GeminiConfig.selectedModel, equals('gemini-1.5-pro'));
     });
 
-    test('SuiteRagService returns 16 tools in getDeclaredTools and getToolsJson', () {
+    test('SuiteRagService returns 23 tools in getDeclaredTools and getToolsJson', () {
       final rag = SuiteRagService(
         appState: _MockAppState(),
         diarioState: _MockDiarioState(),
@@ -129,17 +136,17 @@ void main() {
       final declared = rag.getDeclaredTools();
       expect(declared.length, equals(1));
       final funcs = declared.first.functionDeclarations!.map((f) => f.name).toList();
-      expect(funcs.length, equals(19));
+      expect(funcs.length, equals(23));
       expect(funcs, contains('searchSuiteData'));
       expect(funcs, contains('searchContacts'));
       expect(funcs, contains('getContactDetails'));
       expect(funcs, contains('searchDiarioEntries'));
       expect(funcs, contains('getPersonalNotes'));
-      expect(funcs, contains('proposeCreateDiarioEntry'));
-      expect(funcs, contains('proposeCreateContact'));
-      expect(funcs, contains('proposeCreateReminder'));
-      expect(funcs, contains('proposeCreateHabit'));
-      expect(funcs, contains('proposeCreateTransaction'));
+      expect(funcs, contains('registerTransaction'));
+      expect(funcs, contains('registerDiarioEntry'));
+      expect(funcs, contains('createContact'));
+      expect(funcs, contains('createReminder'));
+      expect(funcs, contains('createHabit'));
       expect(funcs, contains('getWeeklySchedule'));
       expect(funcs, contains('getRolesCompass'));
       expect(funcs, contains('proposeScheduleBigRock'));
@@ -148,20 +155,10 @@ void main() {
       final jsonFuncs = (jsonTools.first['functionDeclarations'] as List)
           .map((f) => f['name'])
           .toList();
-      expect(jsonFuncs.length, equals(19));
-      expect(jsonFuncs, contains('searchSuiteData'));
-      expect(jsonFuncs, contains('searchContacts'));
-      expect(jsonFuncs, contains('getContactDetails'));
-      expect(jsonFuncs, contains('searchDiarioEntries'));
-      expect(jsonFuncs, contains('getPersonalNotes'));
-      expect(jsonFuncs, contains('proposeCreateDiarioEntry'));
-      expect(jsonFuncs, contains('proposeCreateContact'));
-      expect(jsonFuncs, contains('proposeCreateReminder'));
-      expect(jsonFuncs, contains('proposeCreateHabit'));
-      expect(jsonFuncs, contains('proposeCreateTransaction'));
-      expect(jsonFuncs, contains('getWeeklySchedule'));
-      expect(jsonFuncs, contains('getRolesCompass'));
-      expect(jsonFuncs, contains('proposeScheduleBigRock'));
+      expect(jsonFuncs.length, equals(23));
+      // R-03: las dos copias (SDK y REST) declaran exactamente los mismos nombres.
+      expect(jsonFuncs.toSet(), equals(funcs.toSet()));
+      expect(funcs.toSet().length, equals(funcs.length));
     });
 
     test('searchSuiteData and getReminders find reminders by query with formatted date and daysRemaining', () async {
@@ -188,8 +185,8 @@ void main() {
         sessionId: 'test-session',
       );
 
-      expect(suiteRes.resultData['totalMatches'], equals(1));
-      final reminders = suiteRes.resultData['reminders'] as List;
+      expect(_u(suiteRes)['totalMatches'], equals(1));
+      final reminders = _u(suiteRes)['reminders'] as List;
       expect(reminders.length, equals(1));
       expect(reminders.first['title'], equals('Salida de Zelda OOT'));
       expect(reminders.first['daysRemaining'], equals(53));
@@ -202,8 +199,8 @@ void main() {
         sessionId: 'test-session',
       );
 
-      expect(remindersRes.resultData['count'], equals(1));
-      final rList = remindersRes.resultData['reminders'] as List;
+      expect(_u(remindersRes)['count'], equals(1));
+      final rList = _u(remindersRes)['reminders'] as List;
       expect(rList.first['title'], equals('Salida de Zelda OOT'));
       expect(rList.first['daysRemaining'], equals(53));
     });
@@ -246,8 +243,8 @@ void main() {
         sessionId: 'test-session',
       );
 
-      expect(res.resultData['found'], equals(1));
-      final contacts = res.resultData['contacts'] as List;
+      expect(_u(res)['found'], equals(1));
+      final contacts = _u(res)['contacts'] as List;
       expect(contacts.length, equals(1));
       final firstContact = contacts.first;
       expect(firstContact['name'], equals('Judenys Borges'));
@@ -264,7 +261,7 @@ void main() {
         {'query': '210RD'},
         sessionId: 'test-session',
       );
-      expect(plateRes.resultData['found'], equals(1));
+      expect(_u(plateRes)['found'], equals(1));
 
       // 3. Search specifically asking for 'ficha de yaku' generates contact card artifact
       final cardRes = await rag.executeFunctionCall(
@@ -281,8 +278,8 @@ void main() {
         {'nameOrQuery': 'Yaku'},
         sessionId: 'test-session',
       );
-      expect(detailsRes.resultData['found'], isTrue);
-      final detailsContact = detailsRes.resultData['contact'];
+      expect(_u(detailsRes)['found'], isTrue);
+      final detailsContact = _u(detailsRes)['contact'];
       expect(detailsContact['name'], equals('Judenys Borges'));
       expect((detailsContact['records'] as List).first['details']['placa'], equals('210RD'));
 
@@ -292,184 +289,60 @@ void main() {
         {'query': '210RD'},
         sessionId: 'test-session',
       );
-      expect(entriesRes.resultData['found'], equals(1));
-      final entryMatches = entriesRes.resultData['entries'] as List;
+      expect(_u(entriesRes)['found'], equals(1));
+      final entryMatches = _u(entriesRes)['entries'] as List;
       expect(entryMatches.first['contactName'], equals('Judenys Borges'));
       expect(entryMatches.first['details']['placa'], equals('210RD'));
     });
 
-    test('proposeCreateContact generates actionProposal artifact with age and fields', () async {
+    // Spec 03: las antiguas `propose*` ya no existen; sus tests pasan a
+    // comprobar que el nombre viejo ya no se despacha y que el nuevo llega
+    // al ejecutor del Diario. El detalle de cada ejecutor está en
+    // test/agente/services/write_tools/ y el despacho en
+    // test/agente/services/suite_rag_service_test.dart.
+    test('las propose* retiradas ya no se ejecutan ni crean tarjetas', () async {
       final rag = SuiteRagService(
         appState: _MockAppState(),
         diarioState: _MockDiarioState(),
         habitosState: _MockHabitosState(),
         remindersState: _MockRemindersState(),
       );
-
-      final res = await rag.executeFunctionCall(
+      for (final name in [
         'proposeCreateContact',
-        {
-          'name': 'Juan',
-          'relationship': 'Hermano',
-          'age': 38,
-          'phone': '+584121234567',
-          'notes': 'Cumple en enero',
-        },
-        sessionId: 'session-propose',
-      );
-
-      expect(res.resultData['status'], equals('proposed'));
-      expect(res.resultData['action'], equals('create_contact'));
-      expect(res.generatedArtifact, isNotNull);
-
-      final art = res.generatedArtifact!;
-      expect(art.type, equals(ArtifactType.actionProposal));
-      expect(art.title, contains('Juan'));
-      expect(art.metadata['action'], equals('create_contact'));
-      expect(art.metadata['status'], equals('pending'));
-
-      final data = art.metadata['data'] as Map;
-      expect(data['name'], equals('Juan'));
-      expect(data['relationship'], equals('Hermano'));
-      expect(data['phone'], equals('+584121234567'));
-      // Estimated birthdate from 38 years
-      expect(data['birthdate'], contains('-01-01'));
-
-      final summary = art.metadata['summary'] as List;
-      expect(summary.any((s) => s['label'] == 'Relación' && s['value'] == 'Hermano'), isTrue);
-      expect(summary.any((s) => s['label'] == 'Edad aprox.' && s['value'] == '38 años'), isTrue);
-    });
-
-    test('proposeCreateReminder, proposeCreateHabit and proposeCreateTransaction generate proposals', () async {
-      final rag = SuiteRagService(
-        appState: _MockAppState(),
-        diarioState: _MockDiarioState(),
-        habitosState: _MockHabitosState(),
-        remindersState: _MockRemindersState(),
-      );
-
-      // 1. Reminder proposal
-      final remRes = await rag.executeFunctionCall(
+        'proposeCreateDiarioEntry',
         'proposeCreateReminder',
-        {
-          'title': 'Comprar repuesto para el carro',
-          'priority': 'p1_urgent',
-          'notes': 'Placa 210RD',
-        },
-        sessionId: 'session-propose',
-      );
-      expect(remRes.generatedArtifact, isNotNull);
-      expect(remRes.generatedArtifact!.type, equals(ArtifactType.actionProposal));
-      expect(remRes.generatedArtifact!.metadata['action'], equals('create_reminder'));
-
-      // 2. Habit proposal
-      final habitRes = await rag.executeFunctionCall(
         'proposeCreateHabit',
-        {'title': 'Leer 20 páginas al día', 'isNegative': false},
-        sessionId: 'session-propose',
-      );
-      expect(habitRes.generatedArtifact, isNotNull);
-      expect(habitRes.generatedArtifact!.metadata['action'], equals('create_habit'));
-
-      // 3. Transaction proposal
-      final txRes = await rag.executeFunctionCall(
         'proposeCreateTransaction',
-        {
-          'title': 'Almuerzo de trabajo',
-          'amount': 15.5,
-          'type': 'expense',
-          'currency': 'usd',
-        },
-        sessionId: 'session-propose',
-      );
-      expect(txRes.generatedArtifact, isNotNull);
-      expect(txRes.generatedArtifact!.metadata['action'], equals('create_transaction'));
-      expect(txRes.generatedArtifact!.title, contains('Gasto: Almuerzo de trabajo'));
+      ]) {
+        final res = await rag.executeFunctionCall(name, {'title': 'x'}, sessionId: 's');
+        // S3-01: un nombre desconocido cuenta como lectura no fiable.
+        expect(_u(res)['error'], contains('Función no reconocida'), reason: name);
+        expect(res.generatedArtifact, isNull, reason: name);
+      }
     });
 
-    test('proposeCreateDiarioEntry generates actionProposal for notes and entries linked to contacts', () async {
-      final contact = DiarioContact(
-        id: 'c-mariana',
-        name: 'Mariana Dávila',
-      );
-
+    test('registerDiarioEntry con contacto inexistente sale como tarjeta pendiente', () async {
       final rag = SuiteRagService(
         appState: _MockAppState(),
-        diarioState: _MockDiarioState(mockContacts: [contact]),
+        diarioState: _MockDiarioState(mockContacts: [DiarioContact(id: 'c-mariana', name: 'Mariana Dávila')]),
         habitosState: _MockHabitosState(),
         remindersState: _MockRemindersState(),
       );
+      rag.beginTurn('anota que a Pedro le gusta el café');
 
       final res = await rag.executeFunctionCall(
-        'proposeCreateDiarioEntry',
-        {
-          'title': 'Dolor de espalda cerca del cuello',
-          'contentText': 'Hoy a Mariana Dávila le empezó a doler la espalda cerca del cuello, probablemente durmió mal en la tarde.',
-          'contactName': 'Mariana Dávila',
-          'category': 'salud',
-        },
+        'registerDiarioEntry',
+        {'contentText': 'Le gusta el café con canela.', 'contactName': 'Pedro'},
         sessionId: 'session-propose',
       );
 
-      expect(res.resultData['status'], equals('proposed'));
-      expect(res.resultData['action'], equals('create_diario_entry'));
-      expect(res.generatedArtifact, isNotNull);
-
+      expect(res.resultData['status'], equals('proposal'));
+      expect(res.resultData['reasons'], contains('contact_not_found'));
       final art = res.generatedArtifact!;
       expect(art.type, equals(ArtifactType.actionProposal));
-      expect(art.title, contains('Dolor de espalda cerca del cuello'));
-      expect(art.metadata['action'], equals('create_diario_entry'));
       expect(art.metadata['status'], equals('pending'));
-
-      final data = art.metadata['data'] as Map;
-      expect(data['title'], equals('Dolor de espalda cerca del cuello'));
-      expect(data['contactName'], equals('Mariana Dávila'));
-      expect(data['contactId'], equals('c-mariana'));
-      expect(data['category'], equals('salud'));
-
-      final summary = art.metadata['summary'] as List;
-      expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
-      expect(summary.any((s) => s['label'] == 'Modelo' && s['value'] == 'Nota simple (Sin modelo)'), isTrue);
-    });
-
-    test('proposeCreateDiarioEntry works without title and omits title from summary', () async {
-      final contact = DiarioContact(
-        id: 'c-mariana',
-        name: 'Mariana Dávila',
-      );
-
-      final rag = SuiteRagService(
-        appState: _MockAppState(),
-        diarioState: _MockDiarioState(mockContacts: [contact]),
-        habitosState: _MockHabitosState(),
-        remindersState: _MockRemindersState(),
-      );
-
-      final res = await rag.executeFunctionCall(
-        'proposeCreateDiarioEntry',
-        {
-          'contentText': 'Le gustó mucho el café con canela hoy en la tarde.',
-          'contactName': 'Mariana Dávila',
-          'category': 'alimentos',
-        },
-        sessionId: 'session-no-title',
-      );
-
-      expect(res.resultData['status'], equals('proposed'));
-      expect(res.generatedArtifact, isNotNull);
-
-      final art = res.generatedArtifact!;
-      expect(art.title, equals('Nueva Nota para Mariana Dávila'));
-
-      final data = art.metadata['data'] as Map;
-      expect(data['title'], isEmpty);
-      expect(data['contentText'], equals('Le gustó mucho el café con canela hoy en la tarde.'));
-
-      final summary = art.metadata['summary'] as List;
-      // Does NOT include dummy generic title
-      expect(summary.any((s) => s['label'] == 'Título'), isFalse);
-      expect(summary.any((s) => s['label'] == 'Contacto' && s['value'] == 'Mariana Dávila'), isTrue);
-      expect(summary.any((s) => s['label'] == 'Detalle'), isTrue);
+      expect(art.metadata['action'], equals('registerDiarioEntry'));
+      expect(art.metadata['commitArgs'], isA<Map>());
     });
 
     test('searchSuiteData and searchDiarioEntries find notes without title through contentText', () async {
@@ -502,7 +375,7 @@ void main() {
         {'query': 'canela'},
         sessionId: 'session-search',
       );
-      final entriesData = resDiario.resultData['entries'] as List;
+      final entriesData = _u(resDiario)['entries'] as List;
       expect(entriesData, isNotEmpty);
       expect(entriesData.first['notes'], contains('canela'));
 
@@ -512,7 +385,7 @@ void main() {
         {'query': 'avena'},
         sessionId: 'session-suite',
       );
-      final suiteDiario = resSuite.resultData['diarioEntries'] as List;
+      final suiteDiario = _u(resSuite)['diarioEntries'] as List;
       expect(suiteDiario, isNotEmpty);
       expect(suiteDiario.first['notes'], contains('avena'));
     });
@@ -553,8 +426,8 @@ void main() {
         {'query': 'freelancers'},
         sessionId: 'session-notes',
       );
-      expect(resQuery.resultData['found'], equals(1));
-      final notes = resQuery.resultData['notes'] as List;
+      expect(_u(resQuery)['found'], equals(1));
+      final notes = _u(resQuery)['notes'] as List;
       expect(notes.first['title'], equals('Idea de negocio SaaS'));
       expect(notes.first['isPinned'], isTrue);
 
@@ -564,7 +437,7 @@ void main() {
         {},
         sessionId: 'session-notes-all',
       );
-      expect(resAll.resultData['found'], equals(2));
+      expect(_u(resAll)['found'], equals(2));
 
       // 3. Search by dateFilter
       final resDate = await rag.executeFunctionCall(
@@ -572,11 +445,15 @@ void main() {
         {'dateFilter': '2026-08'},
         sessionId: 'session-notes-date',
       );
-      expect(resDate.resultData['found'], equals(1));
-      expect((resDate.resultData['notes'] as List).first['title'], equals('Rutina de entrenamiento'));
+      expect(_u(resDate)['found'], equals(1));
+      expect((_u(resDate)['notes'] as List).first['title'], equals('Rutina de entrenamiento'));
     });
   });
 }
+
+/// Las lecturas con texto libre van envueltas en `untrusted_content` (CA-10).
+Map<String, dynamic> _u(ToolExecutionResult r) =>
+    r.resultData['untrusted_content'] as Map<String, dynamic>;
 
 class _MockAppState extends Fake implements AppState {
   @override

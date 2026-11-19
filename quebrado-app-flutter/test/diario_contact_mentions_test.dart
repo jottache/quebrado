@@ -7,6 +7,7 @@ import 'package:quebrado_app_flutter/diario/viewmodels/diario_state.dart';
 import 'package:quebrado_app_flutter/diario/widgets/mention_text_field.dart';
 import 'package:quebrado_app_flutter/agente/services/suite_rag_service.dart';
 import 'package:quebrado_app_flutter/agente/models/chat_artifact_model.dart';
+import 'package:quebrado_app_flutter/agente/services/write_tools/write_tool_contract.dart';
 import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
 import 'package:quebrado_app_flutter/habitos/viewmodels/habitos_state.dart';
 import 'package:quebrado_app_flutter/recordatorios/viewmodels/reminders_state.dart';
@@ -210,6 +211,9 @@ void main() {
       expect(mentionsForMariana.any((e) => e.id == 'legacy_entry_1'), isTrue);
     });
 
+    // Spec 03: `proposeCreateDiarioEntry` pasó a `registerDiarioEntry`. Con
+    // «General» (contacto inexistente) sale tarjeta; al confirmarla como
+    // «Sin contacto» se guarda la entrada personal con la mención resuelta.
     test('SuiteRagService proposes Diario entry extracting mentions', () async {
       final state = DiarioState();
       await state.loadAll();
@@ -226,8 +230,9 @@ void main() {
         remindersState: _MockRemindersState(),
       );
 
+      ragService.beginTurn('anota la revisión UI con @Alejandra Gomez');
       final res = await ragService.executeFunctionCall(
-        'proposeCreateDiarioEntry',
+        'registerDiarioEntry',
         {
           'title': 'Revisión UI',
           'contactName': 'General',
@@ -239,14 +244,20 @@ void main() {
       expect(res.generatedArtifact, isNotNull);
       final artifact = res.generatedArtifact!;
       expect(artifact.type, equals(ArtifactType.actionProposal));
-      final data = artifact.metadata['data'] as Map<String, dynamic>;
-      expect(data['mentionedContactIds'], contains(contact.id));
+      expect(artifact.metadata['status'], equals('pending'));
+      expect(artifact.metadata['reasons'], contains('contact_not_found'));
+      final commitArgs = Map<String, dynamic>.from(artifact.metadata['commitArgs'] as Map);
+      expect(commitArgs['contentText'], contains('@Alejandra Gomez'));
 
-      final summaryList = artifact.metadata['summary'] as List;
-      final hasMentions = summaryList.any(
-        (item) => item is Map && item['label'] == 'Menciones' && (item['value']?.toString().contains('Alejandra Gomez') ?? false),
+      final confirmed = await ragService.runWrite(
+        'registerDiarioEntry',
+        {...commitArgs, 'contactName': 'Sin contacto'},
+        WriteContext(confirmedByUser: true),
       );
-      expect(hasMentions, isTrue);
+      expect(confirmed.result.isSaved, isTrue);
+      final entry = state.entries.firstWhere((e) => e.id == confirmed.result.recordId);
+      expect(entry.contactId, equals('personal'));
+      expect(entry.mentionedContactIds, contains(contact.id));
     });
 
     test('Erasing contact A and mentioning contact B preserves ONLY contact B in mentions', () async {

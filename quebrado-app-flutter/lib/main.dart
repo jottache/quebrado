@@ -116,7 +116,22 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
         ChangeNotifierProvider<RemindersState>(create: (_) => RemindersState()),
         ChangeNotifierProvider<NotasState>(create: (_) => NotasState()..loadAll()),
-        ChangeNotifierProvider<AgenteState>(create: (_) => AgenteState()),
+        // Ortiz necesita los estados vivos de la suite para leer y registrar
+        // (spec 03). `updateDependencies` no rehace nada si no cambiaron.
+        ChangeNotifierProxyProvider6<AppState, DiarioState, AnimoState,
+            HabitosState, RemindersState, NotasState, AgenteState>(
+          create: (_) => AgenteState(),
+          update: (_, app, diario, animo, habitos, reminders, notas, agente) =>
+              (agente ?? AgenteState())
+                ..updateDependencies(
+                  appState: app,
+                  diarioState: diario,
+                  habitosState: habitos,
+                  remindersState: reminders,
+                  animoState: animo,
+                  notasState: notas,
+                ),
+        ),
       ],
       child: Consumer<AppState>(
         builder: (context, appState, child) {

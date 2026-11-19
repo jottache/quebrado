@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/agente_state.dart';
 import '../theme/agente_colors.dart';
+import 'action_proposal_card_view.dart' show ChatInputFocus;
 import 'chat_message_bubble.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
@@ -214,7 +215,10 @@ class _AgenteChatBottomSheetState extends State<AgenteChatBottomSheet> {
                       itemCount: messages.length + (agenteState.isGenerating ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index < messages.length) {
-                          return ChatMessageBubble(message: messages[index]);
+                          return ChatInputFocus(
+                            focusNode: _focusNode,
+                            child: ChatMessageBubble(message: messages[index]),
+                          );
                         }
                         return _buildGeneratingIndicator(agenteState);
                       },

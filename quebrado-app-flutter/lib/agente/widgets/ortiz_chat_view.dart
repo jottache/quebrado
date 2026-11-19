@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/agente_state.dart';
+import 'action_proposal_card_view.dart' show ChatInputFocus;
 import 'chat_message_bubble.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
@@ -133,7 +134,10 @@ class _OrtizChatViewState extends State<OrtizChatView> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) => _ReadingColumn(
                     padding: OrtizSpace.lg,
-                    child: ChatMessageBubble(message: messages[index]),
+                    child: ChatInputFocus(
+                      focusNode: _focusNode,
+                      child: ChatMessageBubble(message: messages[index]),
+                    ),
                   ),
                 ),
         ),
