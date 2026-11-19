@@ -1,6 +1,6 @@
 # 04 — Resumen del día
 
-- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Implementado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 02 (inicio, chip y panel derecho)
 - **Fecha:** 2026-11-17
 - **Módulo(s):** agente (lee de quebrado, diario, habitos y recordatorios)
@@ -121,10 +121,22 @@ Las filas no dependen de la IA. Al aprobarse, estas reglas pasan a la tabla «Re
 - **R-02** La variación de las tasas depende de que haya un registro del día anterior (`exchange_rate_record`). Si no lo hay, se omite la variación.
 
 ## Preguntas abiertas
-- **PA-01** ¿A qué hora empieza la versión de «noche»? Recomendación: 18:00.
-- **PA-02** Si tienes varios libros, ¿el resumen muestra solo el libro activo o suma todos? Recomendación: solo el activo, como el resto de la app.
-- **PA-03** ¿Los hábitos negativos (los que estás dejando) entran en el resumen? Por ejemplo, «llevas 12 días sin fumar». Recomendación: sí, solo como racha y sin marcarlos como pendientes.
-- **PA-04** De mañana, ¿«lo que viene» también incluye los recordatorios de mañana o solo los de hoy?
+Respondidas por la persona el 2026-11-18 (detalle y preguntas adicionales Q5–Q8, U1–U4 en `docs/design/resumen-del-dia.md`, «Decisiones de la persona»):
+- **PA-01** ¿A qué hora empieza la versión de «noche»? → **18:00**.
+- **PA-02** Si tienes varios libros, ¿el resumen muestra solo el libro activo o suma todos? → **Solo el activo**.
+- **PA-03** ¿Los hábitos negativos (los que estás dejando) entran en el resumen? → **Sí, solo como racha**, sin marcarlos como pendientes; a Gemini solo el número de días.
+- **PA-04** De mañana, ¿«lo que viene» también incluye los recordatorios de mañana? → **No**, solo de noche.
+- Además: montos con el formato de la app («$25.00 · Bs. 6250.00»; CA-03/CA-04 se leen así); panel derecho desde 1200 (CA-09 decía 840); «Posponer» ofrece «1 hora» y «Mañana a esta hora»; cobros recurrentes fuera.
+
+## Desviaciones de la implementación (2026-11-19)
+- **CA-03/CA-04** se cumplen con el formato de la app («$25.00 · Bs. 6250.00» / «$4.00 · Bs. 1000.00»), por decisión U1.
+- **CA-09**: el panel derecho aparece desde **1200** (decisión U3 y spec 02), no desde 840.
+- **`suite_today_panel.dart`** no existe: el panel es `_TodayPanel` dentro de `lib/screens/ortiz_home_screen.dart`.
+- **Prompt «Resumen del día»**: fila de `chat_prompts` con **UUID fijo** (`kDailyBriefingPromptId`), sin migración ni semilla; el texto por defecto vive en `gemini_service.dart` y unas salvaguardas fijas no editables (`kDailyBriefingGuardrails`) van siempre al final. Se edita en Ajustes de Ortiz › «Instrucciones de Ortiz».
+- **No se persiste** el resumen: el mensaje se guarda con el texto de Ortiz y un artefacto con solo fecha y periodo (S4-02).
+- **Posponer** reutiliza `RemindersState.snoozeTo` (ya existía); no se creó método nuevo.
+- **Pago confirmado fuera del resumen**: si al tocar «Pagar» la ocurrencia ya no está pendiente, se avisa «Ese pago ya no está pendiente» y la fila se quita (la app no distingue pago de omisión). Pendiente de confirmar por la persona.
+- Si una fuente no carga en 10 s, su fila dice que no se pudo leer (R-01).
 
 ## Qué NO entra
 - Historial de resúmenes anteriores.

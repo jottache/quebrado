@@ -8,7 +8,10 @@ import '../models/chat_artifact_model.dart';
 import '../models/agente_prompt_model.dart';
 import '../models/agent_action_record.dart';
 import '../models/undo_result.dart';
+import '../models/daily_briefing.dart';
+import '../services/daily_briefing_service.dart';
 import '../services/gemini_service.dart';
+import '../../theme/ortiz_motion.dart';
 import '../services/suite_rag_service.dart';
 import '../services/write_tools/write_tool_contract.dart';
 import '../../diario/viewmodels/animo_state.dart';
@@ -47,16 +50,63 @@ class AgenteState extends ChangeNotifier {
   /// cada `notifyListeners` del ProxyProvider).
   List<Object?> _deps = const [];
 
+  /// `true` si [GeminiService] llegó por el constructor (tests):
+  /// [updateDependencies] no lo reemplaza.
+  final bool _geminiInjected;
+
+  // Resumen del día (spec 04, docs/design/resumen-del-dia.md §5).
+  final DateTime Function() _clock;
+  final Duration _briefingLoadTimeout;
+  final DailyBriefingSnapshot? Function(DateTime now)? _briefingSnapshotReader;
+  final DailyBriefingService _briefingService;
+  AppState? _appState;
+  DiarioState? _diarioState;
+  AnimoState? _animoState;
+  HabitosState? _habitosState;
+  RemindersState? _remindersState;
+  DailyBriefing? _todayBriefing;
+  String? _todayBriefingSignature;
+  DailyBriefing? _liveBriefing;
+  String? _liveBriefingMessageId;
+  Completer<void>? _briefingLoadedWaiter;
+  final Duration _briefingUnavailableAfter;
+  Timer? _briefingUnavailableTimer;
+  bool _briefingDeadlinePassed = false;
+  bool _briefingScanning = false;
+  bool _briefingRefreshPending = false;
+  bool _notifyScheduled = false;
+  bool _disposed = false;
+
+  /// Tope tras pedir el resumen: una sección que siga `loading` pasa a
+  /// `unavailable` (diseño §5, R-01).
+  static const Duration briefingUnavailableAfterDefault = Duration(seconds: 10);
+
   /// [geminiService] y [ragService] solo se inyectan en tests; en la app los
-  /// crea [updateDependencies].
+  /// crea [updateDependencies]. También para tests: [clock] (reloj del
+  /// resumen del día), [briefingLoadTimeout] (espera máxima a que carguen
+  /// los ViewModels; por defecto `OrtizMotion.scanMax`),
+  /// [briefingUnavailableAfter] (tope para pasar a `unavailable`; por defecto
+  /// [briefingUnavailableAfterDefault]) y [briefingSnapshotReader]
+  /// (sustituye a `DailyBriefingSnapshot.fromStates`).
   AgenteState({
     bool autoInit = true,
     AgenteSupabaseService? supabaseService,
     @visibleForTesting GeminiService? geminiService,
     @visibleForTesting SuiteRagService? ragService,
+    @visibleForTesting DateTime Function()? clock,
+    @visibleForTesting Duration? briefingLoadTimeout,
+    @visibleForTesting Duration? briefingUnavailableAfter,
+    @visibleForTesting DailyBriefingSnapshot? Function(DateTime now)? briefingSnapshotReader,
+    DailyBriefingService briefingService = const DailyBriefingService(),
   })  : _supabaseService = supabaseService ?? AgenteSupabaseService(),
         _geminiService = geminiService,
-        _ragService = ragService {
+        _geminiInjected = geminiService != null,
+        _ragService = ragService,
+        _clock = clock ?? DateTime.now,
+        _briefingLoadTimeout = briefingLoadTimeout ?? OrtizMotion.scanMax,
+        _briefingUnavailableAfter = briefingUnavailableAfter ?? briefingUnavailableAfterDefault,
+        _briefingSnapshotReader = briefingSnapshotReader,
+        _briefingService = briefingService {
     _wireRag();
     if (autoInit) {
       _init();
@@ -65,12 +115,38 @@ class AgenteState extends ChangeNotifier {
     }
   }
 
+  /// Ids (UUID, `chat_prompts.id`) de los prompts del sistema, que no son
+  /// atajos del chat: hoy solo la instrucción del resumen del día.
+  static const Set<String> _systemPromptIds = {kDailyBriefingPromptId};
+
+  static bool _isSystemPrompt(AgentePromptModel p) => _systemPromptIds.contains(p.id);
+
   // Getters
   List<ChatSessionModel> get sessions => _sessions;
   ChatSessionModel? get currentSession => _currentSession;
   List<ChatMessageModel> get messages => _messages;
   List<ChatArtifactModel> get allArtifacts => _allArtifacts;
-  List<AgentePromptModel> get quickPrompts => List.unmodifiable(_quickPrompts);
+
+  /// Atajos del chat: sin los prompts del sistema (que no se envían como
+  /// mensaje de la persona).
+  List<AgentePromptModel> get quickPrompts =>
+      List.unmodifiable(_quickPrompts.where((p) => !_isSystemPrompt(p)));
+
+  /// Fila editable de la instrucción del resumen del día, si existe.
+  AgentePromptModel? get dailyBriefingPrompt {
+    for (final p in _quickPrompts) {
+      if (p.id == kDailyBriefingPromptId) return p;
+    }
+    return null;
+  }
+
+  /// Instrucción que se manda a Gemini para el resumen del día: el texto de
+  /// la fila [kDailyBriefingPromptId] o, si no existe o está vacía, el texto
+  /// por defecto [kDailyBriefingDefaultInstruction] (§5.1).
+  String get dailyBriefingInstruction {
+    final text = dailyBriefingPrompt?.text ?? '';
+    return text.trim().isEmpty ? kDailyBriefingDefaultInstruction : text;
+  }
   bool get isGenerating => _isGenerating;
   String get statusMessage => _statusMessage;
   bool get isInitialized => _isInitialized;
@@ -102,8 +178,11 @@ class AgenteState extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _celebrateTimer?.cancel();
     _celebrateTimer = null;
+    _cancelBriefingDeadline();
+    _completeBriefingWaiter();
     super.dispose();
   }
 
@@ -129,23 +208,451 @@ class AgenteState extends ChangeNotifier {
     required AnimoState animoState,
     required NotasState notasState,
   }) {
+    _appState = appState;
+    _diarioState = diarioState;
+    _animoState = animoState;
+    _habitosState = habitosState;
+    _remindersState = remindersState;
     final deps = [appState, diarioState, habitosState, remindersState, animoState, notasState];
-    if (_ragService != null &&
+    final unchanged = _ragService != null &&
         deps.length == _deps.length &&
-        List.generate(deps.length, (i) => identical(deps[i], _deps[i])).every((same) => same)) {
-      return;
+        List.generate(deps.length, (i) => identical(deps[i], _deps[i])).every((same) => same);
+    if (!unchanged) {
+      _deps = deps;
+      _ragService = SuiteRagService(
+        appState: appState,
+        diarioState: diarioState,
+        habitosState: habitosState,
+        remindersState: remindersState,
+        animoState: animoState,
+        notasState: notasState,
+      );
+      _wireRag();
+      if (!_geminiInjected) _geminiService = GeminiService(ragService: _ragService!);
     }
-    _deps = deps;
-    _ragService = SuiteRagService(
-      appState: appState,
-      diarioState: diarioState,
-      habitosState: habitosState,
-      remindersState: remindersState,
-      animoState: animoState,
-      notasState: notasState,
+    // El ProxyProvider llama aquí cada vez que un ViewModel notifica: se
+    // recalcula el resumen (sin Gemini) aunque los estados sean los mismos,
+    // una sola vez por microtask (varios ViewModels notifican seguidos).
+    // Leer [todayBriefing] antes fuerza el recálculo pendiente.
+    if (_briefingRefreshPending) return;
+    _briefingRefreshPending = true;
+    scheduleMicrotask(_flushBriefingRefresh);
+  }
+
+  void _flushBriefingRefresh() {
+    if (!_briefingRefreshPending || _disposed) return;
+    _briefingRefreshPending = false;
+    _refreshBriefing();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Resumen del día (spec 04, docs/design/resumen-del-dia.md §5)
+  // ---------------------------------------------------------------------------
+
+  /// Texto del mensaje de la persona que abre el resumen (§5 paso 1).
+  static const String dailyBriefingUserText = 'Resumen del día';
+
+  /// Texto de Ortiz sin Gemini, sin red o con error (CA-07).
+  static const String dailyBriefingFallbackText = 'Esto es lo de hoy:';
+
+  /// Texto de Ortiz sin Gemini cuando todo está al día (`isAllClear`).
+  static const String dailyBriefingAllClearText =
+      'Todo al día: escribiste en el diario, no tienes pagos esta semana y tus hábitos están completos';
+
+  /// Resumen de hoy sin Gemini para la franja y el panel (CA-09); se
+  /// recalcula tras cada [updateDependencies]. `null` hasta la primera llamada.
+  DailyBriefing? get todayBriefing {
+    _flushBriefingRefresh();
+    return _todayBriefing;
+  }
+
+  /// `true` desde que se pide el resumen hasta que aparece el mensaje de
+  /// Ortiz con las filas (la vista no lo deduce del texto).
+  bool get isBriefingScanning => _briefingScanning;
+
+  /// Id del mensaje con el resumen de esta ejecución de la app: solo ese
+  /// tiene las acciones por fila activas (§5 paso 6).
+  String? get liveBriefingMessageId => _liveBriefingMessageId;
+
+  /// Resumen vivo (el del mensaje [liveBriefingMessageId]), con los estados
+  /// de pago al día.
+  DailyBriefing? get liveBriefing => _liveBriefing;
+
+  DailyBriefingSnapshot _readBriefingSnapshot(DateTime now) {
+    try {
+      final reader = _briefingSnapshotReader;
+      if (reader != null) return reader(now) ?? const DailyBriefingSnapshot();
+      final app = _appState, diario = _diarioState, animo = _animoState;
+      final habitos = _habitosState, reminders = _remindersState;
+      if (app == null || diario == null || animo == null || habitos == null || reminders == null) {
+        return const DailyBriefingSnapshot();
+      }
+      return DailyBriefingSnapshot.fromStates(
+        app: app,
+        diario: diario,
+        animo: animo,
+        habitos: habitos,
+        reminders: reminders,
+        now: now,
+      );
+    } catch (e) {
+      // Sin datos personales: solo el tipo de error. Todo queda «cargando».
+      debugPrint('AgenteState: no pude leer los datos del resumen (${e.runtimeType}).');
+      return const DailyBriefingSnapshot();
+    }
+  }
+
+  DailyBriefing _buildBriefing(DateTime now) =>
+      _briefingService.build(_readBriefingSnapshot(now), now: now);
+
+  /// Firma del resumen sin `generatedAt` (para notificar solo si cambió).
+  static String _briefingSignature(DailyBriefing b) {
+    final m = b.toArtifactMetadata()..remove('generatedAt');
+    return jsonEncode(m);
+  }
+
+  void _refreshBriefing() {
+    final briefing = _buildBriefing(_clock());
+    _todayBriefing = briefing;
+    final signature = _briefingSignature(briefing);
+    var changed = signature != _todayBriefingSignature;
+    _todayBriefingSignature = signature;
+    if (briefing.isFullyLoaded) _completeBriefingWaiter();
+    if (_fillLiveLoadingSections()) changed = true;
+    // Se llama dentro del build del ProxyProvider: se notifica después.
+    if (changed) _scheduleNotify();
+  }
+
+  void _scheduleNotify() {
+    if (_notifyScheduled) return;
+    _notifyScheduled = true;
+    scheduleMicrotask(() {
+      _notifyScheduled = false;
+      if (!_disposed) notifyListeners();
+    });
+  }
+
+  void _completeBriefingWaiter() {
+    final waiter = _briefingLoadedWaiter;
+    if (waiter != null && !waiter.isCompleted) waiter.complete();
+    _briefingLoadedWaiter = null;
+  }
+
+  /// Espera a que carguen todas las secciones como máximo
+  /// [_briefingLoadTimeout] (§5 paso 2).
+  Future<void> _waitForBriefingData() async {
+    if (_buildBriefing(_clock()).isFullyLoaded) return;
+    final waiter = Completer<void>();
+    _briefingLoadedWaiter = waiter;
+    final timer = Timer(_briefingLoadTimeout, () {
+      if (!waiter.isCompleted) waiter.complete();
+    });
+    await waiter.future;
+    timer.cancel();
+    if (identical(_briefingLoadedWaiter, waiter)) _briefingLoadedWaiter = null;
+  }
+
+  /// Secciones de [fresh] que reemplazan a las que seguían `loading` en
+  /// [live]; `null` si ninguna cambió (§5 paso 7). Las demás secciones, y
+  /// los estados de pago ya marcados, se quedan como estaban.
+  @visibleForTesting
+  static DailyBriefing? replaceLoadingSections(DailyBriefing live, DailyBriefing fresh) {
+    bool take(BriefingStatus l, BriefingStatus f) =>
+        l == BriefingStatus.loading && f != BriefingStatus.loading;
+    final diario = take(live.diario.status, fresh.diario.status);
+    final mood = take(live.mood.status, fresh.mood.status);
+    final payments = take(live.payments.status, fresh.payments.status);
+    final birthdays = take(live.birthdays.status, fresh.birthdays.status);
+    final habits = take(live.habits.status, fresh.habits.status);
+    final reminders = take(live.reminders.status, fresh.reminders.status);
+    final rates = take(live.rates.status, fresh.rates.status);
+    if (!(diario || mood || payments || birthdays || habits || reminders || rates)) return null;
+    return live.copyWith(
+      diario: diario ? fresh.diario : null,
+      mood: mood ? fresh.mood : null,
+      payments: payments ? fresh.payments : null,
+      birthdays: birthdays ? fresh.birthdays : null,
+      habits: habits ? fresh.habits : null,
+      reminders: reminders ? fresh.reminders : null,
+      rates: rates ? fresh.rates : null,
     );
-    _wireRag();
-    _geminiService = GeminiService(ragService: _ragService!);
+  }
+
+  /// Rellena las secciones `loading` del artefacto vivo sin pedir otra vez
+  /// el texto a Gemini. Devuelve `true` si cambió algo (notifica quien llama).
+  bool _fillLiveLoadingSections() {
+    final live = _liveBriefing;
+    if (live == null || live.isFullyLoaded) return false;
+    final merged = replaceLoadingSections(live, _buildBriefing(live.generatedAt));
+    if (merged == null) return false;
+    if (merged.isFullyLoaded) _cancelBriefingDeadline();
+    return _writeLiveBriefing(merged, notify: false);
+  }
+
+  void _cancelBriefingDeadline() {
+    _briefingUnavailableTimer?.cancel();
+    _briefingUnavailableTimer = null;
+  }
+
+  /// Escribe [briefing] en la metadata del artefacto vivo (mensaje y lista
+  /// global) y lo persiste si el mensaje ya no está en streaming.
+  bool _writeLiveBriefing(DailyBriefing briefing, {required bool notify}) {
+    _liveBriefing = briefing;
+    final messageId = _liveBriefingMessageId;
+    final i = messageId == null ? -1 : _messages.indexWhere((m) => m.id == messageId);
+    if (i == -1) return false;
+    final msg = _messages[i];
+    final ai = msg.artifacts.indexWhere((a) => a.type == ArtifactType.dailyBriefing);
+    if (ai == -1) return false;
+    final updated = msg.artifacts[ai].copyWith(metadata: briefing.toArtifactMetadata());
+    final newMsg = msg.copyWith(artifacts: List<ChatArtifactModel>.from(msg.artifacts)..[ai] = updated);
+    _messages[i] = newMsg;
+    final g = _allArtifacts.indexWhere((a) => a.id == updated.id);
+    if (g != -1) _allArtifacts[g] = updated;
+    if (notify && !_disposed) notifyListeners();
+    if (!newMsg.isStreaming) unawaited(_saveMessageQuietly(newMsg));
+    return true;
+  }
+
+  /// Secciones de [b] que siguen `loading` pasan a `unavailable` (tope de
+  /// [briefingUnavailableAfterDefault], diseño §5); `null` si no había
+  /// ninguna. Una sección `loading` no tiene datos: se reemplaza por una vacía.
+  @visibleForTesting
+  static DailyBriefing? markLoadingUnavailable(DailyBriefing b) {
+    const u = BriefingStatus.unavailable;
+    bool loading(BriefingStatus s) => s == BriefingStatus.loading;
+    if (b.isFullyLoaded) return null;
+    return b.copyWith(
+      diario: loading(b.diario.status) ? const BriefingDiario(status: u) : null,
+      mood: loading(b.mood.status) ? const BriefingMood(status: u) : null,
+      payments: loading(b.payments.status) ? const BriefingPayments(status: u) : null,
+      birthdays: loading(b.birthdays.status) ? const BriefingBirthdays(status: u) : null,
+      habits: loading(b.habits.status) ? const BriefingHabits(status: u) : null,
+      reminders: loading(b.reminders.status) ? const BriefingReminders(status: u) : null,
+      rates: loading(b.rates.status) ? const BriefingRates(status: u) : null,
+    );
+  }
+
+  void _onBriefingDeadline() {
+    _briefingUnavailableTimer = null;
+    _briefingDeadlinePassed = true;
+    if (_disposed) return;
+    final live = _liveBriefing;
+    if (live == null || _liveBriefingMessageId == null) return;
+    final marked = markLoadingUnavailable(live);
+    if (marked != null) _writeLiveBriefing(marked, notify: true);
+  }
+
+  /// Metadata del artefacto `dailyBriefing` tal como se guarda: sin las
+  /// filas ni los montos (S4-02, «no se persiste»). Solo lo que la burbuja
+  /// necesita para «Resumen del {fecha} a las {hora}…».
+  @visibleForTesting
+  static Map<String, dynamic> storedBriefingMetadata(Map<String, dynamic> metadata) => {
+        for (final key in const ['version', 'generatedAt', 'period'])
+          if (metadata.containsKey(key)) key: metadata[key],
+      };
+
+  /// [message] con sus artefactos `dailyBriefing` reducidos a
+  /// [storedBriefingMetadata]; el resto, igual.
+  static ChatMessageModel _forStorage(ChatMessageModel message) {
+    if (!message.artifacts.any((a) => a.type == ArtifactType.dailyBriefing)) return message;
+    return message.copyWith(artifacts: [
+      for (final a in message.artifacts)
+        a.type == ArtifactType.dailyBriefing ? a.copyWith(metadata: storedBriefingMetadata(a.metadata)) : a,
+    ]);
+  }
+
+  Future<void> _saveMessageQuietly(ChatMessageModel message) async {
+    try {
+      await _supabaseService.saveMessage(_forStorage(message));
+    } catch (e) {
+      debugPrint('AgenteState: no pude guardar el mensaje (${e.runtimeType}).');
+    }
+  }
+
+  void _setMessage(String messageId, ChatMessageModel Function(ChatMessageModel m) change) {
+    final i = _messages.indexWhere((m) => m.id == messageId);
+    if (i == -1) return;
+    _messages[i] = change(_messages[i]);
+    if (!_disposed) notifyListeners();
+  }
+
+  /// Resumen del día en el chat (§5): mensaje de la persona «Resumen del
+  /// día», Ortiz pensando hasta [_briefingLoadTimeout] mientras cargan los
+  /// ViewModels, mensaje de Ortiz con el artefacto `dailyBriefing` (filas al
+  /// instante) y el texto de Gemini en streaming (sin herramientas). Sin
+  /// Gemini, sin red o con error: [dailyBriefingFallbackText] o
+  /// [dailyBriefingAllClearText]. Nunca muestra un error (CA-07).
+  Future<void> runDailyBriefing({DateTime? now}) async {
+    if (_isGenerating) return;
+    if (_currentSession == null) await startNewSession(initialTitle: dailyBriefingUserText);
+    final sessionId = _currentSession!.id;
+
+    final userMessage = ChatMessageModel(
+      sessionId: sessionId,
+      role: MessageRole.user,
+      content: dailyBriefingUserText,
+    );
+    _messages.add(userMessage);
+    _isGenerating = true;
+    _briefingScanning = true;
+    _statusMessage = 'Revisando tus apps...';
+    // Tope de 10 s desde que se pide (diseño §5): cancela el del anterior.
+    _briefingUnavailableTimer?.cancel();
+    _briefingDeadlinePassed = false;
+    _briefingUnavailableTimer = Timer(_briefingUnavailableAfter, _onBriefingDeadline);
+    if (!_disposed) notifyListeners();
+    unawaited(_saveMessageQuietly(userMessage));
+
+    if (_messages.length <= 2 && _currentSession!.title == 'Nueva conversación') {
+      _currentSession = _currentSession!.copyWith(title: dailyBriefingUserText, updatedAt: DateTime.now());
+      unawaited(_supabaseService.saveSession(_currentSession!).then((_) {}, onError: (Object _) {}));
+    }
+
+    final modelMessageId = const Uuid().v4();
+    try {
+      await _waitForBriefingData();
+      final at = now ?? _clock();
+      final built = _buildBriefing(at);
+      final briefing = _briefingDeadlinePassed ? (markLoadingUnavailable(built) ?? built) : built;
+      final artifact = ChatArtifactModel(
+        sessionId: sessionId,
+        messageId: modelMessageId,
+        type: ArtifactType.dailyBriefing,
+        title: dailyBriefingUserText,
+        content: '',
+        metadata: briefing.toArtifactMetadata(),
+        createdAt: at,
+      );
+      _liveBriefing = briefing;
+      _liveBriefingMessageId = modelMessageId;
+      _messages.add(ChatMessageModel(
+        id: modelMessageId,
+        sessionId: sessionId,
+        role: MessageRole.model,
+        content: '',
+        artifacts: [artifact],
+        isStreaming: true,
+      ));
+      _allArtifacts.insert(0, artifact);
+      _briefingScanning = false;
+      if (briefing.isFullyLoaded) _cancelBriefingDeadline();
+      if (!_disposed) notifyListeners();
+
+      var text = '';
+      final gemini = _geminiService;
+      if (gemini != null) {
+        try {
+          final stream = gemini.streamDailyBriefing(
+            instruction: dailyBriefingInstruction,
+            briefingJson: briefing.toGeminiJson(),
+          );
+          await for (final chunk in stream) {
+            text += chunk;
+            final shown = text;
+            _setMessage(modelMessageId, (m) => m.copyWith(content: shown));
+          }
+        } catch (e) {
+          // Sin datos personales: solo el tipo de error (CA-07).
+          debugPrint('AgenteState.runDailyBriefing: sin texto de Gemini (${e.runtimeType}).');
+          text = '';
+        }
+      }
+      if (text.trim().isEmpty) {
+        final current = _liveBriefing ?? briefing;
+        text = current.isAllClear ? dailyBriefingAllClearText : dailyBriefingFallbackText;
+      }
+
+      final finalText = text;
+      _setMessage(modelMessageId, (m) => m.copyWith(content: finalText, isStreaming: false));
+      final i = _messages.indexWhere((m) => m.id == modelMessageId);
+      if (i != -1) await _saveMessageQuietly(_messages[i]);
+      _currentSession = _currentSession!.copyWith(updatedAt: DateTime.now());
+      await _supabaseService.saveSession(_currentSession!);
+      await loadSessions();
+    } catch (e) {
+      debugPrint('AgenteState.runDailyBriefing: falló (${e.runtimeType}).');
+      final i = _messages.indexWhere((m) => m.id == modelMessageId);
+      if (i != -1 && _messages[i].isStreaming) {
+        final m = _messages[i];
+        final fixed = m.copyWith(
+          content: m.content.trim().isEmpty ? dailyBriefingFallbackText : m.content,
+          isStreaming: false,
+        );
+        _messages[i] = fixed;
+        await _saveMessageQuietly(fixed);
+      }
+    } finally {
+      _isGenerating = false;
+      _briefingScanning = false;
+      _statusMessage = '';
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  /// Marca a mano el estado de un pago del resumen vivo (p. ej. `dismissed`
+  /// al omitirlo). La fila se queda en `items` (CA-10).
+  Future<void> markBriefingPayment(String paymentId, BriefingPaymentState state) async {
+    final live = _liveBriefing;
+    if (live == null) return;
+    final items = [
+      for (final p in live.payments.items) p.paymentId == paymentId ? p.copyWith(state: state) : p,
+    ];
+    _writeLiveBriefing(live.copyWith(payments: live.payments.copyWith(items: items)), notify: true);
+  }
+
+  /// Marca como pospuesto hasta [until] un recordatorio del resumen vivo
+  /// (fila «Posponer», U6): la fila se queda y muestra «Pospuesto a…».
+  Future<void> markBriefingReminderSnoozed(String reminderId, DateTime until) async {
+    final live = _liveBriefing;
+    if (live == null) return;
+    final items = [
+      for (final r in live.reminders.items) r.id == reminderId ? r.copyWith(snoozedUntil: until) : r,
+    ];
+    _writeLiveBriefing(live.copyWith(reminders: live.reminders.copyWith(items: items)), notify: true);
+  }
+
+  /// Recalcula los pagos del resumen vivo tras pagar o abonar desde una fila
+  /// (§6, fila «Pago», CA-10). Para cada fila pendiente (solo [paymentId]
+  /// si se indica), con el cálculo nuevo del mismo `generatedAt`:
+  /// - si ya no queda ninguna ocurrencia de ese pago, pasa a [confirmedAs]
+  ///   (`paid` si la hoja devolvió transacciones, `dismissed` si se omitió)
+  ///   y **no desaparece**;
+  /// - si quedan (se pagó solo la más antigua, o fue un abono), sigue
+  ///   `pending` con lo que falta, los abonos, los conteos y la ocurrencia
+  ///   más antigua del cálculo nuevo.
+  /// Las filas ya marcadas no cambian.
+  Future<void> refreshBriefingPayments({
+    String? paymentId,
+    BriefingPaymentState? confirmedAs = BriefingPaymentState.paid,
+  }) async {
+    final live = _liveBriefing;
+    if (live == null || live.payments.status != BriefingStatus.ready) return;
+    final fresh = _buildBriefing(live.generatedAt).payments;
+    if (fresh.status != BriefingStatus.ready) return;
+    final byId = {for (final p in fresh.items) p.paymentId: p};
+    final items = <BriefingPayment>[];
+    for (final p in live.payments.items) {
+      if (!p.isPending || (paymentId != null && p.paymentId != paymentId)) {
+        items.add(p);
+        continue;
+      }
+      final now = byId[p.paymentId];
+      // Sin ocurrencias y sin saber si se pagó u omitió (confirmedAs null):
+      // la fila se quita en vez de afirmar un estado que no consta.
+      if (now == null && confirmedAs == null) continue;
+      items.add(now == null
+          ? p.copyWith(state: confirmedAs)
+          : p.copyWith(
+              oldestOccurrenceDate: now.oldestOccurrenceDate,
+              remaining: now.remaining,
+              oldestRemaining: now.oldestRemaining,
+              partialPaid: now.partialPaid,
+              occurrenceCount: now.occurrenceCount,
+              overdueCount: now.overdueCount,
+            ));
+    }
+    _writeLiveBriefing(live.copyWith(payments: live.payments.copyWith(items: items)), notify: true);
   }
 
   void _wireRag() {
@@ -359,7 +866,7 @@ class AgenteState extends ChangeNotifier {
       final g = _allArtifacts.indexWhere((a) => a.id == artifactId);
       if (g != -1) _allArtifacts[g] = updated;
       notifyListeners();
-      if (!newMsg.isStreaming) await _supabaseService.saveMessage(newMsg);
+      if (!newMsg.isStreaming) await _supabaseService.saveMessage(_forStorage(newMsg));
       return true;
     }
     return false;
@@ -456,23 +963,59 @@ class AgenteState extends ChangeNotifier {
     }
   }
 
+  /// Reordena los atajos; los índices son los de [quickPrompts] (sin los
+  /// prompts del sistema, que se quedan al final y sin cambiar).
   Future<void> reorderQuickPrompts(int oldIndex, int newIndex, {bool persist = true}) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    final item = _quickPrompts.removeAt(oldIndex);
-    _quickPrompts.insert(newIndex, item);
-    for (int i = 0; i < _quickPrompts.length; i++) {
-      _quickPrompts[i] = _quickPrompts[i].copyWith(sortOrder: i);
+    final visible = _quickPrompts.where((p) => !_isSystemPrompt(p)).toList();
+    final system = _quickPrompts.where(_isSystemPrompt).toList();
+    final item = visible.removeAt(oldIndex);
+    visible.insert(newIndex, item);
+    for (int i = 0; i < visible.length; i++) {
+      visible[i] = visible[i].copyWith(sortOrder: i);
     }
+    _quickPrompts = [...visible, ...system];
     notifyListeners();
 
     if (persist) {
       await _persistPromptsLocally();
-      for (final p in _quickPrompts) {
+      for (final p in visible) {
         await _supabaseService.savePrompt(p);
       }
     }
+  }
+
+  /// Guarda la instrucción del resumen del día en la fila
+  /// [kDailyBriefingPromptId] (upsert + respaldo local, como los atajos).
+  /// Un texto vacío o igual al de por defecto equivale a restaurar (§5.1:
+  /// sin fila se usa [kDailyBriefingDefaultInstruction]).
+  Future<void> saveDailyBriefingInstruction(String text, {bool persist = true}) async {
+    final clean = text.trim();
+    if (clean.isEmpty || clean == kDailyBriefingDefaultInstruction.trim()) {
+      await resetDailyBriefingInstruction(persist: persist);
+      return;
+    }
+    final now = DateTime.now();
+    final existing = dailyBriefingPrompt;
+    final prompt = existing != null
+        ? existing.copyWith(text: clean)
+        : AgentePromptModel(
+            id: kDailyBriefingPromptId,
+            text: clean,
+            label: 'Resumen del día',
+            createdAt: now,
+            updatedAt: now,
+          );
+    await saveQuickPrompt(prompt, persist: persist);
+  }
+
+  /// Vuelve al texto por defecto borrando la fila [kDailyBriefingPromptId]
+  /// (local y en Supabase). Sin fila no hace nada.
+  Future<void> resetDailyBriefingInstruction({bool persist = true}) async {
+    if (dailyBriefingPrompt == null) return;
+    await deleteQuickPrompt(kDailyBriefingPromptId, persist: persist);
   }
 
   Future<void> selectSession(String sessionId) async {

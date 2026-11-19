@@ -5,9 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quebrado_app_flutter/agente/models/chat_message_model.dart';
+import 'package:quebrado_app_flutter/agente/models/daily_briefing.dart';
+import 'package:quebrado_app_flutter/agente/services/daily_briefing_service.dart';
 import 'package:quebrado_app_flutter/agente/services/gemini_service.dart';
 import 'package:quebrado_app_flutter/agente/viewmodels/agente_state.dart';
+import 'package:quebrado_app_flutter/agente/widgets/artifact_card_view.dart';
+import 'package:quebrado_app_flutter/agente/widgets/briefing_block.dart';
 import 'package:quebrado_app_flutter/agente/widgets/ortiz_chat_view.dart';
+import 'package:quebrado_app_flutter/theme/suite_apps.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 
@@ -175,4 +180,131 @@ void main() {
           lessThanOrEqualTo(OrtizSize.chatMaxWidth - 2 * OrtizSpace.md));
     });
   }
+
+  group('resumen del día en el chat (spec 04)', () {
+    const briefingDeadline = Duration(seconds: 3);
+    late AgenteState briefingState;
+
+    setUp(() async {
+      briefingState = AgenteState(
+        autoInit: false,
+        clock: () => DateTime(2026, 11, 17, 10),
+        briefingLoadTimeout: const Duration(milliseconds: 200),
+        // Tope corto: cada test lo deja vencer al final (Timer no pendiente).
+        briefingUnavailableAfter: briefingDeadline,
+        briefingSnapshotReader: (_) => const DailyBriefingSnapshot(
+          financeLoaded: true,
+          bookName: 'Libro de prueba',
+          bcv: 250,
+          diarioLoaded: true,
+          moodLoaded: true,
+          habitsLoaded: true,
+          // Recordatorios sin cargar: el escaneo espera el plazo máximo.
+        ),
+      );
+      await briefingState.startNewSession();
+    });
+
+    tearDown(() => briefingState.dispose());
+
+    Future<void> pumpBriefingView(WidgetTester tester) => pumpApp(
+          tester,
+          _reduced(const OrtizChatView()),
+          providers: [ChangeNotifierProvider<AgenteState>.value(value: briefingState)],
+        );
+
+    Future<void> runBriefing(WidgetTester tester) async {
+      unawaited(briefingState.runDailyBriefing());
+      await tester.pump();
+      for (var i = 0; i < 10 && briefingState.isGenerating; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump();
+    }
+
+    testWidgets('muestra «Revisando tus apps» y luego el BriefingBlock con acciones, sin tarjeta genérica',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      final announced = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(
+        SystemChannels.accessibility,
+        (dynamic message) async {
+          final map = message as Map<Object?, Object?>;
+          if (map['type'] == 'announce') {
+            announced.add((map['data']! as Map<Object?, Object?>)['message']! as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(() => tester.binding.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, null));
+      await pumpBriefingView(tester);
+      unawaited(briefingState.runDailyBriefing());
+      await tester.pump();
+      expect(find.byType(BriefingScanIndicator), findsOneWidget);
+      expect(find.text('Revisando tus apps'), findsOneWidget);
+
+      for (var i = 0; i < 10 && briefingState.isGenerating; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump();
+
+      expect(find.byType(BriefingScanIndicator), findsNothing);
+      final block = tester.widget<BriefingBlock>(find.byType(BriefingBlock));
+      expect(block.variant, BriefingBlockVariant.chat);
+      expect(block.actionsEnabled, isTrue);
+      expect(block.onAction, isNotNull);
+      expect(find.text('Esto es lo de hoy:'), findsOneWidget);
+      expect(find.byType(ArtifactCardView), findsNothing);
+      expect(announced, hasLength(1));
+      expect(announced.single, matches(RegExp(r'^Resumen listo: \d+ cosas? para hoy$')));
+      expect(tester.takeException(), isNull);
+      semantics.dispose();
+      await tester.pump(briefingDeadline);
+    });
+
+    testWidgets('«Revisando tus apps» se alinea al inicio como la burbuja (también de derecha a izquierda)',
+        (tester) async {
+      await pumpApp(
+        tester,
+        Directionality(textDirection: TextDirection.rtl, child: _reduced(const OrtizChatView())),
+        providers: [ChangeNotifierProvider<AgenteState>.value(value: briefingState)],
+      );
+      unawaited(briefingState.runDailyBriefing());
+      await tester.pump();
+
+      final screenWidth = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      final indicator = tester.getRect(find.byType(BriefingScanIndicator));
+      // De derecha a izquierda, el inicio es la derecha.
+      expect(indicator.center.dx, greaterThan(screenWidth / 2));
+      for (var i = 0; i < 10 && briefingState.isGenerating; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump(briefingDeadline);
+    });
+
+    testWidgets('un resumen que ya no es el vivo sale sin acciones y con su línea de fecha',
+        (tester) async {
+      await pumpBriefingView(tester);
+      await runBriefing(tester);
+      await runBriefing(tester);
+
+      final blocks = tester.widgetList<BriefingBlock>(find.byType(BriefingBlock)).toList();
+      expect(blocks, hasLength(2));
+      expect([for (final b in blocks) b.actionsEnabled], [false, true]);
+      expect(find.textContaining('Pide uno nuevo para actuar.'), findsOneWidget);
+      await tester.pump(briefingDeadline);
+    });
+  });
+
+  test('briefingReadyApps enciende solo las apps con datos (Notas siempre)', () {
+    expect(briefingReadyApps(null), {SuiteApp.notas});
+    final b = DailyBriefing(
+      generatedAt: DateTime(2026, 11, 17, 10),
+      period: BriefingPeriod.morning,
+      bookName: 'Libro de prueba',
+      habits: const BriefingHabits(status: BriefingStatus.ready),
+    );
+    expect(briefingReadyApps(b), {SuiteApp.habitos, SuiteApp.notas});
+  });
 }

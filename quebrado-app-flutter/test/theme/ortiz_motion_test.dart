@@ -26,6 +26,12 @@ void main() {
     expect(OrtizMotion.ease, const Cubic(0.2, 0.8, 0.2, 1));
   });
 
+  test('scanMax es el tope de 1,5 s del escaneo de la spec 04 y deja ver la secuencia', () {
+    expect(OrtizMotion.scanMax, const Duration(milliseconds: 1500));
+    // 5 píldoras a `fast` + pausa `base` (U3 de resumen-del-dia.md) caben en el tope.
+    expect(OrtizMotion.fast * 5 + OrtizMotion.base, lessThanOrEqualTo(OrtizMotion.scanMax));
+  });
+
   testWidgets('con disableAnimations devuelve cero (CA-06)', (tester) async {
     final c = await contextoCon(tester, reducir: true);
     expect(OrtizMotion.reduced(c), isTrue);

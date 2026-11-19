@@ -9,13 +9,56 @@ import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 class PromptEditorDialog extends StatefulWidget {
   final AgentePromptModel? initialPrompt;
 
-  const PromptEditorDialog({super.key, this.initialPrompt});
+  /// Modo instrucción (p. ej. «Resumen del día»): sin alias, con «Restaurar
+  /// texto original» y devuelve solo el texto (`String`).
+  final String? instructionTitle;
+  final String? instructionSubtitle;
+  final String? initialText;
+  final String? restoreText;
+
+  const PromptEditorDialog({super.key, this.initialPrompt})
+      : instructionTitle = null,
+        instructionSubtitle = null,
+        initialText = null,
+        restoreText = null;
+
+  const PromptEditorDialog.instruction({
+    super.key,
+    required String title,
+    required String subtitle,
+    required String text,
+    required String this.restoreText,
+  })  : initialPrompt = null,
+        instructionTitle = title,
+        instructionSubtitle = subtitle,
+        initialText = text;
 
   static Future<AgentePromptModel?> show(BuildContext context, {AgentePromptModel? prompt}) {
     return showDialog<AgentePromptModel>(
       context: context,
       barrierDismissible: true,
       builder: (_) => PromptEditorDialog(initialPrompt: prompt),
+    );
+  }
+
+  /// Abre el editor de una instrucción del sistema; devuelve el texto
+  /// guardado o `null` si se cancela.
+  static Future<String?> showInstruction(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String text,
+    required String restoreText,
+  }) {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => PromptEditorDialog.instruction(
+        title: title,
+        subtitle: subtitle,
+        text: text,
+        restoreText: restoreText,
+      ),
     );
   }
 
@@ -29,11 +72,14 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
   late TextEditingController _labelController;
 
   bool get isEditing => widget.initialPrompt != null;
+  bool get _isInstruction => widget.instructionTitle != null;
 
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.initialPrompt?.text ?? '');
+    _textController = TextEditingController(
+      text: widget.initialPrompt?.text ?? widget.initialText ?? '',
+    );
     _labelController = TextEditingController(text: widget.initialPrompt?.label ?? '');
   }
 
@@ -48,6 +94,10 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     final text = _textController.text.trim();
+    if (_isInstruction) {
+      Navigator.of(context).pop(text);
+      return;
+    }
     final label = _labelController.text.trim();
 
     final result = widget.initialPrompt != null
@@ -100,16 +150,17 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEditing ? 'Editar Prompt Rápido' : 'Nuevo Prompt Rápido',
+                            widget.instructionTitle ??
+                                (isEditing ? 'Editar Prompt Rápido' : 'Nuevo Prompt Rápido'),
                             style: const TextStyle(
                               fontSize: OrtizFontSize.titleSm,
                               fontWeight: FontWeight.w900,
                               color: OrtizPalette.fg,
                             ),
                           ),
-                          const Text(
-                            'Aparecerá en el dock inferior del launcher',
-                            style: TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
+                          Text(
+                            widget.instructionSubtitle ?? 'Aparecerá en el dock inferior del launcher',
+                            style: const TextStyle(fontSize: OrtizFontSize.caption, color: OrtizPalette.muted),
                           ),
                         ],
                       ),
@@ -125,9 +176,9 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                 const SizedBox(height: OrtizSpace.lg),
 
                 // Prompt Text
-                const Text(
-                  'CONTENIDO DEL PROMPT *',
-                  style: TextStyle(
+                Text(
+                  _isInstruction ? 'INSTRUCCIÓN PARA ORTIZ *' : 'CONTENIDO DEL PROMPT *',
+                  style: const TextStyle(
                     fontSize: OrtizFontSize.caption,
                     fontWeight: FontWeight.w800,
                     color: AgenteColors.primary,
@@ -137,9 +188,9 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                 const SizedBox(height: OrtizSpace.xs),
                 TextFormField(
                   controller: _textController,
-                  autofocus: true,
-                  maxLines: 3,
-                  minLines: 2,
+                  autofocus: !_isInstruction,
+                  maxLines: _isInstruction ? 10 : 3,
+                  minLines: _isInstruction ? 4 : 2,
                   textCapitalization: TextCapitalization.sentences,
                   style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
@@ -163,12 +214,27 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Por favor ingresa el texto del prompt';
+                      return _isInstruction
+                          ? 'Escribe la instrucción o restaura el texto original'
+                          : 'Por favor ingresa el texto del prompt';
                     }
                     return null;
                   },
                 ),
 
+                if (_isInstruction) ...[
+                  const SizedBox(height: OrtizSpace.xs),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => setState(() => _textController.text = widget.restoreText!),
+                      icon: const Icon(Icons.restart_alt_rounded, size: OrtizIconSize.sm),
+                      label: const Text('Restaurar texto original'),
+                    ),
+                  ),
+                ],
+
+                if (!_isInstruction) ...[
                 const SizedBox(height: OrtizSpace.md),
 
                 // Alias / Label (Opcional)
@@ -206,6 +272,7 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                     ),
                   ),
                 ),
+                ],
 
                 const SizedBox(height: OrtizSpace.xl),
 
@@ -239,7 +306,7 @@ class _PromptEditorDialogState extends State<PromptEditorDialog> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.field)),
                         ),
                         child: Text(
-                          isEditing ? 'Guardar Cambios' : 'Crear Prompt',
+                          isEditing || _isInstruction ? 'Guardar Cambios' : 'Crear Prompt',
                           style: const TextStyle(fontSize: OrtizFontSize.body, fontWeight: FontWeight.w800),
                         ),
                       ),

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:provider/provider.dart';
+import '../../quebrado/viewmodels/app_state.dart';
+import '../../widgets/briefing_actions.dart';
 import '../models/chat_artifact_model.dart';
 import '../models/chat_message_model.dart';
+import '../models/daily_briefing.dart';
 import '../theme/agente_colors.dart';
+import '../viewmodels/agente_state.dart';
 import 'action_proposal_card_view.dart';
 import 'artifact_card_view.dart';
+import 'briefing_block.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
@@ -14,6 +21,10 @@ class ChatMessageBubble extends StatelessWidget {
   final ChatMessageModel message;
 
   const ChatMessageBubble({super.key, required this.message});
+
+  /// Ancho máximo de una burbuja de Ortiz con contenido propio (resumen del
+  /// día y «Revisando tus apps»): el mismo 85 % que el resto de burbujas.
+  static double maxWidthOf(BuildContext context) => MediaQuery.sizeOf(context).width * 0.85;
 
   /// Relleno interior de la burbuja (persona y Ortiz).
   static const EdgeInsets bubblePadding =
@@ -48,6 +59,13 @@ class ChatMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    if (!isUser) {
+      for (final art in message.artifacts) {
+        if (art.type == ArtifactType.dailyBriefing) {
+          return _BriefingMessage(message: message, artifact: art);
+        }
+      }
+    }
     final proposals = message.artifacts
         .where((a) => a.type == ArtifactType.actionProposal)
         .toList();
@@ -121,9 +139,7 @@ class ChatMessageBubble extends StatelessWidget {
           // Message Bubble (se omite si ya existe una tarjeta interactiva de propuesta de acción, para mostrar únicamente la tarjeta con su resumen y botones)
           if (isUser || !hasActionProposal)
             Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.85,
-              ),
+              constraints: BoxConstraints(maxWidth: maxWidthOf(context)),
               padding: bubblePadding,
               decoration: bubbleDecoration(isUser: isUser),
             child: Column(
@@ -182,9 +198,7 @@ class ChatMessageBubble extends StatelessWidget {
           // Artefactos adjuntos
           if (message.artifacts.isNotEmpty)
             Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.85,
-              ),
+              constraints: BoxConstraints(maxWidth: maxWidthOf(context)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -195,12 +209,102 @@ class ChatMessageBubble extends StatelessWidget {
                         artifact: art,
                         leadingText: art.id == resultLeadingId ? message.content : null,
                       )
-                    else
+                    else if (art.type != ArtifactType.dailyBriefing)
                       ArtifactCardView(artifact: art),
                 ],
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Mensaje de Ortiz con el resumen del día (spec 04, U2.1): burbuja de bot
+/// con el mismo ancho máximo que la de «Revisando tus apps», el texto de
+/// Ortiz encima y las filas de [BriefingBlock].
+///
+/// Solo el mensaje [AgenteState.liveBriefingMessageId] tiene las acciones
+/// activas; los demás son resúmenes viejos con su línea de fecha (y, si se
+/// recargaron del historial, sin filas).
+class _BriefingMessage extends StatefulWidget {
+  const _BriefingMessage({required this.message, required this.artifact});
+
+  final ChatMessageModel message;
+  final ChatArtifactModel artifact;
+
+  /// Texto del anuncio único al aparecer las filas (U8). Sin cosas que contar
+  /// (y sin estar todo al día) no se anuncia «0 cosas».
+  static String announcement(DailyBriefing b) {
+    if (b.isAllClear) return DailyBriefing.allClearLabel;
+    final n = b.itemCount;
+    if (n == 0) return 'Resumen listo';
+    return 'Resumen listo: $n ${n == 1 ? 'cosa' : 'cosas'} para hoy';
+  }
+
+  @override
+  State<_BriefingMessage> createState() => _BriefingMessageState();
+}
+
+class _BriefingMessageState extends State<_BriefingMessage> {
+  /// Mensajes ya anunciados por cada `AgenteState`: la lista del chat
+  /// destruye y recrea la burbuja al hacer scroll, y el anuncio no se repite
+  /// (ni al volver a verla ni al cambiar el número de cosas).
+  static final Expando<Set<String>> _announcedBy = Expando<Set<String>>('briefingAnnounced');
+
+  void _announceOnce(AgenteState agente, DailyBriefing briefing) {
+    final announced = _announcedBy[agente] ??= <String>{};
+    if (!announced.add(widget.message.id)) return;
+    final text = _BriefingMessage.announcement(briefing);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SemanticsService.sendAnnouncement(View.of(context), text, Directionality.of(context));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final message = widget.message;
+    final artifact = widget.artifact;
+    final liveId = context.select<AgenteState?, String?>((s) => s?.liveBriefingMessageId);
+    final bookId = context.select<AppState?, String?>((s) => s?.activeDbName);
+    final bookName = context.select<AppState?, String?>((s) => s?.activeProfileName);
+    final liveBriefing = context.select<AgenteState?, DailyBriefing?>((s) => s?.liveBriefing);
+    final isLive = liveId != null && liveId == message.id;
+    // El vivo se pinta con el estado de `AgenteState`: la metadata recargada
+    // del historial viene recortada (sin filas).
+    final briefing =
+        (isLive ? liveBriefing : null) ?? DailyBriefing.fromArtifactMetadata(artifact.metadata);
+    final content = message.content;
+    if (isLive) _announceOnce(context.read<AgenteState>(), briefing);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OrtizSpace.xs, horizontal: OrtizSpace.md),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: ChatMessageBubble.maxWidthOf(context)),
+          padding: ChatMessageBubble.bubblePadding,
+          decoration: ChatMessageBubble.bubbleDecoration(isUser: false),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (content.isNotEmpty) ...[
+                MarkdownBody(data: content, styleSheet: ChatMessageBubble.botMarkdownStyle()),
+                const SizedBox(height: OrtizSpace.md),
+              ],
+              BriefingBlock(
+                key: ValueKey('briefing-${artifact.id}'),
+                briefing: briefing,
+                actionsEnabled: isLive,
+                activeBookId: bookId,
+                activeBookName: bookName,
+                onAction: isLive ? (action) => runBriefingAction(context, action) : null,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -40,6 +40,22 @@ abstract final class OrtizType {
 
   static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
+  /// Escalado de texto del sistema a partir del cual una fila con texto y
+  /// botón pone el botón **debajo** del texto en vez de a la derecha (spec 04,
+  /// U2.2). Reutilizable en cualquier fila con acción.
+  static const double largeTextScale = 1.3;
+
+  /// True si el escalado de texto del sistema es ≥ [largeTextScale]. Se mide
+  /// sobre el tamaño `body` (los escaladores no lineales escalan distinto
+  /// cada tamaño). Sin `MediaQuery` arriba se asume que no.
+  static bool isLargeText(BuildContext context) {
+    final scaler = MediaQuery.maybeTextScalerOf(context);
+    if (scaler == null) return false;
+    // Se compara sin dividir para que justo 1,3 cuente como grande.
+    return scaler.scale(OrtizFontSize.body) >=
+        OrtizFontSize.body * largeTextScale;
+  }
+
   // Texto (Manrope).
   static const TextStyle caption = TextStyle(
     fontFamily: fontBody,

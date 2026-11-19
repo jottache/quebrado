@@ -6,20 +6,22 @@ import 'package:provider/provider.dart';
 import '../agente/dialogs/agente_settings_dialog.dart';
 import '../agente/dialogs/prompt_editor_dialog.dart';
 import '../agente/models/agente_prompt_model.dart';
+import '../agente/models/daily_briefing.dart';
 import '../agente/services/gemini_config.dart';
 import '../agente/viewmodels/agente_state.dart';
+import '../agente/widgets/briefing_block.dart';
 import '../agente/widgets/ortiz_chat_view.dart';
 import '../agente/widgets/ortiz_face.dart';
+import '../quebrado/viewmodels/app_state.dart';
 import '../theme/ortiz_motion.dart';
 import '../theme/ortiz_space.dart';
 import '../theme/ortiz_tokens.dart';
 import '../theme/ortiz_type.dart';
+import '../theme/suite_apps.dart';
+import '../widgets/briefing_actions.dart';
+import '../widgets/ortiz/ortiz.dart';
 import '../widgets/responsive_breakpoints.dart';
 import '../widgets/responsive_sheet_helper.dart';
-
-/// Mensaje que envía el chip «Resumen del día» (spec 02; la spec 04 cambia
-/// su comportamiento).
-const String ortizDailySummaryPrompt = 'Dame el resumen del día';
 
 /// Aviso del inicio cuando Ortiz no tiene Gemini configurado.
 const String ortizOfflineMessage =
@@ -152,6 +154,30 @@ class _OrtizHomeScreenState extends State<OrtizHomeScreen> {
     final isDesktop = ResponsiveBreakpoints.isDesktop(context);
     final showPanel = ResponsiveBreakpoints.isExpanded(context);
     final now = (widget.clock ?? DateTime.now)();
+    final briefing = agente.todayBriefing;
+    // U4: la franja se oculta en ≥ 1200, donde el panel ya lo muestra todo.
+    final Widget? todayStrip = showPanel
+        ? null
+        : widget.todayStrip ??
+            (briefing == null
+                ? null
+                : _TodayStrip(
+                    highlights: briefing.highlights,
+                    onTap: agente.isGenerating ? null : () => agente.runDailyBriefing(),
+                  ));
+    final Widget? todayPanel = widget.todayPanel ??
+        (briefing == null
+            ? null
+            : SingleChildScrollView(
+                child: BriefingBlock(
+                  briefing: briefing,
+                  variant: BriefingBlockVariant.panel,
+                  actionsEnabled: true,
+                  activeBookId: context.select<AppState?, String?>((s) => s?.activeDbName),
+                  activeBookName: context.select<AppState?, String?>((s) => s?.activeProfileName),
+                  onAction: (action) => runBriefingAction(context, action),
+                ),
+              ));
 
     final header = _HeaderTitle(agente: agente, connected: connected);
     final newConversation = IconButton(
@@ -169,7 +195,7 @@ class _OrtizHomeScreenState extends State<OrtizHomeScreen> {
         mood: agente.ortizMood,
         connected: connected,
         large: isDesktop,
-        todayStrip: widget.todayStrip,
+        todayStrip: todayStrip,
         onConnect: _openAgentSettings,
       ),
       aboveInput: _buildAboveInput(context, agente, connected),
@@ -222,7 +248,7 @@ class _OrtizHomeScreenState extends State<OrtizHomeScreen> {
             SizedBox(
               // Q1: el panel solo existe desde 1200 px, con su ancho expanded.
               width: OrtizSize.todayPanelWidthExpanded,
-              child: _TodayPanel(now: now, child: widget.todayPanel),
+              child: _TodayPanel(now: now, child: todayPanel),
             ),
           ],
         ],
@@ -233,8 +259,9 @@ class _OrtizHomeScreenState extends State<OrtizHomeScreen> {
   Widget? _buildAboveInput(BuildContext context, AgenteState agente, bool connected) {
     final t = OrtizTokens.of(context);
     final chips = <Widget>[
-      if (connected)
-        _SummaryChip(onPressed: () => agente.sendMessage(ortizDailySummaryPrompt)),
+      // Spec 04 (U1): también sin Gemini (CA-07); desactivado mientras Ortiz
+      // responde, para no duplicar el resumen.
+      _SummaryChip(onPressed: agente.isGenerating ? null : () => agente.runDailyBriefing()),
       ...widget.quickChips,
       if (connected) ...[
         SizedBox(
@@ -475,18 +502,128 @@ class _GreetingState extends State<_Greeting> with SingleTickerProviderStateMixi
 class _SummaryChip extends StatelessWidget {
   const _SummaryChip({required this.onPressed});
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final t = OrtizTokens.of(context);
+    // Desactivado, el chip queda sobre `surface`: `onAccent` no se leería.
+    final fg = onPressed == null ? t.muted : t.onAccent;
     return ActionChip(
-      avatar: Icon(Icons.wb_sunny_outlined, size: OrtizIconSize.sm, color: t.onAccent),
+      avatar: Icon(Icons.wb_sunny_outlined, size: OrtizIconSize.sm, color: fg),
       label: const Text('Resumen del día'),
-      labelStyle: TextStyle(color: t.onAccent),
+      labelStyle: TextStyle(color: fg),
       backgroundColor: t.accent,
       side: BorderSide.none,
       onPressed: onPressed,
+    );
+  }
+}
+
+/// Color del punto de cada etiqueta de la franja (U4): el de su app.
+SuiteApp _highlightApp(BriefingHighlightCategory category) => switch (category) {
+      BriefingHighlightCategory.payments => SuiteApp.finanzas,
+      BriefingHighlightCategory.reminders => SuiteApp.recordatorios,
+      BriefingHighlightCategory.birthdays ||
+      BriefingHighlightCategory.journal ||
+      BriefingHighlightCategory.allClear =>
+        SuiteApp.diario,
+      BriefingHighlightCategory.habits => SuiteApp.habitos,
+    };
+
+/// Franja de hoy bajo el saludo (spec 04, U4): hasta 3 etiquetas sin
+/// nombres ni montos; tocar cualquiera lanza el resumen del día.
+class _TodayStrip extends StatelessWidget {
+  const _TodayStrip({required this.highlights, required this.onTap});
+
+  final List<BriefingHighlight> highlights;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = highlights.take(DailyBriefing.maxHighlights).toList();
+    final Widget strip = items.isEmpty
+        ? const SizedBox.shrink(key: ValueKey('today-strip-empty'))
+        : Wrap(
+            key: const ValueKey('today-strip'),
+            alignment: WrapAlignment.center,
+            spacing: OrtizSpace.sm,
+            runSpacing: OrtizSpace.sm,
+            children: [
+              for (final h in items)
+                Tooltip(
+                  message: '${h.label}. Ver el resumen del día',
+                  excludeFromSemantics: true,
+                  child: Semantics(
+                    button: true,
+                    enabled: onTap != null,
+                    label: '${h.label}. Ver el resumen del día',
+                    excludeSemantics: true,
+                    child: InkWell(
+                      onTap: onTap,
+                      borderRadius: BorderRadius.circular(OrtizRadius.pill),
+                      child: ConstrainedBox(
+                        // Objetivo táctil ≥ 48 alrededor de la píldora.
+                        constraints: const BoxConstraints(minHeight: OrtizSize.minTouch),
+                        child: Center(
+                          widthFactor: 1,
+                          heightFactor: 1,
+                          child: h.kind == BriefingHighlightKind.allClear
+                              ? _AllClearPill(label: h.label)
+                              : OrtizPill(label: h.label, dotColor: _highlightApp(h.category).color),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+    final duration = OrtizMotion.of(context, OrtizMotion.base);
+    if (duration == Duration.zero) return strip;
+    return AnimatedSwitcher(duration: duration, switchInCurve: OrtizMotion.ease, child: strip);
+  }
+}
+
+/// Etiqueta «Todo al día» de la franja (U4): la misma píldora neutra que
+/// `OrtizPill(dotColor:)` (fondo `surface`, texto `muted`), con
+/// `OrtizSuccessMark` pequeño en lugar del punto.
+class _AllClearPill extends StatelessWidget {
+  const _AllClearPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = OrtizTokens.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: BorderRadius.circular(OrtizRadius.pill),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Decorativa: el texto ya dice el estado.
+            const ExcludeSemantics(
+              child: SizedBox.square(
+                dimension: OrtizIconSize.sm,
+                child: FittedBox(child: OrtizSuccessMark()),
+              ),
+            ),
+            const SizedBox(width: OrtizSpace.xs),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: OrtizType.caption.copyWith(color: t.muted, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

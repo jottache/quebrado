@@ -3450,6 +3450,82 @@ class AppState extends ChangeNotifier {
     return pending;
   }
 
+  /// Ocurrencias sin confirmar del libro activo con fecha ≤ hoy + [daysAhead]
+  /// (incluye todas las vencidas desde `startDate`) y con lo que falta > 0,01.
+  /// Devuelve ingresos y gastos. Síncrono, sobre lo que ya está en memoria.
+  /// No cambia [pendingPaymentsToday] ni [fetchPendingPaymentsForProfile].
+  List<PendingOccurrence> pendingPaymentsWithin({DateTime? now, int daysAhead = 7}) {
+    final base = now ?? DateTime.now();
+    final stop = DateTime(base.year, base.month, base.day + daysAhead);
+
+    final pending = <PendingOccurrence>[];
+    for (final payment in recurringPayments) {
+      var current = DateTime(payment.startDate.year, payment.startDate.month, payment.startDate.day);
+      var count = 0;
+
+      while (!current.isAfter(stop)) {
+        count++;
+        if (payment.totalInstallments != null && count > payment.totalInstallments!) break;
+
+        final dateStr = _occurrenceDateKey(current);
+        if (!_confirmedKeys.contains("${payment.id}_$dateStr")) {
+          var partialPaid = 0.0;
+          for (final p in partialPayments) {
+            if (p.recurringPaymentId == payment.id && p.occurrenceDate == dateStr) {
+              partialPaid += p.amount;
+            }
+          }
+          final occurrence = PendingOccurrence(
+            payment: payment,
+            occurrenceDate: current,
+            partialAmountPaid: partialPaid,
+          );
+          if (occurrence.remainingAmount > 0.01) pending.add(occurrence);
+        }
+
+        current = _nextOccurrence(payment, current, stop);
+      }
+    }
+
+    pending.sort((a, b) => a.occurrenceDate.compareTo(b.occurrenceDate));
+    return pending;
+  }
+
+  /// ¿La ocurrencia de [paymentId] en el día de [occurrenceDate] ya tiene
+  /// confirmación (pagada u omitida)?
+  bool isOccurrenceConfirmed(String paymentId, DateTime occurrenceDate) =>
+      _confirmedKeys.contains("${paymentId}_${_occurrenceDateKey(occurrenceDate)}");
+
+  /// Siguiente ocurrencia de [payment] después de [current], con las mismas
+  /// reglas de frecuencia que [updatePendingPaymentsToday]. Para `once`
+  /// devuelve el día siguiente a [stop] (fin del recorrido).
+  static DateTime _nextOccurrence(RecurringPayment payment, DateTime current, DateTime stop) {
+    switch (payment.frequency) {
+      case SubscriptionFrequency.weekly:
+        return current.add(const Duration(days: 7));
+      case SubscriptionFrequency.biweekly:
+        return current.add(const Duration(days: 14));
+      case SubscriptionFrequency.fifteenDays:
+        if (current.day == 15) {
+          return DateTime(current.year, current.month + 1, 0, current.hour, current.minute, current.second);
+        } else if (current.day > 15) {
+          return DateTime(current.year, current.month + 1, 15, current.hour, current.minute, current.second);
+        }
+        return DateTime(current.year, current.month, 15, current.hour, current.minute, current.second);
+      case SubscriptionFrequency.monthly:
+        return DateTime(current.year, current.month + 1, current.day);
+      case SubscriptionFrequency.threeMonths:
+        return DateTime(current.year, current.month + 3, current.day);
+      case SubscriptionFrequency.yearly:
+        return DateTime(current.year + 1, current.month, current.day);
+      case SubscriptionFrequency.custom:
+        final days = payment.customDays ?? 30;
+        return current.add(Duration(days: days > 0 ? days : 30));
+      case SubscriptionFrequency.once:
+        return stop.add(const Duration(days: 1));
+    }
+  }
+
   int getConfirmedCountForPayment(String paymentId) {
     return _confirmedKeys.where((k) => k.startsWith("${paymentId}_")).length;
   }

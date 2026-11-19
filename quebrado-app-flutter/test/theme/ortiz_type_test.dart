@@ -57,6 +57,35 @@ void main() {
     });
   });
 
+  group('OrtizType — texto grande (spec 04)', () {
+    test('el umbral de texto grande es 1,3', () {
+      expect(OrtizType.largeTextScale, 1.3);
+    });
+
+    Future<bool> grande(WidgetTester tester, TextScaler? scaler) async {
+      late bool r;
+      final hijo = Builder(builder: (c) {
+        r = OrtizType.isLargeText(c);
+        return const SizedBox();
+      });
+      await tester.pumpWidget(
+        scaler == null ? hijo : MediaQuery(data: MediaQueryData(textScaler: scaler), child: hijo),
+      );
+      return r;
+    }
+
+    testWidgets('justo en el umbral y por encima cuenta como texto grande', (tester) async {
+      expect(await grande(tester, const TextScaler.linear(1.3)), isTrue);
+      expect(await grande(tester, const TextScaler.linear(2)), isTrue);
+    });
+
+    testWidgets('por debajo del umbral o con el escalado por defecto no es texto grande', (tester) async {
+      expect(await grande(tester, TextScaler.noScaling), isFalse);
+      expect(await grande(tester, const TextScaler.linear(1.29)), isFalse);
+      expect(await grande(tester, null), isFalse);
+    });
+  });
+
   group('OrtizType — escala (C2)', () {
     final escala = <String, (TextStyle, String, double)>{
       'caption': (OrtizType.caption, OrtizType.fontBody, 11),

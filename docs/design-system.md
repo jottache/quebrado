@@ -127,6 +127,7 @@ Familias empaquetadas en `assets/fonts/` (sin descarga en tiempo de ejecución, 
 - `OrtizType.textTheme` asigna la escala a los 15 slots de Material 3 (`titleLarge` = `title`, `bodyMedium` = `body`, `bodyLarge` = 16 px para campos, `labelLarge` = botones). `OrtizTheme.darkTextTheme` le pone color: todo `fg` salvo `bodySmall` en `muted`.
 - Uso: `Theme.of(context).textTheme.bodyMedium` o `OrtizType.body.copyWith(color: t.muted)`.
 - **Campos de texto a 16 px** (`bodyLarge`): por debajo, Safari de iOS hace zoom al enfocar.
+- **Texto grande:** `OrtizType.largeTextScale` = **1.3**. Desde ese escalado del sistema, una fila con texto y botón pone el botón **debajo** del texto (no a la derecha). Se pregunta con `OrtizType.isLargeText(context)` (mide sobre `body`; justo 1,3 cuenta). Nada de comparar `textScaleFactor` a mano.
 - Nada por debajo de 11 px ni medios puntos.
 
 ## 4. Espaciado y radio — `OrtizSpace` / `OrtizRadius` (`theme/ortiz_space.dart`)
@@ -163,6 +164,8 @@ Familias empaquetadas en `assets/fonts/` (sin descarga en tiempo de ejecución, 
 | `base` | 320 ms | Entradas, hojas |
 | `slow` | 450 ms | Transiciones grandes |
 | `stagger` | 60 ms | Retraso entre elementos de una lista |
+| `celebrate` | 1800 ms | Ortiz «happy» tras guardar |
+| `scanMax` | 1500 ms | Tope de una espera con animación de «revisando» (escaneo del resumen del día): al cumplirse se muestra lo cargado. Es un plazo de datos: **no** pasa por `OrtizMotion.of` y vale igual con movimiento reducido |
 | `ease` | `Cubic(0.2, 0.8, 0.2, 1)` | Curva única (rápida al empezar, se posa al final) |
 
 - **Reducir movimiento:** `OrtizMotion.of(context, d)` devuelve `Duration.zero` si `MediaQuery.disableAnimations` es verdadero; `OrtizMotion.staggerOf(context, i)` igual para el retraso; `OrtizMotion.reduced(context)` para decidir quitar un efecto (CA-06). Toda animación nueva pasa por ellos.
@@ -229,7 +232,7 @@ Sin cambios en la spec 01.
 | `OrtizTheme`, `OrtizTokens`, `SuiteApp`, `OrtizType`/`OrtizFontSize`, `OrtizSpace`/`OrtizRadius`/`OrtizIconSize`/`OrtizStroke`/`OrtizSize`, `OrtizMotion` | `theme/` | Siempre (§2–6). `OrtizFontSize.micro` (9) solo en vistas muy densas (celdas de calendario, badges). |
 | `OrtizSection` | `widgets/ortiz/ortiz_section.dart` | Agrupar contenido **sin tarjeta**: título `caption` `muted`, separación `xxl`; `divided` para líneas entre filas; `surface` solo para el bloque que de verdad debe destacarse. |
 | `OrtizListRow` | `widgets/ortiz/ortiz_list_row.dart` | Fila de lista con punto de color (app, bolsillo, categoría), subtítulo y acción; hover/foco visibles; alto mínimo 48. En un selector, la opción vigente lleva `selected: true, autofocus: true` para que el teclado empiece ahí. |
-| `OrtizPill` | `widgets/ortiz/ortiz_pill.dart` | Estado, moneda o etiqueta; elige solo el color de texto con contraste. |
+| `OrtizPill` | `widgets/ortiz/ortiz_pill.dart` | Estado, moneda o etiqueta; elige solo el color de texto con contraste. Variante neutra `dotColor:` (fondo `surface`, punto `OrtizSize.dot` del color, texto `muted`; el punto no se anuncia) para etiquetas por app como la franja de hoy. `color` y `dotColor` no van juntos. |
 | `OrtizAmount` | `widgets/ortiz/ortiz_amount.dart` | Montos (cifras tabulares); `animate` cuenta hasta el valor; `format:` para reutilizar `formatUSD`/`formatBs`. |
 | `OrtizProgressBar` | `widgets/ortiz/ortiz_progress.dart` | Avance de metas; el color del bolsillo va aquí y en el punto, no de fondo. |
 | `OrtizEmptyState` | `widgets/ortiz/ortiz_empty_state.dart` | Estados vacíos. |

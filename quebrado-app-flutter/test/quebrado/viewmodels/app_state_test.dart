@@ -608,6 +608,196 @@ void main() {
       expect(_fecha(txs.last.date), _fecha(DateTime.now()));
     });
   });
+
+  group('pendingPaymentsWithin (spec 04, C13)', () {
+    final now = DateTime(2026, 11, 18, 10);
+    final hoy = DateTime(2026, 11, 18);
+    DateTime dia(int delta) => DateTime(hoy.year, hoy.month, hoy.day + delta);
+
+    var seq = 0;
+    RecurringPayment pago({
+      required DateTime inicio,
+      SubscriptionFrequency frecuencia = SubscriptionFrequency.monthly,
+      double monto = 40,
+      int? cuotas,
+      TransactionType tipo = TransactionType.expense,
+    }) => RecurringPayment(
+      id: 'resumen_${DateTime.now().microsecondsSinceEpoch}_${seq++}',
+      name: 'Servicio de prueba',
+      amount: monto,
+      currency: CurrencyType.usd,
+      frequency: frecuencia,
+      startDate: inicio,
+      notificationOption: NotificationOption.none,
+      icon: 'wifi',
+      colorHex: '#2FA084',
+      type: tipo,
+      totalInstallments: cuotas,
+    );
+
+    RecurringPaymentPartial parcial(RecurringPayment p, DateTime fecha, double monto) => RecurringPaymentPartial(
+      id: 'parcial_${p.id}_${seq++}',
+      recurringPaymentId: p.id,
+      occurrenceDate: _fecha(fecha),
+      amount: monto,
+      transactionId: 'tx_${p.id}',
+    );
+
+    // Confirmar escribe en la SQLite compartida, que exige el pago guardado.
+    // Los tearDown corren al revés: primero la confirmación, luego el pago.
+    Future<void> guardarConConfirmacion(RecurringPayment p, DateTime fecha) async {
+      await DatabaseHelper.instance.insertRecurringPayment(p);
+      addTearDown(() => DatabaseHelper.instance.deleteRecurringPayment(p.id));
+      addTearDown(() => DatabaseHelper.instance.deleteConfirmation(p.id, _fecha(fecha)));
+    }
+
+    test('incluye lo que vence en hoy+7 y deja fuera hoy+8', () {
+      final app = AppState();
+      final dentro = pago(inicio: dia(7), frecuencia: SubscriptionFrequency.once);
+      final fuera = pago(inicio: dia(8), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [dentro, fuera];
+
+      final ids = app.pendingPaymentsWithin(now: now).map((o) => o.payment.id);
+
+      expect(ids, [dentro.id]);
+    });
+
+    test('respeta daysAhead para cortar la ventana', () {
+      final app = AppState();
+      final p = pago(inicio: dia(3), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [p];
+
+      expect(app.pendingPaymentsWithin(now: now, daysAhead: 2), isEmpty);
+      expect(app.pendingPaymentsWithin(now: now, daysAhead: 3).single.occurrenceDate, dia(3));
+    });
+
+    test('incluye lo vencido ayer sin confirmar, con fecha a medianoche', () {
+      final app = AppState();
+      final p = pago(inicio: DateTime(2026, 11, 17, 15, 30), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [p];
+
+      final r = app.pendingPaymentsWithin(now: now);
+
+      expect(r.single.payment.id, p.id);
+      expect(r.single.occurrenceDate, dia(-1));
+      expect(r.single.remainingAmount, 40);
+    });
+
+    test('deja fuera lo vencido ya confirmado', () async {
+      final app = AppState();
+      await app.loadData();
+      final p = pago(inicio: dia(-1), frecuencia: SubscriptionFrequency.once);
+      await guardarConConfirmacion(p, dia(-1));
+      app.recurringPayments = [p];
+      expect(app.pendingPaymentsWithin(now: now), hasLength(1));
+      expect(app.isOccurrenceConfirmed(p.id, dia(-1)), isFalse);
+
+      await app.confirmRecurringPayment(payment: p, actualAmount: 0, occurrenceDate: dia(-1));
+
+      expect(app.isOccurrenceConfirmed(p.id, DateTime(2026, 11, 17, 23, 59)), isTrue);
+      expect(app.isOccurrenceConfirmed(p.id, hoy), isFalse);
+      expect(app.pendingPaymentsWithin(now: now), isEmpty);
+    });
+
+    test('deja fuera la ocurrencia omitida', () async {
+      final app = AppState();
+      final p = pago(inicio: dia(2), frecuencia: SubscriptionFrequency.once);
+      await guardarConConfirmacion(p, dia(2));
+      app.recurringPayments = [p];
+
+      await app.dismissRecurringPaymentToday(p, occurrenceDate: dia(2));
+
+      expect(app.isOccurrenceConfirmed(p.id, dia(2)), isTrue);
+      expect(app.pendingPaymentsWithin(now: now), isEmpty);
+    });
+
+    test('resta los parciales de esa ocurrencia: \$40 con \$15 abonados falta 25', () {
+      final app = AppState();
+      final p = pago(inicio: dia(1), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [p];
+      app.partialPayments = [
+        parcial(p, dia(1), 15),
+        parcial(p, dia(-30), 10), // otra fecha: no cuenta
+      ];
+
+      final r = app.pendingPaymentsWithin(now: now).single;
+
+      expect(r.partialAmountPaid, 15);
+      expect(r.remainingAmount, 25);
+    });
+
+    test('deja fuera la ocurrencia cuyo parcial cubre el monto completo', () {
+      final app = AppState();
+      final p = pago(inicio: dia(1), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [p];
+      app.partialPayments = [parcial(p, dia(1), 30), parcial(p, dia(1), 9.995)];
+
+      expect(app.pendingPaymentsWithin(now: now), isEmpty);
+    });
+
+    test('deja de contar ocurrencias cuando se agotan las cuotas', () {
+      final app = AppState();
+      // Semanal desde hace 3 semanas con 2 cuotas: -21 y -14; ya no hay más.
+      final agotado = pago(inicio: dia(-21), frecuencia: SubscriptionFrequency.weekly, cuotas: 2);
+      app.recurringPayments = [agotado];
+
+      final fechas = app.pendingPaymentsWithin(now: now).map((o) => o.occurrenceDate);
+
+      expect(fechas, [dia(-21), dia(-14)]);
+    });
+
+    test('deja fuera un pago con todas sus cuotas confirmadas', () async {
+      final app = AppState();
+      final p = pago(inicio: dia(-7), frecuencia: SubscriptionFrequency.weekly, cuotas: 1);
+      await guardarConConfirmacion(p, dia(-7));
+      app.recurringPayments = [p];
+
+      await app.dismissRecurringPaymentToday(p, occurrenceDate: dia(-7));
+
+      expect(app.pendingPaymentsWithin(now: now), isEmpty);
+    });
+
+    test('incluye un pago único futuro dentro de la ventana, también si es ingreso', () {
+      final app = AppState();
+      final gasto = pago(inicio: dia(4), frecuencia: SubscriptionFrequency.once);
+      final cobro = pago(inicio: dia(5), frecuencia: SubscriptionFrequency.once, tipo: TransactionType.income);
+      app.recurringPayments = [cobro, gasto];
+
+      final r = app.pendingPaymentsWithin(now: now);
+
+      expect(r.map((o) => o.payment.id), [gasto.id, cobro.id], reason: 'ordenadas por fecha');
+      expect(r.map((o) => o.occurrenceDate), [dia(4), dia(5)]);
+    });
+
+    test('un pago semanal desde hoy da 2 ocurrencias en la ventana', () {
+      final app = AppState();
+      final p = pago(inicio: hoy, frecuencia: SubscriptionFrequency.weekly);
+      app.recurringPayments = [p];
+
+      final fechas = app.pendingPaymentsWithin(now: now).map((o) => o.occurrenceDate);
+
+      expect(fechas, [dia(0), dia(7)]);
+    });
+
+    test('no cambia pendingPaymentsToday', () async {
+      final app = AppState();
+      final real = DateTime.now();
+      final realHoy = DateTime(real.year, real.month, real.day);
+      final vencido = pago(inicio: DateTime(realHoy.year, realHoy.month, realHoy.day - 1), frecuencia: SubscriptionFrequency.once);
+      final futuro = pago(inicio: DateTime(realHoy.year, realHoy.month, realHoy.day + 3), frecuencia: SubscriptionFrequency.once);
+      app.recurringPayments = [vencido, futuro];
+      await app.updatePendingPaymentsToday();
+      final antes = app.pendingPaymentsToday;
+      final copia = List<PendingOccurrence>.of(antes);
+      expect(copia.map((o) => o.payment.id), [vencido.id]);
+
+      final ventana = app.pendingPaymentsWithin(now: real);
+
+      expect(ventana.map((o) => o.payment.id), [vencido.id, futuro.id]);
+      expect(identical(app.pendingPaymentsToday, antes), isTrue);
+      expect(app.pendingPaymentsToday, copia);
+    });
+  });
 }
 
 String _fecha(DateTime d) => "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";

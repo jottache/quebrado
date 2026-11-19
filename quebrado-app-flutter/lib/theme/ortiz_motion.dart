@@ -13,6 +13,12 @@ abstract final class OrtizMotion {
   static const Duration stagger = Duration(milliseconds: 60); // entre elementos
   static const Duration celebrate = Duration(milliseconds: 1800); // Ortiz «happy» tras guardar
 
+  /// Tope de una espera con animación de «revisando» (spec 04: escaneo
+  /// «Revisando tus apps» ≤ 1,5 s): al cumplirse se muestra el resultado con
+  /// lo que haya cargado. Es un plazo de datos, no una animación: **no** pasa
+  /// por [of] y se respeta también con el movimiento reducido.
+  static const Duration scanMax = Duration(milliseconds: 1500);
+
   /// Curva de salida suave (rápida al empezar, se posa al final).
   static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
 
