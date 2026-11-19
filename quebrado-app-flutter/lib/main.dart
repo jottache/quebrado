@@ -7,13 +7,15 @@ import 'recordatorios/recordatorios.dart';
 import 'notas/notas.dart';
 import 'agente/agente.dart';
 import 'services/notification_manager.dart';
-import 'screens/app_launcher_screen.dart';
-import 'widgets/responsive_suite_scaffold.dart';
+import 'services/suite_lock.dart';
+import 'widgets/suite_router.dart';
 import 'theme/ortiz_theme.dart';
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
@@ -60,18 +62,55 @@ void main() async {
     }
   }
 
+  // URLs sin `#` en web (`/diario`, no `/#/diario`); no hace nada fuera de web.
+  usePathUrlStrategy();
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // El router se crea una sola vez: nunca dentro del builder del Consumer,
+  // que se reconstruye con cada cambio de AppState.
+  // Bloqueo de la suite con PIN una vez al día (P-04 revisada): el router lo
+  // escucha, `AppState` le pasa los ajustes de seguridad y, tras desbloquear,
+  // deja de pedir el PIN en cada operación.
+  final SuiteLock _lock = SuiteLock();
+  late final GoRouter _router = buildSuiteRouter(lock: _lock);
+
+  AppState _createAppState() {
+    final app = AppState()
+      ..onSecurityVerified = _lock.unlock
+      ..isSessionUnlocked = (() => _lock.isUnlocked);
+    void syncSecurity() => _lock.updateSecurity(
+          enabled: app.usePinSecurity || app.useBiometrics,
+          confirmed: app.securitySettingsConfirmed,
+        );
+    app.addListener(syncSecurity);
+    syncSecurity();
+    return app;
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    _lock.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) removeWebSplash();
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+        ChangeNotifierProvider<SuiteLock>.value(value: _lock),
+        ChangeNotifierProvider<AppState>(create: (_) => _createAppState()),
         ChangeNotifierProvider<DiarioState>(create: (_) => DiarioState()),
         ChangeNotifierProvider<AnimoState>(create: (_) => AnimoState()..loadAll()),
         ChangeNotifierProvider<HabitosState>(create: (_) => HabitosState()),
@@ -81,13 +120,12 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AppState>(
         builder: (context, appState, child) {
-          return MaterialApp(
+          return MaterialApp.router(
             title: 'OrtizApp',
             debugShowCheckedModeBanner: false,
             theme: OrtizTheme.dark,
-            home: const ResponsiveSuiteScaffold(
-              mobileBody: AppLauncherScreen(),
-            ),
+            scaffoldMessengerKey: suiteMessengerKey,
+            routerConfig: _router,
           );
         }
       ),

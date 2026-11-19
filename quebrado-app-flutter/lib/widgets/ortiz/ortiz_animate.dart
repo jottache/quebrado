@@ -5,6 +5,13 @@
 // pendientes. Aquí el retraso es un `Interval` dentro de un único
 // `AnimationController` que se libera en `dispose`: sin temporizadores.
 // Con «reducir movimiento» se devuelve el hijo tal cual.
+//
+// La entrada se ve una sola vez por lista. En listas perezosas
+// (`ListView.builder`, `SliverList.builder`) las filas se destruyen al salir
+// de la vista y se vuelven a crear al volver; sin control, la animación se
+// repetía en cada scroll. Por eso, dentro de un `Scrollable`, solo animan las
+// filas que se crean mientras dura la primera entrada de esa lista; las que
+// aparecen después (al hacer scroll) salen ya visibles.
 import 'package:flutter/widgets.dart';
 
 import '../../theme/ortiz_motion.dart';
@@ -39,10 +46,22 @@ class OrtizStaggeredEntry extends StatefulWidget {
   State<OrtizStaggeredEntry> createState() => _OrtizStaggeredEntryState();
 }
 
+/// Primera entrada de las filas de un `Scrollable`: abierta mientras alguna
+/// fila de esa tanda sigue animando; al terminar la última, se cierra para
+/// siempre (mientras viva ese `Scrollable`).
+class _EntranceWindow {
+  int running = 0;
+  bool closed = false;
+}
+
+final Expando<_EntranceWindow> _entranceWindows =
+    Expando<_EntranceWindow>('ortizStaggered');
+
 class _OrtizStaggeredEntryState extends State<OrtizStaggeredEntry>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _progress;
+  _EntranceWindow? _window;
 
   @override
   void initState() {
@@ -56,11 +75,32 @@ class _OrtizStaggeredEntryState extends State<OrtizStaggeredEntry>
       parent: _controller,
       curve: Interval(start, 1, curve: OrtizMotion.ease),
     );
-    _controller.forward();
+
+    final scrollable = context.findAncestorStateOfType<ScrollableState>();
+    final window = scrollable == null
+        ? null
+        : (_entranceWindows[scrollable] ??= _EntranceWindow());
+    if (window != null && window.closed) {
+      _controller.value = 1; // ya entró la lista: la fila sale visible
+      return;
+    }
+    _window = window?..running += 1;
+    _controller.forward().whenCompleteOrCancel(_release);
+  }
+
+  /// Esta fila terminó (o se desmontó): si era la última de la primera
+  /// entrada, la lista ya no vuelve a animar.
+  void _release() {
+    final window = _window;
+    if (window == null) return;
+    _window = null;
+    window.running -= 1;
+    if (window.running <= 0) window.closed = true;
   }
 
   @override
   void dispose() {
+    _release();
     _controller.dispose();
     super.dispose();
   }

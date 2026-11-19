@@ -162,7 +162,8 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
     );
 
     state.saveReminder(reminder);
-    Navigator.of(context).pop();
+    // Se devuelve al cerrar (acciones rápidas, «Ver» → su id).
+    Navigator.of(context).pop(reminder);
   }
 
   @override

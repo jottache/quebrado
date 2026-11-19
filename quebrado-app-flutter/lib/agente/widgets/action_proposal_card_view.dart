@@ -301,7 +301,7 @@ class _ActionProposalCardViewState extends State<ActionProposalCardView> {
             amount: amount,
             currency: currency,
             accountId: accountId,
-            note: description.isEmpty ? 'Registro creado por Agente Ortiz' : description,
+            note: description.isEmpty ? 'Registro creado por Ortiz' : description,
             type: type,
             exchangeRate: appState.bcvRate,
           );

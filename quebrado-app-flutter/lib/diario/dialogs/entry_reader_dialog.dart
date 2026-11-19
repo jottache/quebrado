@@ -21,26 +21,50 @@ import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 /// - En desktop: un Dialog centrado elegante.
 /// - En mobile: un ModalBottomSheet al 90% del alto de la pantalla.
 Future<void> openEntryReader(BuildContext context, DiarioEntry entry) async {
-  final width = MediaQuery.of(context).size.width;
-  final isDesktop = width >= 768;
+  // Mismo Navigator que `showDialog` (raíz) y `showModalBottomSheet` (el más cercano).
+  await Navigator.of(context, rootNavigator: _entryReaderAsDialog(context))
+      .push<void>(buildEntryReaderRoute(context, entry));
+}
 
-  if (isDesktop) {
-    await showDialog(
+bool _entryReaderAsDialog(BuildContext context) => MediaQuery.of(context).size.width >= 768;
+
+/// Ruta del visor de [openEntryReader]: diálogo en desktop, hoja al 90 % en
+/// mobile. La usa también la ruta `/diario/entradas/:id`, que pasa su `Page`
+/// como [settings].
+Route<void> buildEntryReaderRoute(
+  BuildContext context,
+  DiarioEntry entry, {
+  RouteSettings? settings,
+}) {
+  final asDialog = _entryReaderAsDialog(context);
+  final navigator = Navigator.of(context, rootNavigator: asDialog);
+  final themes = InheritedTheme.capture(from: context, to: navigator.context);
+
+  if (asDialog) {
+    return DialogRoute<void>(
       context: context,
+      themes: themes,
+      settings: settings,
+      traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
       builder: (context) => EntryReaderDialog(entry: entry, isBottomSheet: false),
     );
-  } else {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.90,
-        child: EntryReaderDialog(entry: entry, isBottomSheet: true),
-      ),
-    );
   }
+
+  final localizations = MaterialLocalizations.of(context);
+  return ModalBottomSheetRoute<void>(
+    capturedThemes: themes,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    barrierLabel: localizations.scrimLabel,
+    barrierOnTapHint: localizations.scrimOnTapHint(localizations.bottomSheetLabel),
+    modalBarrierColor: Theme.of(context).bottomSheetTheme.modalBarrierColor,
+    settings: settings,
+    builder: (context) => FractionallySizedBox(
+      heightFactor: 0.90,
+      child: EntryReaderDialog(entry: entry, isBottomSheet: true),
+    ),
+  );
 }
 
 class EntryReaderDialog extends StatelessWidget {

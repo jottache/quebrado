@@ -114,6 +114,42 @@
       bottom: 0;
       right: 0;
     }
+
+    /* Texto de la pantalla de carga (spec 02). Colores = OrtizPalette
+       (accent #FF8466, muted #9C8F98); fuente = Bricolage empaquetada. */
+    @font-face {
+      font-family: "OrtizSplash";
+      src: url("assets/assets/fonts/bricolage/BricolageGrotesque-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-display: swap;
+    }
+    .splash-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .splash-title {
+      font-family: "OrtizSplash", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-weight: 700;
+      font-size: 44px;
+      letter-spacing: -0.02em;
+      color: #FF8466;
+      animation: splash-breathe 1.6s ease-in-out infinite;
+    }
+    .splash-sub {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 13px;
+      color: #9C8F98;
+    }
+    @keyframes splash-breathe {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .55; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .splash-title { animation: none; }
+    }
   </style>
   <!-- Cache prevention for development mode -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -203,11 +239,13 @@
   </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
+  <!-- Pantalla de carga con texto (spec 02, pedido de la persona): sustituye al
+       logo verde de Quebrado. OJO: `dart run flutter_native_splash:create`
+       regeneraría este bloque con la imagen; no lo ejecutes sin rehacer esto. -->
+  <div id="splash" class="center splash-text" aria-hidden="true">
+    <span class="splash-title">Ortiz</span>
+    <span class="splash-sub">Cargando tu suite…</span>
+  </div>
   
   
   <script src="flutter_bootstrap.js" async=""></script>

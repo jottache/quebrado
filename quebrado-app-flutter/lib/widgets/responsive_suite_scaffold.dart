@@ -1,606 +1,539 @@
+// Shell de la suite (spec 02, pasos 3b y 4; diseño en docs/design/rutas.md §3
+// y docs/design/ortiz-home.md §3–§5 y §10).
+//
+// Envuelve el `StatefulNavigationShell` de go_router:
+// - `< 840` (`!isDesktop`): `Scaffold` con el menú ☰ (`SuiteDrawer`); cada
+//   app conserva su propia barra.
+// - `≥ 840`: riel fijo (`SuiteRail`) a la izquierda y la rama activa a la
+//   derecha. Bajo Finanzas, el riel muestra sus pestañas (en escritorio
+//   Finanzas no tiene barra inferior).
+// Al pie del menú y del riel: Conversaciones anteriores, Calculadora y
+// Sincronizar (P-05) y Ajustes (Q5). El riel añade «Buscar» (paleta).
+//
+// La paleta `Ctrl/⌘+K` (PA-02) y los atajos (`SuiteShortcuts`, CA-10) viven
+// aquí. `SuiteShellScope` expone a los descendientes la rama activa,
+// `goBranch`, `openMenu`, `openPalette` y el `FocusNode` del campo del chat
+// (para el atajo `/`).
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'responsive_breakpoints.dart';
-import 'responsive_sheet_helper.dart';
-import '../quebrado/viewmodels/app_state.dart';
-import '../quebrado/theme/colors.dart';
+
+import '../agente/agente.dart';
+import '../agente/dialogs/agente_settings_dialog.dart';
 import '../diario/diario.dart';
 import '../habitos/habitos.dart';
-import '../recordatorios/recordatorios.dart';
-import '../agente/agente.dart';
 import '../notas/notas.dart';
-import '../quebrado/screens/main_screen.dart';
 import '../quebrado/dialogs/calculator_dialog.dart';
-import '../quebrado/dialogs/add_transaction_dialog.dart';
-import '../quebrado/models/transaction.dart';
-import '../screens/launcher_action_hub_view.dart';
-import '../screens/app_launcher_screen.dart';
-import 'desktop_command_center_view.dart';
+import '../quebrado/screens/settings_screen.dart';
+import '../quebrado/viewmodels/app_state.dart';
+import '../recordatorios/recordatorios.dart';
+import '../theme/ortiz_space.dart';
+import '../theme/ortiz_tokens.dart';
+import '../theme/ortiz_type.dart';
+import '../theme/suite_apps.dart';
+import 'ortiz/ortiz.dart';
+import 'responsive_breakpoints.dart';
+import 'responsive_sheet_helper.dart';
+import 'suite_actions.dart';
+import 'suite_command_palette.dart';
+import 'suite_drawer.dart';
+import 'suite_menu_parts.dart' show suiteAppDescription;
+import 'suite_rail.dart';
+import 'suite_router.dart';
+import 'suite_shortcuts.dart';
 
-import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
-import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
-import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
-import 'package:quebrado_app_flutter/theme/suite_apps.dart';
-enum SuiteModule {
-  commandCenter,
-  quebrado,
-  diario,
-  habitos,
-  recordatorios,
-  agente,
-  notas,
+/// Aviso cuando «Sincronizar» falla en alguna app.
+const String suiteSyncErrorNotice =
+    'No pude sincronizar la suite. Revisa tu conexión e inténtalo de nuevo.';
+
+/// Pestañas de Finanzas que el riel muestra bajo su entrada cuando Finanzas
+/// es la app activa (`AppState.currentTabIndex`).
+const List<({String label, IconData icon})> _finanzasTabs = [
+  (label: 'Dashboard', icon: Icons.grid_view_rounded),
+  (label: 'Bolsillos', icon: Icons.inventory_2_rounded),
+  (label: 'Historial', icon: Icons.receipt_long_rounded),
+  (label: 'Mercado', icon: Icons.shopping_cart_outlined),
+];
+
+/// Etiqueta, icono y color de cada rama en el menú y la paleta.
+({String label, IconData icon, Color color}) suiteBranchDestination(
+  SuiteBranch branch,
+) {
+  final app = branch.app;
+  if (app == null) {
+    return (
+      label: 'Ortiz',
+      icon: Icons.auto_awesome_rounded,
+      color: AgenteColors.primary,
+    );
+  }
+  return (label: app.label, icon: app.icon, color: app.color);
+}
+
+/// Entradas de la paleta `Ctrl/⌘+K` (ortiz-home.md §5):
+/// - **Apps:** «Ortiz» y una por rama (navegan con [goBranch]);
+/// - **Acciones rápidas:** todo [suiteActions] (las ejecuta [runAction]);
+///   «Tasas del día» sale aquí, como acción de Finanzas (P-05);
+/// - **Ortiz:** «Nueva conversación» y, si hay callback, «Conversaciones
+///   anteriores» y «Ajustes».
+List<PaletteEntry> suitePaletteEntries({
+  required ValueChanged<SuiteBranch> goBranch,
+  required ValueChanged<SuiteAction> runAction,
+  required VoidCallback onNewConversation,
+  VoidCallback? onOpenHistory,
+  VoidCallback? onOpenSettings,
+}) {
+  return [
+    for (final branch in SuiteBranch.values)
+      PaletteEntry(
+        title: suiteBranchDestination(branch).label,
+        section: PaletteSection.apps,
+        icon: suiteBranchDestination(branch).icon,
+        color: suiteBranchDestination(branch).color,
+        keywords: branch.app == null
+            ? 'inicio chat conversación'
+            : suiteAppDescription(branch.app!),
+        onSelected: () => goBranch(branch),
+      ),
+    for (final action in suiteActions)
+      PaletteEntry(
+        title: action.label,
+        section: PaletteSection.actions,
+        icon: action.icon,
+        color: action.app.color,
+        appLabel: action.app.label,
+        keywords: action.keywords,
+        onSelected: () => runAction(action),
+      ),
+    PaletteEntry(
+      title: 'Nueva conversación',
+      section: PaletteSection.ortiz,
+      icon: Icons.add_comment_outlined,
+      keywords: 'chat charla',
+      onSelected: onNewConversation,
+    ),
+    if (onOpenHistory != null)
+      PaletteEntry(
+        title: 'Conversaciones anteriores',
+        section: PaletteSection.ortiz,
+        icon: Icons.history_rounded,
+        keywords: 'historial charlas',
+        onSelected: onOpenHistory,
+      ),
+    if (onOpenSettings != null)
+      PaletteEntry(
+        title: 'Ajustes',
+        section: PaletteSection.ortiz,
+        icon: Icons.settings_outlined,
+        keywords: 'configuración clave pin',
+        onSelected: onOpenSettings,
+      ),
+  ];
+}
+
+/// Datos del shell para sus descendientes (botón ☰, riel, drawer, inicio).
+class SuiteShellScope extends InheritedWidget {
+  const SuiteShellScope({
+    super.key,
+    required this.currentBranch,
+    required this.goBranch,
+    required this.openMenu,
+    required this.openPalette,
+    required this.chatFocusNode,
+    required super.child,
+  });
+
+  /// Rama visible.
+  final SuiteBranch currentBranch;
+
+  /// Abre [SuiteBranch]; si ya es la activa, la lleva a su raíz.
+  final ValueChanged<SuiteBranch> goBranch;
+
+  /// Abre el drawer (`< 840`). En `≥ 840` no hace nada: el riel es fijo.
+  final VoidCallback openMenu;
+
+  /// Abre la paleta `Ctrl/⌘+K`.
+  final VoidCallback openPalette;
+
+  /// Foco del campo del chat de Ortiz. La pantalla de inicio lo pasa a su
+  /// campo (`OrtizHomeScreen.chatFocusNode`); el atajo `/` lo enfoca. Es del
+  /// shell: quien lo usa no lo libera.
+  final FocusNode chatFocusNode;
+
+  static SuiteShellScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SuiteShellScope>();
+
+  @override
+  bool updateShouldNotify(SuiteShellScope oldWidget) =>
+      oldWidget.currentBranch != currentBranch ||
+      oldWidget.chatFocusNode != chatFocusNode;
 }
 
 class ResponsiveSuiteScaffold extends StatefulWidget {
-  final Widget? mobileBody;
+  const ResponsiveSuiteScaffold({super.key, required this.navigationShell});
 
-  const ResponsiveSuiteScaffold({
-    super.key,
-    this.mobileBody,
-  });
+  final StatefulNavigationShell navigationShell;
 
   @override
-  State<ResponsiveSuiteScaffold> createState() => _ResponsiveSuiteScaffoldState();
+  State<ResponsiveSuiteScaffold> createState() =>
+      _ResponsiveSuiteScaffoldState();
 }
 
 class _ResponsiveSuiteScaffoldState extends State<ResponsiveSuiteScaffold> {
-  SuiteModule _currentModule = SuiteModule.commandCenter;
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>(debugLabel: 'suiteShell');
+  final FocusNode _chatFocusNode = FocusNode(debugLabel: 'ortizChat');
+  bool _paletteOpen = false;
 
-  void _selectModule(SuiteModule module) {
-    if (_currentModule != module) {
-      setState(() {
-        _currentModule = module;
-      });
+  SuiteBranch get _current =>
+      SuiteBranch.values[widget.navigationShell.currentIndex];
+
+  @override
+  void dispose() {
+    _chatFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _goBranch(SuiteBranch branch) {
+    final shell = widget.navigationShell;
+    shell.goBranch(
+      branch.index,
+      initialLocation: branch.index == shell.currentIndex,
+    );
+  }
+
+  void _openApp(SuiteApp app) => _goBranch(SuiteBranch.forApp(app));
+
+  void _goHome() => _goBranch(SuiteBranch.inicio);
+
+  void _go(String path) {
+    if (mounted) GoRouter.of(context).go(path);
+  }
+
+  void _openMenu() {
+    final scaffold = _scaffoldKey.currentState;
+    if (scaffold != null && scaffold.hasDrawer) scaffold.openDrawer();
+  }
+
+  void _runAction(SuiteAction action) =>
+      runSuiteAction(context, action, onView: _go);
+
+  void _openCalculator() {
+    showResponsiveSheet(
+      context: context,
+      builder: (_) => const CalculatorBottomSheet(),
+    );
+  }
+
+  Future<void> _syncSuite() async {
+    final appState = context.read<AppState>();
+    final diarioState = context.read<DiarioState>();
+    final habitosState = context.read<HabitosState>();
+    final remindersState = context.read<RemindersState>();
+    final notasState = context.read<NotasState>();
+    showOrtizNotice(context, 'Sincronizando la suite…');
+    try {
+      await Future.wait([
+        appState.loadData(forceReload: true),
+        appState.refreshRates(),
+        diarioState.loadAll(),
+        habitosState.loadHabits(),
+        remindersState.reload(),
+        notasState.loadAll(),
+      ]);
+    } catch (e) {
+      debugPrint('Suite: error al sincronizar ($e)');
+      if (mounted) showOrtizNotice(context, suiteSyncErrorNotice);
+      return;
     }
+    if (mounted) {
+      showOrtizNotice(context, 'Suite sincronizada', success: true);
+    }
+  }
+
+  /// Abre [page] como en las apps: panel lateral en `≥ 840` y pantalla
+  /// completa en `< 840`.
+  void _openPage(Widget page) {
+    if (ResponsiveBreakpoints.isDesktop(context)) {
+      showResponsiveSheet(context: context, builder: (_) => page);
+    } else {
+      Navigator.of(context, rootNavigator: true)
+          .push(MaterialPageRoute<void>(builder: (_) => page));
+    }
+  }
+
+  /// «Conversaciones anteriores»: la lista de charlas existente del Agente.
+  void _openHistory() => _openPage(const AgenteHomeScreen());
+
+  /// «Ajustes» (Q5): elige entre los ajustes existentes de Ortiz y de
+  /// Finanzas.
+  Future<void> _openSettings() async {
+    final choice = await showDialog<_SettingsChoice>(
+      context: context,
+      builder: (_) => const _SuiteSettingsDialog(),
+    );
+    if (!mounted || choice == null) return;
+    switch (choice) {
+      case _SettingsChoice.ortiz:
+        await showDialog<void>(
+          context: context,
+          builder: (_) => const AgenteSettingsDialog(),
+        );
+      case _SettingsChoice.finanzas:
+        final app = context.read<AppState>();
+        // Con PIN o biometría, los ajustes de Finanzas (PIN, respaldos) se
+        // abren desde Finanzas, detrás de su desbloqueo (P-04).
+        if (app.usePinSecurity || app.useBiometrics) {
+          _openApp(SuiteApp.finanzas);
+        } else {
+          _openPage(const SettingsScreen());
+        }
+    }
+  }
+
+  /// «Nueva conversación»: va a `/`, empieza una charla si la actual tiene
+  /// mensajes y pone el foco en el campo.
+  Future<void> _newConversation() async {
+    _goHome();
+    final agente = context.read<AgenteState>();
+    if (agente.messages.isNotEmpty) await agente.startNewSession();
+    if (mounted) _focusChatSoon();
+  }
+
+  /// «Pregúntale a Ortiz»: va a `/` y envía la búsqueda al chat.
+  void _askOrtiz(String question) {
+    _goHome();
+    context.read<AgenteState>().sendMessage(question);
+  }
+
+  /// Pide el foco del chat tras el cambio de rama (el campo puede montarse
+  /// en este mismo frame).
+  void _focusChatSoon() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _chatFocusNode.context != null) {
+        _chatFocusNode.requestFocus();
+      }
+    });
+  }
+
+  Future<void> _openPalette() async {
+    if (_paletteOpen) return;
+    _paletteOpen = true;
+    try {
+      await showSuiteCommandPalette(
+        context,
+        entries: suitePaletteEntries(
+          goBranch: _goBranch,
+          runAction: _runAction,
+          onNewConversation: _newConversation,
+          onOpenHistory: _openHistory,
+          onOpenSettings: _openSettings,
+        ),
+        onAskOrtiz: GeminiConfig.isConfigured ? _askOrtiz : null,
+      );
+    } finally {
+      _paletteOpen = false;
+    }
+  }
+
+  /// `/`: solo en el inicio y con el campo del chat montado.
+  bool _onSlash() {
+    if (_current != SuiteBranch.inicio || _chatFocusNode.context == null) {
+      return false;
+    }
+    _chatFocusNode.requestFocus();
+    return true;
+  }
+
+  /// `Esc`: cierra el drawer o, si no, quita el foco del chat.
+  bool _onEscape() {
+    final scaffold = _scaffoldKey.currentState;
+    if (scaffold != null && scaffold.isDrawerOpen) {
+      scaffold.closeDrawer();
+      return true;
+    }
+    if (_chatFocusNode.hasFocus) {
+      _chatFocusNode.unfocus();
+      return true;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+    final current = _current;
+    final currentApp = current.app;
 
-    // En pantallas compactas/móviles, devolver el launcher tradicional
-    if (!isDesktop) {
-      return widget.mobileBody ?? const AppLauncherScreen();
+    final Widget body;
+    if (isDesktop) {
+      body = Row(
+        children: [
+          SuiteRail(
+            selectedApp: currentApp,
+            onOpenOrtiz: _goHome,
+            onOpenApp: _openApp,
+            onViewRecord: _go,
+            onSearch: _openPalette,
+            onOpenHistory: _openHistory,
+            onOpenCalculator: _openCalculator,
+            onSync: _syncSuite,
+            onOpenSettings: _openSettings,
+            selectedAppExtra: currentApp == SuiteApp.finanzas
+                ? const _FinanzasTabs()
+                : null,
+          ),
+          Expanded(child: widget.navigationShell),
+        ],
+      );
+    } else {
+      body = widget.navigationShell;
     }
 
-    final isExpanded = ResponsiveBreakpoints.isExpanded(context);
-    final effectiveSidebarWidth = isExpanded ? 240.0 : 210.0;
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Row(
-        children: [
-          // Sidebar de navegación Desktop
-          SizedBox(
-            width: effectiveSidebarWidth,
-            child: _buildDesktopSidebar(context, effectiveSidebarWidth),
-          ),
-
-          // Divisor vertical
-          const VerticalDivider(
-            width: OrtizStroke.hairline,
-            thickness: OrtizStroke.hairline,
-            color: OrtizPalette.line,
-          ),
-
-          // Área de contenido principal con estado persistente
-          Expanded(
-            child: Column(
-              children: [
-                // TopBar de Utilidades Desktop (Buscador, Sincronización, Calculadora, Tasas)
-                _buildDesktopTopBar(context),
-                const Divider(height: OrtizStroke.hairline, thickness: OrtizStroke.hairline, color: OrtizPalette.line),
-
-                // Vista activa
-                Expanded(
-                  child: _buildActiveView(context),
+    return SuiteShellScope(
+      currentBranch: current,
+      goBranch: _goBranch,
+      openMenu: _openMenu,
+      openPalette: _openPalette,
+      chatFocusNode: _chatFocusNode,
+      child: SuiteShortcuts(
+        onTogglePalette: _openPalette,
+        onFocusChat: _onSlash,
+        onEscape: _onEscape,
+        child: Scaffold(
+          key: _scaffoldKey,
+          drawer: isDesktop
+              ? null
+              : SuiteDrawer(
+                  currentApp: currentApp,
+                  onOpenOrtiz: _goHome,
+                  onOpenApp: _openApp,
+                  onViewRecord: _go,
+                  onOpenHistory: _openHistory,
+                  onOpenCalculator: _openCalculator,
+                  onSync: _syncSuite,
+                  onOpenSettings: _openSettings,
                 ),
-              ],
+          body: body,
+        ),
+      ),
+    );
+  }
+}
+
+enum _SettingsChoice { ortiz, finanzas }
+
+/// «Ajustes» del pie: los ajustes existentes de Ortiz y de Finanzas
+/// (ortiz-home.md §11).
+class _SuiteSettingsDialog extends StatelessWidget {
+  const _SuiteSettingsDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      title: const Text('Ajustes'),
+      contentPadding: const EdgeInsets.all(OrtizSpace.sm),
+      children: [
+        OrtizListRow(
+          leading: const Icon(Icons.auto_awesome_rounded),
+          title: 'Ortiz',
+          subtitle: 'Clave, modelo y atajos de consulta',
+          onTap: () => Navigator.of(context).pop(_SettingsChoice.ortiz),
+        ),
+        OrtizListRow(
+          leading: Icon(SuiteApp.finanzas.icon, color: SuiteApp.finanzas.color),
+          title: SuiteApp.finanzas.label,
+          subtitle: 'PIN, respaldos y libros',
+          onTap: () => Navigator.of(context).pop(_SettingsChoice.finanzas),
+        ),
+      ],
+    );
+  }
+}
+
+/// Pestañas de Finanzas bajo su entrada del riel.
+class _FinanzasTabs extends StatelessWidget {
+  const _FinanzasTabs();
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    return Padding(
+      padding: const EdgeInsets.only(left: OrtizSpace.xl, bottom: OrtizSpace.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < _finanzasTabs.length; i++)
+            _TabRow(
+              label: _finanzasTabs[i].label,
+              icon: _finanzasTabs[i].icon,
+              selected: appState.currentTabIndex == i,
+              onTap: () => appState.setTabIndex(i),
             ),
-          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDesktopSidebar(BuildContext context, double width) {
-    final appState = Provider.of<AppState>(context);
+/// Fila de pestaña: la activa va sobre `surfaceHigh` con el icono en el color
+/// de Finanzas.
+class _TabRow extends StatelessWidget {
+  const _TabRow({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
 
-    // El menú lateral flota sobre `surface`.
-    return Container(
-      color: OrtizPalette.surface,
-      child: SafeArea(
-        right: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header del Sidebar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(OrtizSpace.lg, OrtizSpace.xl, OrtizSpace.lg, OrtizSpace.lg),
-              child: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: OrtizPalette.accent,
-                      borderRadius: BorderRadius.circular(OrtizRadius.field),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "O",
-                        style: TextStyle(
-                          color: OrtizPalette.onAccent,
-                          fontWeight: FontWeight.w900,
-                          fontSize: OrtizFontSize.title,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: OrtizSpace.md),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "OrtizApp",
-                          style: TextStyle(
-                            fontSize: OrtizFontSize.titleSm,
-                            fontWeight: FontWeight.w900,
-                            color: OrtizPalette.fg,
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                        Text(
-                          "SUITE DESKTOP",
-                          style: TextStyle(
-                            fontSize: OrtizFontSize.micro,
-                            fontWeight: FontWeight.w800,
-                            color: OrtizPalette.muted,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
 
-            const Divider(height: OrtizStroke.hairline, thickness: OrtizStroke.hairline, color: OrtizPalette.line),
-            const SizedBox(height: OrtizSpace.md),
-
-            // Items de Navegación
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm),
-                children: [
-                  _buildNavItem(
-                    module: SuiteModule.commandCenter,
-                    icon: Icons.dashboard_customize_rounded,
-                    label: "Command Center",
-                    shortcut: "⌘1",
-                    color: OrtizPalette.accent,
-                  ),
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.quebrado,
-                    icon: Icons.account_balance_wallet_rounded,
-                    label: "Quebrado",
-                    shortcut: "⌘2",
-                    color: SuiteAppColors.finanzas,
-                  ),
-                  if (_currentModule == SuiteModule.quebrado) ...[
-                    const SizedBox(height: OrtizSpace.xxs),
-                    _buildSubNavItem(
-                      label: "Dashboard",
-                      icon: Icons.grid_view_rounded,
-                      tabIndex: 0,
-                      currentTabIndex: appState.currentTabIndex,
-                      onTap: () {
-                        _selectModule(SuiteModule.quebrado);
-                        appState.setTabIndex(0);
-                      },
-                    ),
-                    _buildSubNavItem(
-                      label: "Bolsillos",
-                      icon: Icons.inventory_2_rounded,
-                      tabIndex: 1,
-                      currentTabIndex: appState.currentTabIndex,
-                      onTap: () {
-                        _selectModule(SuiteModule.quebrado);
-                        appState.setTabIndex(1);
-                      },
-                    ),
-                    _buildSubNavItem(
-                      label: "Historial",
-                      icon: Icons.receipt_long_rounded,
-                      tabIndex: 2,
-                      currentTabIndex: appState.currentTabIndex,
-                      onTap: () {
-                        _selectModule(SuiteModule.quebrado);
-                        appState.setTabIndex(2);
-                      },
-                    ),
-                    _buildSubNavItem(
-                      label: "Mercado",
-                      icon: Icons.shopping_cart_outlined,
-                      tabIndex: 3,
-                      currentTabIndex: appState.currentTabIndex,
-                      onTap: () {
-                        _selectModule(SuiteModule.quebrado);
-                        appState.setTabIndex(3);
-                      },
-                    ),
-                    const SizedBox(height: OrtizSpace.xs),
-                  ],
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.recordatorios,
-                    icon: Icons.check_circle_outline_rounded,
-                    label: "Recordatorios",
-                    shortcut: "⌘3",
-                    color: RemindersColors.primary,
-                  ),
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.habitos,
-                    icon: Icons.local_fire_department_rounded,
-                    label: "Hábitos",
-                    shortcut: "⌘4",
-                    color: HabitosColors.primary,
-                  ),
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.diario,
-                    icon: Icons.auto_stories_rounded,
-                    label: "Diario",
-                    shortcut: "⌘5",
-                    color: DiarioColors.primary,
-                  ),
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.agente,
-                    icon: Icons.auto_awesome_rounded,
-                    label: "Agente Ortiz",
-                    shortcut: "⌘6",
-                    color: AgenteColors.primary,
-                  ),
-                  const SizedBox(height: OrtizSpace.xs),
-                  _buildNavItem(
-                    module: SuiteModule.notas,
-                    icon: Icons.edit_note_rounded,
-                    label: "Notas & Acuerdos",
-                    shortcut: "⌘7",
-                    color: NotasColors.primary,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: OrtizSpace.md),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubNavItem({
-    required String label,
-    required IconData icon,
-    required int tabIndex,
-    required int currentTabIndex,
-    required VoidCallback onTap,
-  }) {
-    final isSelected = tabIndex == currentTabIndex;
-    const activeColor = SuiteAppColors.finanzas;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: OrtizSpace.md, top: OrtizSpace.xxs, bottom: OrtizSpace.xxs),
+  @override
+  Widget build(BuildContext context) {
+    final t = OrtizTokens.of(context);
+    final radius = BorderRadius.circular(OrtizRadius.chip);
+    return Semantics(
+      selected: selected,
+      button: true,
       child: Material(
-        color: Colors.transparent,
+        color: selected ? t.surfaceHigh : Colors.transparent,
+        borderRadius: radius,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(OrtizRadius.chip),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.sm, vertical: OrtizSpace.sm),
-            // Lo activo va sobre `surfaceHigh`; el color de la app marca el icono.
-            decoration: BoxDecoration(
-              color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
-              borderRadius: BorderRadius.circular(OrtizRadius.chip),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: OrtizIconSize.sm,
-                  color: isSelected ? activeColor : OrtizPalette.muted,
-                ),
-                const SizedBox(width: OrtizSpace.sm),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: OrtizFontSize.bodySm,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    color: isSelected ? OrtizPalette.fg : OrtizPalette.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required SuiteModule module,
-    required IconData icon,
-    required String label,
-    required String shortcut,
-    required Color color,
-  }) {
-    final isSelected = _currentModule == module;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _selectModule(module),
-        borderRadius: BorderRadius.circular(OrtizRadius.field),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
-          // Lo activo va sobre `surfaceHigh`; el color de la app marca el icono.
-          decoration: BoxDecoration(
-            color: isSelected ? OrtizPalette.surfaceHigh : Colors.transparent,
-            borderRadius: BorderRadius.circular(OrtizRadius.field),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: OrtizIconSize.md,
-                color: isSelected ? color : OrtizPalette.muted,
-              ),
-              const SizedBox(width: OrtizSpace.md),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: OrtizFontSize.body,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    color: OrtizPalette.fg,
-                  ),
-                ),
-              ),
-              Text(
-                shortcut,
-                style: const TextStyle(
-                  fontSize: OrtizFontSize.caption,
-                  fontWeight: FontWeight.bold,
-                  color: OrtizPalette.muted,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopTopBar(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-    final diarioState = Provider.of<DiarioState>(context);
-    final habitosState = Provider.of<HabitosState>(context);
-    final remindersState = Provider.of<RemindersState>(context);
-
-    final bcv = appState.bcvRate > 0 ? appState.bcvRate.toStringAsFixed(2) : "--";
-    final eur = appState.euroRate > 0 ? appState.euroRate.toStringAsFixed(2) : "--";
-
-    return Container(
-      height: 64,
-      width: double.infinity,
-      color: OrtizPalette.bg,
-      padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.xxl),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          borderRadius: radius,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: OrtizSize.minTouch),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Módulo actual y ticker de tasas
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _getModuleTitle(_currentModule),
-                        style: const TextStyle(
-                          fontSize: OrtizFontSize.titleSm,
-                          fontWeight: FontWeight.w900,
-                          color: OrtizPalette.fg,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(width: OrtizSpace.lg),
-                      // Ticker de Tasas BCV / Euro Oficial
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.xs),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(OrtizRadius.chip),
-                          border: Border.all(color: OrtizPalette.line),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.trending_up_rounded, size: OrtizIconSize.sm, color: OrtizPalette.ok),
-                            const SizedBox(width: OrtizSpace.sm),
-                            Text(
-                              "BCV: Bs. $bcv",
-                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.fg),
-                            ),
-                            const SizedBox(width: OrtizSpace.md),
-                            Text(
-                              "Euro Oficial: Bs. $eur",
-                              style: const TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold, color: OrtizPalette.muted),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    icon,
+                    size: OrtizIconSize.sm,
+                    color: selected ? SuiteApp.finanzas.color : t.muted,
                   ),
-
-                  const SizedBox(width: OrtizSpace.xl),
-
-                  // Botones de acción directa a la derecha
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_currentModule == SuiteModule.commandCenter) ...[
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: OrtizPalette.accent,
-                            foregroundColor: OrtizPalette.onAccent,
-                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
-                          ),
-                          onPressed: () {
-                            showResponsiveSheet(
-                              context: context,
-                              builder: (_) => const AddTransactionBottomSheet(
-                                initialType: TransactionType.expense,
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.add_rounded, size: OrtizIconSize.sm),
-                          label: const Text(
-                            "Nuevo Gasto",
-                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: OrtizSpace.sm),
-
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: RemindersColors.primary,
-                            side: const BorderSide(color: RemindersColors.primary, width: OrtizStroke.hairline),
-                            padding: const EdgeInsets.symmetric(horizontal: OrtizSpace.md, vertical: OrtizSpace.sm),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(OrtizRadius.chip)),
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => const ReminderEditorDialog(),
-                            );
-                          },
-                          icon: const Icon(Icons.alarm_add_rounded, size: OrtizIconSize.sm),
-                          label: const Text(
-                            "Recordatorio",
-                            style: TextStyle(fontSize: OrtizFontSize.bodySm, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: OrtizSpace.sm),
-                      ],
-
-                      IconButton(
-                        icon: const Icon(Icons.calculate_outlined),
-                        tooltip: "Calculadora de divisas",
-                        style: IconButton.styleFrom(
-                          backgroundColor: OrtizPalette.surfaceHigh,
-                          foregroundColor: OrtizPalette.fg,
-                        ),
-                        onPressed: () {
-                          showResponsiveSheet(
-                            context: context,
-                            builder: (context) => const CalculatorBottomSheet(),
-                          );
-                        },
+                  const SizedBox(width: OrtizSpace.md),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: OrtizType.bodySm.copyWith(
+                        color: selected ? t.fg : t.muted,
+                        fontWeight:
+                            selected ? FontWeight.w800 : FontWeight.w600,
                       ),
-                      const SizedBox(width: OrtizSpace.sm),
-
-                      IconButton(
-                        icon: const Icon(Icons.sync_rounded),
-                        tooltip: "Sincronizar todos los datos",
-                        style: IconButton.styleFrom(
-                          backgroundColor: OrtizPalette.surfaceHigh,
-                          foregroundColor: OrtizPalette.fg,
-                        ),
-                        onPressed: () async {
-                          final notasState = Provider.of<NotasState>(context, listen: false);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Sincronizando suite completa..."),
-                              duration: Duration(milliseconds: 900),
-                            ),
-                          );
-                          await Future.wait([
-                            appState.loadData(forceReload: true),
-                            appState.refreshRates(),
-                            diarioState.loadAll(),
-                            habitosState.loadHabits(),
-                            remindersState.reload(),
-                            notasState.loadAll(),
-                          ]);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Suite sincronizada correctamente",
-                                  style: TextStyle(color: OrtizPalette.onAccent),
-                                ),
-                                backgroundColor: OrtizPalette.ok,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
-  }
-
-  String _getModuleTitle(SuiteModule module) {
-    switch (module) {
-      case SuiteModule.commandCenter:
-        return "Command Center Dashboard";
-      case SuiteModule.quebrado:
-        return "Quebrado • Finanzas Personales";
-      case SuiteModule.diario:
-        return "Diario Jottache • Notas & Vínculos";
-      case SuiteModule.habitos:
-        return "Hábitos • Terminal de Productividad";
-      case SuiteModule.recordatorios:
-        return "Recordatorios & Agenda";
-      case SuiteModule.agente:
-        return "Agente Ortiz • Inteligencia & Artefactos";
-      case SuiteModule.notas:
-        return "Notas & Acuerdos • Documentos & Acuerdos";
-    }
-  }
-
-  Widget _buildActiveView(BuildContext context) {
-    switch (_currentModule) {
-      case SuiteModule.commandCenter:
-        return const DesktopCommandCenterView();
-      case SuiteModule.quebrado:
-        return const MainScreen();
-      case SuiteModule.diario:
-        return const DiarioHomeScreen();
-      case SuiteModule.habitos:
-        return const HabitosHomeScreen();
-      case SuiteModule.recordatorios:
-        return const RemindersHomeScreen();
-      case SuiteModule.agente:
-        return const AgenteHomeScreen();
-      case SuiteModule.notas:
-        return const NotasHomeScreen();
-    }
   }
 }

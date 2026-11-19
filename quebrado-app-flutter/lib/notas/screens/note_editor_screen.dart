@@ -29,12 +29,13 @@ class NoteEditorScreen extends StatefulWidget {
 
   const NoteEditorScreen({super.key, this.note, this.initialCategoryId, this.isModalDialog = false});
 
-  static Future<bool?> open(BuildContext context, {NoteItem? note, String? initialCategoryId}) {
+  /// Abre el editor. Devuelve la nota guardada, o null si se cerró sin guardar.
+  static Future<NoteItem?> open(BuildContext context, {NoteItem? note, String? initialCategoryId}) {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 768;
 
     if (isDesktop) {
-      return showDialog<bool>(
+      return showDialog<NoteItem>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) {
@@ -61,7 +62,7 @@ class NoteEditorScreen extends StatefulWidget {
       );
     }
 
-    return Navigator.of(context).push<bool>(
+    return Navigator.of(context).push<NoteItem>(
       MaterialPageRoute(
         builder: (_) => NoteEditorScreen(note: note, initialCategoryId: initialCategoryId, isModalDialog: false),
       ),
@@ -258,6 +259,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       final blocks = NoteDocumentConverter.fromDocument(document);
       final contentText = NoteDocumentConverter.toMarkdown(document);
 
+      final NoteItem saved;
       if (widget.note != null) {
         final updated = widget.note!.copyWith(
           title: title,
@@ -269,8 +271,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           contentText: contentText,
         );
         await notasState.updateNote(updated);
+        saved = updated;
       } else {
-        await notasState.createNote(
+        saved = await notasState.createNote(
           title: title,
           emoji: _selectedEmoji,
           categoryId: _selectedCategoryId,
@@ -299,7 +302,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             duration: const Duration(seconds: 2),
           ),
         );
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(saved);
       }
     } catch (e) {
       if (mounted) {

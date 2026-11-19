@@ -166,7 +166,7 @@ Familias empaquetadas en `assets/fonts/` (sin descarga en tiempo de ejecución, 
 | `ease` | `Cubic(0.2, 0.8, 0.2, 1)` | Curva única (rápida al empezar, se posa al final) |
 
 - **Reducir movimiento:** `OrtizMotion.of(context, d)` devuelve `Duration.zero` si `MediaQuery.disableAnimations` es verdadero; `OrtizMotion.staggerOf(context, i)` igual para el retraso; `OrtizMotion.reduced(context)` para decidir quitar un efecto (CA-06). Toda animación nueva pasa por ellos.
-- **Entradas de lista: `ortizStaggered`** (`widgets/ortiz/ortiz_animate.dart`), con un `AnimationController` propio (el retraso es un `Interval` dentro de la misma animación). **No usar `flutter_animate` para entradas**: su `Animate` siempre programa un `Future.delayed` que no se cancela al desmontar y deja Timers pendientes (rompía widget tests). La dependencia sigue en `pubspec.yaml` sin uso en código (decisión pendiente de la persona: quitarla o reservarla). Las animaciones nativas (`AnimatedContainer`, `AnimatedSwitcher`…) siguen valiendo, con duraciones de `OrtizMotion.of`.
+- **Entradas de lista: `ortizStaggered`** (`widgets/ortiz/ortiz_animate.dart`), con un `AnimationController` propio (el retraso es un `Interval` dentro de la misma animación). **La entrada se ve una sola vez por lista:** dentro de un `Scrollable` solo animan las filas creadas durante la primera tanda; las que aparecen al hacer scroll (o al volver a subir en una lista perezosa) salen ya visibles. **No usar `flutter_animate` para entradas**: su `Animate` siempre programa un `Future.delayed` que no se cancela al desmontar y deja Timers pendientes (rompía widget tests). La dependencia sigue en `pubspec.yaml` sin uso en código (decisión pendiente de la persona: quitarla o reservarla). Las animaciones nativas (`AnimatedContainer`, `AnimatedSwitcher`…) siguen valiendo, con duraciones de `OrtizMotion.of`.
 
 ```dart
 child.animate(delay: OrtizMotion.staggerOf(context, index))
@@ -217,7 +217,7 @@ Sin cambios en la spec 01.
 
 ### 7.2 Patrones de layout
 
-- **Scaffold de la suite** (`widgets/responsive_suite_scaffold.dart`, `ResponsiveSuiteScaffold` + enum `SuiteModule`): en móvil devuelve el launcher (`screens/app_launcher_screen.dart`); en escritorio, **sidebar fijo** (210 px, 240 px en expanded) + separador de 1 px + módulo activo. El módulo inicial en escritorio es el **command center** (`widgets/desktop_command_center_view.dart`). La spec 02 rehace inicio y navegación.
+- **Shell de la suite** (`widgets/responsive_suite_scaffold.dart`, `ResponsiveSuiteScaffold`, montado por `widgets/suite_router.dart`): menú ☰ (`SuiteDrawer`) en `< 840` y riel en `≥ 840`. El inicio (`/`) es la conversación con Ortiz (`screens/ortiz_home_screen.dart`, vía `SuiteOrtizHome`). El launcher y el command center se borraron en la spec 02.
 - **Sheets responsivos** (`widgets/responsive_sheet_helper.dart`, `showResponsiveSheet`): en móvil `showModalBottomSheet`; en escritorio **panel lateral derecho** (ancho por defecto 480, mínimo 380, máximo 90 % de la ventana), radio `OrtizRadius.sheet` a la izquierda y fondo `surface`, con **Navigator anidado** para abrir subpantallas dentro del panel. Usar siempre este helper para sheets nuevos (hoy convive con 63 `showModalBottomSheet` directos).
 - **Scroll horizontal en escritorio** (`ResponsiveHorizontalScroll`, mismo archivo): en escritorio añade botones ◀ ▶ a filas de chips/filtros que en móvil se desplazan con el dedo.
 - **Dos columnas en escritorio**: Finanzas (dashboard + subnav), Hábitos (lista + métricas en vivo), Diario (contactos + detalle maestro-detalle). Patrón: columna izquierda de lista/navegación, derecha de detalle o métricas. Sin tarjetas: las columnas se separan con una línea `line` de 1 px.
@@ -236,7 +236,6 @@ Sin cambios en la spec 01.
 | `showOrtizNotice` | `widgets/ortiz/ortiz_notice.dart` | Avisos (SnackBar) con acción opcional («Ver», «Deshacer»). |
 | `ortizStaggered` | `widgets/ortiz/ortiz_animate.dart` | Entrada escalonada de listas; respeta reducir movimiento. |
 | `ResponsiveSuiteScaffold` | `widgets/responsive_suite_scaffold.dart` | Raíz de la app; añadir aquí un módulo nuevo de la suite. |
-| `DesktopCommandCenterView` | `widgets/desktop_command_center_view.dart` | Vista resumen en escritorio (la reemplaza la spec 02). |
 | `showResponsiveSheet` | `widgets/responsive_sheet_helper.dart` | Cualquier formulario o detalle en hoja (móvil) / panel (escritorio). |
 | `ResponsiveHorizontalScroll` | `widgets/responsive_sheet_helper.dart` | Filas horizontales de chips. |
 | `ResponsiveBreakpoints` | `widgets/responsive_breakpoints.dart` | Toda decisión responsive. |
@@ -278,7 +277,7 @@ Sin cambios en la spec 01.
 Hasta la spec 05 conviven el tema oscuro y pantallas con literales claros. Lo que **sigue claro o mal** y es esperado (filas en `docs/pendientes.md`, sección Diseño, «a resolver en spec 05»):
 
 - **Spec 05 (2026-11-17):** todas las apps quedaron sin valores de estilo escritos a mano (guardián `test/contract/no_hardcoded_styles_test.dart`) y sin tarjetas; lo listado aquí antes (fondos claros, blanco sobre coral, crema de Notas, `ClaymorphicCard` con volumen, literales sueltos) se resolvió en ella.
-- Siguen fuera del alcance, porque la spec 02 los reemplaza: el launcher (`screens/app_launcher_screen.dart`), el hub de acciones (`screens/launcher_action_hub_view.dart`) y el command center (`widgets/desktop_command_center_view.dart`), con `DiarioColors.primaryDark` en rosa y un import de `google_fonts` sin uso.
+- El launcher, el hub de acciones y el command center, que quedaban fuera del alcance, se borraron en la spec 02.
 
 Nada de esto se arregla «de paso»: cada pantalla se migra en la spec 05 con sus tests.
 

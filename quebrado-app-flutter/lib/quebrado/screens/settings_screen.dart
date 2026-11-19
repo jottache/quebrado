@@ -329,6 +329,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     value: appState.useBiometrics,
                     onChanged: (bool value) async {
+                      // A2: la biometría usa el PIN de respaldo (en web es lo
+                      // único que se pide); sin un PIN propio no se activa.
+                      if (value && await appState.getSecurityPin() == '1234') {
+                        if (!context.mounted) return;
+                        final created = await _showChangePinBottomSheet(context, appState);
+                        if (!created) return;
+                      }
                       await appState.setUseBiometrics(value);
                     },
                   ),
@@ -351,9 +358,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (value) {
                         final pin = await appState.getSecurityPin();
                         if (pin == '1234') {
-                          if (context.mounted) {
-                            _showChangePinBottomSheet(context, appState);
-                          }
+                          if (!context.mounted) return;
+                          // A2: sin un PIN propio no se activa (antes quedaba «1234»).
+                          final created = await _showChangePinBottomSheet(context, appState);
+                          if (!created) return;
                         }
                       }
                       await appState.setUsePinSecurity(value);
@@ -820,11 +828,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _showChangePinBottomSheet(BuildContext context, AppState appState) async {
+  /// Devuelve true si la persona creó o cambió el PIN.
+  Future<bool> _showChangePinBottomSheet(BuildContext context, AppState appState) async {
     final metadata = await appState.loadBackupMetadata();
     final currentPin = metadata['security_pin'] as String? ?? "";
 
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
 
     final updated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -857,6 +866,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+    return updated == true;
   }
 
   void _showSupabaseInfoDialog(BuildContext context) {

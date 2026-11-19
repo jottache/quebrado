@@ -122,8 +122,10 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
 
     try {
       final state = Provider.of<DiarioState>(context, listen: false);
+      // El contacto guardado se devuelve al cerrar (acciones rápidas, «Ver»).
+      final DiarioContact saved;
       if (widget.contact == null) {
-        await state.addContact(
+        saved = await state.addContact(
           name: _nameController.text.trim(),
           nickname: _nicknameController.text.trim().isNotEmpty ? _nicknameController.text.trim() : null,
           relationship: _relationshipController.text.trim().isNotEmpty ? _relationshipController.text.trim() : null,
@@ -140,29 +142,28 @@ class _ContactEditorDialogState extends State<ContactEditorDialog> {
         final phone = _phoneController.text.trim();
         final notes = _notesController.text.trim();
 
-        await state.updateContact(
-          widget.contact!.copyWith(
-            name: _nameController.text.trim(),
-            nickname: nickname.isNotEmpty ? nickname : null,
-            clearNickname: nickname.isEmpty,
-            relationship: rel.isNotEmpty ? rel : null,
-            clearRelationship: rel.isEmpty,
-            avatarUrl: _avatarUrl,
-            clearAvatar: _avatarUrl == null,
-            avatarColor: _selectedColor,
-            phone: phone.isNotEmpty ? phone : null,
-            clearPhone: phone.isEmpty,
-            notes: notes.isNotEmpty ? notes : null,
-            clearNotes: notes.isEmpty,
-            birthdate: _selectedBirthdate,
-            clearBirthdate: _selectedBirthdate == null,
-            isFavorite: _isFavorite,
-          ),
+        final edited = widget.contact!.copyWith(
+          name: _nameController.text.trim(),
+          nickname: nickname.isNotEmpty ? nickname : null,
+          clearNickname: nickname.isEmpty,
+          relationship: rel.isNotEmpty ? rel : null,
+          clearRelationship: rel.isEmpty,
+          avatarUrl: _avatarUrl,
+          clearAvatar: _avatarUrl == null,
+          avatarColor: _selectedColor,
+          phone: phone.isNotEmpty ? phone : null,
+          clearPhone: phone.isEmpty,
+          notes: notes.isNotEmpty ? notes : null,
+          clearNotes: notes.isEmpty,
+          birthdate: _selectedBirthdate,
+          clearBirthdate: _selectedBirthdate == null,
+          isFavorite: _isFavorite,
         );
+        saved = await state.updateContact(edited);
       }
 
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(saved);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

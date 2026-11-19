@@ -13,13 +13,19 @@ import '../viewmodels/reminders_state.dart';
 import '../widgets/covey_matrix_view.dart';
 import '../widgets/weekly_schedule_view.dart';
 
+import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_tokens.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_type.dart';
 import 'package:quebrado_app_flutter/widgets/ortiz/ortiz.dart';
+import 'package:quebrado_app_flutter/widgets/suite_menu_button.dart';
 
 class RemindersHomeScreen extends StatefulWidget {
-  const RemindersHomeScreen({super.key});
+  const RemindersHomeScreen({super.key, this.highlightReminderId});
+
+  /// Recordatorio que se muestra resaltado y visible en la lista (ruta
+  /// `/recordatorios/:id`, P-02 de `docs/design/rutas.md`).
+  final String? highlightReminderId;
 
   @override
   State<RemindersHomeScreen> createState() => _RemindersHomeScreenState();
@@ -40,6 +46,41 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
     super.initState();
     _quickInputController.addListener(() {
       setState(() {});
+    });
+    _highlightFromRoute();
+  }
+
+  @override
+  void didUpdateWidget(covariant RemindersHomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightReminderId != oldWidget.highlightReminderId) {
+      _highlightFromRoute();
+    }
+  }
+
+  /// Resalta [RemindersHomeScreen.highlightReminderId] en el feed (con todos
+  /// los recordatorios) y lo desplaza a la vista. El resaltado se mantiene
+  /// mientras la pantalla muestre esa ruta.
+  void _highlightFromRoute() {
+    final id = widget.highlightReminderId;
+    if (id == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<RemindersState>().setSelectedView('classic');
+      setState(() {
+        _activeTab = 'Todos';
+        _highlightedReminderId = id;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final cardContext = _reminderCardKeys[id]?.currentContext;
+        if (!mounted || cardContext == null) return;
+        Scrollable.ensureVisible(
+          cardContext,
+          duration: OrtizMotion.of(context, OrtizMotion.base),
+          curve: OrtizMotion.ease,
+          alignment: 0.15,
+        );
+      });
     });
   }
 
@@ -137,10 +178,7 @@ class _RemindersHomeScreenState extends State<RemindersHomeScreen> {
               appBar: AppBar(
                 elevation: 0,
                 surfaceTintColor: Colors.transparent,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: OrtizIconSize.md),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+                leading: SuiteMenuButton.leading(context),
                 title: Text(
                   isMobile ? 'Agenda Semanal' : 'Agenda & Hábitos (Covey)',
                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: OrtizFontSize.titleSm, color: RemindersColors.textPrimary),

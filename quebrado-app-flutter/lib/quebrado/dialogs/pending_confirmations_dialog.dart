@@ -295,6 +295,9 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     final Map<String, double> netChanges = {};
     List<RecurringPayment> finishedPayments = [];
     double totalUsdIncomeForAutoSave = 0.0;
+    // Lo registrado se devuelve al cerrar (acciones rápidas, «Ver»).
+    final recorded = <Transaction>[];
+    var confirmedAny = false;
 
     // First verify useExistingBalance
     for (var s in selected) {
@@ -376,6 +379,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
           occurrenceDate: s.occurrence.occurrenceDate,
           overrideCurrency: CurrencyType.bsBCV,
           customExchangeRate: rateVal,
+          onTransactionRecorded: recorded.add,
           customNote: p.currency == CurrencyType.eur
               ? "Confirmado${existingBalanceStr}: ${p.name} (€${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)"
               : "Confirmado${existingBalanceStr}: ${p.name} (\$${remainingVal.toStringAsFixed(2)} @ ${rateVal.toStringAsFixed(2)} Bs.)",
@@ -385,11 +389,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
           payment: p,
           actualAmount: actualAmt,
           occurrenceDate: s.occurrence.occurrenceDate,
-          customNote: isPartialRest 
+          onTransactionRecorded: recorded.add,
+          customNote: isPartialRest
               ? "Confirmado${existingBalanceStr}: ${p.name} (Restante: ${p.currency.symbol}${remainingVal.toStringAsFixed(2)})"
               : s.useExistingBalance ? "Confirmado${existingBalanceStr}: ${p.name}" : null,
         );
       }
+      confirmedAny = true;
 
       if (s.useExistingBalance && p.type == TransactionType.income) {
         if (p.currency == CurrencyType.usd) {
@@ -430,11 +436,14 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
         }
       }
       if (context.mounted) {
+        // Movimientos registrados (puede ir vacía si se confirmó con saldo
+        // existente); null si solo se omitieron pagos.
+        final List<Transaction>? result = confirmedAny ? List.unmodifiable(recorded) : null;
         if (totalUsdIncomeForAutoSave > 0) {
-          await _showAutoSaveDialog(context, appState, totalUsdIncomeForAutoSave);
+          await _showAutoSaveDialog(context, appState, totalUsdIncomeForAutoSave, result);
         } else {
           final messenger = ScaffoldMessenger.of(context);
-          Navigator.pop(context);
+          Navigator.pop(context, result);
           messenger.showSnackBar(
             SnackBar(content: Text("Registros agregados al historial")),
           );
@@ -443,7 +452,13 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     }
   }
 
-  Future<void> _showAutoSaveDialog(BuildContext context, AppState appState, double usdIncomeAmount) async {
+  /// [result] es lo que devuelve la hoja al cerrarse (ver _submitConfirmations).
+  Future<void> _showAutoSaveDialog(
+    BuildContext context,
+    AppState appState,
+    double usdIncomeAmount,
+    List<Transaction>? result,
+  ) async {
     final Map<String, double> proposedDeposits = {};
     for (var pocket in appState.pockets) {
       if (pocket.targetDate != null) continue;
@@ -470,7 +485,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
     }
 
     if (proposedDeposits.isEmpty) {
-      Navigator.pop(context);
+      Navigator.pop(context, result);
       return;
     }
 
@@ -505,7 +520,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.pop(context);
+              Navigator.pop(context, result);
             },
             child: const Text("Ignorar", style: TextStyle(color: AppColors.cardSubtitleText)),
           ),
@@ -526,7 +541,7 @@ class _PendingConfirmationsBottomSheetState extends State<PendingConfirmationsBo
               }
               if (ctx.mounted) {
                  Navigator.pop(ctx);
-                 Navigator.pop(context);
+                 Navigator.pop(context, result);
                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Aportes realizados con éxito"), backgroundColor: AppColors.primary));
               }
             },

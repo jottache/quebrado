@@ -21,11 +21,11 @@ import '../widgets/timeline_event_row.dart';
 import '../dialogs/day_actions_dialog.dart';
 import '../widgets/dashboard_charts_card.dart';
 import 'rates_history_screen.dart';
-import '../../screens/app_launcher_screen.dart';
 import '../dialogs/super_app_hub_sheet.dart';
 import '../dialogs/book_selector_dialog.dart';
 import '../../widgets/responsive_sheet_helper.dart';
 import '../../widgets/responsive_breakpoints.dart';
+import '../../widgets/suite_menu_button.dart';
 
 import 'package:quebrado_app_flutter/theme/ortiz_motion.dart';
 import 'package:quebrado_app_flutter/theme/ortiz_space.dart';
@@ -174,21 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               )
-            : IconButton(
-                icon: const Icon(Icons.apps_rounded),
-                iconSize: 26,
-                tooltip: "Mis Aplicaciones",
-                onPressed: () {
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop();
-                  } else {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                          builder: (context) => const AppLauncherScreen()),
-                    );
-                  }
-                },
-              ),
+            : SuiteMenuButton.leading(context),
         leadingWidth: isDesktop ? 190 : null,
         title: Image.asset(
           'assets/images/quebrado/logo_quebrado.png',

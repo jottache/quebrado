@@ -1,6 +1,6 @@
 # 02 — Ortiz al centro: inicio, navegación, URLs, acciones rápidas y cara
 
-- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Implementado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** 01
 - **Fecha:** 2026-11-17
 - **Módulo(s):** suite (`screens/`, `widgets/`), agente
@@ -51,7 +51,9 @@
     2. **Respaldo vectorial, estilo «Pantalla»** (el de la maqueta), con `CustomPainter`. Se usa si el conejo no pasa la validación y mientras el archivo `.riv` no esté listo.
 - **Renombre:** «Agente Ortiz» pasa a «Ortiz» en la UI, en los ajustes y en el prompt de sistema. El módulo de código se sigue llamando `agente`.
 - **Atajos de teclado (web):** `Ctrl/⌘+K` abre el menú, `/` lleva al campo del chat y `Esc` cierra la hoja o el menú.
-- **Interruptor de transición:** el launcher actual (`AppLauncherScreen`) y el command center quedan accesibles detrás de un interruptor hasta que termine la spec 05.
+- **Sin interruptor de transición** (PA-05): al terminar, se borran el launcher (`AppLauncherScreen`), el hub de acciones y el command center.
+- **Paleta de comandos** (`Ctrl/⌘+K`, PA-02) y **hoja «Marcar hábitos de hoy»** (PA-03).
+- **Pantalla de carga web** con texto en lugar del logo verde.
 
 **Fuera:**
 - El contenido de la franja de hoy, del panel y del «Resumen del día»: spec 04. Aquí solo están sus espacios y el chip.
@@ -140,11 +142,13 @@ Si falla (b), o falla (c) y no hay remezcla, se usa «Pantalla».
 - **R-04** Algunos formularios guardan dentro del propio diálogo y no tienen el id hasta después del guardado en Supabase. Hay que devolverlo sin romper el modo sin Supabase.
 
 ## Preguntas abiertas
-- **PA-01** Si el conejo necesita remezcla para «pensando» y «hablando», ¿la haces tú en el editor de Rive o prefieres usar «Pantalla» desde el principio?
-- **PA-02** El `command_palette_dialog` de Recordatorios ya existe. ¿`Ctrl/⌘+K` debería abrir una paleta de comandos global (buscar apps y acciones) en lugar del menú?
-- **PA-03** «Marcar hábitos de hoy» no tiene formulario hoy. ¿Se crea una hoja simple con la lista de hábitos de hoy y casillas, o se quita esta acción?
-- **PA-04** «Nueva nota» abre un editor a pantalla completa. ¿Está bien que, en el teléfono, esa acción sea la excepción y ocupe toda la pantalla?
-- **PA-05** ¿Hasta cuándo sigue disponible el interruptor del launcher anterior? Recomendación: hasta cerrar la spec 05.
+Todas resueltas por la persona el 2026-11-17:
+- ~~PA-01~~ → cara vectorial **«Pantalla» mientras tanto**; `OrtizFace` deja listo el cambio a Rive si la persona remezcla el conejo más adelante.
+- ~~PA-02~~ → `Ctrl/⌘+K` abre una **paleta de comandos global** (buscar apps y acciones rápidas), generalizando la de Recordatorios.
+- ~~PA-03~~ → **hoja con casillas** con los hábitos de hoy.
+- ~~PA-04~~ → «Nueva nota» abre el **editor a pantalla completa** en el teléfono (en escritorio, en el panel).
+- ~~PA-05~~ → **sin interruptor**: al terminar la 02 se borran el launcher, el hub de acciones y el command center (cierra el paso 8 de la spec 05).
+- Pedido extra de la persona: la pantalla de carga (web) muestra **texto** («Ortiz») en lugar del logo verde de Quebrado, por ahora.
 
 ## Qué NO entra
 - Notificaciones push.
@@ -152,4 +156,40 @@ Si falla (b), o falla (c) y no hay remezcla, se usa «Pantalla».
 
 ## Pasos manuales
 - La persona revisa en Rive el archivo «Bunny emoji» (Preview/Remix) y, si hace falta, hace la remezcla.
+- Ninguno en Supabase.
+
+## Implementación (2026-11-18, rama `spec-02-ortiz-al-centro`, apilada sobre `spec-05-nuevo-estilo-apps`)
+**Estado real:** implementada. `revisor`: APROBADO en la ronda 3. Auditoría de seguridad: `docs/security/2026-11-18-spec-02-pin.md` (resolución en su §6). Verificación: `docs/qa/2026-11-18-spec-02-verificacion.md`.
+
+**Verificación de criterios**
+| CA | Resultado | Evidencia |
+| --- | --- | --- |
+| CA-01 | CUMPLE | `test/screens/ortiz_home_screen_test.dart` (CA-01) y `suite_router_test.dart` (inicio); el launcher ya no existe (PA-05). |
+| CA-02 | CUMPLE (con Q1) | Riel desde 840 (`responsive_suite_test.dart`); panel «Hoy» desde 1200 (`ortiz_home_screen_test.dart`), decisión Q1 de `docs/design/ortiz-home.md`. |
+| CA-03 | CUMPLE | `test/widgets/suite_drawer_test.dart`, `suite_rail_test.dart`. |
+| CA-04 | NO VERIFICABLE de extremo a extremo | Por piezas: el formulario devuelve el gasto, `runSuiteAction` avisa con «Ver» (`suite_actions_test.dart`), el gasto va al libro activo. Desde una acción rápida ya no sale el diálogo de éxito antiguo (PQ-01, test en `suite_actions_test.dart`). Falta un test chip → guardar → aviso con el router montado (hueco anotado); probar a mano. |
+| CA-05 | CUMPLE | `suite_actions_test.dart` («Ver» → `/finanzas/movimientos/<id>`), `suite_router_test.dart` (abre el detalle). |
+| CA-06 | CUMPLE | `suite_router_test.dart` (CA-06). Probar también en el navegador. |
+| CA-07 | CUMPLE (P-04 revisada) | `suite_router_test.dart`, grupo «PIN una vez al día al entrar a la app». |
+| CA-08 | CUMPLE | `test/agente/viewmodels/agente_state_test.dart`, `ortiz_home_screen_test.dart`. |
+| CA-09 | CUMPLE | `agente_state_test.dart`, `suite_actions_test.dart` (alegría y vuelta a reposo a los 2 s). |
+| CA-10 | CUMPLE (PA-02) | `test/widgets/suite_shortcuts_test.dart`: `/` enfoca el chat, `⌘K` abre la paleta, `Esc` la cierra. |
+| CA-11 | CUMPLE | Sin «Agente Ortiz», «del Agente» ni «Agente IA» en textos de `lib/` (test `test/contract/ortiz_name_test.dart`); la instrucción de Gemini empieza por «Eres Ortiz» (PQ-02, `test/agente/services/gemini_service_test.dart`). |
+| CA-12 | CUMPLE | `test/agente/widgets/ortiz_face_test.dart` (sin animación). |
+| CA-13 | CUMPLE | Puerta verde: analyze 0/0, 801 tests, 2 fallos conocidos (bajó de 3), cobertura 36,82 % ≥ 31,3 %; `all_imports_test` con 233 archivos. |
+
+**Desviaciones**
+- **P-04 revisada por la persona (2026-11-18):** el PIN se pide **una vez al día al entrar a la app** (candado `/desbloquear` para toda la suite) y después se permite todo, en vez de «al entrar a Finanzas, una vez por sesión». Límite de 5 intentos con 30 s de espera y título «Desbloquear». Detalle en `docs/design/rutas.md` §10.
+- **PQ-01 (2026-11-18):** desde las acciones rápidas no sale el diálogo de éxito de Finanzas, solo el aviso «✓ … · Ver». Dentro de Finanzas se mantiene.
+- **PQ-02 (2026-11-18):** «Ajustes de Ortiz» en lugar de «Ajustes del Agente (IA)», y la instrucción de Gemini se presenta como Ortiz.
+- Cara «Pantalla» (vectorial) en lugar del conejo de Rive (PA-01); `OrtizFace` queda lista para cambiarla.
+- `⌘K` abre la paleta de comandos, no el menú (PA-02). El panel «Hoy» aparece desde 1200 px (Q1).
+- Corrección colateral pedida en la spec: `usePinSecurity` no se cargaba desde Supabase.
+- Splash web con el texto «Ortiz» (pedido extra).
+- `.claude/known-failures` bajó de 3 a 2: el smoke de `widget_test` ya pasa.
+- Pendientes nuevos: P-50 (restos del PIN), P-51 (claves de frecuencia de hábitos sin confirmar), P-52 (`Consumer` en `main.dart`), P-53 (espera de la primera carga), P-54 (calculadora en tests).
+
+**Pasos manuales (antes de desplegar, PA-04 de la spec 01)**
+- Probar en el navegador: registrar un gasto desde un chip (CA-04, solo el aviso con «Ver»), Atrás del navegador (CA-06), y con el PIN activado, el candado al entrar, recargar el mismo día sin PIN y los 5 intentos (CA-07).
+- Revisión visual de la persona (sigue abierta P-49 de la spec 05).
 - Ninguno en Supabase.

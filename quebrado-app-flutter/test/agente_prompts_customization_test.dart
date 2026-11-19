@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'package:quebrado_app_flutter/agente/models/agente_prompt_model.dart';
 import 'package:quebrado_app_flutter/agente/viewmodels/agente_state.dart';
-import 'package:quebrado_app_flutter/agente/widgets/docked_launcher_chat.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,67 +90,6 @@ void main() {
       await state.deleteQuickPrompt('prompt_2', persist: false);
       expect(state.quickPrompts.any((p) => p.id == 'prompt_2'), isFalse);
       expect(state.quickPrompts.length, equals(1));
-    });
-  });
-
-  group('DockedLauncherChat Widget Tests', () {
-    testWidgets('Renders empty state with customize button when no prompts exist', (tester) async {
-      final state = AgenteState(autoInit: false);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ChangeNotifierProvider<AgenteState>.value(
-              value: state,
-              child: const DockedLauncherChat(),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Does NOT show old hardcoded prompts
-      expect(find.text('¿Cuáles son los próximos 3 cumpleaños?'), findsNothing);
-      expect(find.text('¿Cuánto dinero tengo en total?'), findsNothing);
-      expect(find.text('Calcular 50 USD a Bs'), findsNothing);
-
-      // Shows customize button
-      expect(find.text('Personalizar atajos de consulta'), findsOneWidget);
-    });
-
-    testWidgets('Renders user custom prompts when available', (tester) async {
-      final state = AgenteState(autoInit: false);
-
-      await state.saveQuickPrompt(
-        AgentePromptModel(
-          id: 'custom_1',
-          text: '¿Cuánto gasté hoy en comida?',
-          label: 'Gastos',
-          sortOrder: 0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        persist: false,
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ChangeNotifierProvider<AgenteState>.value(
-              value: state,
-              child: const DockedLauncherChat(),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Shows custom prompt with label
-      expect(find.text('Gastos: ¿Cuánto gasté hoy en comida?'), findsOneWidget);
-      // Shows "Nuevo" action chip to quickly add more
-      expect(find.text('Nuevo'), findsOneWidget);
     });
   });
 }

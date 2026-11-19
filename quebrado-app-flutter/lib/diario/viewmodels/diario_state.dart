@@ -182,7 +182,9 @@ class DiarioState extends ChangeNotifier {
     return stored;
   }
 
-  Future<void> updateContact(DiarioContact contact) async {
+  /// Actualiza un contacto y devuelve el guardado (con `updatedAt` y, si
+  /// subió, el avatar remoto).
+  Future<DiarioContact> updateContact(DiarioContact contact) async {
     final index = _contacts.indexWhere((c) => c.id == contact.id);
     final previousAvatar = index != -1 ? _contacts[index].avatarUrl : null;
     final updated = contact.copyWith(updatedAt: DateTime.now());
@@ -196,6 +198,7 @@ class DiarioState extends ChangeNotifier {
     final stored = await _withRemoteAvatar(updated);
     await _saveContact(stored);
     if (previousAvatar != stored.avatarUrl) await _media.deleteByUrl(previousAvatar);
+    return stored;
   }
 
   Future<void> deleteContact(String contactId) async {
@@ -558,7 +561,17 @@ class DiarioState extends ChangeNotifier {
     return stored;
   }
 
-  Future<void> addEntry({
+  /// Id para una entrada nueva. El editor lo reserva antes de guardar y lo
+  /// reutiliza si reintenta, para no duplicar la entrada.
+  String newEntryId() => _uuid.v4();
+
+  /// Crea una entrada y devuelve la guardada (con su id y, si subió, la foto remota).
+  ///
+  /// Con [id] (de [newEntryId]) el guardado es idempotente: si ya hay una
+  /// entrada con ese id (un intento anterior que falló a medias), se reemplaza
+  /// en lugar de añadir otra.
+  Future<DiarioEntry> addEntry({
+    String? id,
     required String contactId,
     required String categoryId,
     String? templateId,
@@ -580,7 +593,7 @@ class DiarioState extends ChangeNotifier {
     );
 
     final newEntry = DiarioEntry(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       contactId: contactId,
       categoryId: categoryId,
       templateId: templateId,
@@ -596,12 +609,20 @@ class DiarioState extends ChangeNotifier {
       createdAt: createdAt ?? DateTime.now(),
     );
 
-    _entries.insert(0, newEntry);
+    final existing = _entries.indexWhere((e) => e.id == newEntry.id);
+    if (existing != -1) {
+      _entries[existing] = newEntry;
+    } else {
+      _entries.insert(0, newEntry);
+    }
     notifyListeners();
-    await _service.saveEntry(await _withRemotePhoto(newEntry));
+    final stored = await _withRemotePhoto(newEntry);
+    await _service.saveEntry(stored);
+    return stored;
   }
 
-  Future<void> updateEntry(DiarioEntry entry) async {
+  /// Actualiza una entrada y devuelve la guardada.
+  Future<DiarioEntry> updateEntry(DiarioEntry entry) async {
     final index = _entries.indexWhere((e) => e.id == entry.id);
     final previousPhoto = index != -1 ? _entries[index].photoUrl : null;
     final allMentions = _resolveMentions(
@@ -624,6 +645,7 @@ class DiarioState extends ChangeNotifier {
     final stored = await _withRemotePhoto(updated);
     await _service.saveEntry(stored);
     if (previousPhoto != stored.photoUrl) await _media.deleteByUrl(previousPhoto);
+    return stored;
   }
 
   Future<void> deleteEntry(String entryId) async {
