@@ -267,19 +267,27 @@ class DiarioWriteTools implements WriteToolHandler {
 
   /// Contacto por nombre o apodo (§3.5): exactas por nombre o apodo primero;
   /// si no hay, coincidencia parcial por nombre y luego por apodo.
-  Resolution<ResolverItem> _resolveContact(String term) {
+  Resolution<ResolverItem> _resolveContact(String term) =>
+      resolveContact(term, _diario.contacts);
+
+  /// Como [_resolveContact] sobre [contacts]: lo usa también Hábitos para
+  /// vincular un hábito a un contacto.
+  static Resolution<ResolverItem> resolveContact(
+    String term,
+    List<DiarioContact> contacts,
+  ) {
     final t = norm(term);
     final exactIds = <String>{
-      for (final c in _diario.contacts)
+      for (final c in contacts)
         if (norm(c.name) == t || (c.nickname != null && norm(c.nickname!) == t))
           c.id,
     };
-    final byName = _contactItems();
+    final byName = contactItems(contacts);
     if (exactIds.isNotEmpty) {
       return resolveByName(
         term,
         [
-          for (final c in _diario.contacts)
+          for (final c in contacts)
             if (exactIds.contains(c.id)) ResolverItem(id: c.id, name: term, label: c.name),
         ],
       );
@@ -287,7 +295,7 @@ class DiarioWriteTools implements WriteToolHandler {
     final res = resolveByName(term, byName);
     if (res.status != ResolutionStatus.notFound) return res;
     final byNickname = [
-      for (final c in _diario.contacts)
+      for (final c in contacts)
         if (c.nickname != null && c.nickname!.trim().isNotEmpty)
           ResolverItem(id: c.id, name: c.nickname!, label: c.name),
     ];
@@ -296,9 +304,12 @@ class DiarioWriteTools implements WriteToolHandler {
     return res;
   }
 
-  List<ResolverItem> _contactItems() => [
-        for (final c in _diario.contacts) ResolverItem(id: c.id, name: c.name),
+  /// Contactos como opciones del resolvedor (por nombre).
+  static List<ResolverItem> contactItems(List<DiarioContact> contacts) => [
+        for (final c in contacts) ResolverItem(id: c.id, name: c.name),
       ];
+
+  List<ResolverItem> _contactItems() => contactItems(_diario.contacts);
 
   // ---------------------------------------------------------------------------
   // createContact

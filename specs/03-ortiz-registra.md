@@ -49,7 +49,7 @@
 
 **Fuera:**
 - Editar o borrar registros existentes desde el chat (solo crear, más deshacer lo que Ortiz acaba de crear).
-- Registrar en otro libro distinto del activo.
+- Registrar en otro libro distinto del activo. (Añadido después, el 2026-11-19, solo para gastos e ingresos con `bookName` y siempre como tarjeta: ver `docs/security/spec-03-ortiz-registra.md`, «Cambios del 2026-11-19».)
 - Leer recibos o fotos.
 
 ## Flujo y UX
@@ -135,7 +135,7 @@ Si un servicio de Supabase no tiene `forTesting()` o un cliente inyectable, se l
 - Resumen al guardar: formato de montos de la app («Bs. 450.00 · ≈ $1.90»); equivalente Bs→$, $→Bs, €→$; sin colorear. Este formato prevalece sobre el del ejemplo de «Flujo y UX».
 - Diario con contacto inexistente: la tarjeta ofrece hasta 3 contactos parecidos más «Sin contacto» (entrada personal); nunca crea el contacto. Categoría sin ninguna parecida: la tarjeta muestra todas las del tipo.
 - Seguridad (auditoría, 2026-11-18): S3-02 → un pago, hábito o contacto solo se guarda directo si la persona lo nombró en la conversación (motivo `name_not_in_user_text` → tarjeta), y los nombres del contexto se recortan a una línea de ~60 caracteres. S3-03 → la marca de «texto libre leído» se hereda al mensaje siguiente y luego se limpia. Toda lectura marca el turno salvo una lista blanca explícita.
-- CA-10: si en el mismo turno Ortiz leyó texto libre (diario, notas…), toda escritura sale como tarjeta; el monto solo se guarda directo si aparece en un mensaje de la persona; una sola escritura directa por mensaje.
+- CA-10: si en el mismo turno Ortiz leyó texto libre (diario, notas…), toda escritura sale como tarjeta; el monto solo se guarda directo si aparece en un mensaje de la persona; una sola escritura directa por mensaje (esta última parte se retiró el 2026-11-19 por decisión de la persona: varios registros de un mensaje se guardan todos directo; ver `docs/design/ortiz-registra.md` §7).
 
 **Descartadas (y por qué):**
 - Sugerir el monto a partir de la lista del Mercado: la persona prefirió que solo pregunte.

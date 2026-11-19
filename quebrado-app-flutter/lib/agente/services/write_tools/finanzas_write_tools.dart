@@ -2,8 +2,10 @@
 /// `docs/design/ortiz-registra.md` §2.2, §3 y U2.1): `registerTransaction` y
 /// `payRecurringPayment`.
 ///
-/// Escribe solo a través de [AppState] (Supabase o SQLite según el modo) y
-/// solo en el libro activo.
+/// Escribe solo a través de [AppState] (Supabase o SQLite según el modo).
+/// `payRecurringPayment` escribe solo en el libro activo; `registerTransaction`
+/// también en otro libro nombrado (`bookName`), siempre con tarjeta y sin
+/// cambiar el libro abierto (solo con Supabase).
 library;
 
 import 'package:uuid/uuid.dart';
@@ -31,7 +33,13 @@ abstract final class FinanzasReason {
 
   /// S3-02: el pago no salió de lo que escribió la persona.
   static const nameNotInUserText = 'name_not_in_user_text';
+
+  /// El movimiento va a un libro que no es el abierto: siempre con tarjeta.
+  static const otherBook = 'other_book';
 }
+
+/// Libro donde se registra un movimiento.
+typedef _Book = ({String id, String name});
 
 /// Tipos de registro que entiende [FinanzasWriteTools.undo] (`kind` del payload).
 abstract final class FinanzasUndoKind {
@@ -115,6 +123,21 @@ class FinanzasWriteTools implements WriteToolHandler {
     final resolved = <String, dynamic>{};
     final options = <String, List<String>>{};
 
+    // Libro: el de la tarjeta al confirmar, el nombrado o el abierto.
+    final bookRes = _targetBook(args, ctx);
+    if (bookRes.error != null) return bookRes.error!;
+    final book = bookRes.book;
+    if (book == null) {
+      missing.add('bookName');
+      options['bookName'] = bookRes.options;
+    }
+    final bookId = book?.id ?? _app.activeDbName;
+    final isOtherBook = bookId != _app.activeDbName;
+    if (book != null && isOtherBook) {
+      resolved['bookName'] = book.name;
+      reasons.add(FinanzasReason.otherBook);
+    }
+
     final concept = _string(args['concept']);
     if (concept == null) missing.add('concept');
     final amount = _positiveAmount(args['amount']);
@@ -126,11 +149,12 @@ class FinanzasWriteTools implements WriteToolHandler {
     final categoryName = _string(args['categoryName']);
     if (categoryName == null) missing.add('categoryName');
 
-    // Categoría (solo del tipo pedido, sin «Cambio de Divisa»).
+    // Categoría (del libro, solo del tipo pedido, sin «Cambio de Divisa»).
+    // Con el libro sin resolver no se resuelve nada del libro.
     ResolverItem? category;
     var allCategories = const <String>[];
-    if (type != null && categoryName != null) {
-      final items = _categoryItems(type);
+    if (book != null && type != null && categoryName != null) {
+      final items = _categoryItems(type, bookId);
       allCategories = [for (final i in items) i.displayName];
       final res = _resolveCategoryOrLabel(categoryName, items);
       if (res.isResolved) {
@@ -148,15 +172,16 @@ class FinanzasWriteTools implements WriteToolHandler {
     }
     if (category != null) resolved['categoryName'] = category.name;
 
-    // Cuenta (del libro activo). Al confirmar, la misma de la tarjeta.
-    ResolverAccount? account = _confirmedAccount(args, ctx);
-    if (account == null && currency != null) {
+    // Cuenta (del libro). Al confirmar, la misma de la tarjeta.
+    ResolverAccount? account =
+        book == null ? null : _confirmedAccount(args, ctx, bookId);
+    if (book != null && account == null && currency != null) {
       final requestedAccount = _string(args['accountName']);
       final res = resolveAccount(
         requestedName: requestedAccount,
         currency: currency,
-        accounts: _accountItems(),
-        defaultAccountId: _app.defaultAccountIdFor(currency),
+        accounts: _accountItems(bookId),
+        defaultAccountId: _app.defaultAccountIdForProfile(bookId, currency),
       );
       account = _applyAccountResolution(
           res, missing, reasons, warnings, options, resolved, requestedAccount);
@@ -220,9 +245,12 @@ class FinanzasWriteTools implements WriteToolHandler {
           'accountName': account.name,
           'accountId': account.id,
           'date': _isoDate(date.date!),
-          ..._bookArgs(),
+          ..._bookArgs(book),
+          // La tarjeta nació para otro libro (`bookName`): se confirma allí
+          // aunque no esté abierto. Las demás siguen S3-05.
+          if (isOtherBook) 'otherBook': true,
         },
-        profileId: _app.activeDbName,
+        profileId: bookId,
       );
     }
 
@@ -238,7 +266,11 @@ class FinanzasWriteTools implements WriteToolHandler {
       exchangeRate: _rateFor(currency, account.currency),
     );
     try {
-      await _app.addTransaction(tx);
+      if (isOtherBook) {
+        await _app.addTransactionToProfile(bookId, tx);
+      } else {
+        await _app.addTransaction(tx);
+      }
     } catch (e) {
       return WriteOutcome(WriteToolResult.error(
         action: action,
@@ -255,8 +287,82 @@ class FinanzasWriteTools implements WriteToolHandler {
       undoPayload: {
         'kind': FinanzasUndoKind.transaction,
         'transaction': tx.toMap(),
+        // Solo lo registrado a propósito en otro libro se deshace sin
+        // abrirlo; el resto sigue S3-05 («Cambia al libro X»).
+        if (isOtherBook) 'otherBook': true,
       },
+      book: book,
     );
+  }
+
+  /// Libro de `registerTransaction`. Al confirmar, el de la tarjeta
+  /// (`profileId`); si no, el nombrado en `bookName` (resuelto entre
+  /// [AppState.profiles]); si no, el abierto. `book` null con `options` =
+  /// nombre ambiguo; `error` = libro inexistente o que no se puede escribir.
+  ({_Book? book, List<String> options, WriteOutcome? error}) _targetBook(
+    Map<String, dynamic> args,
+    WriteContext ctx,
+  ) {
+    const action = WriteToolNames.registerTransaction;
+    final active = (id: _app.activeDbName, name: _app.activeProfileName);
+    _Book? book;
+    final confirmedId = ctx.confirmedByUser ? _string(args['profileId']) : null;
+    if (confirmedId != null) {
+      final name = _app.profileNameFor(confirmedId);
+      if (name == null) {
+        final asked = _string(args['profileName']) ?? confirmedId;
+        return (
+          book: null,
+          options: const [],
+          error: WriteOutcome(WriteToolResult.error(
+            action: action,
+            message: _errorText('no encontré el libro $asked'),
+          )),
+        );
+      }
+      book = (id: confirmedId, name: name);
+    } else {
+      final requested = _string(args['bookName']);
+      if (requested == null) return (book: active, options: const [], error: null);
+      final items = [
+        for (final p in _app.profiles)
+          if ((p['id'] ?? '').isNotEmpty)
+            ResolverItem(id: p['id']!, name: p['name'] ?? p['id']!),
+      ];
+      if (!items.any((i) => i.id == active.id)) {
+        items.add(ResolverItem(id: active.id, name: active.name));
+      }
+      final res = resolveByName(requested, items);
+      switch (res.status) {
+        case ResolutionStatus.resolved:
+          book = (id: res.value!.id, name: res.value!.name);
+        case ResolutionStatus.notFound:
+          return (
+            book: null,
+            options: const [],
+            error: WriteOutcome(WriteToolResult.error(
+              action: action,
+              message: _errorText('no encontré el libro «$requested»; tus libros '
+                  'son: ${items.map((i) => i.name).join(', ')}'),
+            )),
+          );
+        case ResolutionStatus.missing:
+        case ResolutionStatus.proposal:
+          return (book: null, options: res.options, error: null);
+      }
+    }
+    if (book.id != active.id && !_app.canWriteToProfile(book.id)) {
+      return (
+        book: null,
+        options: const [],
+        error: WriteOutcome(WriteToolResult.error(
+          action: action,
+          message: 'Para registrar en el libro ${book.name}, ábrelo primero en '
+              'Finanzas. No se guardó nada.',
+        )),
+      );
+    }
+    return (book: book, options: const [], error: null);
   }
 
   // -------------------------------------------------------------------------
@@ -642,20 +748,34 @@ class FinanzasWriteTools implements WriteToolHandler {
 
   @override
   Future<void> undo(String toolName, Map<String, dynamic> undoPayload) async {
+    final kind = undoPayload['kind'] as String?;
     final profileId = undoPayload['profileId'] as String?;
-    if (profileId != null && profileId != _app.activeDbName) {
+    // Un movimiento registrado a propósito en otro libro (`bookName`) se
+    // deshace allí aunque no sea el abierto (si ese libro se puede escribir
+    // sin abrirlo); el resto, solo en el abierto (S3-05).
+    final otherBook = profileId != null && profileId != _app.activeDbName;
+    if (otherBook &&
+        (kind != FinanzasUndoKind.transaction ||
+            undoPayload['otherBook'] != true ||
+            !_app.canWriteToProfile(profileId))) {
       final name = undoPayload['profileName'] as String? ?? profileId;
       throw StateError('Cambia al libro $name para deshacerlo.');
     }
 
-    final kind = undoPayload['kind'] as String?;
     final txMap = undoPayload['transaction'];
-    final tx = txMap is Map ? _currentTransaction(Map<String, dynamic>.from(txMap)) : null;
+    final tx = txMap is Map
+        ? _currentTransaction(Map<String, dynamic>.from(txMap),
+            otherBook ? profileId : null)
+        : null;
 
     switch (kind) {
       case FinanzasUndoKind.transaction:
         if (tx == null) throw StateError('Falta el movimiento que deshacer.');
-        await _app.deleteTransaction(tx);
+        if (otherBook) {
+          await _app.deleteTransactionFromProfile(profileId, tx);
+        } else {
+          await _app.deleteTransaction(tx);
+        }
       case FinanzasUndoKind.recurringConfirmation:
         if (tx != null) await _app.deleteTransaction(tx);
         await _app.undoRecurringConfirmation(
@@ -672,9 +792,11 @@ class FinanzasWriteTools implements WriteToolHandler {
 
   /// El movimiento en memoria (mismo objeto que usa la app) o, si ya no
   /// está en la lista, el reconstruido desde el payload.
-  Transaction _currentTransaction(Map<String, dynamic> map) {
+  Transaction _currentTransaction(Map<String, dynamic> map, [String? bookId]) {
     final id = map['id'];
-    for (final t in _app.transactions) {
+    for (final t in bookId == null
+        ? _app.transactions
+        : _app.getTransactionsForProfile(bookId)) {
       if (t.id == id) return t;
     }
     return Transaction.fromMap(map);
@@ -691,7 +813,9 @@ class FinanzasWriteTools implements WriteToolHandler {
     required List<SummaryPart> parts,
     required String route,
     required Map<String, dynamic> undoPayload,
+    _Book? book,
   }) {
+    final target = book ?? (id: _app.activeDbName, name: _app.activeProfileName);
     return WriteOutcome(
       WriteToolResult.saved(
         action: action,
@@ -704,10 +828,10 @@ class FinanzasWriteTools implements WriteToolHandler {
       summaryParts: parts,
       undoPayload: {
         ...undoPayload,
-        'profileId': _app.activeDbName,
-        'profileName': _app.activeProfileName,
+        'profileId': target.id,
+        'profileName': target.name,
       },
-      profileId: _app.activeDbName,
+      profileId: target.id,
     );
   }
 
@@ -761,8 +885,9 @@ class FinanzasWriteTools implements WriteToolHandler {
 
   /// Categorías del tipo pedido, sin «Cambio de Divisa», con subcategorías
   /// etiquetadas «Padre › Hija».
-  List<ResolverItem> _categoryItems(TransactionType type) => categoryItemsFor(
-        _app.categories,
+  List<ResolverItem> _categoryItems(TransactionType type, String bookId) =>
+      categoryItemsFor(
+        _app.getCategoriesForProfile(bookId),
         type == TransactionType.income
             ? TransactionCategoryType.income
             : TransactionCategoryType.expense,
@@ -806,8 +931,11 @@ class FinanzasWriteTools implements WriteToolHandler {
     return resolveCategory(name, items);
   }
 
-  List<ResolverAccount> _accountItems() => [
-        for (final a in _app.accounts)
+  /// Cuentas del libro [bookId] (por defecto, el abierto).
+  List<ResolverAccount> _accountItems([String? bookId]) => [
+        for (final a in bookId == null
+            ? _app.accounts
+            : _app.getAccountsForProfile(bookId))
           ResolverAccount(id: a.id, name: a.name, currency: a.currency),
       ];
 
@@ -822,13 +950,19 @@ class FinanzasWriteTools implements WriteToolHandler {
           ? _app.euroRate
           : _app.bcvRate;
 
-  /// Si la persona confirma una tarjeta en otro libro: error (S3-05).
+  /// Si la persona confirma en otro libro una tarjeta creada con otro libro
+  /// abierto: error (S3-05). Solo las tarjetas de `registerTransaction` que
+  /// nacieron para otro libro (`otherBook`, por `bookName`) se confirman en
+  /// el libro de la tarjeta ([_targetBook]).
   WriteOutcome? _wrongBookOnConfirm(
     String action,
     Map<String, dynamic> args,
     WriteContext ctx,
   ) {
     if (!ctx.confirmedByUser) return null;
+    if (action == WriteToolNames.registerTransaction && args['otherBook'] == true) {
+      return null;
+    }
     final profileId = _string(args['profileId']);
     if (profileId == null || profileId == _app.activeDbName) return null;
     final name = _string(args['profileName']) ?? profileId;
@@ -838,23 +972,24 @@ class FinanzasWriteTools implements WriteToolHandler {
     ));
   }
 
-  /// Libro de la tarjeta (va en `commitArgs`).
-  Map<String, dynamic> _bookArgs() => {
-        'profileId': _app.activeDbName,
-        'profileName': _app.activeProfileName,
+  /// Libro de la tarjeta (va en `commitArgs`); por defecto, el abierto.
+  Map<String, dynamic> _bookArgs([_Book? book]) => {
+        'profileId': book?.id ?? _app.activeDbName,
+        'profileName': book?.name ?? _app.activeProfileName,
       };
 
   /// Al confirmar, la cuenta de la tarjeta por su id (sin volver a buscar
   /// por nombre), salvo que la persona haya elegido otra en la tarjeta.
   ResolverAccount? _confirmedAccount(
     Map<String, dynamic> args,
-    WriteContext ctx,
-  ) {
+    WriteContext ctx, [
+    String? bookId,
+  ]) {
     if (!ctx.confirmedByUser) return null;
     final id = _string(args['accountId']);
     if (id == null) return null;
     final name = _string(args['accountName']);
-    for (final a in _accountItems()) {
+    for (final a in _accountItems(bookId)) {
       if (a.id == id && (name == null || norm(a.name) == norm(name))) return a;
     }
     return null;

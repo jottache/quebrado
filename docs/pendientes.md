@@ -64,6 +64,14 @@
 | P-77 | baja | Ancho de burbuja `0.85` literal en `ChatMessageBubble.maxWidthOf`. | `lib/agente/widgets/chat_message_bubble.dart:27` | Token de ancho de burbuja (`ui-ux-designer`). |
 | P-74 | baja | Cada `updateDependencies` (agrupado por microtask) rehace la instantánea completa: `pendingPaymentsWithin` desde `startDate` y `calculateCleanDays` por hábito. | `lib/agente/viewmodels/agente_state.dart` | Medir; cachear por versión de datos si pesa. |
 
+### Código y reglas (fix Ortiz contexto y registros, 2026-11-19)
+| # | Severidad | Problema | Evidencia | Propuesta |
+| --- | --- | --- | --- | --- |
+| P-78 | media | Guardado a medias en otro libro (y ya antes en `addTransaction`): si `updateAccount` falla después de insertar el movimiento, el movimiento queda en Supabase, el saldo en memoria ya cambió y Ortiz dice «No se guardó nada». Si las cuentas del otro libro no están en memoria, el movimiento se guarda sin mover el saldo. En otro libro no se escribe la copia SQLite (móvil con Supabase). | `lib/quebrado/viewmodels/app_state.dart` (`addTransactionToProfile`, `addTransaction`) | Revertir el insert si falla el saldo, o RPC atómica (con P-01). |
+| P-79 | baja | El libro de `bookName` no tiene ancla de nombre: el modelo podría elegir otro libro sin que la persona lo nombre. Mitigado: siempre sale tarjeta `other_book` («Es del libro X…»). | `lib/agente/services/write_tools/finanzas_write_tools.dart` (`_targetBook`) | Motivo `name_not_in_user_text` si el libro no aparece en lo que escribió la persona. |
+| P-80 | baja | El catálogo del prompt solo trae categorías y cuentas del libro abierto: para otro libro Ortiz pasa los nombres como los dice la persona y el ejecutor los resuelve allí (si no coinciden, tarjeta con opciones). | `lib/agente/services/suite_rag_service.dart` (`generateRegistrationCatalogs`) | Solo si molesta en el uso. |
+| P-81 | baja | `createHabit` guarda en `commitArgs` el nombre del contacto, no su id: con dos contactos del mismo nombre, al confirmar sale `missing`. | `lib/agente/services/write_tools/habitos_write_tools.dart` | Pasar `contactId` en `commitArgs` (como `accountId` en Finanzas). |
+
 ### Sistema agéntico
 | # | Severidad | Problema | Propuesta |
 | --- | --- | --- | --- |

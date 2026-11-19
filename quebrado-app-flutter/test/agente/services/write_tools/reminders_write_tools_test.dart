@@ -30,12 +30,10 @@ final DateTime _now = DateTime(2026, 11, 18, 15, 30);
 
 WriteContext _ctx({
   bool untrustedRead = false,
-  bool directWriteDone = false,
   bool confirmed = false,
 }) =>
     WriteContext(
       untrustedRead: untrustedRead,
-      directWriteDone: directWriteDone,
       confirmedByUser: confirmed,
       now: () => _now,
     );
@@ -148,19 +146,14 @@ void main() {
     expect(state.allReminders.length, before + 1);
   });
 
-  test('si en el turno se leyó texto libre o ya hubo otra escritura sale como tarjeta', () async {
+  test('si en el turno se leyó texto libre sale como tarjeta', () async {
     final read = await create(
       {'title': 'Algo', 'dueAt': '2026-11-19T09:00'},
       _ctx(untrustedRead: true),
     );
-    final second = await create(
-      {'title': 'Algo', 'dueAt': '2026-11-19T09:00'},
-      _ctx(directWriteDone: true),
-    );
 
     expect(read.result.status, WriteToolStatus.proposal);
     expect(read.result.reasons, ['read_untrusted_text']);
-    expect(second.result.reasons, ['multiple_writes']);
     expect(service.saved, isEmpty);
   });
 

@@ -44,10 +44,6 @@ class WriteContext {
   /// toda escritura baja a `proposal` con el motivo `read_untrusted_text`.
   final bool untrustedRead;
 
-  /// En este turno ya hubo una escritura directa: la siguiente baja a
-  /// `proposal` con el motivo `multiple_writes`.
-  final bool directWriteDone;
-
   /// La persona confirmó la tarjeta: las dudas de tipo `proposal` ya están
   /// aceptadas y se guarda (los `missing` siguen siendo `missing`).
   final bool confirmedByUser;
@@ -58,17 +54,23 @@ class WriteContext {
   WriteContext({
     this.userText = '',
     this.untrustedRead = false,
-    this.directWriteDone = false,
     this.confirmedByUser = false,
+    this.writeLimitReached = false,
     DateTime Function()? now,
   }) : now = now ?? DateTime.now;
 
-  /// Motivos que obligan a tarjeta aunque todo se haya resuelto.
+  /// En este mensaje ya se guardaron directo [SuiteRagService.maxDirectWritesPerMessage]
+  /// registros: el siguiente baja a `proposal` con `too_many_writes`.
+  final bool writeLimitReached;
+
+  /// Motivos que obligan a tarjeta aunque todo se haya resuelto. Varios
+  /// registros en un mismo mensaje se guardan todos directo (decisión de la
+  /// persona, 2026-11-19), hasta un tope alto de seguridad.
   List<String> get forcedProposalReasons {
     if (confirmedByUser) return const [];
     return [
       if (untrustedRead) 'read_untrusted_text',
-      if (directWriteDone) 'multiple_writes',
+      if (writeLimitReached) 'too_many_writes',
     ];
   }
 
@@ -144,13 +146,12 @@ class WriteContext {
 
   WriteContext copyWith({
     bool? untrustedRead,
-    bool? directWriteDone,
     bool? confirmedByUser,
   }) =>
       WriteContext(
         userText: userText,
         untrustedRead: untrustedRead ?? this.untrustedRead,
-        directWriteDone: directWriteDone ?? this.directWriteDone,
+        writeLimitReached: writeLimitReached,
         confirmedByUser: confirmedByUser ?? this.confirmedByUser,
         now: now,
       );

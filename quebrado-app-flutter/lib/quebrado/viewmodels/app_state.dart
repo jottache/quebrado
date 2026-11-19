@@ -1659,6 +1659,145 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // MARK: - Movimientos en otro libro (Ortiz registra sin cambiar el libro abierto)
+
+  /// Servicio con el que se escribe en un libro que no es el activo. Solo los
+  /// tests lo cambian (una subclase de `SupabaseService.forTesting()`).
+  @visibleForTesting
+  SupabaseService? debugOtherBookService;
+
+  /// Con Supabase todos los libros están precargados en memoria y se pueden
+  /// escribir por su `profile_id`; sin Supabase cada libro es su propio
+  /// archivo SQLite y solo se escribe en el abierto.
+  SupabaseService? get _otherBookService =>
+      debugOtherBookService ?? (_usesSupabase ? SupabaseService.instance : null);
+
+  bool _isProfile(String profileId) => _profiles.any((p) => p['id'] == profileId);
+
+  /// Nombre del libro [profileId], o null si no existe.
+  String? profileNameFor(String profileId) {
+    if (profileId == _activeDbName) return activeProfileName;
+    for (final p in _profiles) {
+      if (p['id'] == profileId) return p['name'];
+    }
+    return null;
+  }
+
+  /// true si se puede registrar en [profileId] sin abrirlo: el libro activo
+  /// siempre; otro libro existente, solo con Supabase.
+  bool canWriteToProfile(String profileId) =>
+      profileId == _activeDbName || (_otherBookService != null && _isProfile(profileId));
+
+  /// Categorías del libro [profileId] (las del activo, o las precargadas).
+  List<TransactionCategory> getCategoriesForProfile(String profileId) {
+    if (profileId == _activeDbName) return categories;
+    return _cachedCategories[profileId] ?? const [];
+  }
+
+  /// Movimientos en memoria del libro [profileId].
+  List<Transaction> getTransactionsForProfile(String profileId) {
+    if (profileId == _activeDbName) return transactions;
+    return _cachedTransactions[profileId] ?? const [];
+  }
+
+  /// Como [defaultAccountIdFor], en el libro [profileId].
+  String? defaultAccountIdForProfile(String profileId, CurrencyType currency) {
+    if (profileId == _activeDbName) return defaultAccountIdFor(currency);
+    final id = _defaultAccountIds[profileId]?[currency];
+    if (id == null || id.isEmpty) return null;
+    final account = getAccountsForProfile(profileId).where((a) => a.id == id).firstOrNull;
+    return account?.currency == currency ? account!.id : null;
+  }
+
+  SupabaseService _otherBookWriter(String profileId) {
+    final service = _otherBookService;
+    if (service == null || !_isProfile(profileId)) {
+      throw StateError('No se puede escribir en el libro $profileId sin abrirlo.');
+    }
+    return service;
+  }
+
+  /// Como [addTransaction], en el libro [profileId] sin cambiar el libro
+  /// activo: guarda con ese `profile_id` y actualiza el saldo de la cuenta (y
+  /// bolsillo) en la memoria de ese libro. Lanza [StateError] si
+  /// [canWriteToProfile] es false.
+  Future<void> addTransactionToProfile(String profileId, Transaction transaction) async {
+    if (profileId == _activeDbName) return addTransaction(transaction);
+    final service = _otherBookWriter(profileId);
+    await service.insertTransaction(transaction, profileId: profileId);
+    await _applyImpactInProfile(service, profileId, transaction, revert: false);
+    final list = _cachedTransactions.putIfAbsent(profileId, () => []);
+    list.removeWhere((t) => t.id == transaction.id);
+    list.insert(0, transaction);
+    notifyListeners();
+  }
+
+  /// Como [deleteTransaction] (sin contrapartida de cambio de divisa), en el
+  /// libro [profileId] sin cambiar el libro activo.
+  Future<void> deleteTransactionFromProfile(String profileId, Transaction tx) async {
+    if (profileId == _activeDbName) return deleteTransaction(tx);
+    final service = _otherBookWriter(profileId);
+    await _applyImpactInProfile(service, profileId, tx, revert: true);
+    await service.deleteTransaction(tx.id);
+    _cachedTransactions[profileId]?.removeWhere((t) => t.id == tx.id);
+    notifyListeners();
+  }
+
+  /// Saldo de cuenta y bolsillo de [t] en la memoria del libro [profileId]
+  /// (misma regla que [_applyTransactionImpact]/[_revertTransactionImpact]).
+  Future<void> _applyImpactInProfile(
+    SupabaseService service,
+    String profileId,
+    Transaction t, {
+    required bool revert,
+  }) async {
+    final adds = (t.type == TransactionType.income) != revert;
+    if (t.accountId != null) {
+      final acc = _cachedAccounts[profileId]?.where((a) => a.id == t.accountId).firstOrNull;
+      if (acc != null) {
+        final amount = _getTransactionAmountInAccountCurrency(t, acc);
+        acc.balance += adds ? amount : -amount;
+        await service.updateAccount(acc, profileId: profileId);
+      }
+    }
+    if (t.destinationPocketId != null) {
+      final pocket =
+          _cachedPockets[profileId]?.where((p) => p.id == t.destinationPocketId).firstOrNull;
+      if (pocket != null) {
+        final double amountUSD = t.currency == CurrencyType.usd
+            ? t.amount
+            : t.amount / (t.exchangeRate > 0 ? t.exchangeRate : 1.0);
+        if (adds) {
+          pocket.currentAmountUSD += amountUSD;
+        } else {
+          pocket.currentAmountUSD = pocket.currentAmountUSD - amountUSD > 0
+              ? pocket.currentAmountUSD - amountUSD
+              : 0.0;
+        }
+        await service.updatePocket(pocket);
+      }
+    }
+  }
+
+  /// Solo para tests: añade (o reemplaza) un libro con sus datos en memoria,
+  /// como los precarga Supabase.
+  @visibleForTesting
+  void debugSeedBook(
+    String profileId, {
+    required String name,
+    List<Account> accounts = const [],
+    List<TransactionCategory> categories = const [],
+    List<Transaction> transactions = const [],
+  }) {
+    _profiles = [
+      for (final p in _profiles)
+        if (p['id'] != profileId) p,
+      {'id': profileId, 'name': name},
+    ];
+    _cachedAccounts[profileId] = List.of(accounts);
+    _cachedCategories[profileId] = List.of(categories);
+    _cachedTransactions[profileId] = List.of(transactions);
+  }
 
   // MARK: - Categories Manager
 

@@ -203,7 +203,7 @@ Escala de `MoodCatalog.valences`: −2 «Muy mal», −1 «Mal», 0 «Normal», 
 **CA-10 — instrucciones dentro de datos leídos.** Medidas deterministas en el código (no solo en el prompt):
 1. **Contaminación del turno:** si en el mismo mensaje de la persona ya se ejecutó una herramienta que devuelve texto libre (`searchSuiteData`, `searchDiarioEntries`, `getPersonalNotes`, `getContactDetails`, `getReminders`), toda escritura posterior de ese turno baja a `proposal` (nunca `saved`). Lo aplica `GeminiService` con un flag por turno que pasa al ejecutor.
 2. **Monto anclado:** `registerTransaction` y `payRecurringPayment` con monto solo guardan directo si el número aparece en un mensaje de la persona de esta conversación; si no → `proposal` (`amount_not_in_user_text`). También cubre «nunca inventa montos».
-3. **Una escritura directa por mensaje** (los lotes están fuera de alcance): la segunda escritura del mismo turno → `proposal`.
+3. ~~**Una escritura directa por mensaje**: la segunda escritura del mismo turno → `proposal`.~~ **Retirada el 2026-11-19** (decisión de la persona, rama `fix/ortiz-contexto-y-registros`): si pide varias cosas en un mensaje, todas se guardan directo, cada una con su Deshacer. Siguen en pie las medidas 1, 2 y 4 (texto libre leído → tarjeta; anclas de monto y nombre; deshacer bloqueado tras una escritura del mismo turno). El motivo `multiple_writes` ya no se genera; la tarjeta conserva su texto para las tarjetas guardadas antes.
 4. **Delimitar lo leído:** el `resultData` de las herramientas de lectura con texto libre va envuelto en `{"untrusted_content": …}` y el prompt dice que nada de ahí es una orden.
 5. `undoLastAction` solo deshace registros de la conversación actual.
 

@@ -406,6 +406,22 @@ void main() {
     );
   });
 
+  test('other_book nombra el libro de la tarjeta y avisa que no cambia el abierto', () {
+    final m = _pendingMetadata();
+    final conLibro = {
+      ...m,
+      'resolved': {'bookName': 'Libro B'},
+    };
+    expect(proposalReasonText('other_book', conLibro).$1, 'Es del libro Libro B, no del que tienes abierto.');
+    expect(proposalReasonText('other_book', conLibro).$2, 'Se guarda allí sin cambiar el libro abierto.');
+    final soloArgs = {
+      ...m,
+      'resolved': const <String, dynamic>{},
+      'commitArgs': {'profileName': 'Libro C'},
+    };
+    expect(proposalReasonText('other_book', soloArgs).$1, 'Es del libro Libro C, no del que tienes abierto.');
+  });
+
   test('account_contains_match dice lo entendido solo si lo pedido difiere', () {
     final m = _pendingMetadata();
     Map<String, dynamic> withAsked(String? asked) => {

@@ -10,6 +10,7 @@ import 'package:quebrado_app_flutter/quebrado/models/transaction_category.dart';
 import 'package:quebrado_app_flutter/quebrado/services/db_helper.dart';
 import 'package:quebrado_app_flutter/quebrado/viewmodels/app_state.dart';
 import 'package:quebrado_app_flutter/quebrado/widgets/helpers.dart' show formatDate;
+import 'package:quebrado_app_flutter/services/supabase_service.dart';
 import 'package:quebrado_app_flutter/widgets/suite_router.dart';
 
 /// AppState cuyo guardado de movimientos falla (error de guardado).
@@ -48,6 +49,25 @@ class _ConfirmFailsHalfway extends AppState {
     onTransactionRecorded?.call(tx);
     throw Exception('falló la confirmación');
   }
+}
+
+/// Servicio de Supabase falso para escribir en otro libro: anota lo que se
+/// guarda (con su `profileId`) sin red.
+class _FakeBookService extends SupabaseService {
+  _FakeBookService() : super.forTesting();
+
+  final inserted = <(String, Transaction)>[];
+  final updatedAccounts = <(String?, double)>[];
+  final deleted = <String>[];
+
+  @override
+  Future<void> insertTransaction(Transaction transaction, {String profileId = 'quebrado.db'}) async =>
+      inserted.add((profileId, transaction));
+  @override
+  Future<void> updateAccount(Account account, {String? profileId}) async =>
+      updatedAccounts.add((profileId, account.balance));
+  @override
+  Future<void> deleteTransaction(String id) async => deleted.add(id);
 }
 
 typedef _Escenario = ({
@@ -546,6 +566,140 @@ void main() {
     });
   });
 
+  group('registerTransaction en otro libro (bookName)', () {
+    /// Escenario con un segundo libro «Libro B» (datos inventados) que tiene
+    /// una cuenta USDT y una categoría «Gasto» que no existe en el activo.
+    Future<(_Escenario, String, Account, _FakeBookService?)> conOtroLibro({bool conSupabase = true}) async {
+      final e = await preparar();
+      final bookId = 'libro_b_${e.suffix}.db';
+      final usdt = Account(id: 'acc_usdt_${e.suffix}', name: 'USDT', currency: CurrencyType.usd, balance: 100, colorHex: '#2FA084', icon: 'creditcard');
+      final gasto = TransactionCategory(id: 'cat_gasto_${e.suffix}', name: 'Gasto', icon: 'tag', colorHex: '#2FA084', type: TransactionCategoryType.expense);
+      e.app.debugSeedBook(bookId, name: 'Libro B', accounts: [usdt], categories: [gasto]);
+      final service = conSupabase ? _FakeBookService() : null;
+      e.app.debugOtherBookService = service;
+      return (e, bookId, usdt, service);
+    }
+
+    const fraseB = 'registra un gasto en la contabilidad del libro b de 35\$ en la cuenta usdt';
+    Map<String, dynamic> gastoB({String bookName = 'Libro B'}) => {
+          'concept': 'Compra de prueba',
+          'amount': 35,
+          'type': 'expense',
+          'currency': 'usd',
+          'categoryName': 'Gasto',
+          'accountName': 'USDT',
+          'bookName': bookName,
+        };
+
+    test('un libro que no es el abierto sale como tarjeta other_book con su categoría y cuenta', () async {
+      final (e, bookId, usdt, service) = await conOtroLibro();
+      final activo = e.app.activeDbName;
+
+      final out = await e.tools.execute(register, gastoB(), ctx(fraseB));
+
+      expect(out.result.isProposal, isTrue, reason: out.result.toString());
+      expect(out.result.reasons, ['other_book']);
+      expect(out.result.resolved, containsPair('bookName', 'Libro B'));
+      expect(out.result.resolved, containsPair('categoryName', 'Gasto'), reason: '«Gasto» solo existe en el libro B');
+      expect(out.result.resolved, containsPair('accountName', 'USDT'));
+      expect(out.commitArgs, containsPair('profileId', bookId));
+      expect(out.commitArgs, containsPair('profileName', 'Libro B'));
+      expect(out.commitArgs, containsPair('accountId', usdt.id));
+      expect(out.profileId, bookId);
+      expect(service!.inserted, isEmpty);
+      expect(usdt.balance, 100);
+      expect(e.app.activeDbName, activo);
+    });
+
+    test('confirmar guarda en ese libro, cambia el saldo de su cuenta y deshacer lo revierte allí', () async {
+      final (e, bookId, usdt, service) = await conOtroLibro();
+      final activo = e.app.activeDbName;
+      final antesActivo = e.app.transactions.length;
+      final out = await e.tools.execute(register, gastoB(), ctx(fraseB));
+
+      final ok = await e.tools.execute(register, out.commitArgs!, ctx(fraseB).copyWith(confirmedByUser: true));
+
+      expect(ok.result.isSaved, isTrue, reason: ok.result.toString());
+      final (savedIn, tx) = service!.inserted.single;
+      expect(savedIn, bookId);
+      expect(tx.id, ok.result.recordId);
+      expect(tx.amount, 35);
+      expect(tx.categoryId, 'cat_gasto_${e.suffix}');
+      expect(tx.accountId, usdt.id);
+      expect(usdt.balance, closeTo(65, 0.001));
+      expect(service.updatedAccounts.single, (bookId, 65.0));
+      expect(e.app.getTransactionsForProfile(bookId).map((t) => t.id), [tx.id]);
+      expect(e.app.activeDbName, activo, reason: 'no cambia el libro abierto');
+      expect(e.app.transactions.length, antesActivo);
+      expect(e.app.transactions.any((t) => t.id == tx.id), isFalse);
+      expect(ok.profileId, bookId);
+      expect(ok.undoPayload, containsPair('profileId', bookId));
+      expect(ok.undoPayload, containsPair('profileName', 'Libro B'));
+
+      await e.tools.undo(register, ok.undoPayload!);
+
+      expect(service.deleted, [tx.id]);
+      expect(usdt.balance, closeTo(100, 0.001));
+      expect(e.app.getTransactionsForProfile(bookId), isEmpty);
+      expect(e.app.activeDbName, activo);
+    });
+
+    test('sin cuenta nombrada usa la predeterminada de ese libro', () async {
+      final (e, bookId, usdt, _) = await conOtroLibro();
+      e.app.applyRemoteSettings({AppState.defaultAccountSettingKey(bookId, CurrencyType.usd): usdt.id});
+
+      final out = await e.tools.execute(register, {...gastoB()}..remove('accountName'), ctx(fraseB));
+
+      expect(out.result.reasons, ['other_book']);
+      expect(out.commitArgs, containsPair('accountId', usdt.id));
+    });
+
+    test('nombrar el libro abierto registra directo como siempre', () async {
+      final e = await preparar();
+
+      final out = await e.tools.execute(register, {...huevos(amount: 450), 'bookName': e.app.activeProfileName}, ctx('450'));
+
+      expect(out.result.isSaved, isTrue, reason: out.result.toString());
+      expect(out.profileId, e.app.activeDbName);
+      expect(e.banesco.balance, closeTo(9550, 0.001));
+    });
+
+    test('un nombre de libro ambiguo pregunta el libro con las opciones', () async {
+      final (e, _, _, service) = await conOtroLibro();
+      e.app.debugSeedBook('libro_c1_${e.suffix}.db', name: 'Prueba Casa');
+      e.app.debugSeedBook('libro_c2_${e.suffix}.db', name: 'Prueba Oficina');
+
+      final out = await e.tools.execute(register, gastoB(bookName: 'prueba'), ctx(fraseB));
+
+      expect(out.result.isMissing, isTrue);
+      expect(out.result.missing, ['bookName']);
+      expect(out.result.options['bookName'], unorderedEquals(['Prueba Casa', 'Prueba Oficina']));
+      expect(service!.inserted, isEmpty);
+    });
+
+    test('un libro que no existe da error con la lista de libros', () async {
+      final (e, _, _, service) = await conOtroLibro();
+
+      final out = await e.tools.execute(register, gastoB(bookName: 'Zzz inexistente'), ctx(fraseB));
+
+      expect(out.result.isError, isTrue);
+      expect(out.result.message, startsWith('No pude registrarlo: no encontré el libro «Zzz inexistente»; tus libros son: '));
+      expect(out.result.message, contains('Libro B'));
+      expect(out.result.message, endsWith('. No se guardó nada.'));
+      expect(service!.inserted, isEmpty);
+    });
+
+    test('sin Supabase no escribe en otro libro y pide abrirlo', () async {
+      final (e, _, usdt, _) = await conOtroLibro(conSupabase: false);
+
+      final out = await e.tools.execute(register, gastoB(), ctx(fraseB));
+
+      expect(out.result.isError, isTrue);
+      expect(out.result.message, 'Para registrar en el libro Libro B, ábrelo primero en Finanzas. No se guardó nada.');
+      expect(usdt.balance, 100);
+    });
+  });
+
   group('tarjeta confirmada (S3-05) y tasa', () {
     test('al confirmar usa la cuenta por su id aunque otra cuenta tenga el mismo nombre', () async {
       final e = await preparar();
@@ -561,14 +715,31 @@ void main() {
       expect(e.app.transactions.singleWhere((t) => t.id == ok.result.recordId).accountId, e.banesco.id);
     });
 
-    test('confirmar en otro libro da error y no guarda', () async {
+    test('S3-05: una tarjeta creada con otro libro abierto (sin bookName) no se confirma aquí', () async {
       final e = await preparar();
       final out = await e.tools.execute(register, huevos(amount: 100), ctx(frase));
+      expect(out.commitArgs!.containsKey('otherBook'), isFalse);
 
       final err = await e.tools.execute(
           register, {...out.commitArgs!, 'profileId': 'otro_libro.db', 'profileName': 'Negocio'}, ctx(frase).copyWith(confirmedByUser: true));
 
+      expect(err.result.isError, isTrue);
       expect(err.result.message, 'Cambia al libro Negocio para confirmarlo.');
+      expect(e.app.transactions.where((t) => t.accountId == e.banesco.id), isEmpty);
+    });
+
+    test('confirmar una tarjeta de otro libro (bookName) que ya no existe da error y no guarda', () async {
+      final e = await preparar();
+      final out = await e.tools.execute(register, huevos(amount: 100), ctx(frase));
+
+      final err = await e.tools.execute(
+        register,
+        {...out.commitArgs!, 'profileId': 'otro_libro.db', 'profileName': 'Negocio', 'otherBook': true},
+        ctx(frase).copyWith(confirmedByUser: true),
+      );
+
+      expect(err.result.isError, isTrue);
+      expect(err.result.message, 'No pude registrarlo: no encontré el libro Negocio. No se guardó nada.');
       expect(e.app.transactions.where((t) => t.accountId == e.banesco.id), isEmpty);
     });
 
