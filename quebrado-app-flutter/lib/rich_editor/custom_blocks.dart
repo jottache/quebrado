@@ -1,8 +1,9 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../theme/ortiz_tokens.dart';
+import '../theme/ortiz_type.dart';
 import 'rich_editor_colors.dart';
 
 /// Bloques propios para AppFlowy Editor que no trae el paquete:
@@ -476,14 +477,19 @@ class _CodeBlockComponentWidgetState extends State<CodeBlockComponentWidget>
 
   @override
   Widget build(BuildContext context) {
-    final mono = GoogleFonts.robotoMono(fontSize: 13, color: const Color(0xFF1F2937), height: 1.45);
+    // `bodySm` (12 px, alto 1,45) en monoespaciada: el paso de la escala más
+    // cercano a los 13 px de antes, con el mismo alto de línea.
+    final mono = OrtizType.bodySm.copyWith(
+      fontFamily: OrtizType.fontMono,
+      color: RichEditorColors.textPrimary,
+    );
 
     Widget child = Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
+        color: OrtizPalette.surfaceHigh,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: OrtizPalette.line),
       ),
       child: Stack(
         children: [

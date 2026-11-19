@@ -1,30 +1,51 @@
 import 'package:flutter/material.dart';
 
-/// Tema y Tokens de Diseño Minimalista para Hábitos (OrtizApp)
-/// Anclado en el único color primario de la suite (#1F6F5F).
+import '../../theme/ortiz_tokens.dart';
+import '../../theme/suite_apps.dart';
+
+/// Colores de Hábitos sobre el tema oscuro de la suite (spec 01, paso 5).
+///
+/// El primario sale de `SuiteAppColors.habitos` (CA-03) y los neutrales de
+/// `OrtizPalette`; no hay hex propios salvo los fondos lavados de los estados,
+/// documentados abajo. Todo es `const` para los widgets `const`.
 class HabitosColors {
-  // Color Primario Unificado
-  static const Color primary = Color(0xFF1F6F5F);
-  static const Color primaryDark = Color(0xFF154C41);
-  static const Color primaryLight = Color(0xFFE8F3F0); // Tinte primario suave 8%
-  static const Color primaryBorder = Color(0x331F6F5F); // 20% opacidad
+  // Primario de la app.
+  static const Color primary = SuiteAppColors.habitos;
 
-  // Fondos y Superficies Limpias (Light Minimalist)
-  static const Color background = Color(0xFFF9FAFB); // Neutral Slate 50
-  static const Color surface = Colors.white;
-  static const Color surfaceHover = Color(0xFFF3F4F6); // Slate 100
-  static const Color cardBorder = Color(0xFFE5E7EB); // Slate 200
+  /// Antes era un tono más oscuro para leer sobre fondo claro. Sobre el fondo
+  /// oscuro lo legible es el propio color de la app.
+  static const Color primaryDark = SuiteAppColors.habitos;
 
-  // Tipografía y Jerarquía Neutral
-  static const Color textPrimary = Color(0xFF111827); // Dark Slate 900
-  static const Color textSecondary = Color(0xFF4B5563); // Muted Slate 600
-  static const Color textMuted = Color(0xFF9CA3AF); // Light Slate 400
+  /// Fondo suave de chips y selección.
+  static const Color primaryLight = SuiteAppColors.habitosTint;
+  static const Color primaryBorder = SuiteAppColors.habitosBorder;
 
-  // Acentos de Soporte Minimalistas
-  static const Color amber = Color(0xFFD97706); // Ámbar cálido sobrio (Rachas)
-  static const Color amberLight = Color(0xFFFEF3C7); // Fondo ámbar 100
-  static const Color rose = Color(0xFFDC2626); // Rojo sobrio (Recaídas / Borrar)
-  static const Color roseLight = Color(0xFFFEE2E2); // Fondo rojo 100
+  // Fondos y superficies.
+  static const Color background = OrtizPalette.bg;
+  static const Color surface = OrtizPalette.surface;
+  static const Color surfaceHover = OrtizPalette.surfaceHigh;
+  static const Color cardBorder = OrtizPalette.line;
+
+  // Texto.
+  static const Color textPrimary = OrtizPalette.fg;
+  static const Color textSecondary = OrtizPalette.muted;
+
+  /// Se usa en textos que hay que leer (pistas de campos), por eso es `muted`
+  /// y no `faint` (que solo es decorativo, CA-04).
+  static const Color textMuted = OrtizPalette.muted;
+
+  // Estados.
+  /// Rachas: ámbar de aviso de la suite.
+  static const Color amber = OrtizPalette.warn;
+
+  /// Fondo lavado del ámbar de rachas.
+  static const Color amberLight = OrtizPalette.warnTint;
+
+  /// Recaídas y borrar: rojo de error de la suite.
+  static const Color rose = OrtizPalette.bad;
+
+  /// Fondo lavado del rojo de recaídas.
+  static const Color roseLight = OrtizPalette.badTint;
 
   // Aliases ergonómicos / retrocompatibles
   static const Color green = primary;
@@ -34,8 +55,8 @@ class HabitosColors {
   static const Color borderMuted = cardBorder;
   static const Color borderSubtle = cardBorder;
   static const Color borderActive = primary;
-  static const Color windowBackground = Colors.white;
-  static const Color cardBackground = Colors.white;
+  static const Color windowBackground = surface;
+  static const Color cardBackground = surface;
   static const Color textLight = textPrimary;
   static const Color textGreen = primary;
   static const Color textAmber = amber;

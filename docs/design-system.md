@@ -1,99 +1,210 @@
-# Design system — OrtizApp / Quebrado
+# Design system v2 — OrtizApp («Ortiz al centro»)
 
-> **Dueño:** `ui-ux-designer` · **Última revisión:** 2026-11-17
-> Describe el design system **tal como está hoy** en `quebrado-app-flutter/lib/`, no uno ideal. Si este documento y el código no coinciden, **manda el código** y hay que corregir el documento.
-> Las cifras de la §7 se midieron con `grep` sobre `lib/` el 2026-11-17; son aproximadas y sirven para ver la tendencia, no como contrato.
+> **Dueño:** `ui-ux-designer` · **Última revisión:** 2026-11-17 (spec 01, `specs/01-tema-oscuro-design-system.md`)
+> Describe el sistema **nuevo** (tema oscuro ciruela y coral) tal como está en `quebrado-app-flutter/lib/theme/`. Si este documento y el código no coinciden, **manda el código** y hay que corregir el documento.
+> Las cifras de deuda de la §12 se midieron con `grep` sobre `lib/` el 2026-11-17, antes de la spec 01; la spec 01 no tocó pantallas, así que siguen sirviendo como tendencia, no como contrato.
+> Reglas operativas para agentes: skill `.claude/skills/ortiz-dark-ui/SKILL.md` (remite aquí para el detalle).
+> Maqueta y decisiones C1–C20: https://claude.ai/artifact/TR22XAWd9anJ6xYLXCVn48
 
 Rutas relativas a `quebrado-app-flutter/lib/`.
 
 ---
 
-## 1. Principios y personalidad visual
+## 1. Principios
 
-La app es una **suite** ("OrtizApp", `MaterialApp.title`) con un launcher y seis mini-apps. Comparten una base y cada una tiene un color de identidad propio.
+1. **Oscuro.** Un solo tema, oscuro, Material 3 (`OrtizTheme.dark` en `main.dart`). El tema claro no existe todavía (C9); los tokens son una `ThemeExtension` para poder añadirlo sin tocar pantallas.
+2. **Sin tarjetas (C4).** El contenido va directamente sobre el fondo `bg`, agrupado con **espacio** (`OrtizSpace.xxl` entre grupos) y **líneas finas** (`Divider`, color `line`). Solo **flotan** tres cosas, sobre `surface`: el menú (popup, sidebar, navegación), las hojas y diálogos, y el campo del chat de Ortiz.
+3. **Ortiz al centro.** El agente se llama «Ortiz» y su identidad es el acento coral. La spec 02 pone su cara y su chat en la pantalla de inicio.
+4. **Un acento.** El coral `accent` es la única acción principal de toda la suite. Cada mini-app tiene un color propio (§2.2) que **solo la señala** (icono, marca, selección dentro de la app); nunca compite con el acento en botones principales. El color del libro activo solo marca el selector de libro y su indicador (PA-01).
+5. **Todo es token.** Color, tipografía, espaciado, radio y movimiento salen de `lib/theme/`. Nada literal en pantallas nuevas.
+6. **Movimiento sobrio.** Entradas cortas con una sola curva, escalonadas, y cero movimiento si el sistema pide reducirlo.
+7. Textos en español, tuteo, frases cortas. La app es **solo web** (Flutter web en Vercel).
 
-**Común a toda la suite**
+## 2. Color
 
-- Tema **claro** únicamente (no hay `darkTheme` ni `Brightness.dark`).
-- Material 3 (`useMaterial3: true`), tipografía **Josefin Sans** vía `GoogleFonts.josefinSansTextTheme` en `main.dart`.
-- Estilo "minimalista limpio": fondo gris muy claro, tarjetas blancas con borde de 1 px gris claro y sombra suave o ninguna (`elevation: 0` es lo habitual: 92 usos).
-- Transiciones de página tipo Cupertino en todas las plataformas.
-- Radios generosos (10–16 px en tarjetas, 20 px en `ClaymorphicCard`, 24 px en sheets).
-- Textos en español, tono cercano y directo (tuteo).
+### 2.1 Tokens base — `OrtizPalette` / `OrtizTokens` (`theme/ortiz_tokens.dart`)
 
-**Identidad por mini-app**
+- `OrtizPalette`: los valores como constantes `static const` (para widgets `const` y otras clases de color).
+- `OrtizTokens`: los mismos valores como `ThemeExtension<OrtizTokens>`; se leen con `OrtizTokens.of(context)` (devuelve `OrtizTokens.dark` si el tema no la registra). Es lo preferido en pantallas nuevas.
 
-| Mini-app | Clase de color | Primario | Personalidad |
+| Token | Valor | Uso | Contraste sobre `bg` / `surface` / `surfaceHigh` |
 | --- | --- | --- | --- |
-| Launcher / Quebrado (finanzas) | `AppColors` (`theme/colors.dart`) | `#1F6F5F` verde azulado, **dinámico** | "Claymórfico": tarjetas con volumen (solo cuando la tarjeta es de color; las blancas son planas con sombra suave). Montos y monedas protagonistas. |
-| Diario Jottache (+ Ánimo) | `DiarioColors` | `#1F6F5F` fijo | Minimalista de un solo color: casi todos los "acentos" (amber, emerald, purple, blue, cyan) apuntan al primario a propósito. Rojo solo para borrar. |
-| Hábitos | `HabitosColors` / `HabitosStyles` (`habitos/theme/habitos_terminal_theme.dart`) | `#1F6F5F` fijo | Antes era estilo terminal (de ahí nombres como `habit_terminal_editor_dialog`, `mono`, `prompt`, `textGreen`); hoy es minimalista claro. Ámbar para rachas, rojo para recaídas. |
-| Recordatorios / Agenda Covey | `RemindersColors` | `#2E5B88` slate indigo | Sobrio, colores por prioridad P1–P4 y por estado (vencido, pospuesto, completado). |
-| Notas & Acuerdos | `NotasColors` | `#6366F1` índigo | Cuaderno digital tipo Notion: acentos por categoría (acuerdos rosa, ideas ámbar, datos verde) y callouts. |
-| Agente Ortiz (chat IA) | `AgenteColors` | `#6366F1` índigo | Chat con burbujas (usuario índigo, bot gris), artefactos y colores de estado (pensando, herramienta, éxito, error). |
-| Editor enriquecido (compartido) | `RichEditorColors` | `accent` mutable | El acento lo fija cada app al abrir el editor (Notas índigo, Diario verde). Es estático porque las barras flotantes viven en el Overlay raíz. |
+| `bg` | `#110E12` | Fondo de toda pantalla | — |
+| `surface` | `#1A161B` | Lo que flota: menú, hojas, diálogos, campo del chat, campos de texto | — |
+| `surfaceHigh` | `#241E25` | Elemento activo o seleccionado, burbuja del usuario, pista de pestañas | — |
+| `line` | `#352B37` | Separadores, bordes de campos y menús | — |
+| `fg` | `#F1E9EE` | Texto principal e iconos | 16,1 / 15,0 / 13,7 |
+| `muted` | `#9C8F98` | Texto secundario legible (metadatos, fechas, ayudas, pistas) | 6,2 / 5,8 / 5,3 |
+| `faint` | `#655A62` | **Solo decorativo** (deshabilitado, adornos). Nunca texto que haya que leer | 2,9 / 2,7 / 2,5 |
+| `accent` | `#FF8466` | Acción principal, foco, Ortiz | 8,0 / 7,4 / 6,8 |
+| `onAccent` | `#1E0D08` | Texto e iconos **sobre** `accent` (y sobre cualquier relleno de color claro: app, estado) | 7,8 sobre `accent` |
+| `ok` | `#7CC9A6` | Éxito, completado | 9,8 / 9,2 / 8,4 |
+| `warn` | `#E9B65C` | Aviso, pospuesto, rachas | 10,3 / 9,6 / 8,8 |
+| `bad` | `#EF7B6E` | Error, borrar, vencido | 7,1 / 6,6 / 6,0 |
+| `income` | = `ok` | Ingreso (PA-02) | — |
+| `expense` | = `bad` | Gasto (PA-02) | — |
 
-**Regla de identidad:** dentro de una mini-app se usa su clase de color; los elementos de la suite (launcher, sidebar de escritorio, command center) usan `AppColors` y el color de identidad de cada módulo solo para señalarlo (icono, tarjeta del launcher).
+`test/theme/ortiz_tokens_test.dart` comprueba que `fg` y `muted` cumplen ≥ 4,5:1 sobre las tres superficies (CA-04).
 
-## 2. Tokens actuales
+### 2.2 Un color por app — `SuiteApp` / `SuiteAppColors` (`theme/suite_apps.dart`)
 
-Hoy **solo los colores** están tokenizados. Tipografía, espaciados, radios y sombras son **literales** repartidos por las pantallas; abajo se documentan los valores más usados como "tokens de facto".
+`enum SuiteApp { finanzas, diario, habitos, recordatorios, notas }` con `label`, `route`, `icon`, `color`, `tint` y `border`. El Agente no está en el enum: su color es el `accent` (es Ortiz).
 
-### 2.1 Colores de la suite — `AppColors` (`theme/colors.dart`)
-
-| Token | Valor | Notas |
+| App | `SuiteAppColors.xxxArgb` | Contraste sobre `bg` |
 | --- | --- | --- |
-| `primary` | `#1F6F5F` | **No es `const`**: lo cambia `AppColors.updateThemeColor()` según el color del libro/perfil activo (`quebrado/viewmodels/app_state.dart`). |
-| `secondary` | `#2FA084` | Derivado de `primary` (+10 % luminosidad) al cambiar el tema. |
-| `accent` | `#6FCF97` | Derivado de `primary` (+25 % luminosidad). No usar para texto (contraste 1.9:1). |
-| `background` | `#EEEEEE` | Fondo de pantallas y diálogos (`dialogBg`). |
-| `cardBackground` | `Colors.white` | |
-| `cardText` / `cardSubtitleText` | `black87` / `black54` | |
-| `cardBorderColor` / `cardBorderWidth` | `#E0E0E0` / `1.0` | |
-| `mainTabActiveBg` / `mainTabActiveText` / `mainTabInactiveText` / `mainTabTrackBg` | `primary` / blanco / `black54` / negro 5 % | Pestañas principales (fuera de tarjetas). |
-| `nestedTabActiveBg` / `nestedTabTrackBg` | `secondary` / negro 5 % | Pestañas dentro de tarjetas. |
-| `income` | `#5F8575` | Semántico: ingreso. |
-| `expense` | `#C84E4E` | Semántico: gasto. |
-| `creationColors` | `#1F6F5F, #2FA084, #6FCF97, #5F8575, #3B6B7B, #7C8B64, #D4A373, #C84E4E` | Paleta para elegir color de bolsillos, suscripciones, libros. |
+| Finanzas | `0xFFE7C06A` | 11,1 |
+| Diario | `0xFFEE8FA6` | 8,3 |
+| Hábitos | `0xFF6FC3DF` | 9,6 |
+| Recordatorios | `0xFFA99BFF` | 8,1 |
+| Notas | `0xFFE9D8A6` | 13,5 |
 
-**Colores por moneda** (`quebrado/widgets/currency_pill.dart`, constantes de nivel superior): `usdCurrencyColor #16A34A` (verde), `bsCurrencyColor #D97706` (ámbar), `eurCurrencyColor #2563EB` (azul), con `currencyColor()` y `currencyShortLabel()` (`$`, `Bs`, `€`).
+Derivados (operaciones de bits sobre el mismo entero, conservan el RGB y fijan el alpha):
 
-### 2.2 Colores por módulo
+- `xxxTint` — alpha `tintAlpha = 0x29` (≈ 16 %): fondo suave de chips, selección, avatares.
+- `xxxBorder` — alpha `borderAlpha = 0x73` (≈ 45 %): borde o separador con color.
 
-Todas siguen el mismo esqueleto (`primary`, `primaryLight`, `primaryDark`, `background`, `surface`/`cardSurface`, `cardBorder`, `textPrimary`, `textSecondary`, `textMuted`) con valores de la escala Slate de Tailwind:
+**Recolorear una app = cambiar un solo entero** (`SuiteAppColors.diarioArgb`). Cambian a la vez `SuiteApp.diario.color/tint/border`, el `primary`, `primaryLight` y `primaryBorder` de `DiarioColors` y todo lo que los use, sin editar otro archivo (CA-02, `test/theme/suite_apps_test.dart`).
 
-| Clase | primary / light / dark | background | cardBorder | textPrimary / Secondary / Muted | Extras |
-| --- | --- | --- | --- | --- | --- |
-| `DiarioColors` | `#1F6F5F` / `#E8F3F0` / `#154C41` | `#F9FAFB` | `#E5E7EB` | `#111827` / `#4B5563` / `#9CA3AF` | `rose #DC2626` (+`roseLight`), `surfaceHover`, `primaryGlow`; alias amber/emerald/purple/blue/cyan = primary |
-| `HabitosColors` | `#1F6F5F` / `#E8F3F0` / `#154C41` | `#F9FAFB` | `#E5E7EB` | `#111827` / `#4B5563` / `#9CA3AF` | `amber #D97706`, `rose #DC2626`, `primaryBorder` (20 %), alias heredados del tema terminal |
-| `RemindersColors` | `#2E5B88` / `#EBF2F8` / `#1E3E5E` | `#F8FAFC` | `#E2E8F0` | `#0F172A` / `#475569` / `#94A3B8` | prioridad `urgent #DC2626`, `high #EA580C`, `medium #2563EB`, `low #64748B`; estado `overdue #E11D48`, `snoozed #D97706`, `completed #059669` |
-| `NotasColors` | `#6366F1` / `#EEF2FF` / `#4F46E5` | `#F8FAFC` | `#E2E8F0` | `#0F172A` / `#64748B` / `#94A3B8` | categorías `acuerdosPink`, `ideasAmber`, `datosGreen` (+ light); callouts info/warn/pink (bg + border) |
-| `AgenteColors` | `#6366F1` / `#EEF2FF` / `#4F46E5` | `#F8F9FD` | `#E2E8F0` | — | burbujas `userBubble`/`botBubble`, `artifact*`, estado `thinking #8B5CF6`, `toolExec #0EA5E9`, `success #10B981`, `error #EF4444` |
-| `RichEditorColors` | `accent` (mutable, defecto `#6366F1`) | — | `border #E2E8F0` | `#0F172A` / `#64748B` / `#94A3B8` | `calloutBg/Border`, `icon #37352F` |
+### 2.3 Por qué todo es `const`
 
-### 2.3 Tipografía
+Hay cientos de widgets `const` que usan las clases de color de los módulos (`const Icon(…, color: DiarioColors.primary)`). Si un color dejara de ser constante de compilación, esos widgets no compilarían. Por eso:
 
-- Familia: **Josefin Sans** (tema global). Excepciones: `GoogleFonts.roboto*` en la exportación PDF de Notas (`notas/services/note_pdf_service.dart`) y `fontFamily: 'monospace'` en 3 sitios.
-- AppBar: 18 / bold / `black87`, centrado.
-- No hay escala tipográfica en código: `Theme.of(context).textTheme` se usa **1 vez**; hay ~1 840 `fontSize:` literales.
-- Tamaños de facto (frecuencia): **12** (360), **13** (332), **11** (298), **10** (169), **14** (161), 16 (87), 15 (65), 18 (56), 9 (54), 20 (29) y medios puntos (10.5, 11.5, 12.5, 9.5).
-- Escala de referencia para código nuevo (la de facto, redondeada): `caption 11` · `body-sm 12` · `body 13–14` · `title-sm 16` · `title 18` · `display 20+`. Evitar < 11 (hay ~300 usos de 9–10.5) y medios puntos.
-- `HabitosStyles` (`title 16/w800`, `body 14/w500`, `caption 12`, `badge 11/w700`) es la única familia de estilos con nombre, pero **no se usa** (0 referencias).
+- Los tokens son `static const Color`, y `SuiteApp.x.color` **no** sirve en un contexto `const` (leer un campo de un valor de enum no es expresión constante): ahí se usa `SuiteAppColors.x`.
+- Los derivados con alpha se calculan sobre **enteros** (`(argb & 0x00FFFFFF) | (alpha << 24)`), porque `Color.withValues`, `withAlpha` o leer el ARGB de un `Color` (`toARGB32()`) no son constantes.
+- Por eso `OrtizPalette` expone los enteros del acento y de los estados (`accentArgb`, `warnArgb`, `badArgb`) y sus tonos `const` (`accentTint`, `warnTint`, `warnBorder`, `badTint`, con los mismos alphas que `SuiteAppColors`). Los módulos usan esos tonos; no hay copias de enteros fuera de `ortiz_tokens.dart`.
+- Fuera de un `const`, en pantallas nuevas, lo correcto es `OrtizTokens.of(context).warn.withValues(alpha: …)`.
 
-### 2.4 Espaciado, radios, sombras, iconos (literales de facto)
+### 2.4 `AppColors` — suite y Finanzas (`theme/colors.dart`)
 
-| Tipo | Valores más usados (frecuencia) | Recomendado para código nuevo |
+Conserva todos sus nombres públicos (≈ 400 usos), pero ya no define hex: lee `OrtizPalette`.
+
+| Token | Ahora | Nota |
 | --- | --- | --- |
-| Separadores `SizedBox` | alto 16 (232), 12 (163), 8 (159), 4 (134), 6 (96); ancho 8 (209), 12 (88), 6 (93), 4 (83), 10 (83) | Escala 4 · 8 · 12 · 16 · 20 · 24 |
-| Padding `EdgeInsets` | `all(12)` 51, `all(8)` 44, `all(16)` 44+22, `symmetric(vertical:14)` 43, `all(20)` 37, `all(14)` 33 | Tarjeta 16, contenido de sheet 20, chip `h6 v2` |
-| Radio `BorderRadius.circular` | 12 (233), 10 (187), 8 (151), 16 (145), 14 (116), 20 (58), 6 (56), 24 (30) | Chip 6–8 · campo/botón 12 · tarjeta 16 · tarjeta clay 20 · sheet 24 |
-| Sombras | 90 `BoxShadow`; `blurRadius` 4, 6, 8, 10; tarjeta clara: negro 4 %, `offset (0,4)`, `blur 12` | Usar la sombra de `ClaymorphicCard` clara o ninguna |
-| Iconos | `size` 18 (82), 16 (78), 20 (52), 14 (45) | 16 en chips, 20 en listas, 24 en acciones |
-| Opacidades | 613 `withOpacity(` (deprecado) vs 12 `withValues(alpha:)` | Código nuevo: `withValues(alpha: …)` |
+| `primary`, `secondary` | `accent` | Fijos y `const`. El acento ya no depende del libro (PA-01). |
+| `accent` | `income` | Serie de ingresos puntuales en gráficos, distinta del coral. |
+| `background`, `dialogBg` | `bg`, `surface` | |
+| `bookColor` + `updateThemeColor()` | color del libro activo | `updateThemeColor` ya no altera `primary`; solo guarda `bookColor`. Hoy nadie lo lee (el selector de libro usa el color de cada perfil); queda reservado para el indicador de libro de la spec 02. |
+| `cardBackground` / `cardText` / `cardSubtitleText` / `cardBorderColor` | `surface` / `fg` / `muted` / `line` | Heredados; desaparecen con las tarjetas (spec 05). |
+| `mainTab*`, `nestedTab*` | activo `accent` + `onAccent`, inactivo `muted`, pista `surfaceHigh` | |
+| `income` / `expense` | `income` / `expense` | |
+| `creationColors` | coral, dorado, cielo, lavanda, rosa, menta, ámbar, crema (de `OrtizPalette`/`SuiteAppColors`) | Paleta para lo que se cree desde ahora (decisión 2026-11-17). Los hex ya guardados en libros, cuentas, bolsillos y pagos no cambian. [0] = por defecto de libros y categorías; [1] = de cuentas, bolsillos y recurrentes. |
 
-## 3. Responsive
+Colores de moneda (`quebrado/widgets/currency_pill.dart`): siguen siendo constantes propias (`usd #16A34A`, `bs #D97706`, `eur #2563EB`); se revisan en la spec 05.
 
-### 3.1 Clases de ventana — `widgets/responsive_breakpoints.dart`
+### 2.5 Clases de color de los módulos → tokens
+
+Todas mantienen sus nombres públicos y son `const`. Ninguna define hex para su primario (CA-03).
+
+| Clase | Primario y variantes | Neutrales y texto | Estados | Hex propios que quedan |
+| --- | --- | --- | --- | --- |
+| `DiarioColors` (`diario/theme/`) | `diario`; `primaryDark` = `primary` (antes verde oscuro); `primaryLight`/`*Light` = `diarioTint`; `primaryBorder` = `diarioBorder`; alias amber/emerald/purple/blue/cyan = `primary` (minimalismo de un color) | `bg`, `surface`, `surfaceHover` = `surfaceHigh`, `cardBorder` = `line`; `textPrimary` = `fg`; `textSecondary`/`textMuted` = `muted` | `rose` = `bad`; `roseLight` = `badTint` | — |
+| `HabitosColors` (`habitos/theme/habitos_terminal_theme.dart`) | `habitos` + tint/border; alias heredados del tema terminal | igual que Diario | rachas `amber` = `warn` (`amberLight` = `warnTint`); recaídas `rose` = `bad` (`roseLight` = `badTint`) | — |
+| `RemindersColors` | `recordatorios` + tint/border | igual | P1 `urgent` = `bad`, P2 `high` = `warn`, P3 `medium` = `recordatorios`, P4 `low` = `muted`; `overdue` = `bad`, `snoozed` = `warn`, `completed` = `ok` (los distingue también su icono y etiqueta) | — |
+| `NotasColors` | `notas` + tint | igual | callout de aviso = `warnTint`/`warnBorder` | categorías `acuerdosPink #F48FB8`, `ideasAmber #F5C26B`, `datosGreen #72D4A8` (+ `Light`) |
+| `AgenteColors` | `accent` (Ortiz); `primaryLight` = `accentTint` | burbuja usuario `surfaceHigh`, bot `surface`, texto `fg`; artefactos `surface` + `line` | `success` = `ok`, `error` = `bad` | `thinking #C3A6FF`, `toolExec #6EC8F0`: no hay token «pensando»/«herramienta» |
+| `RichEditorColors` | `accent` estático, lo fija cada app al abrir el editor (por defecto `OrtizPalette.accent`); `accentLight` = `accent` con `tintAlpha` | texto `fg`/`muted`, `border` = `line`, iconos `fg` | callout = `warnTint`/`warnBorder` | — |
+
+Todos los hex propios que quedan se recalibraron para fondo oscuro y cumplen ≥ 4,5:1 sobre `bg` (aptos para texto). Si se repiten en una segunda app, se proponen como token aquí antes de crearlos.
+
+`HabitosStyles` sigue existiendo sin uso; no fija familia, así que hereda Manrope del tema.
+
+## 3. Tipografía — `OrtizType` (`theme/ortiz_type.dart`)
+
+Familias empaquetadas en `assets/fonts/` (sin descarga en tiempo de ejecución, CA-05): **Bricolage Grotesque** (`fontDisplay = 'Bricolage'`) para títulos, **Manrope** (`fontBody`) para texto y **JetBrains Mono** (`fontMono = 'JetBrainsMono'`) para montos, con cifras tabulares. Los estilos no llevan color: lo pone el tema.
+
+| Nombre | Familia | Tamaño / peso | Para |
+| --- | --- | --- | --- |
+| `caption` | Manrope | 11 / 500 | Etiquetas pequeñas, encabezados de grupo |
+| `bodySm` | Manrope | 12 / 400 | Texto secundario, ayudas |
+| `body` | Manrope | 14 / 400 | Texto por defecto |
+| `titleSm` | Manrope | 16 / 600 | Título de fila o de grupo |
+| `title` | Bricolage | 18 / 600 | Título de pantalla (AppBar) |
+| `display` | Bricolage | 24 / 700 | Título grande, cifra destacada |
+| `displayLg` | Bricolage | 32 / 700 | Saludo de inicio, cabecera |
+| `amount` | JetBrains Mono | 14 / 500, tabular | Montos en listas |
+| `amountLg` | JetBrains Mono | 24 / 500, tabular | Saldo destacado |
+
+- `OrtizType.textTheme` asigna la escala a los 15 slots de Material 3 (`titleLarge` = `title`, `bodyMedium` = `body`, `bodyLarge` = 16 px para campos, `labelLarge` = botones). `OrtizTheme.darkTextTheme` le pone color: todo `fg` salvo `bodySmall` en `muted`.
+- Uso: `Theme.of(context).textTheme.bodyMedium` o `OrtizType.body.copyWith(color: t.muted)`.
+- **Campos de texto a 16 px** (`bodyLarge`): por debajo, Safari de iOS hace zoom al enfocar.
+- Nada por debajo de 11 px ni medios puntos.
+
+## 4. Espaciado y radio — `OrtizSpace` / `OrtizRadius` (`theme/ortiz_space.dart`)
+
+| `OrtizSpace` | px | Uso típico |
+| --- | --- | --- |
+| `xs` | 4 | Icono ↔ texto |
+| `sm` | 8 | Entre elementos de una fila |
+| `md` | 12 | Entre filas de un grupo |
+| `lg` | 16 | Margen de pantalla, padding de bloque |
+| `xl` | 20 | Padding de hoja y diálogo |
+| `xxl` | 24 | **Entre grupos** (lo que antes separaba una tarjeta) |
+| `xxxl` | 32 | Entre secciones grandes |
+
+`OrtizSpace.scale` es la lista completa.
+
+| `OrtizRadius` | px | Dónde lo usa el tema |
+| --- | --- | --- |
+| `chip` | 8 | Chips, tooltips |
+| `field` | 12 | Campos, snackbars |
+| `menu` | 12 | Menús emergentes |
+| `block` | 16 | Bloque agrupado; `Card` mientras exista |
+| `dialog` | 20 | Diálogos |
+| `sheet` | 22 | Hojas inferiores (solo arriba) |
+| `pill` / `pillShape` | 999 / `StadiumBorder()` | Botones y FAB |
+
+`OrtizTheme` toma sus radios de aquí (`test/theme/ortiz_space_test.dart`).
+
+## 5. Movimiento — `OrtizMotion` (`theme/ortiz_motion.dart`)
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `fast` | 180 ms | Hover, toggles, cambios de estado |
+| `base` | 320 ms | Entradas, hojas |
+| `slow` | 450 ms | Transiciones grandes |
+| `stagger` | 60 ms | Retraso entre elementos de una lista |
+| `ease` | `Cubic(0.2, 0.8, 0.2, 1)` | Curva única (rápida al empezar, se posa al final) |
+
+- **Reducir movimiento:** `OrtizMotion.of(context, d)` devuelve `Duration.zero` si `MediaQuery.disableAnimations` es verdadero; `OrtizMotion.staggerOf(context, i)` igual para el retraso; `OrtizMotion.reduced(context)` para decidir quitar un efecto (CA-06). Toda animación nueva pasa por ellos.
+- **`flutter_animate`** (dependencia desde la spec 01, se usa desde la 02) para entradas declarativas; las animaciones nativas (`AnimatedContainer`, `AnimatedSwitcher`…) siguen valiendo. `flutter_animate` **no** respeta solo la preferencia del sistema: hay que pasarle las duraciones de `OrtizMotion.of`.
+
+```dart
+child.animate(delay: OrtizMotion.staggerOf(context, index))
+    .fadeIn(duration: OrtizMotion.of(context, OrtizMotion.base), curve: OrtizMotion.ease)
+    .slideY(begin: 0.08, end: 0, duration: OrtizMotion.of(context, OrtizMotion.base), curve: OrtizMotion.ease);
+```
+
+- Transiciones de página: Cupertino en todas las plataformas (`pageTransitionsTheme`).
+
+## 6. Componentes de Material ya tematizados (`theme/ortiz_theme.dart`)
+
+`OrtizTheme.dark` se construye una vez y solo con tokens (sin `ColorScheme.fromSeed`). Un widget de Material sin colores propios ya sale bien:
+
+| Componente | Cómo queda |
+| --- | --- |
+| `ColorScheme` | `primary`/`secondary` = `accent` con `onAccent`; `surface` = `surface`; `onSurface` = `fg`; `onSurfaceVariant` = `muted`; `outline` = `line`; `error` = `bad`; `tertiary` = `ok` |
+| Scaffold, AppBar | Fondo `bg`, sin elevación ni tinte; título `title` centrado |
+| `Card` | `surface`, sin elevación, borde `line`, radio `block` (transición: no usar en código nuevo) |
+| Diálogos, hojas, drawer | `surface`, sin tinte; radios `dialog` y `sheet`; asa de la hoja `line` |
+| Campos (`InputDecoration`) | Relleno `surface`, borde en reposo `faint` (2,9:1 sobre `bg`, para que el campo se vea), foco `accent` 2 px, error `bad`; texto, pista y etiqueta a 16 px (pista y etiqueta `muted`) |
+| Botones | `Elevated`/`Filled`: `accent` + `onAccent`, píldora; `Outlined`: `fg` con borde `line`; `Text`: `accent`; deshabilitados `surfaceHigh` + `faint`. Foco de teclado: borde de 2 px en `fg` en todos (también `IconButton`) |
+| FAB | `accent` + `onAccent`, píldora, sin elevación |
+| SnackBar | Flotante, fondo `fg` con texto `bg` (inverso), radio `field` |
+| `Divider` | `line`, 1 px |
+| Chips | `surface`, seleccionado `surfaceHigh` con borde `accent`; sin seleccionar, borde `line`; radio `chip` |
+| `ListTile` | Iconos `muted`, texto `fg`, seleccionado `accent` sobre `surfaceHigh` |
+| Switch, Checkbox, Radio | Activo `accent` (pulgar/marca `onAccent`); inactivo `muted`/`surfaceHigh` |
+| Progreso | `accent` sobre `surfaceHigh` |
+| Pestañas | Activa `fg` con indicador `accent`; inactiva `muted` |
+| NavigationRail / NavigationBar / BottomNavigationBar | Seleccionado `accent`, resto `muted`, indicador `surfaceHigh` |
+| Tooltip, PopupMenu | `surfaceHigh` / `surface` con borde `line` |
+| Selección de texto | Cursor `accent`, resaltado `accent` al 35 % |
+
+## 7. Responsive
+
+Sin cambios en la spec 01.
+
+### 7.1 Clases de ventana — `widgets/responsive_breakpoints.dart`
 
 | Constante | Valor | Helper | Condición |
 | --- | --- | --- | --- |
@@ -102,105 +213,103 @@ Todas siguen el mismo esqueleto (`primary`, `primaryLight`, `primaryDark`, `back
 | — | — | `isDesktop` | ancho ≥ **840** |
 | `expanded` | 1200 | `isExpanded` | ancho ≥ 1200 |
 
-⚠️ **`isMedium` e `isDesktop` se solapan entre 840 y 1199** (ambos `true`), y entre 600 y 839 la ventana es "medium" pero no "desktop", así que recibe el layout **móvil**. La decisión real de layout de toda la app es **`isDesktop` (≥ 840)**: por debajo, layout móvil; por encima, layout de escritorio. Código nuevo: decidir con `isDesktop` / `isExpanded`; no introducir lógica nueva basada en `isMedium` hasta que se corrija (pendiente).
+⚠️ **`isMedium` e `isDesktop` se solapan entre 840 y 1199** (ambos `true`), y entre 600 y 839 la ventana es "medium" pero no "desktop", así que recibe el layout **móvil**. La decisión real de layout de toda la app es **`isDesktop` (≥ 840)**: por debajo, layout móvil; por encima, layout de escritorio. Código nuevo: decidir con `isDesktop` / `isExpanded`; no introducir lógica nueva basada en `isMedium` hasta que se corrija (P-23).
 
-### 3.2 Patrones de layout
+### 7.2 Patrones de layout
 
-- **Scaffold de la suite** (`widgets/responsive_suite_scaffold.dart`, `ResponsiveSuiteScaffold` + enum `SuiteModule`): en móvil devuelve el launcher (`screens/app_launcher_screen.dart`); en escritorio, **sidebar fijo** (210 px, 240 px en expanded) + separador de 1 px + módulo activo. El módulo inicial en escritorio es el **command center** (`widgets/desktop_command_center_view.dart`).
-- **Sheets responsivos** (`widgets/responsive_sheet_helper.dart`, `showResponsiveSheet`): en móvil `showModalBottomSheet`; en escritorio **panel lateral derecho** (ancho por defecto 480, mínimo 380, máximo 90 % de la ventana), radio 24 a la izquierda, fondo `#F9FAFB`, con **Navigator anidado** para poder abrir subpantallas dentro del panel. Usar siempre este helper para sheets nuevos (hoy convive con 63 `showModalBottomSheet` directos).
+- **Scaffold de la suite** (`widgets/responsive_suite_scaffold.dart`, `ResponsiveSuiteScaffold` + enum `SuiteModule`): en móvil devuelve el launcher (`screens/app_launcher_screen.dart`); en escritorio, **sidebar fijo** (210 px, 240 px en expanded) + separador de 1 px + módulo activo. El módulo inicial en escritorio es el **command center** (`widgets/desktop_command_center_view.dart`). La spec 02 rehace inicio y navegación.
+- **Sheets responsivos** (`widgets/responsive_sheet_helper.dart`, `showResponsiveSheet`): en móvil `showModalBottomSheet`; en escritorio **panel lateral derecho** (ancho por defecto 480, mínimo 380, máximo 90 % de la ventana), radio `OrtizRadius.sheet` a la izquierda y fondo `surface`, con **Navigator anidado** para abrir subpantallas dentro del panel. Usar siempre este helper para sheets nuevos (hoy convive con 63 `showModalBottomSheet` directos).
 - **Scroll horizontal en escritorio** (`ResponsiveHorizontalScroll`, mismo archivo): en escritorio añade botones ◀ ▶ a filas de chips/filtros que en móvil se desplazan con el dedo.
-- **Dos columnas en escritorio**: Quebrado (dashboard + subnav), Hábitos (lista + métricas en vivo), Diario (contactos + detalle maestro-detalle). Patrón: columna izquierda de lista/navegación, derecha de detalle o métricas.
+- **Dos columnas en escritorio**: Finanzas (dashboard + subnav), Hábitos (lista + métricas en vivo), Diario (contactos + detalle maestro-detalle). Patrón: columna izquierda de lista/navegación, derecha de detalle o métricas. Sin tarjetas: las columnas se separan con una línea `line` de 1 px.
 
-## 4. Inventario de componentes reutilizables
+## 8. Inventario de componentes reutilizables
 
 | Componente | Ruta | Cuándo usarlo |
 | --- | --- | --- |
+| `OrtizTheme`, `OrtizTokens`, `SuiteApp`, `OrtizType`, `OrtizSpace`/`OrtizRadius`, `OrtizMotion` | `theme/` | Siempre (§2–6). |
 | `ResponsiveSuiteScaffold` | `widgets/responsive_suite_scaffold.dart` | Raíz de la app; añadir aquí un módulo nuevo de la suite. |
-| `DesktopCommandCenterView` | `widgets/desktop_command_center_view.dart` | Vista resumen en escritorio. |
+| `DesktopCommandCenterView` | `widgets/desktop_command_center_view.dart` | Vista resumen en escritorio (la reemplaza la spec 02). |
 | `showResponsiveSheet` | `widgets/responsive_sheet_helper.dart` | Cualquier formulario o detalle en hoja (móvil) / panel (escritorio). |
-| `ResponsiveHorizontalScroll` | `widgets/responsive_sheet_helper.dart` | Filas horizontales de chips o tarjetas. |
+| `ResponsiveHorizontalScroll` | `widgets/responsive_sheet_helper.dart` | Filas horizontales de chips. |
 | `ResponsiveBreakpoints` | `widgets/responsive_breakpoints.dart` | Toda decisión responsive. |
-| `ClaymorphicCard` | `quebrado/widgets/claymorphic_card.dart` | Tarjeta base de Quebrado (radio 20, padding 16). Con fondo de color aplica volumen 3D y texto blanco automáticamente (luminosidad < 0.75). 97 usos. |
-| `ClaymorphicBackground` | `quebrado/widgets/claymorphic_background.dart` | Fondo `AppColors.background` a pantalla completa. |
-| `SlideToConfirmButton` | `quebrado/widgets/slide_to_confirm_button.dart` | Confirmar operaciones de dinero (activable en ajustes con `useSlideToConfirm`). |
-| `CurrencyPill` + `currencyColor` / `currencyShortLabel` | `quebrado/widgets/currency_pill.dart` | Etiqueta de moneda (`$`, `Bs`, `€`, o `$ → Bs` en cambios). |
+| `ClaymorphicCard` | `quebrado/widgets/claymorphic_card.dart` | **Heredado, no usar en código nuevo** (C4). Con el fondo oscuro calcula «tarjeta de color» y pinta texto blanco y volumen 3D (R-02). Se retira en la spec 05. |
+| `ClaymorphicBackground` | `quebrado/widgets/claymorphic_background.dart` | Fondo `AppColors.background` (= `bg`) a pantalla completa. |
+| `SlideToConfirmButton` | `quebrado/widgets/slide_to_confirm_button.dart` | Confirmar operaciones de dinero (activable con `useSlideToConfirm`). |
+| `CurrencyPill` + `currencyColor` / `currencyShortLabel` | `quebrado/widgets/currency_pill.dart` | Etiqueta de moneda (`$`, `Bs`, `€`, o `$ → Bs`). |
 | `AnimatedProgressBar` | `quebrado/widgets/animated_progress_bar.dart` | Progreso de metas (bolsillos). |
-| `PocketCard` | `quebrado/widgets/pocket_card.dart` | Tarjeta de bolsillo de ahorro. |
-| `TimelineEventRow` | `quebrado/widgets/timeline_event_row.dart` | Fila de evento en el timeline/proyección. |
-| `ExchangeSuggestionRow` | `quebrado/widgets/exchange_suggestion_row.dart` | Sugerencia de cambio de divisa. |
-| `DashboardChartsCard` | `quebrado/widgets/dashboard_charts_card.dart` | Gráficos `fl_chart` del dashboard. |
+| `PocketCard`, `TimelineEventRow`, `ExchangeSuggestionRow`, `DashboardChartsCard` | `quebrado/widgets/` | Bolsillo, fila del timeline, sugerencia de cambio, gráficos `fl_chart`. |
 | Helpers de formato | `quebrado/widgets/helpers.dart` | `formatUSD`, `formatBs`, `formatCurrency`, `formatRate`, `formatDate`, `formatFullDate`, `parseHexColor`, `getIconData`, `CommaTextInputFormatter`. |
-| Editor enriquecido | `rich_editor/` (`RichDocumentEditor`, `RichDocumentViewer`, `FormatToolbar`, `DraftBanner`…) | Texto largo con formato en Notas y Diario; fijar `RichEditorColors.accent` al abrir. |
+| Editor enriquecido | `rich_editor/` (`RichDocumentEditor`, `RichDocumentViewer`, `FormatToolbar`, `DraftBanner`…) | Texto largo con formato en Notas y Diario; fijar `RichEditorColors.accent` al color de la app al abrir. |
 | Ánimo | `diario/widgets/mood_*` | Check-in, selector de emoción, calendario mensual, gráfica de tendencia. |
 | `MentionTextField` | `diario/widgets/mention_text_field.dart` | Menciones `@contacto`. |
 | Vistas de agenda | `recordatorios/widgets/covey_matrix_view.dart`, `weekly_schedule_view.dart` | Matriz 2×2 Covey y agenda semanal. |
 
-## 5. Patrones de UX
+## 9. Patrones de UX
 
-- **Hoja vs. diálogo:** formularios de creación/edición y detalles → `showResponsiveSheet`. Confirmaciones cortas y avisos → `AlertDialog` (33 usos). Lectores/editores grandes de escritorio → diálogo a pantalla grande (p. ej. `entry_reader_dialog`, `note_reader_dialog`). Hoy hay 95 `showDialog` y 63 `showModalBottomSheet` directos: código nuevo usa el helper.
-- **Confirmaciones de dinero:** `SlideToConfirmButton` cuando el ajuste está activo; operaciones sensibles protegidas por PIN de 4 dígitos / biometría (`pin_verification_dialog`, `biometric_service`).
-- **Borrado:** siempre con confirmación y en rojo (`DiarioColors.rose`, `HabitosColors.rose`, `AppColors.expense`). Solo hay 1 `Dismissible`; no hay "deshacer".
-- **Feedback:** `SnackBar` vía `ScaffoldMessenger` (234 usos; 17 `floating`). No hay helper común: estilo, duración y color varían por pantalla.
-- **Carga:** `CircularProgressIndicator` (32) y `LinearProgressIndicator` (9); sin skeletons. `RefreshIndicator` en 4 listas.
-- **Vacío:** texto simple tipo "Sin registros este día.", "No hay categorías registradas". No existe un componente `EmptyState`.
-- **Error:** se registra con `debugPrint` y, a veces, SnackBar con `'Error …: $e'` (expone el mensaje técnico al usuario). La app funciona sin Supabase (datos locales / semillas) y lo indica en logs, no en UI.
-- **Onboarding:** tutoriales con `showcaseview` (15 usos).
-- **Montos y monedas:** USD `"$1234.56"`, EUR `"€1234.56"`, VES `"Bs. 1234.56"` y tasas `"Bs. 36.50"` (`helpers.dart`). Siempre 2 decimales, **sin separador de miles** y con punto decimal; el input acepta coma y la convierte a punto (`CommaTextInputFormatter`). Hay 215 `toStringAsFixed` dispersos y 0 `NumberFormat`: usar los helpers, no formatear a mano.
+- **Agrupar sin tarjetas:** encabezado de grupo en `caption`/`titleSm` color `muted`, filas separadas por `OrtizSpace.md` o por `Divider`, y `OrtizSpace.xxl` entre grupos. Lo seleccionado o activo va sobre `surfaceHigh`. Si un bloque necesita contorno (p. ej. una cita, un código), fondo `surface` con radio `block`, sin sombra.
+- **Hoja vs. diálogo:** formularios de creación/edición y detalles → `showResponsiveSheet`. Confirmaciones cortas y avisos → `AlertDialog`. Lectores/editores grandes de escritorio → diálogo grande (`entry_reader_dialog`, `note_reader_dialog`). Código nuevo usa el helper.
+- **Acción principal:** un solo botón `accent` por vista (`FilledButton` o FAB). Las demás, `OutlinedButton`/`TextButton`.
+- **Confirmaciones de dinero:** `SlideToConfirmButton` cuando el ajuste está activo; operaciones sensibles protegidas por PIN de 4 dígitos / biometría.
+- **Borrado:** siempre con confirmación y en `bad`. No hay «deshacer».
+- **Feedback:** `SnackBar` del tema (flotante, inverso). Sin helper común todavía (P-24).
+- **Carga:** `CircularProgressIndicator` / `LinearProgressIndicator` del tema; sin skeletons.
+- **Vacío:** texto simple en `muted` («Sin registros este día.»). No existe un componente `EmptyState`.
+- **Error:** mensaje en español sin `$e`; la app funciona sin Supabase (datos locales / semillas).
+- **Montos y monedas:** `OrtizType.amount`/`amountLg` (cifras tabulares); ingreso `income`, gasto `expense`. Formato con `helpers.dart`: USD `"$1234.56"`, EUR `"€1234.56"`, VES `"Bs. 1234.56"`, siempre 2 decimales, sin separador de miles, punto decimal; el input acepta coma (`CommaTextInputFormatter`).
 - **Fechas:** `dd/MM/yyyy` y `dd/MM/yyyy HH:mm` (`formatDate`, `formatFullDate`).
-- **Textos:** español, tuteo, frases cortas, sin tecnicismos ("Bolsillos", "Libros", "Abono parcial"). Los mensajes de error para el usuario no deben incluir `$e`.
+- **Textos:** español, tuteo, sin tecnicismos. El agente es «Ortiz».
 
-## 6. Accesibilidad
+## 10. Accesibilidad
 
-**Lo que hay:** 103 `tooltip:` y 12 `Tooltip(` (principalmente en `IconButton`), `HapticFeedback` en 7 sitios, primarios con buen contraste sobre blanco (`AppColors.primary` 6.0:1, `RemindersColors.primary` 7.1:1, `textSecondary` 7.6:1).
+- **Contraste:** `fg`, `muted`, `accent`, estados y colores de app cumplen ≥ 4,5:1 sobre las tres superficies (§2.1–2.2). `faint` no cumple (2,5–2,9:1): solo decorativo. Texto sobre un relleno claro (`accent`, color de app, estado) → `onAccent`, nunca blanco.
+- **Movimiento:** respetar `disableAnimations` (§5).
+- **Campos a 16 px** (§3).
+- Pendiente (P-22, fuera de la spec 01): 0 `Semantics`/`semanticLabel` medidos el 2026-11-17; objetivos táctiles < 48 por `VisualDensity.compact` y `BoxConstraints()` vacíos; escalado de texto sin probar. En código nuevo: `tooltip` o `Semantics` en todo botón solo-icono, objetivo ≥ 48×48, sin alturas fijas que corten texto.
 
-**Lo que falta / riesgos medidos:**
+## 11. Transición (R-01)
 
-- **0** `Semantics(` y **0** `semanticLabel`: lectores de pantalla dependen solo de tooltips y textos.
-- **Escalado de texto:** no se prueba ni se limita (`textScaler` 0 usos); con tamaños fijos de 9–12 px y alturas fijas es probable el desbordamiento con texto grande.
-- **Contraste (WCAG AA 4.5:1 texto normal):** `textMuted` `#9CA3AF`/`#94A3B8` ≈ 2.5:1 ❌; `Colors.grey` (`#9E9E9E`) 2.7:1 ❌ (614 usos de `Colors.grey`); `AppColors.accent` 1.9:1 ❌; `secondary` y blanco sobre `secondary` (pestañas anidadas activas) 3.2:1 ❌ texto normal; `income` 4.1:1 ❌; `NotasColors.primary` 4.47:1 (límite); colores de moneda USD 3.3:1 y Bs 3.2:1 ❌ como texto. Se aceptan solo para texto ≥ 18 px (o 14 bold) o elementos no textuales.
-- **Tamaño táctil:** 23 `VisualDensity.compact`, 13 `BoxConstraints()` vacíos y 4 `shrinkWrap` reducen el objetivo por debajo de 48×48.
-- Sin tema oscuro ni modo de alto contraste.
+Hasta la spec 05 conviven el tema oscuro y pantallas con literales claros. Lo que **sigue claro o mal** y es esperado (filas en `docs/pendientes.md`, sección Diseño, «a resolver en spec 05»):
 
-## 7. Deuda de diseño medida
+- Pantallas con `Colors.white`, `Colors.grey…` o `Color(0xFF…)` claros como fondo (por ejemplo la burbuja del bot en `agente/widgets/chat_message_bubble.dart`, ajustes e inicio del Agente, el bloque de código de `rich_editor/custom_blocks.dart`). El panel lateral de `showResponsiveSheet` ya se corrigió en la spec 01 (P-31).
+- Texto `Colors.white` sobre `AppColors.primary`/`secondary` (ahora coral claro): debería ser `onAccent`.
+- Notas usa su crema como fondo de botones y FAB, con posible texto blanco.
+- `ClaymorphicCard` con volumen y texto blanco (R-02).
+- `DiarioColors.primaryDark` usado fuera del Diario (launcher y command center) ahora sale rosa.
+- Literales sueltos: naranja de `dashboard_charts_card.dart`, `fontFamily: 'monospace'` en 3 sitios, `withOpacity` sobre tintes ya translúcidos en `mention_text_field.dart`, import de `google_fonts` sin uso en el launcher.
 
-| Deuda | Medida aprox. (`grep` en `lib/`) |
+Nada de esto se arregla «de paso»: cada pantalla se migra en la spec 05 con sus tests.
+
+## 12. Deuda de diseño medida
+
+| Deuda | Medida aprox. (`grep` en `lib/`, 2026-11-17) |
 | --- | --- |
-| `Color(0x…)` literales | 547 en total, **~454 fuera de los archivos de tema** |
+| `Color(0x…)` literales | ~454 fuera de los archivos de tema |
 | `Colors.*` de Material directos | ~1 856 (`grey` 614, `white` 600, `black` 277, `transparent` 196, `orange` 42, `red` 33…) |
-| `fontSize:` literales | ~1 840 (escala tipográfica inexistente) |
+| `fontSize:` literales | ~1 840 |
 | `EdgeInsets.*` literales | ~1 315 |
 | `BorderRadius.circular` literales | > 1 000 con 10+ valores distintos |
 | `withOpacity` deprecado | 613 |
 | Sheets/diálogos sin helper responsivo | 63 `showModalBottomSheet` + 95 `showDialog` |
 
-**Inconsistencias entre módulos**
+Resuelto por la spec 01: el primario dinámico a medias (P-21), los cuatro grises de fondo y los dos de borde de las clases de color, los rojos y verdes distintos entre clases (ahora `bad` y `ok`), Notas y Agente compartiendo índigo, y la falta de escala tipográfica, de espaciado y de radio como tokens. Sigue: los literales de las pantallas (P-20), los nombres heredados del tema «terminal» de Hábitos y los shims de re-exportación (`quebrado/theme/colors.dart` → `theme/colors.dart`, etc.; importar siempre la ruta real).
 
-1. **Primario dinámico a medias:** `AppColors.primary` cambia con el color del libro, pero `DiarioColors`, `HabitosColors`, el sidebar de escritorio (`responsive_suite_scaffold.dart`, `#1F6F5F` literal en 6+ sitios) y el launcher tienen `#1F6F5F` fijo → al cambiar de libro la suite queda con dos verdes distintos.
-2. **Tres grises de fondo:** `#EEEEEE` (`AppColors`), `#F9FAFB` (Diario, Hábitos, panel lateral), `#F8FAFC` (Recordatorios, Notas) y `#F8F9FD` (Agente); y dos grises de borde (`#E0E0E0` vs `#E5E7EB`/`#E2E8F0`).
-3. **Dos rojos de borrado/error:** `#C84E4E` (Quebrado), `#DC2626` (Diario/Hábitos/Recordatorios), `#EF4444` (Agente, launcher), `#E11D48` (vencido).
-4. **Verdes de "positivo" distintos:** `income #5F8575`, `usdCurrencyColor #16A34A`, `success/datosGreen #10B981`, `completed #059669`.
-5. **Notas y Agente comparten índigo** `#6366F1` y no se distinguen en el launcher salvo por icono.
-6. Nombres heredados del tema "terminal" de Hábitos que ya no describen el estilo (`HabitosStyles.mono/prompt`, `textGreen`, archivo `habitos_terminal_theme.dart`); `HabitosStyles` sin uso.
-7. **Shims de re-exportación** (no son duplicados reales, pero confunden): `quebrado/theme/colors.dart` → `theme/colors.dart`; `quebrado/services/{notification_manager,supabase_service,supabase_config}.dart` → `services/…`; `viewmodels/app_state.dart` → `quebrado/viewmodels/app_state.dart`. Importar siempre la ruta real.
-8. README describe Quebrado como "claymórfico", pero con `cardBackground` blanco la mayoría de tarjetas son planas; el volumen solo aparece en tarjetas de color.
+## 13. Reglas
 
-## 8. Reglas a partir de ahora
-
-1. **Código nuevo usa tokens existentes:** colores de la clase del módulo (o `AppColors` en piezas de suite); nada de `Color(0x…)` ni `Colors.grey/orange/red…` en pantallas. `Colors.white`, `Colors.transparent` y `Colors.black` con opacidad se toleran en sombras/overlays.
-2. Tamaños, espaciados y radios: usar los valores recomendados de la §2.3–2.4 (escala 4/8/12/16/20/24; radios 8/12/16/20/24; fuentes ≥ 11 sin medios puntos).
-3. **Si falta un token**, el `ui-ux-designer` lo propone primero en este documento y lo crea en `lib/theme/` (con test si tiene lógica). `flutter-dev` no inventa tokens.
-4. Sheets con `showResponsiveSheet`; decisiones de layout con `ResponsiveBreakpoints.isDesktop` / `isExpanded`; toda pantalla nueva se diseña para compact (< 600), móvil ancho/tablet (600–839, hoy layout móvil) y escritorio (≥ 840).
-5. Montos con los helpers de `helpers.dart`; fechas con `formatDate` / `formatFullDate`.
-6. Accesibilidad mínima en lo nuevo: `tooltip` o `Semantics` en todo botón solo-icono, objetivo táctil ≥ 48×48, contraste ≥ 4.5:1 en texto normal, sin alturas fijas que corten texto escalado.
-7. Mensajes al usuario en español, tuteo, sin `$e` ni jerga técnica; estados vacío, carga y error definidos en el diseño de cada vista.
-8. **No migrar pantallas existentes "de paso".** La deuda de la §7 se apunta en `docs/pendientes.md` y se paga en cambios dedicados.
+1. **Solo tokens** en código nuevo: color (`OrtizTokens`/`OrtizPalette`, la clase del módulo o `SuiteApp`), tipografía (`OrtizType` o `textTheme`), espaciado (`OrtizSpace`), radio (`OrtizRadius`), movimiento (`OrtizMotion`). Nada de `Colors.white`, hex, `fontSize`, `EdgeInsets` ni radios literales en pantallas. Se toleran `Colors.transparent` y la escala de `OrtizSpace` dentro de `EdgeInsets`.
+2. **Sin tarjetas** (§1, §9).
+3. Color de app solo vía `SuiteApp`/`SuiteAppColors` (o la clase del módulo, que lo lee de ahí).
+4. `withValues(alpha: …)`, no `withOpacity`.
+5. **Si falta un token**, `ui-ux-designer` lo propone aquí y lo crea en `lib/theme/` con su test. `flutter-dev` no inventa tokens.
+6. Sheets con `showResponsiveSheet`; layout con `ResponsiveBreakpoints.isDesktop` / `isExpanded`; toda vista nueva funciona en compact, medium y expanded.
+7. Montos con `helpers.dart` y `OrtizType.amount`; fechas con `formatDate` / `formatFullDate`.
+8. **No migrar pantallas existentes «de paso»** (spec 05).
 
 ### Checklist de revisión visual (`ui-ux-designer`)
 
 | Severidad | Qué se marca |
 | --- | --- |
-| **Bloqueante** | Pantalla rota o desbordada en alguna clase de ventana; texto ilegible (contraste < 3:1 en texto normal); acción destructiva sin confirmación; flujo de dinero sin confirmación; color de identidad equivocado (otro módulo); estado de error o vacío inexistente que deja la pantalla en blanco. |
-| **Importante** | Color/tamaño/espaciado literal nuevo en lugar de token; sheet sin `showResponsiveSheet`; botón solo-icono sin tooltip/Semantics; objetivo táctil < 48; contraste < 4.5:1 en texto normal; monto formateado a mano; mensaje con `$e`; falta estado de carga; inconsistencia con el patrón del módulo. |
-| **Menor** | Valor fuera de la escala recomendada (p. ej. padding 14, fuente 12.5); sombras/radios distintos a los vecinos; textos mejorables (tono, longitud); orden de elementos. |
+| **Bloqueante** | Pantalla rota o desbordada en alguna clase de ventana; texto ilegible (contraste < 3:1, `faint` en texto que hay que leer, blanco sobre coral); acción destructiva o de dinero sin confirmación; color de identidad equivocado (otra app); estado de error o vacío que deja la pantalla en blanco. |
+| **Importante** | Valor literal nuevo en lugar de token; tarjeta nueva (`Card`, `ClaymorphicCard`, contenedor con sombra); animación que ignora reducir movimiento; sheet sin `showResponsiveSheet`; botón solo-icono sin tooltip/Semantics; objetivo táctil < 48; contraste < 4,5:1; monto formateado a mano o sin `amount`; mensaje con `$e`; falta estado de carga. |
+| **Menor** | Valor fuera de la escala; más de una acción en `accent`; textos mejorables (tono, longitud); orden de elementos. |
 
 Ante la duda, se sube la severidad.

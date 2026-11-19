@@ -1,0 +1,31 @@
+// Movimiento de la suite OrtizApp (spec 01): duraciones, curva y escalonado.
+//
+// Toda animación nueva pide su duración con `OrtizMotion.of(context, …)`, que
+// devuelve cero cuando el sistema pide reducir el movimiento (CA-06).
+import 'package:flutter/widgets.dart';
+
+/// Duraciones y curva comunes. Los valores son `const`; los helpers respetan
+/// `MediaQuery.disableAnimations`.
+abstract final class OrtizMotion {
+  static const Duration fast = Duration(milliseconds: 180); // hover, toggles
+  static const Duration base = Duration(milliseconds: 320); // entradas, hojas
+  static const Duration slow = Duration(milliseconds: 450); // transiciones grandes
+  static const Duration stagger = Duration(milliseconds: 60); // entre elementos
+
+  /// Curva de salida suave (rápida al empezar, se posa al final).
+  static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
+
+  /// True si el sistema pide reducir el movimiento. Sin `MediaQuery` arriba
+  /// se asume que no.
+  static bool reduced(BuildContext context) =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  /// [d], o `Duration.zero` si el movimiento está reducido.
+  static Duration of(BuildContext context, Duration d) =>
+      reduced(context) ? Duration.zero : d;
+
+  /// Retraso del elemento [index] de una lista escalonada (`stagger × index`),
+  /// o `Duration.zero` si el movimiento está reducido.
+  static Duration staggerOf(BuildContext context, int index) =>
+      of(context, stagger * index);
+}

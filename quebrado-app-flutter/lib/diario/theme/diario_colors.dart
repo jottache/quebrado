@@ -1,53 +1,74 @@
 import 'package:flutter/material.dart';
 
-/// Minimalist, unified color palette for Diario Jottache
-/// Anchored on the super app's single primary color (0xFF1F6F5F).
-/// Uses compile-time const colors so they can be safely evaluated in const widgets.
+import '../../theme/ortiz_tokens.dart';
+import '../../theme/suite_apps.dart';
+
+/// Paleta del Diario sobre el tema oscuro de la suite (spec 01, paso 5).
+///
+/// No define hex propios para el primario: lo lee de `SuiteAppColors.diario`
+/// (CA-03), así que cambiar `SuiteAppColors.diarioArgb` recolorea el primario,
+/// su tinte y su borde sin tocar este archivo (CA-02). Los neutrales leen de
+/// `OrtizPalette`. Todo es `const` para poder usarse en widgets `const`.
 class DiarioColors {
-  // Single Unified Primary Color (Matching AppColors.primary)
-  static const Color primary = Color(0xFF1F6F5F);
-  static const Color primaryDark = Color(0xFF154C41);
-  static const Color primaryLight = Color(0xFFE8F3F0); // Subtle 8% primary wash
-  static Color get primaryGlow => primary.withOpacity(0.18);
+  // Primario de la app.
+  static const Color primary = SuiteAppColors.diario;
 
-  // Secondary & Accents map cleanly to the single primary shade
+  /// Antes era un verde más oscuro para texto e iconos sobre fondo claro.
+  /// Sobre el fondo oscuro lo legible es el propio color de la app.
+  static const Color primaryDark = SuiteAppColors.diario;
+
+  /// Fondo suave de chips, selección y avatares.
+  static const Color primaryLight = SuiteAppColors.diarioTint;
+
+  /// Borde o separador con el color de la app.
+  static const Color primaryBorder = SuiteAppColors.diarioBorder;
+  static Color get primaryGlow => primary.withValues(alpha: 0.18);
+
+  // Secundario y acentos: todos apuntan al primario (minimalismo de un color).
   static const Color accent = primary;
-  static const Color secondary = Color(0xFF2FA084);
-  static const Color secondaryLight = Color(0xFFE8F3F0);
+  static const Color secondary = primary;
+  static const Color secondaryLight = SuiteAppColors.diarioTint;
 
-  // Neutral Backgrounds & Surfaces (Minimalist & Clean)
-  static const Color background = Color(0xFFF9FAFB); // Neutral Slate 50
-  static const Color surface = Colors.white;
-  static const Color surfaceHover = Color(0xFFF3F4F6); // Slate 100
-  static const Color cardBorder = Color(0xFFE5E7EB); // Slate 200
+  // Fondos y superficies.
+  static const Color background = OrtizPalette.bg;
+  static const Color surface = OrtizPalette.surface;
+  static const Color surfaceHover = OrtizPalette.surfaceHigh;
+  static const Color cardBorder = OrtizPalette.line;
 
-  // Semantic Colors (Neutralized to preserve single-color minimalism)
+  // Alias semánticos que a propósito apuntan al primario.
   static const Color amber = primary;
-  static const Color amberLight = Color(0xFFF3F4F6);
+
+  /// Era un gris neutro (no un ámbar): se mantiene neutro.
+  static const Color amberLight = OrtizPalette.surfaceHigh;
 
   static const Color emerald = primary;
-  static const Color emeraldLight = Color(0xFFE8F3F0);
+  static const Color emeraldLight = SuiteAppColors.diarioTint;
 
-  // Only red for destructive actions (e.g. Delete)
-  static const Color rose = Color(0xFFDC2626);
-  static const Color roseLight = Color(0xFFFEE2E2);
+  // Solo rojo para acciones destructivas (p. ej. borrar).
+  static const Color rose = OrtizPalette.bad;
+
+  /// Fondo lavado del rojo de borrar.
+  static const Color roseLight = OrtizPalette.badTint;
 
   static const Color purple = primary;
-  static const Color purpleLight = Color(0xFFE8F3F0);
+  static const Color purpleLight = SuiteAppColors.diarioTint;
 
   static const Color blue = primary;
-  static const Color blueLight = Color(0xFFE8F3F0);
+  static const Color blueLight = SuiteAppColors.diarioTint;
 
   static const Color cyan = primary;
-  static const Color cyanLight = Color(0xFFE8F3F0);
+  static const Color cyanLight = SuiteAppColors.diarioTint;
 
-  // Typography
-  static const Color textPrimary = Color(0xFF111827); // Dark Slate
-  static const Color textSecondary = Color(0xFF4B5563); // Muted Slate
-  static const Color textMuted = Color(0xFF9CA3AF); // Light Slate
+  // Texto.
+  static const Color textPrimary = OrtizPalette.fg;
+  static const Color textSecondary = OrtizPalette.muted;
 
-  // Minimalist Unified Avatar Palette
-  static const Color avatarBackground = Color(0xFFE8F3F0);
+  /// Se usa en textos que hay que leer (fechas, etiquetas, «Sin registros»),
+  /// por eso es `muted` y no `faint` (que solo es decorativo, CA-04).
+  static const Color textMuted = OrtizPalette.muted;
+
+  // Avatares.
+  static const Color avatarBackground = SuiteAppColors.diarioTint;
   static const Color avatarText = primary;
 
   static Color getAvatarColor(String seed) {

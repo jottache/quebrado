@@ -23,5 +23,4 @@ test/multi_currency_balance_test.dart::AppState multi-currency transactions upda
 # INESTABLE: en un clon limpio o tras `flutter clean` puede pasar (P-14).
 ~test/mobile_payment_recipient_test.dart::AppState mobile payment recipient operations are correct
 
-# Sin mocks de los canales de plataforma (pasteboard, path_provider) → MissingPluginException y la imagen sale null.
-test/diario_clipboard_image_test.dart::Diario Clipboard Image Tests readImageFromClipboard works without exceptions
+# (2026-11-17, spec 01) Quitado: test/diario_clipboard_image_test.dart::…readImageFromClipboard… ahora pasa.

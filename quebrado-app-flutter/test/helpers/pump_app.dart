@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:quebrado_app_flutter/theme/colors.dart';
+import 'package:quebrado_app_flutter/theme/ortiz_theme.dart';
 
 /// Clases de ventana del proyecto (breakpoints 600 / 840 / 1200).
 enum WindowClass {
@@ -38,40 +38,8 @@ enum WindowClass {
   final Size size;
 }
 
-/// Tema de main.dart sin GoogleFonts. Si cambias el tema de la app, actualiza esto.
-ThemeData testAppTheme() => ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: AppColors.background,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        surface: AppColors.background,
-      ),
-      iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          backgroundColor: AppColors.primary.withOpacity(0.12),
-        ),
-      ),
-      appBarTheme: AppBarTheme(
-        centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.primary),
-        actionsIconTheme: IconThemeData(color: AppColors.primary),
-        titleTextStyle: const TextStyle(
-          color: Colors.black87,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-        },
-      ),
-    );
+/// Tema real de la app (el mismo `OrtizTheme.dark` que usa main.dart).
+ThemeData testAppTheme() => OrtizTheme.dark;
 
 /// Fija el tamaño lógico de la ventana (devicePixelRatio 1) y lo restaura al final.
 void setWindowSize(WidgetTester tester, Size size) {

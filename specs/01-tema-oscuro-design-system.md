@@ -1,6 +1,6 @@
 # 01 — Tema oscuro y design system v2
 
-- **Estado:** Aprobado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
+- **Estado:** Implementado <!-- Borrador | En revisión | Aprobado | Implementado | Obsoleto -->
 - **Depende de:** ninguna
 - **Fecha:** 2026-11-17
 - **Módulo(s):** suite (`lib/theme/`, `main.dart`) y las clases de color de todos los módulos
@@ -99,7 +99,7 @@ No aplica.
 
 ## Preguntas abiertas
 - ~~PA-01~~, ~~PA-02~~, ~~PA-03~~: resueltas (ver Decisiones).
-- **PA-04** ¿Se despliega en Vercel cada spec apenas termina, aceptando la transición, o se espera a que las specs 01, 02 y 05 estén listas?
+- ~~PA-04~~ resuelta el 2026-11-17: **no se despliega en Vercel** hasta tener la spec 02 y el primer bloque de la 05 (la persona eligió la opción recomendada).
 
 ## Qué NO entra
 - Corregir el solape de `isMedium` e `isDesktop` (P-23).
@@ -107,4 +107,28 @@ No aplica.
 
 ## Pasos manuales
 - Ninguno en Supabase.
-- La persona aprueba la skill `ortiz-dark-ui` antes de que la usen las specs 02–05.
+- ~~La persona aprueba la skill `ortiz-dark-ui`~~: aprobada por la persona el 2026-11-17.
+- No desplegar en Vercel hasta la spec 02 + primer bloque de la 05 (PA-04).
+
+## Implementación (2026-11-17, rama `spec-01-tema-oscuro-design-system`)
+**Verificación de criterios**
+| CA | Resultado | Evidencia |
+| --- | --- | --- |
+| CA-01 | CUMPLE | `test/theme/ortiz_theme_test.dart` (brightness dark, `scaffoldBackgroundColor` = `bg`, extensión registrada) |
+| CA-02 | CUMPLE | Cada app es un entero `SuiteAppColors.xxxArgb`; tinte y borde se derivan en `const`; los tests de cada clase comparan contra el símbolo |
+| CA-03 | CUMPLE | Tests espejo de las 6 clases de módulo + `AppColors`; revisor |
+| CA-04 | CUMPLE | `fg` 13,7–16,1:1 y `muted` 5,3–6,2:1 sobre `bg`/`surface`/`surfaceHigh`; `faint` solo decorativo y en bordes |
+| CA-05 | CUMPLE (con nota) | Fuentes en `assets/fonts/` (OFL), `FontManifest` del build web; la UI ya no usa `GoogleFonts`. Fuera de la UI queda la exportación PDF de Notas (`PdfGoogleFonts`) y un import sin uso (P-35) |
+| CA-06 | CUMPLE | `test/theme/ortiz_motion_test.dart` |
+| CA-07 | CUMPLE | Puerta verde: analyze 0/0, 440 tests (4 fallos conocidos), cobertura 31,95 % ≥ 31,3 % |
+
+**Desviaciones y añadidos**
+- Tokens de espaciado y radio en `lib/theme/ortiz_space.dart` (`OrtizSpace`, `OrtizRadius`); el plan no los nombraba como archivo.
+- `lib/theme/ortiz_theme.dart` concentra el `ThemeData`; `main.dart` solo lo usa.
+- `OrtizPalette` expone `accentArgb`/`warnArgb`/`badArgb` y tonos `const` (`accentTint`, `warnTint`, `warnBorder`, `badTint`) para no copiar enteros en los módulos.
+- No se creó el tono `strong` de `SuiteApp` (sin definición; se decide cuando haga falta).
+- Fuera de los archivos de tema se tocaron: `widgets/responsive_sheet_helper.dart` (P-31), `rich_editor/custom_blocks.dart` (bloque de código y fuente), `quebrado/widgets/dashboard_charts_card.dart` (colores de series), `web/index.html`, `web/manifest.json` y el splash en `pubspec.yaml` (fondo oscuro), y `test/helpers/pump_app.dart` (tema real en los widget tests).
+- Revisión visual: bordes de campo en `faint`, chip seleccionado con borde `accent`, foco de teclado visible (2 px `fg`), P2 = `warn`, P3 = color de Recordatorios, `AgenteColors.primaryLight` = `accentTint`.
+- Decisión de la persona en el cierre: `AppColors.creationColors` pasa a una paleta nueva sacada de los tokens (coral, dorado, cielo, lavanda, rosa, menta, ámbar, crema) para lo que se cree desde ahora; lo ya guardado conserva su hex.
+- Se quitó de `.claude/known-failures` un test que ahora pasa (`diario_clipboard_image_test`).
+- Transición R-01 documentada en `docs/pendientes.md` (P-27…P-30, P-32…P-39) para la spec 05.

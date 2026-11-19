@@ -20,6 +20,10 @@ class DashboardChartsCard extends StatefulWidget {
 class _DashboardChartsCardState extends State<DashboardChartsCard> {
   int _activeTab = 0; // 0: Flujo de Caja, 1: Categorías, 2: Tendencia
 
+  // Opacidad de las series individuales (no recurrentes) del flujo de caja:
+  // mismo tono que su serie recurrente, atenuado para distinguirlas.
+  static const double _oneOffAlpha = 0.5;
+
   // Helper for currency conversion
   double _convertToDisplayCurrency(
     double amount,
@@ -177,11 +181,12 @@ class _DashboardChartsCardState extends State<DashboardChartsCard> {
 
     final events = appState.getTimelineEvents(120);
 
-    // Color definitions for cash flow lines
-    final Color colIngRec = AppColors.primary; // Teal/Primary
-    final Color colIngInd = AppColors.accent;  // Accent Green
-    final Color colEgrRec = AppColors.expense; // Expense Red
-    Color colEgrInd = Color(0xFFE28743);  // Orange/Amber
+    // Colores de las series: ingresos en `income` y egresos en `expense`
+    // (PA-02); lo recurrente en el tono pleno y lo individual atenuado.
+    const Color colIngRec = AppColors.income;
+    final Color colIngInd = AppColors.income.withValues(alpha: _oneOffAlpha);
+    const Color colEgrRec = AppColors.expense;
+    final Color colEgrInd = AppColors.expense.withValues(alpha: _oneOffAlpha);
 
     List<FlSpot> incRecSpots = [];
     List<FlSpot> incIndSpots = [];
